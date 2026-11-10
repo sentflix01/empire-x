@@ -21,6 +21,7 @@ import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import RequestPricing from '@/components/orders/RequestPricing';
 import { MessageCircle, type LucideIcon } from 'lucide-react';
 import { useStartChat } from '@/lib/messaging';
+import { canOptimizeImage } from '@/lib/media';
 
 const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   pending:    { label: "Pending",    icon: Clock,        color: "text-warning bg-warning-subtle border-warning/30" },
@@ -526,7 +527,7 @@ function Orders() {
                                 alt={order.product_title}
                                 fill
                                 className="object-cover"
-                                unoptimized
+                                unoptimized={!canOptimizeImage((() => { try { const imgs = JSON.parse(order.product_images); return Array.isArray(imgs) ? imgs[0] : imgs; } catch { return order.product_images; } })())}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

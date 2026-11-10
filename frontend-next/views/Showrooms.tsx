@@ -122,12 +122,14 @@ function Showrooms() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filtered.map(s => (
+            {filtered.map((s, i) => (
               <div key={s.id} className="relative group">
                 <Link href={`/showrooms/${s.id}`} className="bg-card rounded-2xl border border-border/50 overflow-hidden hover:shadow-md transition-all block group">
                   <div className="h-28 relative overflow-hidden bg-primary-subtle">
                     {s.cover_image ? (
-                      <SafeImage fill={false} width={800} height={600} loading="lazy"
+                      <SafeImage fill={false} width={800} height={600}
+                        sizes="(max-width: 768px) 100vw, 448px"
+                        priority={i === 0}
                         src={s.cover_image}
                         alt={s.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

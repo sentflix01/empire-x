@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import UserIdentity from '@/components/ui/UserIdentity';
+import { canOptimizeImage } from '@/lib/media';
 
 // Leaflet modules — assigned after dynamic import inside loadLeaflet()
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
@@ -462,7 +463,7 @@ function NearbyMap() {
                   <Link href={`/products/${p.id}`} onClick={e => e.stopPropagation()}>
                     <div className="aspect-square bg-secondary/20 overflow-hidden relative">
                       {imgs[0]
-                        ? <Image src={imgs[0]} alt={p.title} fill className="object-cover" unoptimized />
+                        ? <Image src={imgs[0]} alt={p.title} fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover" unoptimized={!canOptimizeImage(imgs[0])} />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>
                       }
                     </div>

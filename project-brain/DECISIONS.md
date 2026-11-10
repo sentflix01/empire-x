@@ -39,6 +39,15 @@ documents when verified; do not copy stale values into new work.
 - Decide whether the engineering handbook's broad statements (for example,
   mandatory feature flags or endpoint versioning) are universal requirements
   or recommendations, then align them with actual practice.
+- **Owner to confirm (2026-11-09):** photos now go through the Vercel image
+  optimizer (`next/image`, `canOptimizeImage` in `frontend-next/lib/media.ts`)
+  instead of downloading the ~1 MB original upload. Measured locally: 11–15 MB
+  per feed/marketplace/showrooms page before (see
+  `note/2026-11-09-performance-audit/`). Vercel counts and limits image
+  transformations per plan; check the project's usage after deploy. If the
+  quota is a problem, the alternatives are resizing on upload in the backend
+  (TD-009, `sharp` is already a dependency) or a storage-side resizer (R2/Cloudflare
+  Images), not going back to full-size originals.
 
 ## Accepted feature decisions
 

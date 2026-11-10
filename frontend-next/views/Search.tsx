@@ -13,6 +13,7 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import UserIdentity from '@/components/ui/UserIdentity';
+import { canOptimizeImage } from '@/lib/media';
 
 // ── Category tabs ────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
@@ -333,7 +334,7 @@ function Search() {
                     className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow group">
                     <div className="aspect-square bg-secondary/30 relative overflow-hidden">
                       {imgs[0]
-                        ? <Image src={imgs[0]} alt={p.title || ''} width={200} height={200} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" unoptimized />
+                        ? <Image src={imgs[0]} alt={p.title || ''} width={200} height={200} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" unoptimized={!canOptimizeImage(imgs[0])} />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-8 h-8 text-muted-foreground/20" /></div>
                       }
                       {p.status === 'sold_out' && (
@@ -367,7 +368,7 @@ function Search() {
               <Link key={s.id} href={`/showrooms/${s.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0 overflow-hidden">
-                  {s.logo_url ? <Image src={s.logo_url} alt={s.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <BrandLogo className="w-5 h-5 text-primary" />}
+                  {s.logo_url ? <Image src={s.logo_url} alt={s.title || ''} width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized={!canOptimizeImage(s.logo_url)} /> : <BrandLogo className="w-5 h-5 text-primary" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -387,7 +388,7 @@ function Search() {
               <div key={p.id} className="p-3 rounded-xl hover:bg-secondary/50 transition-colors border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                    {p.author_avatar ? <Image src={p.author_avatar} alt={p.author_name || ''} width={24} height={24} className="w-full h-full object-cover rounded-full" unoptimized /> : p.author_name?.charAt(0)}
+                    {p.author_avatar ? <Image src={p.author_avatar} alt={p.author_name || ''} width={24} height={24} className="w-full h-full object-cover rounded-full" unoptimized={!canOptimizeImage(p.author_avatar)} /> : p.author_name?.charAt(0)}
                   </div>
                   <p className="text-xs font-medium">{p.author_name}</p>
                   <p className="text-[10px] text-muted-foreground ml-auto">{fromNow(p.created_at)}</p>

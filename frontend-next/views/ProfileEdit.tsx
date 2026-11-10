@@ -34,6 +34,7 @@ import TickerBar, { TICKER_TYPES } from '@/components/feed/TickerBar';
 import { toast } from 'sonner';
 import VerificationRequest from '@/components/profile/VerificationRequest';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { canOptimizeImage } from '@/lib/media';
 
 // ── Section wrapper ────────────────────────────────────────────────────────
 function Section({ icon: Icon, title, children, defaultOpen = true }: {
@@ -398,7 +399,7 @@ function ProfileEdit() {
                 ) : (
                   <>
                     {p.cover_url && typeof p.cover_url === 'string' && p.cover_url && (
-                      <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized
+                      <Image src={p.cover_url} alt="Cover" fill className="object-cover" unoptimized={!canOptimizeImage(p.cover_url)}
                         style={{ objectPosition: p.cover_position || 'center' }} />
                     )}
                     <div data-page-guide="profile-edit-cover" className="absolute inset-0 flex items-center justify-center">
@@ -422,7 +423,7 @@ function ProfileEdit() {
                 <div className="relative">
                   <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {p.avatar_url && typeof p.avatar_url === 'string' && p.avatar_url
-                      ? <Image src={p.avatar_url} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" unoptimized />
+                      ? <Image src={p.avatar_url} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(p.avatar_url)} />
                       : (p.display_name?.charAt(0) || 'U')}
                   </div>
                   <div data-page-guide="profile-edit-avatar" className="absolute inset-0 rounded-2xl overflow-hidden">
@@ -576,7 +577,7 @@ function ProfileEdit() {
                 ) : (
                   <>
                     {b.business_cover_url && typeof b.business_cover_url === 'string' && b.business_cover_url && (
-                      <Image src={b.business_cover_url} alt="Cover" fill className="object-cover" unoptimized
+                      <Image src={b.business_cover_url} alt="Cover" fill className="object-cover" unoptimized={!canOptimizeImage(b.business_cover_url)}
                         style={{ objectPosition: b.business_cover_position || 'center' }} />
                     )}
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -599,7 +600,7 @@ function ProfileEdit() {
                 <div className="relative w-20 h-20">
                   <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {b.business_logo_url && typeof b.business_logo_url === 'string' && b.business_logo_url
-                      ? <Image src={b.business_logo_url} alt="Logo" width={80} height={80} className="w-full h-full object-cover" unoptimized />
+                      ? <Image src={b.business_logo_url} alt="Logo" width={80} height={80} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(b.business_logo_url)} />
                       : (b.business_name?.charAt(0) || 'B')}
                   </div>
                   <div className="absolute inset-0 rounded-2xl overflow-hidden">

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import BookmarkButton from '@/components/ui/BookmarkButton';
 import { useTranslation } from 'react-i18next';
 import { formatAmount } from '@/lib/money';
+import { canOptimizeImage } from '@/lib/media';
 
 interface Product {
   id: string;
@@ -22,9 +23,11 @@ interface Product {
 interface ProductCardProps {
   product: Product;
   images: string[];
+  /** First row on screen: load the photo right away (it is usually the LCP). */
+  eager?: boolean;
 }
 
-export default function ProductCard({ product, images }: ProductCardProps) {
+export default function ProductCard({ product, images, eager = false }: ProductCardProps) {
   const { t } = useTranslation();
 
   return (
@@ -37,8 +40,11 @@ export default function ProductCard({ product, images }: ProductCardProps) {
                 src={images[0]}
                 alt={product.title}
                 fill
+                sizes="(max-width: 768px) 50vw, 300px"
+                loading={eager ? 'eager' : 'lazy'}
+                fetchPriority={eager ? 'high' : 'auto'}
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
-                unoptimized
+                unoptimized={!canOptimizeImage(images[0])}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">

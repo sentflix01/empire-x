@@ -21,6 +21,7 @@ import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
 import { HEX, IDENTITY } from '@/lib/colorTokens';
+import { canOptimizeImage } from '@/lib/media';
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -536,7 +537,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </Link>
                 <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
                   {avatarUrl
-                    ? <Image src={avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
+                    ? <Image src={avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(avatarUrl)} />
                     : userInitial}
                 </Link>
               </>
@@ -575,14 +576,14 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               {/* Cover + avatar */}
               <div className="relative h-20 bg-primary">
                 {coverUrl && (
-                  <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
+                  <Image src={coverUrl} alt="" fill sizes="320px" className="object-cover" unoptimized={!canOptimizeImage(coverUrl)} />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 {hasSignedInUser ? (
                   <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
                     {avatarUrl
-                      ? <Image src={avatarUrl} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                      ? <Image src={avatarUrl} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(avatarUrl)} />
                       : userInitial}
                   </Link>
                 ) : (
@@ -608,7 +609,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               {hasSignedInUser ? <Link href="/profile" aria-label={`Profile: ${displayName}`} className="relative group">
                 <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm">
                   {avatarUrl
-                    ? <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
+                    ? <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(avatarUrl)} />
                     : userInitial}
                 </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -908,7 +909,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
                 <div className="relative h-40 shrink-0 bg-primary">
                   {coverUrl && (
-                    <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
+                    <Image src={coverUrl} alt="" fill sizes="84vw" className="object-cover" unoptimized={!canOptimizeImage(coverUrl)} />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
@@ -927,7 +928,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                     <Link href="/profile" onClick={() => setDrawerOpen(false)}
                       className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-xl">
                       {avatarUrl
-                        ? <Image src={avatarUrl} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
+                        ? <Image src={avatarUrl} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(avatarUrl)} />
                         : userInitial}
                     </Link>
                   ) : (

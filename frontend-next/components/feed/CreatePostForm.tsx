@@ -6,6 +6,7 @@ import type { AuthUser } from "@/lib/AuthContext";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
 import { useTranslation } from 'react-i18next';
+import { canOptimizeImage } from '@/lib/media';
 
 interface CreatePostFormProps {
   user: AuthUser | null;
@@ -62,7 +63,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
       {/* Image preview (shown above input when selected) */}
       {imagePreview && (
         <div className="relative mb-2">
-          <NextImage src={imagePreview} alt="Preview" width={600} height={160} className="rounded-xl max-h-40 object-cover w-full" unoptimized />
+          <NextImage src={imagePreview} alt="Preview" width={600} height={160} className="rounded-xl max-h-40 object-cover w-full" unoptimized={!canOptimizeImage(imagePreview)} />
           <button
             type="button"
             onClick={handleRemoveImage}
@@ -79,7 +80,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
         {/* User avatar */}
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
-            ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized />
+            ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(user.avatar_url)} />
             : (user?.full_name?.charAt(0) || "E")}
         </div>
 

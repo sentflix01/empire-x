@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { resolveMediaUrl } from '@/lib/media';
+import { canOptimizeImage, resolveMediaUrl } from '@/lib/media';
 
 type SafeImageProps = Omit<React.ComponentPropsWithoutRef<'img'>, 'src' | 'onError' | 'width' | 'height'> & {
   src?: unknown;
@@ -16,7 +16,9 @@ type SafeImageProps = Omit<React.ComponentPropsWithoutRef<'img'>, 'src' | 'onErr
 };
 
 /**
- * Safe wrapper around next/image with fallback support.
+ * Safe wrapper around next/image with fallback support. Images go through the
+ * optimizer (resized WebP/AVIF) whenever canOptimizeImage allows; pass `sizes`
+ * so phones pick a small file.
  * Uses `fill` by default for responsive sizing inside relative containers.
  * Falls back to native <img> when src is invalid/unresolvable.
  */
@@ -55,12 +57,12 @@ export default function SafeImage({
         width={width ?? 800}
         height={height ?? 450}
         sizes={sizes}
-        priority={priority}
+        fetchPriority={priority ? 'high' : undefined}
         loading={priority ? 'eager' : 'lazy'}
         onError={handleError}
         className={className}
         style={style}
-        unoptimized
+        unoptimized={!canOptimizeImage(resolvedSrc)}
         {...props}
       />
     );
@@ -72,11 +74,12 @@ export default function SafeImage({
       alt={alt || ''}
       fill={fill}
       sizes={sizes}
-      priority={priority}
+      fetchPriority={priority ? 'high' : undefined}
       loading={priority ? 'eager' : 'lazy'}
       onError={handleError}
       className={className}
       style={style}
+      unoptimized={!canOptimizeImage(resolvedSrc)}
       {...props}
     />
   );

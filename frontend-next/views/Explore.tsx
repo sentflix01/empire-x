@@ -11,6 +11,7 @@ import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { canOptimizeImage } from '@/lib/media';
 
 function ProductThumbnail({ src, title }: { src?: string; title: string }) {
   const [failed, setFailed] = useState(false);
@@ -24,7 +25,7 @@ function ProductThumbnail({ src, title }: { src?: string; title: string }) {
           sizes="(max-width: 640px) 50vw, 240px"
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           onError={() => setFailed(true)}
-          unoptimized
+          unoptimized={!canOptimizeImage(src)}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
@@ -132,7 +133,8 @@ function Explore() {
                 <Link key={s.id} href={`/showrooms/${s.id}`} className="rounded-xl border border-border/40 overflow-hidden hover:shadow-sm transition-shadow">
                   <div className="h-24 relative bg-primary-subtle overflow-hidden">
                     {(s.cover_image || s.logo_url) ? (
-                      <SafeImage fill={false} width={800} height={600} loading="lazy"
+                      <SafeImage fill={false} width={800} height={600}
+                        sizes="(max-width: 700px) 50vw, 336px"
                         src={s.cover_image || s.logo_url}
                         alt={s.title}
                         className="w-full h-full object-cover"

@@ -22,6 +22,7 @@ import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { BRAND } from '@/lib/brandAssets';
+import { canOptimizeImage } from '@/lib/media';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -172,7 +173,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
       {/* Cover */}
       <div className="relative h-24 overflow-hidden">
         {coverUrl
-          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
+          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill sizes="(max-width: 700px) 100vw, 672px" className="object-cover" unoptimized={!canOptimizeImage(coverUrl)} />
           : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${color}, ${color}99)` }}>
               <div className="w-full h-full opacity-10" style={{
                 backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -192,7 +193,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             <div className="w-14 h-14 rounded-xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
               style={{ backgroundColor: color }}>
               {logoUrl
-                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={40} height={40} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(logoUrl)} />
                 : <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
                     {bizName.charAt(0)}
                   </div>}
@@ -236,7 +237,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                       <div className="flex flex-col items-center mb-4">
                         <div className="w-14 h-14 rounded-xl border-2 overflow-hidden mb-2 shadow-sm" style={{ borderColor: color, backgroundColor: color }}>
                           {logoUrl
-                            ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
+                            ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(logoUrl)} />
                             : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
                         </div>
                         <h3 className="font-bold text-sm text-center text-foreground leading-tight px-2">{bizName}</h3>
@@ -316,7 +317,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                 width={16}
                 height={16}
                 className="w-4 h-4 rounded-full object-cover shrink-0"
-                unoptimized
+                unoptimized={!canOptimizeImage(ownerAvatarUrl)}
               />
             ) : (
               <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
@@ -669,7 +670,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       {/* Cover */}
       <div className="relative h-28 overflow-hidden">
         {coverUrl
-          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill className="object-cover" unoptimized />
+          ? <NextImage src={coverUrl} alt={`${bizName}'s cover`} fill sizes="(max-width: 700px) 100vw, 672px" className="object-cover" unoptimized={!canOptimizeImage(coverUrl)} />
           : <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}>
               <div className="w-full h-full opacity-10" style={{
                 backgroundImage: 'repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)',
@@ -691,7 +692,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
               style={{ backgroundColor: fillForWhiteText(themeColor) }}>
               {logoUrl
-                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={48} height={48} className="w-full h-full object-cover" unoptimized={!canOptimizeImage(logoUrl)} />
                 : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
                     {bizName.charAt(0)}
                   </div>}

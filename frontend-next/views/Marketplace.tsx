@@ -212,10 +212,10 @@ function Marketplace() {
         ) : (
           <>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {filtered.map(product => {
+            {filtered.map((product, i) => {
               const images = parseImages(product.images);
               return (
-                <ProductCard key={product.id} product={product} images={images} />
+                <ProductCard key={product.id} product={product} images={images} eager={i < 2} />
               );
             })}
           </div>

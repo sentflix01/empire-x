@@ -13,6 +13,7 @@ import BookmarkButton from "@/components/ui/BookmarkButton";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/lib/AuthContext";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { canOptimizeImage } from '@/lib/media';
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -110,7 +111,7 @@ function Bookmarks() {
                     {/* Thumbnail */}
                     <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
                       {imgs[0]
-                        ? <NextImage src={imgs[0]} alt={a.title} fill className="object-cover" unoptimized />
+                        ? <NextImage src={imgs[0]} alt={a.title} fill sizes="56px" className="object-cover" unoptimized={!canOptimizeImage(imgs[0])} />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-muted-foreground/20"/></div>}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -164,7 +165,7 @@ function Bookmarks() {
                   <div key={target_id} className="bg-card rounded-2xl border border-border/50 p-4 flex items-start gap-3">
                     {thumbnailUrl && (
                       <div className="w-12 h-12 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
-                        <NextImage src={thumbnailUrl} alt={title || target_type} fill className="object-cover" unoptimized />
+                        <NextImage src={thumbnailUrl} alt={title || target_type} fill sizes="48px" className="object-cover" unoptimized={!canOptimizeImage(thumbnailUrl)} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">

@@ -123,7 +123,7 @@
 ---
 
 ### TD-009: Image optimization pipeline
-**Status:** Not started  
+**Status:** Partly done (2026-11-09) — delivery: photos on HTTPS storage go through `next/image` (resized WebP/AVIF, `sizes` per layout; `canOptimizeImage` in `frontend-next/lib/media.ts`). Upload-side resizing is still not started.  
 **Problem:** Images uploaded to R2 are stored as-is (original size). Large images slow down the marketplace and profile pages.  
 **Fix:** Add Cloudflare Workers image resize transform on R2 public URL. Or use `next/image` with R2 domain configured in `next.config.ts`.  
 **Impact:** Page load performance, mobile experience.

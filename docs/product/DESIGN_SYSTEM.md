@@ -222,11 +222,18 @@ All spacing uses **Tailwind's 4px base unit**:
 /* User avatar with fallback initial */
 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
   {avatarUrl 
-    ? <Image src={avatarUrl} alt={name} fill className="object-cover" unoptimized />
+    ? <Image src={avatarUrl} alt={name} fill sizes="40px" className="object-cover" unoptimized={!canOptimizeImage(avatarUrl)} />
     : name.charAt(0).toUpperCase()
   }
 </div>
 ```
+
+Photos (avatars, covers, products, posts) go through the Next.js image
+optimizer: set `sizes` to the displayed width and use
+`unoptimized={!canOptimizeImage(src)}` from `lib/media.ts` (or `SafeImage`,
+which does this). Never a bare `unoptimized` on an uploaded photo — uploads are
+stored at full size (about 1 MB from a phone). The first image on screen gets
+`loading="eager"` and `fetchPriority="high"`.
 
 ### Loading States
 

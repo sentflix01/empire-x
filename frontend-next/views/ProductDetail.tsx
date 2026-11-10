@@ -18,6 +18,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { useStartChat } from '@/lib/messaging';
+import { canOptimizeImage } from '@/lib/media';
 
 function ProductDetail() {
   const params = useParams();
@@ -165,7 +166,7 @@ function ProductDetail() {
         {/* Image Gallery */}
         <div className="aspect-square bg-secondary/30 relative overflow-hidden">
           {images.length > 0 ? (
-            <Image src={images[selectedImage]} alt={product.title} fill className="object-cover" unoptimized />
+            <Image src={images[selectedImage]} alt={product.title} fill sizes="(max-width: 700px) 100vw, 672px" loading="eager" fetchPriority="high" className="object-cover" unoptimized={!canOptimizeImage(images[selectedImage])} />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-6xl">🛍️</div>
           )}
@@ -181,7 +182,7 @@ function ProductDetail() {
           <div className="flex gap-2 p-3 overflow-x-auto">
             {images.map((img, i) => (
               <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all relative ${i === selectedImage ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"}`}>
-                <Image src={img} alt={`${product.title} thumbnail`} fill className="object-cover" unoptimized />
+                <Image src={img} alt={`${product.title} thumbnail`} fill sizes="64px" className="object-cover" unoptimized={!canOptimizeImage(img)} />
               </button>
             ))}
           </div>

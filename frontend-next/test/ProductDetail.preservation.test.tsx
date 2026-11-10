@@ -204,6 +204,12 @@ function setupMocks(
   (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockResolvedValue([SELLER_PROFILE]);
 }
 
+/** The photo an <img> shows, whether direct or through the Next.js image optimizer. */
+function photoUrl(img: HTMLImageElement): string {
+  const src = new URL(img.src, 'http://localhost');
+  return src.pathname === '/_next/image' ? src.searchParams.get('url') ?? '' : img.src;
+}
+
 // ─── Helper: render and wait for product to load ──────────────────────────────
 async function renderAndWait() {
   let container: HTMLElement;
@@ -388,7 +394,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
       img => (img as HTMLImageElement).alt === BASE_PRODUCT.title
     ) as HTMLImageElement;
     expect(mainImg).toBeTruthy();
-    expect(mainImg.src).toBe(IMAGES[0]);
+    expect(photoUrl(mainImg)).toBe(IMAGES[0]);
 
     // Find thumbnail buttons in the thumbnail strip
     // Thumbnails are buttons wrapping images with alt="* thumbnail"
@@ -404,7 +410,7 @@ describe('Preservation: Existing ProductDetail Interactions Unchanged', () => {
       const updatedImg = screen.getAllByRole('img').find(
         img => (img as HTMLImageElement).alt === BASE_PRODUCT.title
       ) as HTMLImageElement;
-      expect(updatedImg.src).toBe(IMAGES[1]);
+      expect(photoUrl(updatedImg)).toBe(IMAGES[1]);
     }, { timeout: 3000 });
   });
 
