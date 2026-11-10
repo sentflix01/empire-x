@@ -35,4 +35,16 @@ describe('QrVisitorActions', () => {
     const { container } = render(<QrVisitorActions />);
     expect(container.innerHTML).toBe('');
   });
+
+  it('is already there for a likely guest while the check runs (no layout shift)', () => {
+    auth.authChecked = false;
+    render(<QrVisitorActions likelyGuest />);
+    expect(screen.getByRole('link', { name: /back to landing/i })).toBeTruthy();
+  });
+
+  it('hides for a likely guest who turns out to be signed in', () => {
+    auth.isAuthenticated = true;
+    const { container } = render(<QrVisitorActions likelyGuest />);
+    expect(container.innerHTML).toBe('');
+  });
 });

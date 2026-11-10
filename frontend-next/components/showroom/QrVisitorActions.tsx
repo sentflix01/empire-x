@@ -10,9 +10,15 @@ import { ArrowLeft } from 'lucide-react';
 import TryDemoButton from '@/components/landing/TryDemoButton';
 import { useAuth } from '@/lib/AuthContext';
 
-export default function QrVisitorActions() {
+/**
+ * likelyGuest: the server saw no sign-in hint cookie (nb_auth), so the bar is
+ * in the first HTML instead of appearing above the page once the sign-in check
+ * finishes, which pushed the whole page down (CLS 0.13, performance audit
+ * 2026-11-09). Without the hint it still waits for the check.
+ */
+export default function QrVisitorActions({ likelyGuest = false }: { likelyGuest?: boolean }) {
   const { isAuthenticated, authChecked } = useAuth();
-  if (!authChecked || isAuthenticated) return null;
+  if (isAuthenticated || (!authChecked && !likelyGuest)) return null;
 
   return (
     <nav aria-label="Visitor" className="mx-auto mb-4 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

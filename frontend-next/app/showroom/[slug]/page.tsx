@@ -7,6 +7,7 @@
  * the interactive page is the client ShowroomView.
  */
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import ShowroomView from '@/views/ShowroomView';
 import MainContent from '@/components/layout/MainContent';
 import QrVisitorActions from '@/components/showroom/QrVisitorActions';
@@ -17,10 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return showroomMetadata(slug);
 }
 
-export default function PublicShowroomBySlugPage() {
+export default async function PublicShowroomBySlugPage() {
+  // The non-sensitive sign-in hint cookie (set at login, see api/client.ts).
+  const likelyGuest = (await cookies()).get('nb_auth')?.value !== '1';
   return (
     <MainContent className="min-h-screen bg-background px-4 py-6">
-      <QrVisitorActions />
+      <QrVisitorActions likelyGuest={likelyGuest} />
       <ShowroomView />
     </MainContent>
   );
