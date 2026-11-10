@@ -8207,7 +8207,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:342"
+        "x-source": "backend/routes/products.ts:343"
       }
     },
     "/api/products/mine": {
@@ -8413,7 +8413,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:397"
+        "x-source": "backend/routes/products.ts:398"
       },
       "delete": {
         "operationId": "delete_products_id",
@@ -8451,7 +8451,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:480"
+        "x-source": "backend/routes/products.ts:481"
       }
     },
     "/api/products/bulk-import": {
@@ -8481,7 +8481,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:492"
+        "x-source": "backend/routes/products.ts:493"
       }
     },
     "/api/profile-partnerships/mine": {
@@ -8869,7 +8869,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:133"
+        "x-source": "backend/routes/profiles.ts:136"
       }
     },
     "/api/profiles/by-user/{userId}": {
@@ -8907,7 +8907,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/profiles.ts:141"
+        "x-source": "backend/routes/profiles.ts:144"
       }
     },
     "/api/profiles/me/follows": {
@@ -8934,7 +8934,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:155"
+        "x-source": "backend/routes/profiles.ts:158"
       }
     },
     "/api/profiles/follows": {
@@ -8961,7 +8961,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:162"
+        "x-source": "backend/routes/profiles.ts:165"
       }
     },
     "/api/profiles/{id}": {
@@ -8999,7 +8999,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/profiles.ts:169"
+        "x-source": "backend/routes/profiles.ts:172"
       },
       "put": {
         "operationId": "put_profiles_id",
@@ -9040,7 +9040,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:268"
+        "x-source": "backend/routes/profiles.ts:281"
       }
     },
     "/api/profiles": {
@@ -9065,7 +9065,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/profiles.ts:188"
+        "x-source": "backend/routes/profiles.ts:191"
       },
       "post": {
         "operationId": "post_profiles",
@@ -9093,7 +9093,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:231"
+        "x-source": "backend/routes/profiles.ts:244"
       }
     },
     "/api/profiles/me/upsert": {
@@ -9123,7 +9123,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:248"
+        "x-source": "backend/routes/profiles.ts:261"
       }
     },
     "/api/profiles/me/ticker": {
@@ -9153,7 +9153,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:286"
+        "x-source": "backend/routes/profiles.ts:299"
       }
     },
     "/api/profiles/follow/{targetUserId}": {
@@ -9196,7 +9196,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/profiles.ts:312"
+        "x-source": "backend/routes/profiles.ts:325"
       }
     },
     "/api/proxy/{showroomId}/{sectionKey}": {

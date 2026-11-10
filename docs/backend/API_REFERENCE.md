@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-09
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-10
 
 | Legend | Meaning |
 |---|---|
@@ -448,10 +448,10 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:213 |
 | `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:251 |
 | `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:319 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:342 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:397 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:480 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:492 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:343 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:398 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:481 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:493 |
 
 ## profilePartnerships — profilePartnerships
 
@@ -472,17 +472,17 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/profiles/me` | 🔒 auth | routes/profiles.ts:133 |
-| `GET` | `/api/profiles/by-user/:userId` | ⚪ optional | routes/profiles.ts:141 |
-| `GET` | `/api/profiles/me/follows` | 🔒 auth | routes/profiles.ts:155 |
-| `GET` | `/api/profiles/follows` | 🔒 auth | routes/profiles.ts:162 |
-| `GET` | `/api/profiles/:id` | ⚪ optional | routes/profiles.ts:169 |
-| `GET` | `/api/profiles/` | ⚪ optional | routes/profiles.ts:188 |
-| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:231 |
-| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:248 |
-| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:268 |
-| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:286 |
-| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:312 |
+| `GET` | `/api/profiles/me` | 🔒 auth | routes/profiles.ts:136 |
+| `GET` | `/api/profiles/by-user/:userId` | ⚪ optional | routes/profiles.ts:144 |
+| `GET` | `/api/profiles/me/follows` | 🔒 auth | routes/profiles.ts:158 |
+| `GET` | `/api/profiles/follows` | 🔒 auth | routes/profiles.ts:165 |
+| `GET` | `/api/profiles/:id` | ⚪ optional | routes/profiles.ts:172 |
+| `GET` | `/api/profiles/` | ⚪ optional | routes/profiles.ts:191 |
+| `POST` | `/api/profiles/` | 🔒 auth | routes/profiles.ts:244 |
+| `PUT` | `/api/profiles/me/upsert` | 🔒 auth | routes/profiles.ts:261 |
+| `PUT` | `/api/profiles/:id` | 🔒 auth | routes/profiles.ts:281 |
+| `PATCH` | `/api/profiles/me/ticker` | 🔒 auth | routes/profiles.ts:299 |
+| `POST` | `/api/profiles/follow/:targetUserId` | 🔒 auth | routes/profiles.ts:325 |
 
 ## proxy — Public Proxy Route
 

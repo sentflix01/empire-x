@@ -62,6 +62,9 @@ async function guestMaySeeProfile(userId: unknown): Promise<boolean> {
   return rows.length > 0;
 }
 
+const MAX_USER_IDS = 100;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const SIGN_IN_FOR_PROFILE = { error: 'Sign in to see this profile.', code: SIGN_IN_REQUIRED };
 
 async function redactUnpaidBusinessProfile<T extends Record<string, unknown>>(profile: T, isOwner: boolean): Promise<T> {
@@ -187,7 +190,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
 
 router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const redis = getRedis();
-  const { user_id, profile_type, sort = '-created_at', limit = 50 } = req.query as Record<string, string>;
+  const { user_id, user_ids, profile_type, sort = '-created_at', limit = 50 } = req.query as Record<string, string>;
   const includePrivateFields = !!req.user?.id && user_id === req.user.id;
   const cacheKey = `cache:profiles:list:v2:${new URLSearchParams({ ...req.query as Record<string, string>, realOnly: req.realOnly ? '1' : '0', viewer: req.user ? 'member' : 'guest' }).toString()}`;
   if (!redis.isNoOp && !includePrivateFields) {
@@ -204,6 +207,16 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const conditions: string[] = [];
     const values: unknown[] = [];
     if (user_id)      { values.push(user_id);      conditions.push(`up.user_id = $${values.length}`); }
+    // Several owners in one request (e.g. the Businesses page): user_ids=a,b,c.
+    if (typeof user_ids === 'string' && user_ids) {
+      const ids = [...new Set(user_ids.split(',').map(id => id.trim()).filter(Boolean))];
+      if (ids.length > MAX_USER_IDS || ids.some(id => !UUID_RE.test(id))) {
+        res.status(400).json({ error: `user_ids must be up to ${MAX_USER_IDS} comma-separated ids` });
+        return;
+      }
+      values.push(ids);
+      conditions.push(`up.user_id = ANY($${values.length}::uuid[])`);
+    }
     if (profile_type) { values.push(profile_type); conditions.push(`up.profile_type = $${values.length}`); }
     if (req.realOnly) conditions.push('u.is_seed = FALSE AND u.is_demo = FALSE');
     if (!req.user) conditions.push(GUEST_PROFILE_SQL);

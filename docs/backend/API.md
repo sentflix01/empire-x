@@ -189,6 +189,10 @@ Get current user's profile. Requires auth.
 ### GET /api/profiles/by-user/:userId
 Get profile by user ID. Public.
 
+### GET /api/profiles?user_ids=:id,:id
+Several profiles in one request (up to 100 comma-separated user IDs; pass `limit` at least that large).
+Same visibility as `by-user`: guests only get owners with a public business. `400` for a malformed or too long list. Public.
+
 ### GET /api/profiles/:id
 Get profile by profile ID. Public.
 
