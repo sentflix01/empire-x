@@ -1,8 +1,9 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { entities } from '@/api/entities';
+import client from '@/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -23,6 +24,9 @@ import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusine
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { BRAND } from '@/lib/brandAssets';
 import { canOptimizeImage } from '@/lib/media';
+
+/** Business cards rendered per step in the global feed. */
+const FEED_BATCH = 6;
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -481,6 +485,22 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   // ── Global feed mode (no profile prop) ────────────────────────────
   const isFeedMode = !profile;
 
+  // Render the feed a few cards at a time: all 50 at once cost about a second
+  // of main-thread work on a mid-range phone (performance audit 2026-11-09).
+  const [shownCount, setShownCount] = useState(FEED_BATCH);
+  const moreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = moreRef.current;
+    if (!el || shownCount >= feedBusinesses.length) return;
+    if (typeof IntersectionObserver === 'undefined') { setShownCount(feedBusinesses.length); return; }
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) setShownCount((c) => c + FEED_BATCH); },
+      { rootMargin: '1200px 0px' },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [shownCount, feedBusinesses.length]);
+
   const loadFeedBusinesses = useCallback(async () => {
     setLoading(true);
     setFeedError('');
@@ -505,33 +525,33 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             ? { ...business, showroom_id: String(matchingShowroom.id), showroom_slug: String(matchingShowroom.slug ?? '') }
             : business;
         });
-      setFeedBusinesses([...showroomItems, ...businessItems]
+      const items = [...showroomItems, ...businessItems]
         .sort((left, right) => Date.parse(String(right.created_at ?? '')) - Date.parse(String(left.created_at ?? '')))
-        .slice(0, 50));
-      // Batch-fetch owner display names so each card shows who runs the business
-      const combined = [...showroomItems, ...businessItems];
-      const uniqueOwnerIds = [...new Set(combined.map(b => b.owner_id as string).filter(Boolean))];
+        .slice(0, 50);
+      setFeedBusinesses(items);
+      // Show the cards now; owner names and photos fill in when they arrive.
+      setLoading(false);
+      // Owner names for the cards on show, in one request per 100 owners
+      // (it used to be one request per owner).
+      const uniqueOwnerIds = [...new Set(items.map(b => b.owner_id as string).filter(Boolean))];
       if (uniqueOwnerIds.length > 0) {
-        const profileResults = await Promise.allSettled(
-          uniqueOwnerIds.map(id =>
-            entities.UserProfile.filter({ user_id: id }, 'created_at', 1)
-              .then((rows: unknown[]) => ({ id, p: (rows[0] as Profile | undefined) ?? null }))
-              .catch(() => ({ id, p: null }))
-          )
-        );
+        const chunks: string[][] = [];
+        for (let k = 0; k < uniqueOwnerIds.length; k += 100) chunks.push(uniqueOwnerIds.slice(k, k + 100));
+        const rows = (await Promise.all(chunks.map(ids =>
+          client.get('/api/profiles', { params: { user_ids: ids.join(','), limit: ids.length } })
+            .then(r => (Array.isArray(r.data) ? r.data as Profile[] : []))
+            .catch(() => [] as Profile[]),
+        ))).flat();
         const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean; ticker_text?: string; ticker_type?: string }> = {};
-        for (const result of profileResults) {
-          if (result.status === 'fulfilled' && result.value.p) {
-            const p = result.value.p;
-            map[result.value.id] = {
-              display_name: p.display_name,
-              avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
-              is_verified: p.is_verified,
-              is_seed: (p as any).is_seed === true,
-              ticker_text: (p as any).ticker_text || undefined,
-              ticker_type: (p as any).ticker_type || undefined,
-            };
-          }
+        for (const p of rows) {
+          map[String(p.user_id)] = {
+            display_name: p.display_name,
+            avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
+            is_verified: p.is_verified,
+            is_seed: (p as any).is_seed === true,
+            ticker_text: (p as any).ticker_text || undefined,
+            ticker_type: (p as any).ticker_type || undefined,
+          };
         }
         setOwnerProfiles(map);
       }
@@ -619,7 +639,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     return (
     <>
       <div className="space-y-4">
-        {feedBusinesses.map((biz) => {
+        {feedBusinesses.slice(0, shownCount).map((biz) => {
           const ownerId = biz.owner_id as string || '';
           const op = ownerProfiles[ownerId];
           return (
@@ -637,6 +657,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           );
         })}
       </div>
+      {shownCount < feedBusinesses.length && <div ref={moreRef} className="h-px" aria-hidden="true" />}
     </>
     );
   }
