@@ -393,8 +393,8 @@ function Home() {
                       key={post.id}
                       id={`post-${post.id}`}
                       // CSS entrance (was framer-motion, ~60 KB): fade and rise 12 px, staggered.
-                      style={{ animationDelay: `${Math.min(i, 4) * 40}ms`, animationDuration: '200ms', animationFillMode: 'both' }}
-                      className={`animate-in fade-in slide-in-from-bottom-3${post.id === highlightPostId
+                      style={{ animationDelay: `${Math.min(i, 4) * 40}ms`, animationDuration: '200ms', animationFillMode: 'both', '--tw-enter-translate-y': '12px' } as React.CSSProperties}
+                      className={`animate-in fade-in${post.id === highlightPostId
                         ? ' ring-2 ring-primary rounded-2xl transition-all duration-500'
                         : ''}`}
                     >
