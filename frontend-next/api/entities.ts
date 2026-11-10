@@ -23,7 +23,7 @@ export interface UserProfile extends BaseEntity {
   full_name?: string;
   avatar_url?: string | string[];
   cover_url?: string | string[];
-  cover_position?: string;
+  cover_position?: string | null;
   bio?: string;
   headline?: string;
   location?: string;
@@ -47,7 +47,7 @@ export interface UserProfile extends BaseEntity {
   business_theme_color?: string;
   business_logo_url?: string | string[];
   business_cover_url?: string | string[];
-  business_cover_position?: string;
+  business_cover_position?: string | null;
 }
 
 export interface Post extends BaseEntity {

@@ -9,12 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BUSINESS_CATEGORIES, getTemplateById } from "@/lib/businessTemplates";
+import { BUSINESS_CATEGORIES, getTemplateById, type TemplateSection } from "@/lib/businessTemplates";
 
 /** Fill template sections with the user's real business data */
-function personalizeSections(sections, biz) {
-  return sections.map(s => {
-    const copy = { ...s, items: s.items ? s.items.map(i => ({ ...i })) : undefined };
+interface SectionBusinessFields {
+  business_name?: string;
+  business_description?: string;
+  business_contact_email?: string;
+  business_contact_phone?: string;
+  business_address?: string;
+}
+
+function personalizeSections(sections: TemplateSection[], biz: SectionBusinessFields): TemplateSection[] {
+  return sections.map((s) => {
+    const copy: TemplateSection = { ...s, items: s.items ? s.items.map(i => ({ ...i })) : undefined };
     if (copy.type === "hero") {
       copy.title = biz.business_name || copy.title;
       copy.subtitle = biz.business_description?.slice(0, 120) || copy.subtitle;

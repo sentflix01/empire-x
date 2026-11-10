@@ -1,12 +1,24 @@
-// @ts-check
 import * as React from "react"
-import useEmblaCarousel from "embla-carousel-react";
+import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-const CarouselContext = React.createContext(null)
+type CarouselApi = UseEmblaCarouselType[1]
+
+interface CarouselContextValue {
+  carouselRef: UseEmblaCarouselType[0]
+  api: CarouselApi
+  opts?: Parameters<typeof useEmblaCarousel>[0]
+  orientation: "horizontal" | "vertical"
+  scrollPrev: () => void
+  scrollNext: () => void
+  canScrollPrev: boolean
+  canScrollNext: boolean
+}
+
+const CarouselContext = React.createContext<CarouselContextValue | null>(null)
 
 function useCarousel() {
   const context = React.useContext(CarouselContext)
@@ -37,7 +49,7 @@ const Carousel = React.forwardRef<any, any>((
   const [canScrollPrev, setCanScrollPrev] = React.useState(false)
   const [canScrollNext, setCanScrollNext] = React.useState(false)
 
-  const onSelect = React.useCallback((api) => {
+  const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) {
       return
     }
@@ -54,7 +66,7 @@ const Carousel = React.forwardRef<any, any>((
     api?.scrollNext()
   }, [api])
 
-  const handleKeyDown = React.useCallback((event) => {
+  const handleKeyDown = React.useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault()
       scrollPrev()

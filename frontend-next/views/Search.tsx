@@ -148,7 +148,7 @@ function Search() {
     r.lang = "en-US"; r.interimResults = false; r.maxAlternatives = 1;
     setListening(true);
     r.start();
-    r.onresult = (e) => { setQuery(e.results[0][0].transcript); setListening(false); };
+    r.onresult = (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => { setQuery(e.results[0][0].transcript); setListening(false); };
     r.onerror  = () => { setListening(false); toast.error(t('search.audioError')); };
     r.onend    = () => setListening(false);
   };
