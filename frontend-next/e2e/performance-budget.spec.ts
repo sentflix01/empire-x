@@ -56,3 +56,28 @@ test('the splash shows once per session and leaves within a second', async ({ pa
   await page.goto('/feed', { waitUntil: 'load' });
   await expect(splash).toHaveCount(0, { timeout: 1000 });
 });
+
+/**
+ * Script budget (performance audit 2026-11-09): compressed JavaScript a guest
+ * downloads until the page is idle, with Next.js link prefetching blocked so
+ * only the page itself counts (prefetching depends on which links are on
+ * screen). About 8% above what was measured after the audit's fixes in a local
+ * production build (landing 274 KB, marketplace 313, feed 418, explore 411).
+ * Raising one needs a reason in the PR: most growth comes from a heavy library
+ * imported into a page or the app shell instead of loaded on demand (jsPDF,
+ * framer-motion, maps, charts).
+ */
+const SCRIPT_BUDGET_KB: Record<string, number> = { '/landing': 300, '/marketplace': 340, '/feed': 450, '/explore': 445 };
+
+for (const [path, budget] of Object.entries(SCRIPT_BUDGET_KB)) {
+  test(`${path} needs at most ${budget} KB of script`, async ({ page }) => {
+    await page.route('**/*', (route) => (route.request().headers()['next-router-prefetch'] ? route.abort() : route.continue()));
+    const sizes: Promise<number>[] = [];
+    page.on('requestfinished', (req) => {
+      if (req.resourceType() === 'script') sizes.push(req.sizes().then((s) => s.responseBodySize));
+    });
+    await page.goto(path, { waitUntil: 'networkidle' });
+    const kb = (await Promise.all(sizes)).reduce((a, b) => a + b, 0) / 1024;
+    expect(kb, `${path} script KB`).toBeLessThanOrEqual(budget);
+  });
+}
