@@ -66,6 +66,7 @@ psql $DATABASE_URL -c "\dt"  # list all tables
 | `migrate63.js` | `subscription_payments` (provider-neutral prepaid ETB payments: provider_ref unique, kind new/renewal/upgrade, months, amount, status pending/paid/failed/expired, period, receipt_number from `subscription_receipt_seq`, optional draft_id) and `business_subscriptions.billing_provider` |
 | `migrate64.js` | Request to order: `orders.listed_price_text` and the `requested` status (a website item without a catalogue product; the seller sets the price, then it continues as a direct order) |
 | `migrate89.js` | Partial indexes `idx_products_public_created (created_at DESC, id DESC)` and `idx_products_public_views (view_count DESC, id DESC)` over public products (`active`, `sold_out`), built `CONCURRENTLY`: serve `GET /api/products` (newest first, keyset cursor, `-view_count`) and `GET /api/trending` without scanning and sorting every product |
+| `migrate90.js` | Trigram GIN indexes `idx_products_title_trgm`, `idx_products_description_trgm`, `idx_products_category_trgm` (`gin_trgm_ops`, built `CONCURRENTLY`; `pg_trgm` from `migrate71.js`): `GET /api/products?search=` (`ILIKE '%term%'`) finds rare or absent terms without walking every product |
 
 Mewacho and the other deferred areas are not mounted in the launch app. Their historical schemas and records are retained; see `docs/product/POST_LAUNCH_FEATURES.md` before considering data cleanup or a future rebuild.
 
