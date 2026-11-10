@@ -14,6 +14,19 @@ import { useAppStore } from "@/store";
 import { useAuth } from "@/lib/AuthContext";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { canOptimizeImage } from '@/lib/media';
+import { firstImage } from "@/lib/spotlightTiles";
+import { formatAmount } from "@/lib/money";
+
+/** GET /api/wishlists/price-alerts: the alert joined with the product. Prices are NUMERIC (decimal strings). */
+interface PriceAlert {
+  product_id: string;
+  target_price: number | string;
+  is_triggered?: boolean;
+  title: string;
+  current_price: number | string;
+  currency?: string | null;
+  images?: unknown;
+}
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -33,7 +46,7 @@ function Bookmarks() {
   const { user, authChecked } = useAuth();
 
   const [tab, setTab] = useState("all");
-  const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
 
   // Load bookmarks once. Keying this on savedIds re-ran it after every empty
@@ -59,7 +72,7 @@ function Bookmarks() {
     setAlertsLoading(false);
   };
 
-  const handleRemoveAlert = async (productId) => {
+  const handleRemoveAlert = async (productId: string) => {
     try {
       await client.delete(`/api/wishlists/price-alerts/${productId}`);
       setAlerts(prev => prev.filter(a => a.product_id !== productId));
@@ -101,24 +114,24 @@ function Bookmarks() {
           ) : (
             <div className="space-y-3">
               {alerts.map(a => {
-                const imgs = (() => { try { return JSON.parse(a.images || "[]"); } catch { return []; } })();
+                const image = firstImage(a.images);
                 const dropped = a.is_triggered;
-                const pct = a.current_price > 0
-                  ? Math.round(((a.current_price - a.target_price) / a.current_price) * 100)
-                  : 0;
+                const current = Number(a.current_price);
+                const target = Number(a.target_price);
+                const pct = current > 0 ? Math.round(((current - target) / current) * 100) : 0;
                 return (
                   <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-success/30" : "border-border/50"}`}>
                     {/* Thumbnail */}
                     <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
-                      {imgs[0]
-                        ? <NextImage src={imgs[0]} alt={a.title} fill sizes="56px" className="object-cover" unoptimized={!canOptimizeImage(imgs[0])} />
+                      {image
+                        ? <NextImage src={image} alt={a.title} fill sizes="56px" className="object-cover" unoptimized={!canOptimizeImage(image)} />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-muted-foreground/20"/></div>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link href={`/products/${a.product_id}`} className="text-sm font-semibold hover:underline line-clamp-1">{a.title}</Link>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Current: <span className="font-medium text-foreground">{parseFloat(a.current_price).toLocaleString()} {a.currency}</span>
-                        {" · "}Target: <span className="font-medium text-primary">{parseFloat(a.target_price).toLocaleString()}</span>
+                        Current: <span className="font-medium text-foreground">{formatAmount(a.current_price)} {a.currency}</span>
+                        {" · "}Target: <span className="font-medium text-primary">{formatAmount(a.target_price)}</span>
                       </p>
                       {dropped ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-success bg-success-subtle px-2 py-0.5 rounded-full mt-1">
@@ -149,7 +162,7 @@ function Bookmarks() {
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>
           ) : (storeError || (!user && authChecked)) && filtered.length === 0 ? (
             <ErrorState
-              message={!user ? 'Sign in to see your bookmarks' : storeError}
+              message={!user ? 'Sign in to see your bookmarks' : (storeError || 'Could not load your bookmarks')}
               onRetry={!user ? () => { window.location.href = '/login?return=/bookmarks'; } : () => hydrate()}
             />
           ) : filtered.length === 0 ? (

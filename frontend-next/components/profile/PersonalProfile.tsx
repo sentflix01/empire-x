@@ -1,7 +1,9 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities } from "@/api/entities";
+import { entities, type UserProfile } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
+import type { ProfileBusinessRecord } from "@/components/profile/BusinessProfile";
 
 import { Briefcase, GraduationCap, Plus, Store, ShoppingBag, Users, Pencil } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -10,9 +12,18 @@ import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
 import ProfilePartnerships from '@/components/profile/ProfilePartnerships';
 
-export default function PersonalProfile({ profile, user, isOwner, businesses }) {
+type ProfilePost = React.ComponentProps<typeof PostCard>['post'];
+
+interface PersonalProfileProps {
+  profile: UserProfile;
+  user: AuthUser | null;
+  isOwner: boolean;
+  businesses: ProfileBusinessRecord[];
+}
+
+export default function PersonalProfile({ profile, user, isOwner, businesses }: PersonalProfileProps) {
   const { profileViewTokens: accentTokens } = useProfileView();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<ProfilePost[]>([]);
   const [tab, setTab] = useState("posts");
   const [loading, setLoading] = useState(true);
 
@@ -22,9 +33,11 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
       .catch(() => setLoading(false));
   }, [profile.user_id]);
 
-  const skills = (() => { try { return JSON.parse(profile.skills || "[]"); } catch { return []; } })();
-  const experience = (() => { try { return JSON.parse(profile.experience || "[]"); } catch { return []; } })();
-  const education = (() => { try { return JSON.parse(profile.education || "[]"); } catch { return []; } })();
+  // Stored as JSON text; anything else (null, bad JSON, not a list) shows nothing.
+  const jsonList = (raw: unknown): any[] => { try { const v = JSON.parse(String(raw || "[]")); return Array.isArray(v) ? v : []; } catch { return []; } };
+  const skills = jsonList(profile.skills);
+  const experience = jsonList(profile.experience);
+  const education = jsonList(profile.education);
 
   return (
     <div data-page-guide="profile-personal-tab" className="space-y-4">
