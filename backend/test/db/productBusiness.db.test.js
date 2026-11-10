@@ -177,3 +177,49 @@ describe('a product needs a business (F-033)', () => {
     expect(row.business_id).toBe(sellerBiz);
   });
 });
+
+describe('marketplace list hides unpaid businesses from everyone but the owner', () => {
+  // Real-mode list, as served by realModeMiddleware in index.ts.
+  const realApp = express();
+  realApp.use((req, _res, next) => { req.realOnly = true; next(); });
+  realApp.use('/api/products', require('../../routes/products'));
+
+  let marker; let paidId; let unpaidId;
+  beforeAll(async () => {
+    marker = `DB Test List ${tag()}`;
+    const insert = (sellerId, businessId) => pool.query(
+      `INSERT INTO products (seller_id, business_id, title, price, currency, stock, status, category)
+       VALUES ($1, $2, $3, 75, 'ETB', 2, 'active', 'food') RETURNING id`,
+      [sellerId, businessId, `${marker} ${tag()}`],
+    ).then(({ rows }) => rows[0].id);
+    paidId = await insert(seller.id, sellerBiz);
+    unpaidId = await insert(unpaidSeller.id, unpaidBiz);
+  });
+
+  const listIds = async (query, user) => {
+    const req = request(realApp).get('/api/products').query({ search: marker, ...query });
+    const res = await (user ? req.set(auth(user)) : req);
+    expect(res.status).toBe(200);
+    return res.body.products.map((p) => p.id);
+  };
+
+  it('hides them from a guest without seller_id', async () => {
+    const ids = await listIds({});
+    expect(ids).toContain(paidId);
+    expect(ids).not.toContain(unpaidId);
+  });
+
+  it('hides them from a signed-in member', async () => {
+    const ids = await listIds({}, seller);
+    expect(ids).toContain(paidId);
+    expect(ids).not.toContain(unpaidId);
+  });
+
+  it('hides them from a guest asking for that seller', async () => {
+    expect(await listIds({ seller_id: unpaidSeller.id })).not.toContain(unpaidId);
+  });
+
+  it('still shows the owner their own listings', async () => {
+    expect(await listIds({ seller_id: unpaidSeller.id }, unpaidSeller)).toContain(unpaidId);
+  });
+});

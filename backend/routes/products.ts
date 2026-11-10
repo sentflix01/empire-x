@@ -127,9 +127,12 @@ router.get('/', optionalAuth, cacheMiddleware('products:list', 90, { varyByQuery
     if (showroom_id) { values.push(showroom_id); conditions.push(`p.showroom_id=$${values.length}`); }
     // Drafts are private. Only a seller explicitly viewing their own listings
     // (or an admin) may request them; public feeds include active and sold-out.
-    const mayViewDrafts = req.user?.role === 'admin' || (!!seller_id && seller_id === req.user?.id);
+    const viewingOwnListings = !!seller_id && !!req.user?.id && seller_id === req.user.id;
+    const mayViewDrafts = req.user?.role === 'admin' || viewingOwnListings;
     if (!mayViewDrafts) conditions.push("p.status IN ('active','sold_out')");
-    if (req.realOnly && seller_id !== req.user?.id) {
+    // Paid-plan rule (decision 2026-10-24): only a signed-in owner viewing their
+    // own seller_id is exempt. Guests are never exempt, with or without seller_id.
+    if (req.realOnly && !viewingOwnListings) {
       conditions.push(`((p.business_id IS NULL AND p.showroom_id IS NULL) OR EXISTS (
         SELECT 1 FROM business_subscriptions paid_sub
         WHERE paid_sub.business_id=COALESCE(p.business_id,(SELECT s.business_id FROM showrooms s WHERE s.id=p.showroom_id))
