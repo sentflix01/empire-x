@@ -31,16 +31,21 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, '../../public/promo');
-const VERSION = 'v1';
+const VERSION = 'v2';
 const KB = 1024;
 
 const SCENES = {
+  // Full step-by-step guide; downloads only when someone taps "Watch how it works".
+  guide: {
+    css: [360, 640], scale: 2, fps: 30, poster: 4.9,
+    renditions: [{ w: 720, h: 1280, budget: 2500 * KB }, { w: 480, h: 854, budget: 1300 * KB }],
+  },
   landing: {
-    css: [360, 640], scale: 2, fps: 30, poster: 5.8,
+    css: [360, 640], scale: 2, fps: 30, poster: 26.5,
     renditions: [{ w: 720, h: 1280, budget: 1200 * KB }, { w: 480, h: 854, budget: 600 * KB }],
   },
   banner: {
-    css: [640, 240], scale: 2, fps: 30, poster: 8.3,
+    css: [640, 240], scale: 2, fps: 30, poster: 6.5,
     renditions: [{ w: 1280, h: 480, budget: 400 * KB }, { w: 640, h: 240, budget: 200 * KB }],
   },
 };

@@ -2,6 +2,7 @@ import { HEX } from '@/lib/colorTokens';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
+import PromoGuide from '@/components/promo/PromoGuide';
 import PromoVideo from '@/components/promo/PromoVideo';
 import { PROMO } from '@/lib/promoAssets';
 import {
@@ -149,8 +150,11 @@ export default function LandingPage() {
               className="aspect-[9/16] w-full rounded-[2rem] bg-white"
               sizes="(min-width: 1024px) 300px, 280px"
               buttonClassName="bottom-3 right-3"
-              description="How Nodbusiness works, as an animation: a seller builds a shop and adds products, shares its link, a buyer finds it on the map, orders and pays the seller directly, and the seller confirms the order."
+              description="How Nodbusiness works, as an animation: a person shares a photo on the Personal feed, builds a website from a template or from sections by adding photos, pasting links and filling forms, publishes it to the Business feed, and customers order, message and pay them directly."
             />
+          </div>
+          <div className="mt-5 flex justify-center">
+            <PromoGuide />
           </div>
         </div>
         </div>

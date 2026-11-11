@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PromoGuide from "@/components/promo/PromoGuide";
 import PromoVideo from "@/components/promo/PromoVideo";
 import { PROMO } from "@/lib/promoAssets";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
@@ -259,8 +260,9 @@ function Home() {
           objectPosition="right center"
           sizes="(min-width: 640px) 640px, 100vw"
           buttonClassName="bottom-2 left-2 sm:left-auto sm:right-2"
-          description={t('promo.bannerDescription', 'Animation: a seller builds a shop and adds products, a buyer finds it on the map, orders and pays the seller, and the seller confirms the order.')}
+          description={t('promo.bannerDescription', 'Animation: someone picks a website template, adds a photo and a link, publishes it, and it appears in the Business feed with their products.')}
         />
+        <PromoGuide variant="icon" className="absolute right-3 top-3 z-20" />
         {/* Solid blue under the text, fading into the clip: white text stays at 5.2:1 (WCAG 1.4.3). */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,hsl(var(--primary))_0,hsl(var(--primary))_290px,hsl(var(--primary)/0)_380px)] sm:block" />
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">

@@ -18,15 +18,17 @@ export type PromoRendition = {
 export type PromoClip = { small: PromoRendition; large: PromoRendition };
 
 const rendition = (name: string, width: number, height: number): PromoRendition => {
-  const base = `/promo/${name}-${width}x${height}-v1`;
+  const base = `/promo/${name}-${width}x${height}-v2`;
   return { width, height, mp4: `${base}.mp4`, poster: `${base}-poster.webp` };
 };
 
 export const PROMO = {
-  /** 10 s, 8:3: the feed's "Build Your Mini Website" banner. */
+  /** 12 s, 8:3: the feed's "Build Your Mini Website" banner (loops). */
   banner: { small: rendition('banner', 640, 240), large: rendition('banner', 1280, 480) },
-  /** 24 s, 9:16: the phone on the landing hero. */
+  /** 36 s, 9:16: the phone on the landing hero (loops). */
   landing: { small: rendition('landing', 480, 854), large: rendition('landing', 720, 1280) },
+  /** 92 s, 9:16: the full step-by-step guide; loads only when someone opens it. */
+  guide: { small: rendition('guide', 480, 854), large: rendition('guide', 720, 1280) },
 } as const satisfies Record<string, PromoClip>;
 
 /**

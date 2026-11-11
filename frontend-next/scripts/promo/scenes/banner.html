@@ -1,14 +1,15 @@
 <!doctype html>
 <!--
-  Feed banner promo, 10 s, 8:3 (640 x 240 units, rendered at 2x = 1280 x 480).
+  Feed banner loop, 12 s, 8:3 (640 x 240 units, rendered at 2x = 1280 x 480).
   Plays behind the "Build Your Mini Website" text on /feed, so the left 300
-  units stay plain brand blue and all the action sits on the right:
-    0-3.2   the seller's shop builds itself and fills with products
-    3.2-4.2 the shop link flies to a buyer's phone
-    4.2-6.6 the buyer finds the shop on the map and orders
-    6.6-7.6 the buyer pays the seller directly
-    7.6-9   the seller confirms; both phones show a check
-    9.4-10  the phones fade out for the loop
+  units stay plain brand blue and the action sits on the right:
+    0-1.8   the hand picks a template; the site appears on the phone
+    1.8-3   a photo flies in from the gallery
+    3-4.4   a link is pasted; social icons appear
+    4.4-5   the hand taps Publish
+    5-6.4   the site becomes a card in the Business feed beside the phone
+    6.4-9   its products slide; a friend's heart: life and business together
+    11.2-12 everything fades for the loop
   Rendered by scripts/promo/render.mjs.
 -->
 <html>
@@ -16,136 +17,120 @@
 <meta charset="utf-8">
 <style>html,body{margin:0;background:#2563eb}svg{display:block}</style>
 <script src="common.js"></script>
+<script src="engine.js"></script>
+<script src="shots.js"></script>
 </head>
 <body>
 <svg id="svg" width="640" height="240" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg"></svg>
 <script>
-const { C, prog, lerp, easeOut, easeInOut, back, window_, place, arc, ICON, tapMarkup, tap, confettiMarkup, confetti } = window.PROMO;
+const { C, prog, lerp, easeOut, easeInOut, easeIn, back, window_, place, arc, ICON } = window.PROMO;
+const { $, P, photo, bar, GLYPH, HAND, keyed, phoneFrame } = window.ENGINE;
+const { site } = window.SHOTS.parts;
+const PX = 400, PY = 122, PW = 100, PH = 196;   // phone, screen size
+const FX = 562;                                  // feed column centre
+const g = (inner, tr = '') => `<g${tr ? ` transform="${tr}"` : ''}>${inner}</g>`;
+const at = (x, y, s, inner) => g(inner, `translate(${x} ${y}) scale(${s})`);
+const toShot = (x, y) => ({ x: PX - PW / 2 + x, y: PY - PH / 2 + y });   // phone screen -> banner
 
-const SX = 412, BX = 560, Y = 120;
-const tiles = [
-  { cx: -21, cy: 2, bg: C.violetSubtle, icon: ICON.dress(C.violet) },
-  { cx: 21, cy: 2, bg: C.blueSubtle, icon: ICON.cup(C.blue) },
-  { cx: -21, cy: 46, bg: C.blueSubtle, icon: ICON.shoe(C.blueDeep) },
-  { cx: 21, cy: 46, bg: C.greenSubtle, icon: ICON.basket(C.green) },
-];
-const pins = [{ x: -26, y: -46, c: '#94a3b8' }, { x: 24, y: -60, c: '#94a3b8' }, { x: 28, y: 6, c: '#94a3b8' }, { x: -8, y: -18, c: C.blue }];
-const bar = (x, y, w, h, fill, o = 1) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}" opacity="${o}"/>`;
-
-function phone(id, body) {
-  return `<g id="${id}">
-    <rect x="-54" y="-104" width="108" height="208" rx="22" fill="${C.ink}"/>
-    <rect x="-48" y="-97" width="96" height="194" rx="16" fill="${C.paper}"/>
-    <clipPath id="${id}-clip"><rect x="-48" y="-97" width="96" height="194" rx="16"/></clipPath>
-    <g clip-path="url(#${id}-clip)">${body}
-      <rect id="${id}-green" x="-48" y="-97" width="96" height="194" fill="${C.greenBright}" opacity="0"/>
-      <g id="${id}-big" opacity="0">${ICON.check(C.paper, 6)}</g>
-    </g>
-  </g>`;
-}
-
-document.getElementById('svg').innerHTML = `
+const svg = document.getElementById('svg');
+const tpl = [0, 1, 2, 3].map((i) => ({ x: 8 + (i % 2) * 44, y: 30 + Math.floor(i / 2) * 78 }));
+svg.innerHTML = `
   <rect width="640" height="240" fill="${C.blue}"/>
   <circle cx="490" cy="120" r="150" fill="${C.paper}" opacity=".06"/>
-  <circle cx="600" cy="20" r="80" fill="${C.violet}" opacity=".35"/>
+  <circle cx="610" cy="10" r="80" fill="${C.violet}" opacity=".35"/>
   <circle cx="330" cy="230" r="60" fill="${C.blueDeep}" opacity=".5"/>
   <g id="stage">
-    ${phone('phS', `
-      <g id="s-shop">
-        <g id="s-head"><rect x="-40" y="-84" width="80" height="22" rx="7" fill="${C.blue}"/><circle cx="-29" cy="-73" r="7" fill="${C.paper}"/>${bar(-18, -77, 40, 5, C.paper, .9)}${bar(-18, -69, 26, 4, C.paper, .55)}</g>
-        <g id="s-badge"><circle r="7" fill="${C.green}"/><g transform="scale(.3)">${ICON.check(C.paper)}</g></g>
-        <g id="s-hero"><rect x="-40" y="-56" width="80" height="32" rx="7" fill="${C.violet}"/>${bar(-32, -48, 40, 5, C.paper, .9)}${bar(-32, -40, 24, 4, C.paper, .55)}<circle cx="24" cy="-40" r="10" fill="${C.paper}" opacity=".15"/></g>
-        ${tiles.map((tl, i) => `
-          <g id="s-tile${i}"><rect x="-19" y="-20" width="38" height="40" rx="7" fill="${C.paper}" stroke="${C.line}"/><rect x="-15" y="-16" width="30" height="22" rx="5" fill="${tl.bg}"/>${bar(-15, 10, 20, 4, C.line)}</g>
-          <g id="s-prod${i}"><g transform="scale(.45)">${tl.icon}</g></g>`).join('')}
-      </g>
-      <g id="s-bell">${ICON.bell(C.violet)}</g>
-      <g id="s-ok"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="${C.green}"/><g transform="scale(.55)">${ICON.check(C.paper)}</g></g>`)}
-    ${phone('phB', `
-      <g id="b-map">
-        <rect x="-48" y="-97" width="96" height="194" fill="#eaf0f7"/>
-        <rect x="6" y="-36" width="40" height="40" rx="8" fill="${C.greenSubtle}"/>
-        <g fill="none" stroke="${C.paper}" stroke-linecap="round">
-          <path d="M-60 -30 Q0 -10 60 -40" stroke-width="9"/><path d="M-10 -100 Q-2 0 -20 100" stroke-width="8"/><path d="M-60 40 Q0 20 60 50" stroke-width="7"/>
-        </g>
-        <circle id="b-pulse" cx="-8" cy="-6" r="6" fill="none" stroke="${C.blue}" stroke-width="2"/>
-        ${pins.map((p, i) => `<g id="b-pin${i}">${ICON.pin(p.c)}</g>`).join('')}
-      </g>
-      <g id="b-card">
-        <rect x="-42" y="-44" width="84" height="88" rx="12" fill="${C.paper}" stroke="${C.line}"/>
-        <path d="M-42 -24 V-32 A12 12 0 0 1 -30 -44 H30 A12 12 0 0 1 42 -32 V-24 Z" fill="${C.blue}"/>
-        ${bar(-30, -37, 40, 5, C.paper, .9)}
-        <rect x="-34" y="-16" width="68" height="34" rx="8" fill="${C.violetSubtle}"/>
-        <g transform="translate(0 1) scale(.6)">${ICON.dress(C.violet)}</g>
-        <rect x="-34" y="24" width="68" height="14" rx="7" fill="${C.blueDeep}"/>
-        <g transform="translate(0 31) scale(.4)">${ICON.arrow(C.paper)}</g>
-      </g>`)}
-    <g id="link"><circle r="15" fill="${C.paper}"/><g transform="scale(.5)">${ICON.link(C.blue)}</g></g>
-    <g id="coin0"><g transform="scale(.7)">${ICON.coin()}</g></g>
-    <g id="coin1"><g transform="scale(.7)">${ICON.coin()}</g></g>
-    ${confettiMarkup('cf', 16)}
-    ${tapMarkup('tapA')}${tapMarkup('tapB')}${tapMarkup('tapC')}
+    <g data-k="feed">
+      <rect x="${FX - 64}" y="16" width="128" height="208" rx="18" fill="${C.paper}" opacity=".96"/>
+      <rect x="${FX - 54}" y="26" width="108" height="50" rx="10" fill="${C.page}" stroke="${C.line}"/><rect x="${FX - 54}" y="26" width="108" height="20" rx="10" fill="${C.greenSubtle}"/>${bar(FX - 46, 54, 60, 6, C.line)}
+      <rect x="${FX - 54}" y="164" width="108" height="50" rx="10" fill="${C.page}" stroke="${C.line}"/><rect x="${FX - 54}" y="164" width="108" height="20" rx="10" fill="${C.violetTint}"/>${bar(FX - 46, 192, 60, 6, C.line)}
+    </g>
+    <g data-k="card">
+      <rect x="-56" y="-38" width="112" height="76" rx="10" fill="${C.paper}" stroke="${C.blue}" stroke-width="2"/>
+      <path d="M-56 -18 V-28 A10 10 0 0 1 -46 -38 H46 A10 10 0 0 1 56 -28 V-18 Z" fill="${C.blue}"/>
+      <rect x="-48" y="-28" width="18" height="18" rx="5" fill="${C.paper}"/>${at(-39, -19, 0.28, ICON.store(C.blue))}
+      ${bar(-26, -26, 50, 6, C.paper, 0.9)}
+      <clipPath id="bstrip"><rect x="-50" y="-6" width="100" height="40" rx="6"/></clipPath>
+      <g clip-path="url(#bstrip)"><g data-k="strip">${[0, 1, 2, 3, 4, 5].map((i) => `
+        <g transform="translate(${-50 + i * 36} -4)"><rect width="32" height="38" rx="6" fill="${[C.violetSubtle, C.blueSubtle, C.greenSubtle][i % 3]}"/>
+        ${at(16, 14, 0.36, [ICON.dress(C.violet), ICON.cup(C.blue), ICON.basket(C.green)][i % 3])}<rect x="4" y="28" width="24" height="7" rx="3.5" fill="${C.blue}"/></g>`).join('')}</g></g>
+    </g>
+    <g data-k="phone">${phoneFrame(PW, PH, `
+      <g data-k="tpls"><rect width="${PW}" height="${PH}" fill="${C.page}"/>${bar(8, 12, 60, 6, C.line)}
+        ${tpl.map((t, i) => `<g><rect x="${t.x}" y="${t.y}" width="40" height="70" rx="7" fill="${C.paper}" stroke="${i === 1 ? C.blue : C.line}" stroke-width="${i === 1 ? 2 : 1}"/>
+          <rect x="${t.x + 4}" y="${t.y + 4}" width="32" height="10" rx="3" fill="${[C.blue, C.violet, C.green, C.blueDeep][i]}"/>${photo(t.x + 4, t.y + 18, 32, 22, C.blueTint, [C.blue, C.violet, C.green, C.blueDeep][i], 3)}${bar(t.x + 4, t.y + 46, 26, 5, C.line)}${bar(t.x + 4, t.y + 56, 18, 5, C.line)}</g>`).join('')}</g>
+      <g data-k="site"><svg width="${PW}" height="${PH}" viewBox="0 0 360 706" preserveAspectRatio="xMidYMin slice">
+        ${site(C.blue)}
+        <g data-k="hslot"><rect x="16" y="70" width="328" height="168" rx="14" fill="${C.page}"/><rect x="16" y="70" width="328" height="168" rx="14" fill="none" stroke="${C.violet}" stroke-width="6" stroke-dasharray="20 14"/>${at(180, 154, 2.2, GLYPH.camera(C.violet))}</g>
+        <rect data-k="soccover" x="10" y="524" width="220" height="50" fill="${C.paper}"/>
+      </svg></g>
+      <g data-k="pub"><rect x="60" y="4" width="34" height="16" rx="8" fill="${C.blue}"/>${at(77, 12, 0.32, ICON.check(C.paper))}</g>
+      <rect data-k="pubgreen" x="60" y="4" width="34" height="16" rx="8" fill="${C.green}"/><g data-k="pubcheck">${at(77, 12, 0.32, ICON.check(C.paper))}</g>`)}</g>
+    <g data-k="gal"><rect x="-34" y="-28" width="68" height="56" rx="10" fill="${C.paper}"/>${photo(-28, -22, 56, 44, C.violetTint, C.violet, 6)}</g>
+    <g data-k="paste"><rect x="-26" y="-14" width="52" height="28" rx="14" fill="${C.ink}"/>${g(GLYPH.clipboard(C.paper), 'scale(.45)')}</g>
+    <g data-k="burst"><circle r="14" fill="${C.green}"/>${g(ICON.check(C.paper), 'scale(.6)')}</g>
+    <g data-k="heart">${GLYPH.heart(C.violet)}</g>
+    <g id="hand" opacity="0"><circle id="ring" r="12" fill="none" stroke="${C.paper}" stroke-width="2.5"/><g id="hbody" transform="scale(.6)">${HAND}</g></g>
   </g>`;
 
+const root = svg;
+const p = P(root);
+const tplHit = toShot(tpl[1].x + 20, tpl[1].y + 35);
+const pubHit = toShot(77, 12);
+const HANDK = [[0.5, 470, 230], [1.0, tplHit.x, tplHit.y], [2.1, 300, 200], [3.6, 0, 0], [4.7, pubHit.x, pubHit.y], [5.6, 470, 250]];
+HANDK[3] = [3.6, PX + 40, 70];
+const TAPS = [1.0, 2.1, 3.6, 4.7];
+
 window.setTime = function (t) {
-  const out = prog(t, 9.4, 10);
-  const inS = easeOut(prog(t, 0, 0.5)), inB = easeOut(prog(t, 0.15, 0.65));
-  place('phS', { x: SX, y: lerp(Y + 24, Y, inS), o: Math.min(inS, 1 - out) });
-  place('phB', { x: BX, y: lerp(Y + 24, Y, inB), o: Math.min(inB, 1 - out) });
+  const out = prog(t, 11.2, 12);
+  p('stage', { o: 1 - out });
+  place(document.getElementById('stage'), { o: Math.min(prog(t, 0, 0.4), 1 - out) });
+  p('phone', { x: PX, y: lerp(PY + 20, PY, easeOut(prog(t, 0, 0.5))) });
+  // 1. Pick a template; the site appears.
+  p('tpls', { o: 1 - prog(t, 1.2, 1.5) });
+  const sIn = easeOut(prog(t, 1.2, 1.7));
+  p('site', { x: PW / 2 * (1 - lerp(0.5, 1, sIn)), y: PH / 2 * (1 - lerp(0.5, 1, sIn)), s: lerp(0.5, 1, sIn), o: prog(t, 1.2, 1.35) });
+  // 2. A photo flies from the gallery into the empty hero.
+  p('gal', { x: 300, y: 196, s: back(prog(t, 1.7, 2.0)), o: Math.min(prog(t, 1.7, 1.8), 1 - prog(t, 2.2, 2.3)) });
+  const fl = easeInOut(prog(t, 2.2, 2.8));
+  const fp = arc({ x: 300, y: 196 }, { x: 330, y: 60 }, toShot(50, 41), fl);
+  if (fl > 0 && fl < 1) p('gal', { x: fp.x, y: fp.y, s: lerp(1, 1.1, fl), o: 1 });
+  p('hslot', { o: 1 - prog(t, 2.75, 2.95) });
+  // 3. Paste a link; social icons appear.
+  p('paste', { x: PX + 40, y: 70, s: back(prog(t, 3.1, 3.4)), o: Math.min(prog(t, 3.1, 3.2), 1 - prog(t, 3.75, 3.9)) });
+  p('soccover', { x: lerp(0, 230, easeInOut(prog(t, 3.8, 4.3))) });
+  // 4. Publish.
+  p('pub', { o: prog(t, 1.4, 1.6) });
+  p('pubgreen', { o: prog(t, 4.75, 4.85) });
+  p('pubcheck', { o: prog(t, 4.75, 4.85) });
+  p('burst', { x: pubHit.x + 18, y: pubHit.y + 18, s: back(prog(t, 4.85, 5.2)), o: window_(t, 4.85, 4.95, 5.6, 5.9) });
+  // 5. The site becomes a card in the Business feed.
+  p('feed', { o: prog(t, 4.9, 5.3), x: lerp(20, 0, easeOut(prog(t, 4.9, 5.3))) });
+  const cf = easeInOut(prog(t, 5.3, 6.3));
+  const cp = arc({ x: PX, y: PY }, { x: (PX + FX) / 2, y: 30 }, { x: FX, y: 124 }, cf);
+  p('card', { x: cp.x, y: cp.y, s: lerp(0.4, 1, cf), o: prog(t, 5.3, 5.4) });
+  const n = Math.min(3, Math.max(0, (t - 6.6) / 0.8));
+  const k = Math.floor(n), fr = n - k;
+  $(root, 'strip').setAttribute('transform', `translate(${(-36 * (k + easeInOut(Math.min(1, fr / 0.55)))).toFixed(1)} 0)`);
+  // 6. A friend's heart: life and business in one place.
+  const hf = prog(t, 8.8, 10.2);
+  p('heart', { x: FX + 40 + 8 * Math.sin(5 * hf), y: lerp(150, 60, easeOut(hf)), s: back(prog(t, 8.8, 9.1)) * 0.9, o: hf > 0 && hf < 1 ? 1 - easeIn(hf) : 0 });
 
-  // The seller's shop builds itself.
-  const h = prog(t, 0.5, 0.9), r = prog(t, 0.8, 1.2);
-  place('s-head', { y: lerp(-30, 0, back(h)), o: h });
-  place('s-hero', { x: lerp(-30, 0, back(r)), o: r });
-  place('s-badge', { x: 30, y: -73, s: back(prog(t, 1.8, 2.1)), o: prog(t, 1.8, 1.9) });
-  tiles.forEach((tl, i) => {
-    const p = prog(t, 1.1 + 0.12 * i, 1.5 + 0.12 * i);
-    place(`s-tile${i}`, { x: tl.cx, y: tl.cy, s: back(p), o: Math.min(1, p * 3) });
-    const t0 = 2.0 + 0.25 * i, q = prog(t, t0, t0 + 0.45);
-    place(`s-prod${i}`, { x: tl.cx, y: lerp(tl.cy - 70, tl.cy - 5, back(q)), o: Math.min(1, q * 2.5) });
+  // Hand.
+  const [hx, hy] = keyed(HANDK, t);
+  const hv = Math.min(prog(t, 0.3, 0.6), 1 - prog(t, 5.4, 5.8));
+  place(document.getElementById('hand'), { x: hx, y: hy, o: hv });
+  let press = 1, ring = 0;
+  TAPS.forEach((tk) => {
+    press = Math.min(press, 1 - 0.16 * Math.sin(Math.PI * prog(t, tk - 0.1, tk + 0.15)));
+    const r = prog(t, tk, tk + 0.5); if (r > 0 && r < 1) ring = r;
   });
-  place('s-shop', { o: 1 - prog(t, 7.4, 7.6) });
-
-  // The shop link flies to the buyer.
-  const f = prog(t, 3.3, 4.1);
-  const pt = arc({ x: SX + 24, y: 52 }, { x: (SX + BX) / 2, y: 6 }, { x: BX - 12, y: 56 }, easeInOut(f));
-  place('link', { x: pt.x, y: pt.y, s: lerp(0.7, 1, easeOut(f)), o: window_(t, 3.3, 3.4, 4.0, 4.15) });
-
-  // The buyer finds the shop on the map and orders.
-  place('b-map', { o: prog(t, 4.0, 4.3) });
-  pins.forEach((p, i) => {
-    const t0 = 4.2 + 0.1 * i, q = prog(t, t0, t0 + 0.35);
-    const hit = i === 3 ? 1 + 0.2 * Math.sin(Math.PI * prog(t, 5.25, 5.5)) : 1;
-    place(`b-pin${i}`, { x: p.x, y: lerp(p.y - 40, p.y, back(q)), s: (i === 3 ? 0.62 : 0.45) * hit, o: q });
-  });
-  const live = t > 4.7 && t < 5.5, pf = live ? ((t - 4.7) / 0.5) % 1 : 0;
-  const pulse = document.getElementById('b-pulse');
-  pulse.setAttribute('r', (6 + 22 * pf).toFixed(2));
-  pulse.setAttribute('opacity', live ? (0.6 * (1 - pf)).toFixed(3) : 0);
-  tap('tapA', BX - 8, Y - 24, t, 5.3, 0.6);
-  place('b-card', { y: lerp(150, 20, back(prog(t, 5.5, 5.95))), o: prog(t, 5.5, 5.6) });
-  tap('tapB', BX, Y + 51, t, 6.4, 0.6);
-
-  // The buyer pays the seller directly.
-  [0, 1].forEach((i) => {
-    const t0 = 6.6 + 0.3 * i, c = prog(t, t0, t0 + 0.75);
-    const q = arc({ x: BX - 34, y: 190 }, { x: (SX + BX) / 2, y: 238 }, { x: SX + 34, y: 190 }, easeInOut(c));
-    place(`coin${i}`, { x: q.x, y: q.y, o: c > 0 && c < 1 ? 1 : 0 });
-  });
-
-  // The seller confirms; both phones show a check.
-  const ring = 1 - prog(t, 7.6, 8.1);
-  place('s-bell', { y: -30, r: 18 * Math.sin(2 * Math.PI * 5 * (t - 7.6)) * (t > 7.6 ? ring : 0), s: 0.9, o: Math.min(prog(t, 7.5, 7.7), 1 - prog(t, 8.3, 8.45)) });
-  place('s-ok', { y: 30, s: back(prog(t, 7.9, 8.15)), o: prog(t, 7.9, 8.0) });
-  tap('tapC', SX, Y + 30, t, 8.3, 0.6);
-  const green = prog(t, 8.4, 8.7);
-  ['phS', 'phB'].forEach((id) => {
-    place(`${id}-green`, { o: green });
-    place(`${id}-big`, { s: 1.9 * back(prog(t, 8.5, 8.9)), o: prog(t, 8.5, 8.6) });
-  });
-  confetti('cf', (SX + BX) / 2, 110, t, 8.6, 110);
+  document.getElementById('hbody').setAttribute('transform', `scale(${(0.6 * press).toFixed(3)})`);
+  const re = document.getElementById('ring');
+  re.setAttribute('r', (8 + 16 * easeOut(ring)).toFixed(1));
+  re.setAttribute('opacity', ring > 0 ? (0.9 * (1 - ring)).toFixed(2) : 0);
 };
-window.DURATION = 10;
+window.DURATION = 12;
 window.setTime(0);
 window.READY = Promise.resolve(true);
 </script>
