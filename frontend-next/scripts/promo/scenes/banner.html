@@ -1,0 +1,153 @@
+<!doctype html>
+<!--
+  Feed banner promo, 10 s, 8:3 (640 x 240 units, rendered at 2x = 1280 x 480).
+  Plays behind the "Build Your Mini Website" text on /feed, so the left 300
+  units stay plain brand blue and all the action sits on the right:
+    0-3.2   the seller's shop builds itself and fills with products
+    3.2-4.2 the shop link flies to a buyer's phone
+    4.2-6.6 the buyer finds the shop on the map and orders
+    6.6-7.6 the buyer pays the seller directly
+    7.6-9   the seller confirms; both phones show a check
+    9.4-10  the phones fade out for the loop
+  Rendered by scripts/promo/render.mjs.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:#2563eb}svg{display:block}</style>
+<script src="common.js"></script>
+</head>
+<body>
+<svg id="svg" width="640" height="240" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const { C, prog, lerp, easeOut, easeInOut, back, window_, place, arc, ICON, tapMarkup, tap, confettiMarkup, confetti } = window.PROMO;
+
+const SX = 412, BX = 560, Y = 120;
+const tiles = [
+  { cx: -21, cy: 2, bg: C.violetSubtle, icon: ICON.dress(C.violet) },
+  { cx: 21, cy: 2, bg: C.blueSubtle, icon: ICON.cup(C.blue) },
+  { cx: -21, cy: 46, bg: C.blueSubtle, icon: ICON.shoe(C.blueDeep) },
+  { cx: 21, cy: 46, bg: C.greenSubtle, icon: ICON.basket(C.green) },
+];
+const pins = [{ x: -26, y: -46, c: '#94a3b8' }, { x: 24, y: -60, c: '#94a3b8' }, { x: 28, y: 6, c: '#94a3b8' }, { x: -8, y: -18, c: C.blue }];
+const bar = (x, y, w, h, fill, o = 1) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}" opacity="${o}"/>`;
+
+function phone(id, body) {
+  return `<g id="${id}">
+    <rect x="-54" y="-104" width="108" height="208" rx="22" fill="${C.ink}"/>
+    <rect x="-48" y="-97" width="96" height="194" rx="16" fill="${C.paper}"/>
+    <clipPath id="${id}-clip"><rect x="-48" y="-97" width="96" height="194" rx="16"/></clipPath>
+    <g clip-path="url(#${id}-clip)">${body}
+      <rect id="${id}-green" x="-48" y="-97" width="96" height="194" fill="${C.greenBright}" opacity="0"/>
+      <g id="${id}-big" opacity="0">${ICON.check(C.paper, 6)}</g>
+    </g>
+  </g>`;
+}
+
+document.getElementById('svg').innerHTML = `
+  <rect width="640" height="240" fill="${C.blue}"/>
+  <circle cx="490" cy="120" r="150" fill="${C.paper}" opacity=".06"/>
+  <circle cx="600" cy="20" r="80" fill="${C.violet}" opacity=".35"/>
+  <circle cx="330" cy="230" r="60" fill="${C.blueDeep}" opacity=".5"/>
+  <g id="stage">
+    ${phone('phS', `
+      <g id="s-shop">
+        <g id="s-head"><rect x="-40" y="-84" width="80" height="22" rx="7" fill="${C.blue}"/><circle cx="-29" cy="-73" r="7" fill="${C.paper}"/>${bar(-18, -77, 40, 5, C.paper, .9)}${bar(-18, -69, 26, 4, C.paper, .55)}</g>
+        <g id="s-badge"><circle r="7" fill="${C.green}"/><g transform="scale(.3)">${ICON.check(C.paper)}</g></g>
+        <g id="s-hero"><rect x="-40" y="-56" width="80" height="32" rx="7" fill="${C.violet}"/>${bar(-32, -48, 40, 5, C.paper, .9)}${bar(-32, -40, 24, 4, C.paper, .55)}<circle cx="24" cy="-40" r="10" fill="${C.paper}" opacity=".15"/></g>
+        ${tiles.map((tl, i) => `
+          <g id="s-tile${i}"><rect x="-19" y="-20" width="38" height="40" rx="7" fill="${C.paper}" stroke="${C.line}"/><rect x="-15" y="-16" width="30" height="22" rx="5" fill="${tl.bg}"/>${bar(-15, 10, 20, 4, C.line)}</g>
+          <g id="s-prod${i}"><g transform="scale(.45)">${tl.icon}</g></g>`).join('')}
+      </g>
+      <g id="s-bell">${ICON.bell(C.violet)}</g>
+      <g id="s-ok"><rect x="-30" y="-14" width="60" height="28" rx="14" fill="${C.green}"/><g transform="scale(.55)">${ICON.check(C.paper)}</g></g>`)}
+    ${phone('phB', `
+      <g id="b-map">
+        <rect x="-48" y="-97" width="96" height="194" fill="#eaf0f7"/>
+        <rect x="6" y="-36" width="40" height="40" rx="8" fill="${C.greenSubtle}"/>
+        <g fill="none" stroke="${C.paper}" stroke-linecap="round">
+          <path d="M-60 -30 Q0 -10 60 -40" stroke-width="9"/><path d="M-10 -100 Q-2 0 -20 100" stroke-width="8"/><path d="M-60 40 Q0 20 60 50" stroke-width="7"/>
+        </g>
+        <circle id="b-pulse" cx="-8" cy="-6" r="6" fill="none" stroke="${C.blue}" stroke-width="2"/>
+        ${pins.map((p, i) => `<g id="b-pin${i}">${ICON.pin(p.c)}</g>`).join('')}
+      </g>
+      <g id="b-card">
+        <rect x="-42" y="-44" width="84" height="88" rx="12" fill="${C.paper}" stroke="${C.line}"/>
+        <path d="M-42 -24 V-32 A12 12 0 0 1 -30 -44 H30 A12 12 0 0 1 42 -32 V-24 Z" fill="${C.blue}"/>
+        ${bar(-30, -37, 40, 5, C.paper, .9)}
+        <rect x="-34" y="-16" width="68" height="34" rx="8" fill="${C.violetSubtle}"/>
+        <g transform="translate(0 1) scale(.6)">${ICON.dress(C.violet)}</g>
+        <rect x="-34" y="24" width="68" height="14" rx="7" fill="${C.blueDeep}"/>
+        <g transform="translate(0 31) scale(.4)">${ICON.arrow(C.paper)}</g>
+      </g>`)}
+    <g id="link"><circle r="15" fill="${C.paper}"/><g transform="scale(.5)">${ICON.link(C.blue)}</g></g>
+    <g id="coin0"><g transform="scale(.7)">${ICON.coin()}</g></g>
+    <g id="coin1"><g transform="scale(.7)">${ICON.coin()}</g></g>
+    ${confettiMarkup('cf', 16)}
+    ${tapMarkup('tapA')}${tapMarkup('tapB')}${tapMarkup('tapC')}
+  </g>`;
+
+window.setTime = function (t) {
+  const out = prog(t, 9.4, 10);
+  const inS = easeOut(prog(t, 0, 0.5)), inB = easeOut(prog(t, 0.15, 0.65));
+  place('phS', { x: SX, y: lerp(Y + 24, Y, inS), o: Math.min(inS, 1 - out) });
+  place('phB', { x: BX, y: lerp(Y + 24, Y, inB), o: Math.min(inB, 1 - out) });
+
+  // The seller's shop builds itself.
+  const h = prog(t, 0.5, 0.9), r = prog(t, 0.8, 1.2);
+  place('s-head', { y: lerp(-30, 0, back(h)), o: h });
+  place('s-hero', { x: lerp(-30, 0, back(r)), o: r });
+  place('s-badge', { x: 30, y: -73, s: back(prog(t, 1.8, 2.1)), o: prog(t, 1.8, 1.9) });
+  tiles.forEach((tl, i) => {
+    const p = prog(t, 1.1 + 0.12 * i, 1.5 + 0.12 * i);
+    place(`s-tile${i}`, { x: tl.cx, y: tl.cy, s: back(p), o: Math.min(1, p * 3) });
+    const t0 = 2.0 + 0.25 * i, q = prog(t, t0, t0 + 0.45);
+    place(`s-prod${i}`, { x: tl.cx, y: lerp(tl.cy - 70, tl.cy - 5, back(q)), o: Math.min(1, q * 2.5) });
+  });
+  place('s-shop', { o: 1 - prog(t, 7.4, 7.6) });
+
+  // The shop link flies to the buyer.
+  const f = prog(t, 3.3, 4.1);
+  const pt = arc({ x: SX + 24, y: 52 }, { x: (SX + BX) / 2, y: 6 }, { x: BX - 12, y: 56 }, easeInOut(f));
+  place('link', { x: pt.x, y: pt.y, s: lerp(0.7, 1, easeOut(f)), o: window_(t, 3.3, 3.4, 4.0, 4.15) });
+
+  // The buyer finds the shop on the map and orders.
+  place('b-map', { o: prog(t, 4.0, 4.3) });
+  pins.forEach((p, i) => {
+    const t0 = 4.2 + 0.1 * i, q = prog(t, t0, t0 + 0.35);
+    const hit = i === 3 ? 1 + 0.2 * Math.sin(Math.PI * prog(t, 5.25, 5.5)) : 1;
+    place(`b-pin${i}`, { x: p.x, y: lerp(p.y - 40, p.y, back(q)), s: (i === 3 ? 0.62 : 0.45) * hit, o: q });
+  });
+  const live = t > 4.7 && t < 5.5, pf = live ? ((t - 4.7) / 0.5) % 1 : 0;
+  const pulse = document.getElementById('b-pulse');
+  pulse.setAttribute('r', (6 + 22 * pf).toFixed(2));
+  pulse.setAttribute('opacity', live ? (0.6 * (1 - pf)).toFixed(3) : 0);
+  tap('tapA', BX - 8, Y - 24, t, 5.3, 0.6);
+  place('b-card', { y: lerp(150, 20, back(prog(t, 5.5, 5.95))), o: prog(t, 5.5, 5.6) });
+  tap('tapB', BX, Y + 51, t, 6.4, 0.6);
+
+  // The buyer pays the seller directly.
+  [0, 1].forEach((i) => {
+    const t0 = 6.6 + 0.3 * i, c = prog(t, t0, t0 + 0.75);
+    const q = arc({ x: BX - 34, y: 190 }, { x: (SX + BX) / 2, y: 238 }, { x: SX + 34, y: 190 }, easeInOut(c));
+    place(`coin${i}`, { x: q.x, y: q.y, o: c > 0 && c < 1 ? 1 : 0 });
+  });
+
+  // The seller confirms; both phones show a check.
+  const ring = 1 - prog(t, 7.6, 8.1);
+  place('s-bell', { y: -30, r: 18 * Math.sin(2 * Math.PI * 5 * (t - 7.6)) * (t > 7.6 ? ring : 0), s: 0.9, o: Math.min(prog(t, 7.5, 7.7), 1 - prog(t, 8.3, 8.45)) });
+  place('s-ok', { y: 30, s: back(prog(t, 7.9, 8.15)), o: prog(t, 7.9, 8.0) });
+  tap('tapC', SX, Y + 30, t, 8.3, 0.6);
+  const green = prog(t, 8.4, 8.7);
+  ['phS', 'phB'].forEach((id) => {
+    place(`${id}-green`, { o: green });
+    place(`${id}-big`, { s: 1.9 * back(prog(t, 8.5, 8.9)), o: prog(t, 8.5, 8.6) });
+  });
+  confetti('cf', (SX + BX) / 2, 110, t, 8.6, 110);
+};
+window.DURATION = 10;
+window.setTime(0);
+window.READY = Promise.resolve(true);
+</script>
+</body>
+</html>

@@ -2,9 +2,10 @@ import { HEX } from '@/lib/colorTokens';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
+import PromoVideo from '@/components/promo/PromoVideo';
+import { PROMO } from '@/lib/promoAssets';
 import {
   Bot,
-  CheckCircle2,
   CreditCard,
   LayoutGrid,
   MapPin,
@@ -84,46 +85,11 @@ export default function LandingPage() {
         <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
         <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-inverse to-transparent" />
 
-        <div className="absolute left-[6%] top-28 hidden w-56 rotate-[-7deg] rounded-2xl border border-white/14 bg-white/12 p-4 shadow-2xl shadow-foreground/10 backdrop-blur-xl lg:block">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success text-foreground">
-              <CreditCard className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs text-white/60">New order</p>
-              <p className="text-sm font-bold">Paid to the seller</p>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-2 rounded-full bg-white/30" />
-            <div className="h-2 w-2/3 rounded-full bg-white/18" />
-          </div>
-        </div>
-
-        <div className="absolute right-[7%] top-24 hidden w-64 rotate-[6deg] rounded-3xl border border-white/14 bg-inverse/55 p-3 shadow-2xl shadow-foreground/10 backdrop-blur-xl lg:block">
-          <div className="rounded-2xl bg-white p-3 text-foreground">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-primary" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Showroom</p>
-                  <p className="text-sm font-bold">Mini website</p>
-                </div>
-              </div>
-              <CheckCircle2 className="h-5 w-5 text-success" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="h-14 rounded-xl bg-primary-subtle" />
-              <div className="h-14 rounded-xl bg-brand-secondary-subtle" />
-              <div className="h-14 rounded-xl bg-success-subtle" />
-            </div>
-          </div>
-        </div>
-
-        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-4 pt-8 text-center sm:pb-10 sm:pt-14">
-          {/* ── Brand video circle — responsive: 64px mobile → 96px tablet → 140px desktop ── */}
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 content-center items-center gap-10 px-6 pb-20 pt-8 sm:pt-14 md:pb-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+        <div data-page-guide="landing-actions" className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          {/* ── Brand video circle — responsive: 64px mobile → 96px tablet → 112px desktop ── */}
           <div
-            className="relative mb-3 mx-auto w-16 h-16 sm:w-24 sm:h-24 lg:w-36 lg:h-36 rounded-full overflow-hidden"
+            className="relative mb-3 mx-auto w-16 h-16 sm:w-24 sm:h-24 lg:mx-0 lg:w-28 lg:h-28 rounded-full overflow-hidden"
             style={{
               backgroundColor: HEX.primary,
               backgroundImage: `url(${BRAND.icon})`,
@@ -139,11 +105,11 @@ export default function LandingPage() {
             Nodbusiness
           </p>
           {/* Badge pill — hidden on smallest screens to save vertical space */}
-          <p className="hidden xs:mb-3 xs:inline-flex sm:mb-3 sm:inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-1.5 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm sm:py-2">
+          <p className="hidden xs:mb-3 xs:inline-flex sm:mb-3 sm:inline-flex max-w-[22rem] flex-wrap items-center justify-center lg:justify-start gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-1.5 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm sm:py-2">
             <Sparkles className="h-4 w-4 text-white/80" />
             <span>Social, commerce, services, and AI</span>
           </p>
-          <h1 className="max-w-5xl text-2xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
+          <h1 className="max-w-5xl text-2xl font-black leading-tight tracking-normal sm:text-7xl">
             Nodbusiness
             <span className="block text-white/78">
               <span className="block sm:inline">Merchant</span>
@@ -157,7 +123,7 @@ export default function LandingPage() {
           </p>
           <DemoEndedNotice />
           {/* CTA buttons — always visible, stack on mobile */}
-          <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3">
+          <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3 lg:justify-start">
             <Link
               href="/register"
               className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-primary shadow-lg hover:bg-primary-subtle transition sm:h-12 sm:w-auto"
@@ -174,6 +140,19 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-3 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
+        </div>
+        {/* How it works, without words: a phone playing the promo clip. */}
+        <div className="mx-auto w-full max-w-[280px] lg:max-w-[300px]">
+          <div className="rounded-[2.5rem] bg-inverse p-2.5 shadow-2xl shadow-black/40 ring-1 ring-white/15">
+            <PromoVideo
+              clip={PROMO.landing}
+              className="aspect-[9/16] w-full rounded-[2rem] bg-white"
+              sizes="(min-width: 1024px) 300px, 280px"
+              buttonClassName="bottom-3 right-3"
+              description="How Nodbusiness works, as an animation: a seller builds a shop and adds products, shares its link, a buyer finds it on the map, orders and pays the seller directly, and the seller confirms the order."
+            />
+          </div>
+        </div>
         </div>
 
         <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">

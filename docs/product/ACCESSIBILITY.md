@@ -46,7 +46,7 @@
 | Focus management | ⚠️ Not audited | Medium |
 | Image alt text | ⚠️ Partial | High |
 | Form labels | ✅ Labels present | Low |
-| Motion (prefers-reduced-motion) | ⚠️ Partial: the brand intro video is not played with reduced motion or Save-Data (`lib/brandMotion.ts`, F-045); other animations not yet audited | Medium |
+| Motion (prefers-reduced-motion) | ⚠️ Partial: the brand intro video and the promo clips are not played with reduced motion or Save-Data (`lib/brandMotion.ts`, F-045); promo clips have a pause button (2.2.2); other animations not yet audited | Medium |
 | Font size scaling | ⚠️ Fixed sizes in places | Medium |
 | Touch target size (44px minimum) | ⚠️ Some buttons are 32px | High |
 

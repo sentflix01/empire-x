@@ -1,0 +1,289 @@
+<!doctype html>
+<!--
+  Landing promo, 24 s, 9:16 (360 x 640 units, rendered at 2x = 720 x 1280).
+  A wordless story shown inside the phone frame on /landing:
+    0-3.5   a storefront builds itself          3.5-6.5  products drop in
+    6.5-9.5 the shop link goes out to chats      9.5-12.5 a buyer finds the shop on the map
+    12.5-15.5 the buyer adds to cart and orders  15.5-18.5 the buyer pays the seller directly
+    18.5-21.5 the seller confirms; both see a check   21.5-24 the logo, then back to blank
+  Rendered by scripts/promo/render.mjs. Edit the timings in setTime().
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:#f8fafc}svg{display:block}</style>
+<script src="common.js"></script>
+</head>
+<body>
+<svg id="svg" width="360" height="640" viewBox="0 0 360 640" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const { C, prog, lerp, easeOut, easeInOut, back, window_, place, arc, ICON, tapMarkup, tap, confettiMarkup, confetti } = window.PROMO;
+const LOGO = '../../../public/brand/nodbusiness-icon-v3.svg';
+
+const tiles = [
+  { cx: -78, cy: 18, bg: C.violetSubtle, icon: ICON.dress(C.violet) },
+  { cx: 78, cy: 18, bg: C.blueSubtle, icon: ICON.cup(C.blue) },
+  { cx: -78, cy: 158, bg: C.blueSubtle, icon: ICON.shoe(C.blueDeep) },
+  { cx: 78, cy: 158, bg: C.greenSubtle, icon: ICON.basket(C.green) },
+];
+const pins = [
+  { x: 70, y: 196, c: '#94a3b8' }, { x: 276, y: 168, c: '#94a3b8' }, { x: 118, y: 430, c: '#94a3b8' },
+  { x: 300, y: 372, c: '#94a3b8' }, { x: 200, y: 294, c: C.blue },
+];
+const bubbles = [{ x: 118, y: 462, fill: C.paper }, { x: 242, y: 528, fill: C.blueSubtle }, { x: 124, y: 594, fill: C.paper }];
+
+function bar(x, y, w, h, fill, o = 1) { return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}" opacity="${o}"/>`; }
+
+function phone(id, cx, cy, avatarFill, roleIcon, body) {
+  return `<g id="${id}">
+    <rect x="-64" y="-124" width="128" height="248" rx="24" fill="${C.ink}"/>
+    <rect x="-57" y="-116" width="114" height="232" rx="18" fill="${C.paper}"/>
+    <rect id="${id}-green" x="-57" y="-116" width="114" height="232" rx="18" fill="${C.greenBright}" opacity="0"/>
+    <g id="${id}-ui">
+      <circle cx="0" cy="-82" r="19" fill="${avatarFill}"/>
+      <g transform="translate(0 -82) scale(.55)">${roleIcon}</g>
+      ${body}
+    </g>
+    <g id="${id}-big" opacity="0">${ICON.check(C.paper, 6)}</g>
+  </g>`;
+}
+
+document.getElementById('svg').innerHTML = `
+  <rect width="360" height="640" fill="${C.page}"/>
+  <g id="stage">
+    <!-- Map (buyer view) -->
+    <g id="map">
+      <rect x="0" y="64" width="360" height="576" fill="#eaf0f7"/>
+      <rect x="196" y="380" width="150" height="110" rx="18" fill="${C.greenSubtle}"/>
+      <rect x="20" y="250" width="120" height="90" rx="16" fill="${C.blueSubtle}"/>
+      <g fill="none" stroke="${C.paper}" stroke-linecap="round">
+        <path d="M-10 230 Q120 260 200 220 T380 200" stroke-width="16"/>
+        <path d="M150 64 Q170 300 140 640" stroke-width="14"/>
+        <path d="M-10 520 Q180 470 380 560" stroke-width="12"/>
+        <path d="M250 64 L262 640" stroke-width="8"/>
+      </g>
+      <g id="pulse">
+        <circle id="pulse-a" cx="200" cy="318" r="10" fill="none" stroke="${C.blue}" stroke-width="3"/>
+        <circle id="pulse-b" cx="200" cy="318" r="10" fill="none" stroke="${C.blue}" stroke-width="3"/>
+      </g>
+      ${pins.map((p, i) => `<g id="pin${i}">${ICON.pin(p.c)}</g>`).join('')}
+      <g id="card">
+        <rect x="-160" y="-74" width="320" height="148" rx="22" fill="${C.paper}" stroke="${C.line}"/>
+        <path d="M-160 -32 V-52 A22 22 0 0 1 -138 -74 H138 A22 22 0 0 1 160 -52 V-32 Z" fill="${C.blue}"/>
+        <circle cx="-130" cy="-53" r="15" fill="${C.paper}"/>
+        <g transform="translate(-130 -53) scale(.48)">${ICON.store(C.blue)}</g>
+        ${bar(-104, -60, 110, 9, C.paper, .9)}${bar(-104, -46, 70, 7, C.paper, .55)}
+        <rect x="-140" y="-18" width="70" height="62" rx="12" fill="${C.violetSubtle}"/>
+        <g transform="translate(-105 13) scale(.8)">${ICON.dress(C.violet)}</g>
+        <rect x="-60" y="-18" width="70" height="62" rx="12" fill="${C.blueSubtle}"/>
+        <g transform="translate(-25 13) scale(.8)">${ICON.cup(C.blue)}</g>
+        <circle cx="112" cy="13" r="24" fill="${C.blue}"/>
+        <g transform="translate(112 13) scale(.9)">${ICON.arrow(C.paper)}</g>
+      </g>
+    </g>
+
+    <!-- Storefront (merchant view) -->
+    <g id="shop">
+      <g id="blk-head">
+        <rect x="-150" y="-230" width="300" height="64" rx="16" fill="${C.blue}"/>
+        <circle cx="-118" cy="-198" r="20" fill="${C.paper}"/>
+        <g transform="translate(-118 -198) scale(.6)">${ICON.store(C.blue)}</g>
+        ${bar(-88, -212, 120, 10, C.paper, .92)}${bar(-88, -194, 80, 8, C.paper, .55)}
+      </g>
+      <g id="pub-badge"><circle r="15" fill="${C.green}"/><g transform="scale(.62)">${ICON.check(C.paper)}</g></g>
+      <g id="blk-hero">
+        <rect x="-150" y="-152" width="300" height="96" rx="16" fill="${C.violet}"/>
+        <circle cx="96" cy="-104" r="36" fill="${C.paper}" opacity=".14"/>
+        <circle cx="128" cy="-70" r="22" fill="${C.paper}" opacity=".1"/>
+        ${bar(-128, -128, 116, 11, C.paper, .92)}${bar(-128, -108, 72, 8, C.paper, .55)}
+        <rect x="-128" y="-90" width="54" height="20" rx="10" fill="${C.paper}"/>
+      </g>
+      ${tiles.map((tl, i) => `
+        <g id="tile${i}">
+          <rect x="-72" y="-64" width="144" height="128" rx="16" fill="${C.paper}" stroke="${C.line}"/>
+          <rect x="-60" y="-52" width="120" height="74" rx="11" fill="${tl.bg}"/>
+          ${bar(-60, 32, 74, 8, C.line)}${bar(-60, 46, 40, 8, C.blueTint)}
+        </g>
+        <g id="prod${i}"><g transform="scale(1.25)">${tl.icon}</g></g>`).join('')}
+    </g>
+
+    <!-- Shared link and chats -->
+    ${bubbles.map((b, i) => `
+      <g id="bub${i}">
+        <path d="M-72 -28 H72 A16 16 0 0 1 88 -12 V12 A16 16 0 0 1 72 28 H${i === 1 ? 60 : -56} L${i === 1 ? 80 : -76} 42 L${i === 1 ? 44 : -40} 28 H-72 A16 16 0 0 1 -88 12 V-12 A16 16 0 0 1 -72 -28 Z" fill="${b.fill}" stroke="${C.line}"/>
+        <rect x="-76" y="-18" width="36" height="36" rx="9" fill="${C.blue}"/>
+        <g transform="translate(-58 0) scale(.42)">${ICON.store(C.paper)}</g>
+        ${bar(-30, -11, 90, 8, C.line)}${bar(-30, 4, 56, 8, C.blueTint)}
+      </g>`).join('')}
+    ${[0, 1, 2].map((i) => `<g id="link${i}"><circle r="22" fill="${C.paper}" stroke="${C.blueTint}" stroke-width="2"/><g transform="scale(.75)">${ICON.link(C.blue)}</g></g>`).join('')}
+
+    <!-- Product page (buyer) -->
+    <g id="pdp">
+      <rect x="0" y="64" width="360" height="576" fill="${C.page}"/>
+      <rect x="30" y="88" width="300" height="262" rx="24" fill="${C.violetSubtle}"/>
+      <g transform="translate(180 214) scale(3)">${ICON.dress(C.violet)}</g>
+      <circle cx="164" cy="328" r="4" fill="${C.violet}"/><circle cx="180" cy="328" r="4" fill="${C.violet}" opacity=".3"/><circle cx="196" cy="328" r="4" fill="${C.violet}" opacity=".3"/>
+      ${bar(30, 372, 200, 14, C.line)}${bar(30, 398, 110, 14, C.blueTint)}
+      <circle cx="46" cy="444" r="14" fill="none" stroke="${C.line}" stroke-width="2.5"/>
+      <circle cx="86" cy="444" r="14" fill="${C.violet}"/>
+      <circle cx="126" cy="444" r="14" fill="none" stroke="${C.line}" stroke-width="2.5"/>
+      <g id="btn-add"><rect x="30" y="492" width="300" height="56" rx="28" fill="${C.blue}"/><g transform="translate(180 518) scale(.85)">${ICON.cart(C.paper)}</g></g>
+      <g id="btn-order"><rect x="30" y="492" width="300" height="56" rx="28" fill="${C.blueDeep}"/><g transform="translate(154 520) scale(.8)">${ICON.bag(C.paper)}</g><g transform="translate(210 520) scale(.8)">${ICON.arrow(C.paper)}</g></g>
+      <g id="flyer"><g transform="scale(.9)">${ICON.dress(C.violet)}</g></g>
+    </g>
+
+    <!-- Top bar -->
+    <g id="topbar">
+      <rect width="360" height="64" fill="${C.paper}"/><rect y="63" width="360" height="1" fill="${C.line}"/>
+      <circle cx="36" cy="34" r="19" fill="${C.blue}"/>
+      <g id="role-store"><g transform="translate(36 34) scale(.55)">${ICON.store(C.paper)}</g></g>
+      <g id="role-bag"><g transform="translate(36 34) scale(.55)">${ICON.bag(C.paper)}</g></g>
+      ${bar(66, 25, 96, 9, C.line)}${bar(66, 40, 60, 7, C.line, .7)}
+      <g id="topcart"><g transform="scale(.75)">${ICON.cart(C.blue)}</g></g>
+      <g id="cartdot"><circle r="7" fill="${C.violet}" stroke="${C.paper}" stroke-width="2"/></g>
+    </g>
+
+    <!-- Pay and confirm -->
+    <g id="duo">
+      ${phone('phB', 95, 330, C.blue, ICON.bag(C.paper), `
+        <rect x="-42" y="-50" width="84" height="66" rx="12" fill="${C.violetSubtle}"/>
+        <g transform="translate(0 -17) scale(.85)">${ICON.dress(C.violet)}</g>
+        ${bar(-42, 28, 70, 8, C.line)}${bar(-42, 42, 44, 8, C.blueTint)}
+        <rect x="-42" y="66" width="84" height="26" rx="13" fill="${C.blueDeep}"/>`)}
+      ${phone('phS', 265, 330, C.violet, ICON.store(C.paper), `
+        <g id="phS-rows">${[0, 1, 2].map((r) => `<rect x="-42" y="${-50 + r * 34}" width="84" height="26" rx="8" fill="${C.page}" stroke="${C.line}"/>${bar(-32, -42 + r * 34, 44, 7, C.line)}`).join('')}</g>
+        <g id="phS-bell">${ICON.bell(C.violet)}</g>
+        <g id="phS-ok"><rect x="-40" y="-18" width="80" height="36" rx="18" fill="${C.green}"/><g transform="scale(.7)">${ICON.check(C.paper)}</g></g>`)}
+      <g id="receipt">
+        <path d="M-40 -34 H40 V30 L32 36 L24 30 L16 36 L8 30 L0 36 L-8 30 L-16 36 L-24 30 L-32 36 L-40 30 Z" fill="${C.paper}" stroke="${C.line}"/>
+        <circle cx="0" cy="-16" r="11" fill="${C.green}"/><g transform="translate(0 -16) scale(.45)">${ICON.check(C.paper)}</g>
+        ${bar(-26, 2, 52, 7, C.line)}${bar(-18, 15, 36, 7, C.line)}
+      </g>
+      ${[0, 1, 2].map((i) => `<g id="coin${i}">${ICON.coin()}</g>`).join('')}
+    </g>
+    ${confettiMarkup('cf', 18)}
+
+    <!-- Logo -->
+    <g id="logo-rings">
+      <circle id="ring-a" cx="180" cy="320" r="80" fill="none" stroke="${C.blue}" stroke-width="3"/>
+      <circle id="ring-b" cx="180" cy="320" r="80" fill="none" stroke="${C.violet}" stroke-width="3"/>
+    </g>
+    <g id="logo"><image href="${LOGO}" x="-72" y="-72" width="144" height="144"/></g>
+
+    ${tapMarkup('tapA')}${tapMarkup('tapB')}${tapMarkup('tapC')}${tapMarkup('tapD')}${tapMarkup('tapE')}
+  </g>`;
+
+window.setTime = function (t) {
+  // Top bar: merchant, then buyer from 9.6 s; gone after the order.
+  place('topbar', { o: Math.min(prog(t, 0, 0.3), 1 - prog(t, 15.4, 15.7)) });
+  place('role-store', { o: 1 - prog(t, 9.6, 9.9) });
+  place('role-bag', { o: prog(t, 9.6, 9.9) });
+  const bump = 1 + 0.25 * Math.sin(Math.PI * prog(t, 14.25, 14.6));
+  place('topcart', { x: 322, y: 34, s: bump, o: prog(t, 12.6, 12.9) });
+  place('cartdot', { x: 334, y: 22, s: back(prog(t, 14.25, 14.55)), o: prog(t, 14.25, 14.3) });
+
+  // 1. The storefront builds itself.
+  const shrink = easeInOut(prog(t, 6.5, 7.1));
+  const leave = easeInOut(prog(t, 9.5, 10.1));
+  place('shop', { x: 180 - 380 * leave, y: lerp(360, 236, shrink), s: lerp(1, 0.58, shrink), o: 1 - leave });
+  const ph = prog(t, 0.2, 0.8);
+  place('blk-head', { y: lerp(-70, 0, back(ph)), o: ph });
+  const pr = prog(t, 0.6, 1.2);
+  place('blk-hero', { x: lerp(-90, 0, back(pr)), o: pr });
+  tiles.forEach((tl, i) => {
+    const p = prog(t, 1.0 + 0.15 * i, 1.5 + 0.15 * i);
+    place(`tile${i}`, { x: tl.cx, y: tl.cy, s: back(p), o: Math.min(1, p * 3) });
+    // 2. Products drop into the tiles.
+    const t0 = 3.7 + 0.35 * i, q = prog(t, t0, t0 + 0.55);
+    place(`prod${i}`, { x: tl.cx, y: lerp(tl.cy - 150, tl.cy - 16, back(q)), o: Math.min(1, q * 2.5) });
+  });
+  place('pub-badge', { x: 122, y: -198, s: back(prog(t, 2.3, 2.7)), o: prog(t, 2.3, 2.4) });
+
+  // 3. The shop link flies out to chats.
+  bubbles.forEach((b, i) => {
+    const t0 = 7.1 + 0.5 * i;
+    const f = prog(t, t0, t0 + 0.5);
+    const pt = arc({ x: 180, y: 300 }, { x: (180 + b.x) / 2 + (i === 1 ? 40 : -40), y: 330 }, { x: b.x, y: b.y }, easeInOut(f));
+    place(`link${i}`, { x: pt.x, y: pt.y, s: lerp(0.6, 1, easeOut(f)), o: window_(t, t0, t0 + 0.1, t0 + 0.45, t0 + 0.55) });
+    place(`bub${i}`, { x: b.x - 380 * leave, y: b.y, s: back(prog(t, t0 + 0.4, t0 + 0.75)), o: Math.min(prog(t, t0 + 0.4, t0 + 0.5), 1 - leave) });
+  });
+
+  // 4. A buyer finds the shop on the map.
+  const mapIn = easeInOut(prog(t, 9.5, 10.1));
+  const mapOut = prog(t, 12.6, 13.0);
+  place('map', { x: lerp(360, 0, mapIn), o: 1 - mapOut });
+  pins.forEach((p, i) => {
+    const t0 = 9.9 + 0.12 * i, q = prog(t, t0, t0 + 0.4);
+    const hit = i === 4 ? 1 + 0.18 * Math.sin(Math.PI * prog(t, 11.55, 11.85)) : 1;
+    place(`pin${i}`, { x: p.x, y: lerp(p.y - 60, p.y, back(q)), s: (i === 4 ? 1.25 : 0.9) * hit, o: q });
+  });
+  ['pulse-a', 'pulse-b'].forEach((id, k) => {
+    const live = t > 10.6 && t < 11.9;
+    const f = live ? ((t - 10.6) / 0.65 + k * 0.5) % 1 : 0;
+    const el = document.getElementById(id);
+    el.setAttribute('r', (10 + 44 * f).toFixed(2));
+    el.setAttribute('opacity', live ? (0.55 * (1 - f)).toFixed(3) : 0);
+  });
+  tap('tapA', 200, 290, t, 11.6);
+  place('card', { x: 180, y: lerp(720, 548, back(prog(t, 11.9, 12.4))), o: prog(t, 11.9, 12.0) });
+  tap('tapB', 75, 561, t, 12.6);
+
+  // 5. Product page: add to cart, then order.
+  const pin_ = prog(t, 12.7, 13.1);
+  place('pdp', { x: 40 * (1 - easeOut(pin_)), o: Math.min(pin_, 1 - prog(t, 15.4, 15.8)) });
+  tap('tapC', 180, 520, t, 13.7);
+  const fl = prog(t, 13.8, 14.3);
+  const fp = arc({ x: 180, y: 214 }, { x: 300, y: 140 }, { x: 322, y: 34 }, easeInOut(fl));
+  place('flyer', { x: fp.x, y: fp.y, s: lerp(2.2, 0.5, easeInOut(fl)), o: fl > 0 && fl < 1 ? 1 : 0 });
+  place('btn-add', { o: 1 - prog(t, 14.4, 14.6) });
+  place('btn-order', { o: prog(t, 14.4, 14.6) });
+  tap('tapD', 180, 520, t, 15.0);
+
+  // 6. The buyer pays the seller directly.
+  const duoIn = easeOut(prog(t, 15.6, 16.1));
+  const duoOut = prog(t, 21.3, 21.8);
+  place('duo', { o: Math.min(duoIn, 1 - duoOut) });
+  place('phB', { x: lerp(60, 95, duoIn), y: 330 });
+  place('phS', { x: lerp(300, 265, duoIn), y: 330 });
+  [0, 1, 2].forEach((i) => {
+    const t0 = 16.2 + 0.3 * i, f = prog(t, t0, t0 + 0.8);
+    const pt = arc({ x: 95, y: 300 }, { x: 180, y: 170 }, { x: 265, y: 300 }, easeInOut(f));
+    place(`coin${i}`, { x: pt.x, y: pt.y, s: lerp(1, 0.8, f), o: f > 0 && f < 1 ? 1 : 0 });
+  });
+  place('receipt', { x: 95, y: lerp(470, 510, back(prog(t, 17.6, 18.1))), o: Math.min(prog(t, 17.6, 17.8), 1 - duoOut) });
+
+  // 7. The seller confirms; both phones show a check.
+  const ring = 1 - prog(t, 18.6, 19.4);
+  place('phS-bell', { y: -18, r: 18 * Math.sin(2 * Math.PI * 5 * (t - 18.6)) * (t > 18.6 ? ring : 0), o: Math.min(prog(t, 18.5, 18.7), 1 - prog(t, 19.3, 19.5)) });
+  place('phS-rows', { o: 1 - prog(t, 18.4, 18.6) });
+  place('phS-ok', { y: 62, s: back(prog(t, 19.3, 19.6)), o: prog(t, 19.3, 19.4) });
+  tap('tapE', 265, 392, t, 19.9);
+  const green = prog(t, 20.1, 20.5);
+  ['phB', 'phS'].forEach((id) => {
+    place(`${id}-green`, { o: green });
+    place(`${id}-ui`, { o: 1 - green });
+    place(`${id}-big`, { s: 2.2 * back(prog(t, 20.3, 20.8)), o: prog(t, 20.3, 20.4) });
+  });
+  confetti('cf', 180, 300, t, 20.4, 150);
+
+  // 8. The logo, then back to blank for the loop.
+  const lg = prog(t, 21.8, 22.5);
+  const end = prog(t, 23.3, 24);
+  place('logo', { x: 180, y: 320, s: back(lg), o: Math.min(lg * 2, 1 - end) });
+  ['ring-a', 'ring-b'].forEach((id, k) => {
+    const f = prog(t, 22.3 + 0.35 * k, 23.5 + 0.35 * k);
+    const el = document.getElementById(id);
+    el.setAttribute('r', (78 + 70 * easeOut(f)).toFixed(2));
+    el.setAttribute('opacity', (f > 0 && f < 1 ? 0.5 * (1 - f) : 0).toFixed(3));
+  });
+};
+window.DURATION = 24;
+window.setTime(0);
+window.READY = new Promise((resolve) => {
+  const img = new Image();
+  img.onload = img.onerror = () => resolve(true);
+  img.src = LOGO;
+});
+</script>
+</body>
+</html>

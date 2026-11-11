@@ -641,5 +641,10 @@
     "samplesReady": "{{count}} samples ready",
     "samplesReady_other": "{{count}} samples ready",
     "selected": "Selected"
+  },
+  "promo": {
+    "play": "Play animation",
+    "pause": "Pause animation",
+    "bannerDescription": "Animation: a seller builds a shop and adds products, a buyer finds it on the map, orders and pays the seller, and the seller confirms the order."
   }
 }

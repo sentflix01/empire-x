@@ -644,5 +644,10 @@
     "samplesReady_one": "{{count}} ናሙና ዝግጁ",
     "samplesReady_other": "{{count}} ናሙናዎች ዝግጁ",
     "selected": "ተመርጧል"
+  },
+  "promo": {
+    "play": "አኒሜሽኑን አጫውት",
+    "pause": "አኒሜሽኑን አቁም",
+    "bannerDescription": "አኒሜሽን፦ ሻጭ ሱቅ ገንብቶ ምርቶችን ያክላል፣ ገዢ ሱቁን በካርታ ላይ አግኝቶ ያዝዛል እና ለሻጩ ይከፍላል፣ ሻጩም ትዕዛዙን ያረጋግጣል።"
   }
 }
