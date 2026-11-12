@@ -194,9 +194,9 @@ describe('Bug Condition Exploration: Reviews Section Absent Before Fix', () => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
     }, { timeout: 3000 });
 
-    // Assert: star rating element (interactive form) is present — aria-label "Rate X stars"
+    // Assert: star rating element (interactive form) is present — a radio group of "N stars"
     await waitFor(() => {
-      const starButtons = screen.queryAllByRole('button', { name: /Rate \d+ star/i });
+      const starButtons = screen.queryAllByRole('radio', { name: /^\d+ stars?$/i });
       expect(starButtons.length).toBeGreaterThan(0);
     }, { timeout: 3000 });
   });

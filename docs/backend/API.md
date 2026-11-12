@@ -532,7 +532,7 @@ Response:
 ```json
 {
   "items": [
-    { "type": "showroom" | "business", "record": { ... }, "distance_km": 1.5, "relationship": "friend" }
+    { "type": "showroom" | "business", "record": { ... }, "distance_km": 1.5, "relationship": "friend", "rating_avg": 4.5, "rating_count": 12 }
   ],
   "owners": { "<owner_id>": { "display_name": "Dawit", "avatar_url": null, "is_verified": false, "is_seed": false, "ticker_text": null, "ticker_type": null } },
   "next_offset": 20
@@ -540,6 +540,34 @@ Response:
 ```
 - `distance_km` is rounded to 0.5 km (never below 0.5) and `null` without a pin. Exact pins never leave the server (see Business location).
 - `relationship`: `"friend"` when the viewer and the owner follow each other, `"following"` when only the viewer follows, otherwise `null` (always `null` for guests).
+
+## Business reviews (verified customers)
+
+Mounted at `/api/businesses/:businessId/reviews`. Decision "Business reviews: verified customers only".
+
+### GET /api/businesses/:businessId/reviews?limit=20&offset=0
+Visible reviews, newest first. Optional auth; same visibility as the business (guests: public businesses only).
+```json
+{ "reviews": [{ "id": "uuid", "rating": 5, "comment": "Clean rooms", "reviewer_name": "Hana", "reviewer_avatar": null, "created_at": "..." }],
+  "average_rating": 4.5, "review_count": 12, "next_offset": 20 }
+```
+
+### GET /api/businesses/:businessId/reviews/mine
+Requires auth. `{ "can_review": true, "reason": null | "owner" | "no_completed_order", "review": { ... } | null }`.
+
+### POST /api/businesses/:businessId/reviews
+Requires auth; 10 per hour per user. Body `{ "rating": 1-5 (whole number), "comment": "≤ 1000 chars, optional" }`.
+- `403 OWN_BUSINESS` for the owner; `403 NO_COMPLETED_ORDER` unless the viewer has an order from this business with status `completed`.
+- One review per person per business: the first send returns `201`, later sends edit it and return `200`.
+- Response: `{ "review": { ... }, "average_rating": 4.5, "review_count": 12 }` (recalculated from visible reviews in the same transaction).
+
+### DELETE /api/businesses/:businessId/reviews/:reviewId
+The reviewer or an admin. Returns the new `average_rating` and `review_count`.
+
+### PUT /api/businesses/:businessId/reviews/:reviewId/status
+Admin only. `{ "status": "visible" | "hidden" }`; hidden reviews leave the list and the average. Anyone can report a review with `POST /api/moderation/report` and `target_type: "business_review"`.
+
+The Business feed items carry `rating_avg` (null without reviews) and `rating_count`; search business results and business records carry `average_rating` and `review_count`.
 
 ## Search
 

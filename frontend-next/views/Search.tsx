@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
+import { RatingSummary } from '@/components/ui/Stars';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import client from "@/api/client";
@@ -363,7 +364,10 @@ function Search() {
                     <p className="text-sm font-medium truncate">{b.business_name}</p>
                     <DistanceBadge km={b.distance_km} />
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{b.business_category}</p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <RatingSummary average={b.average_rating} count={b.review_count} className="shrink-0" />
+                    <p className="text-xs text-muted-foreground truncate">{b.business_category}</p>
+                  </div>
                 </div>
               </Link>
             ))}

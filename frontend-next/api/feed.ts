@@ -14,6 +14,9 @@ export interface BusinessFeedItem {
   record: Record<string, unknown>;
   distance_km: number | null;
   relationship: FeedRelationship;
+  /** Average stars from verified customers; null when nobody has reviewed. */
+  rating_avg?: number | null;
+  rating_count?: number;
 }
 
 export interface FeedOwner {

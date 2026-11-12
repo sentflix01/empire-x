@@ -14,7 +14,8 @@
  * never exact coordinates for a private address, lib/locationPrivacy.ts) and
  * `relationship` ('friend' when the viewer and the owner follow each other,
  * 'following' when only the viewer follows). Owners' display details come in
- * one map, so the client makes no per-owner requests.
+ * one map, so the client makes no per-owner requests. `rating_avg`/
+ * `rating_count` come from verified customers' reviews (routes/businessReviews.ts).
  */
 import { Router } from 'express';
 import type { Request, Response } from 'express';
@@ -41,7 +42,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 const nameKey = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase();
 const num = (value: unknown) => (value === null || value === undefined || value === '' ? NaN : Number(value));
 
-type Item = { type: 'showroom' | 'business'; record: Record<string, unknown>; created: number; distance: number | null; ownerId: string };
+type Item = { type: 'showroom' | 'business'; record: Record<string, unknown>; created: number; distance: number | null; ownerId: string; businessId: string };
 
 router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
   const q = req.query as Record<string, string>;
@@ -70,6 +71,12 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
       );
       for (const r of rows) pins.set(String(r.id), { lat: Number(r.latitude), lon: Number(r.longitude) });
     }
+    // Ratings from verified customers (business_reviews), one query for the page's businesses.
+    const ratings = new Map<string, { avg: number; count: number }>();
+    if (pinIds.length) {
+      const { rows } = await pool.query('SELECT id, average_rating, review_count FROM businesses WHERE id = ANY($1::uuid[]) AND review_count > 0', [pinIds]);
+      for (const r of rows) ratings.set(String(r.id), { avg: Number(r.average_rating), count: Number(r.review_count) });
+    }
     const distanceOf = (businessId: unknown): number | null => {
       const pin = hasPoint && businessId ? pins.get(String(businessId)) : undefined;
       return pin ? haversineKm(lat, lon, pin.lat, pin.lon) : null;
@@ -77,10 +84,10 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
 
     const showroomKeys = new Map(showroomRows.map((s) => [`${s.owner_id}:${nameKey(s.title)}`, s]));
     const items: Item[] = [
-      ...showroomRows.map((s) => ({ type: 'showroom' as const, record: s, created: Date.parse(String(s.created_at)), distance: distanceOf(s.business_id), ownerId: String(s.owner_id ?? '') })),
+      ...showroomRows.map((s) => ({ type: 'showroom' as const, record: s, created: Date.parse(String(s.created_at)), distance: distanceOf(s.business_id), ownerId: String(s.owner_id ?? ''), businessId: String(s.business_id ?? '') })),
       ...businessRows
         .filter((b) => !showroomKeys.has(`${b.owner_id}:${nameKey(b.business_name)}`))
-        .map((b) => ({ type: 'business' as const, record: b, created: Date.parse(String(b.created_at)), distance: distanceOf(b.id), ownerId: String(b.owner_id ?? '') })),
+        .map((b) => ({ type: 'business' as const, record: b, created: Date.parse(String(b.created_at)), distance: distanceOf(b.id), ownerId: String(b.owner_id ?? ''), businessId: String(b.id ?? '') })),
     ];
     items.sort((a, b) => {
       if (sort === 'nearest') {
@@ -136,6 +143,8 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
         record: i.type === 'business' ? redactContactFields(i.record, canSeeAll(i.ownerId)) : i.record,
         distance_km: roundedDistanceKm(i.distance),
         relationship: relationship[i.ownerId] ?? null,
+        rating_avg: ratings.get(i.businessId)?.avg ?? null,
+        rating_count: ratings.get(i.businessId)?.count ?? 0,
       })),
       owners,
       next_offset: offset + limit < items.length ? offset + limit : null,

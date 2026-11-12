@@ -31,7 +31,7 @@ backend/db/migrate.js        ← Core schema (initial)
 backend/db/migrate2.js       ← Second migration
 backend/db/migrate3.js       ← Third migration
 ...
-backend/db/migrate86.js      ← Current latest (November 2026)
+backend/db/migrate89.js      ← Current latest (November 2026)
 backend/db/migrate-all.js    ← Runs pending migrations in order, once each
 ```
 

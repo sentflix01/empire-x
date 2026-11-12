@@ -666,5 +666,21 @@
     "guideTitle": "ኖድቢዝነስ እንዴት እንደሚሰራ",
     "bannerDescription": "አኒሜሽን፦ አንድ ሰው የድረ-ገጽ አብነት መርጦ ፎቶና ሊንክ ያክላል፣ ያትመዋል፣ ድረ-ገጹም ከምርቶቹ ጋር በቢዝነስ ፊድ ላይ ይታያል።",
     "guideDescription": "ቃል የሌለው አኒሜሽን በስድስት ደረጃዎች፦ ሕይወትዎን በግል ፊድ ላይ ያጋሩ፤ ድረ-ገጽ ከተዘጋጀ አብነት ወይም ከባዶ ክፍሎች ይጀምሩ፤ ፎቶ በማከል፣ ሊንክ በመለጠፍ እና ቀላል ቅጾችን በመሙላት ያዘጋጁት፤ ቀለም መርጠው በኮምፒውተር፣ በታብሌት እና በስልክ ይመልከቱት፤ በቢዝነስ ፊድ ላይ ያትሙት፣ ሰዎችም ያገኙታል እና የQR ኮዱን ይቃኛሉ፤ ደንበኞች ያዝዛሉ፣ መልእክት ይልካሉ እና በቀጥታ ይከፍሉዎታል። አንድ መለያ የግል ሕይወትዎንም ቢዝነስዎንም ይይዛል።"
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "verifiedNote": "Only customers with a completed order can review.",
+    "customer": "Customer",
+    "showMore": "Show more reviews",
+    "one": "review",
+    "many": "reviews",
+    "thanks": "Thanks — your review helps other customers.",
+    "saveFailed": "Could not save your review. Please try again.",
+    "editTitle": "Your review",
+    "rateTitle": "Rate this business",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "What went well? (optional)",
+    "update": "Update review",
+    "submit": "Send review"
   }
 }

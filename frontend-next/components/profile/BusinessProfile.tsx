@@ -19,6 +19,8 @@ import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { formatAmount } from '@/lib/money';
+import { RatingSummary } from '@/components/ui/Stars';
+import BusinessReviews from '@/components/business/BusinessReviews';
 
 
 /**
@@ -123,6 +125,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
             )}
             <span className="biz-text font-display font-bold text-sm truncate" style={{ ...themeTextStyle(themeColor) }}>{biz.business_name}</span>
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
+            <RatingSummary average={business?.average_rating} count={business?.review_count} className="shrink-0" />
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {sections.filter(s => s.title).slice(0, 3).map(s => (
@@ -169,6 +172,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
               />
             );
           })}
+
+          {business?.id && <BusinessReviews businessId={String(business.id)} />}
 
           {/* Contact Section (a Studio site with its own contact section skips it) */}
           {siteContactIdx < 0 && <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">

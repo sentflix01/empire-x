@@ -21,6 +21,7 @@ import BusinessSpotlight from './BusinessSpotlight';
 import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 import { useTranslation } from 'react-i18next';
+import { RatingSummary } from '@/components/ui/Stars';
 import { fetchBusinessFeed, type BusinessFeedSort, type FeedRelationship } from '@/api/feed';
 import { useViewerLocation, type ViewerLocation } from '@/hooks/useViewerLocation';
 import { DemoBadge } from '@/components/profile/DemoBadge';
@@ -123,9 +124,12 @@ export interface BusinessFeedCardProps {
   distanceKm?: number | null;
   /** 'friend' = the viewer and the owner follow each other; 'following' = only the viewer follows. */
   relationship?: FeedRelationship;
+  /** Average stars from verified customers (business_reviews) and how many reviewed. */
+  ratingAvg?: number | null;
+  ratingCount?: number;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, ownerIsSeed, viewer, onMessage, ownerTickerText, ownerTickerType, distanceKm, relationship }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, ownerIsSeed, viewer, onMessage, ownerTickerText, ownerTickerType, distanceKm, relationship, ratingAvg, ratingCount }: BusinessFeedCardProps) {
   const { t } = useTranslation();
   const [qrOpen, setQrOpen] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
@@ -358,6 +362,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           {heroSection?.subtitle || (biz.business_description as string | undefined) || ''}
         </p>
         <p className="mt-1 flex h-4 items-center gap-1 text-xs leading-4 text-muted-foreground">
+          <RatingSummary average={ratingAvg} count={ratingCount} className="shrink-0 mr-1" />
           {biz.business_address && (<>
             <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span className="truncate">{biz.business_address as string}</span>
@@ -543,7 +548,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
   // Business feed: built on the server, nearest first when the viewer allows location.
   const [feedSort, setFeedSort] = useState<BusinessFeedSort>('recent');
-  const [feedMeta, setFeedMeta] = useState<Record<string, { distance_km: number | null; relationship: FeedRelationship }>>({});
+  const [feedMeta, setFeedMeta] = useState<Record<string, { distance_km: number | null; relationship: FeedRelationship; rating_avg: number | null; rating_count: number }>>({});
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const { request: requestLocation, status: locationStatus } = useViewerLocation();
@@ -553,11 +558,11 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     const point = sort === 'nearest' ? pointRef.current : null;
     const page = await fetchBusinessFeed({ sort, offset, lat: point?.lat, lon: point?.lon });
     const cards: Business[] = [];
-    const meta: Record<string, { distance_km: number | null; relationship: FeedRelationship }> = {};
+    const meta: Record<string, { distance_km: number | null; relationship: FeedRelationship; rating_avg: number | null; rating_count: number }> = {};
     for (const item of page.items) {
       const card = (item.type === 'showroom' ? showroomToFeedBusiness(item.record) : item.record) as Business;
       cards.push(card);
-      meta[String(card.id)] = { distance_km: item.distance_km, relationship: item.relationship };
+      meta[String(card.id)] = { distance_km: item.distance_km, relationship: item.relationship, rating_avg: item.rating_avg ?? null, rating_count: item.rating_count ?? 0 };
     }
     const owners: typeof ownerProfiles = {};
     for (const [id, o] of Object.entries(page.owners)) {
@@ -717,6 +722,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               viewer={viewer}
               distanceKm={meta?.distance_km ?? null}
               relationship={meta?.relationship ?? null}
+              ratingAvg={meta?.rating_avg ?? null}
+              ratingCount={meta?.rating_count ?? 0}
             />
           );
         })}

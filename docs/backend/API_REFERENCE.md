@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **371** across **53** mounted modules · Generated: 2026-11-12
+> Endpoints: **376** across **54** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -23,6 +23,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`auth`](#auth) (21)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
+- [`businessReviews`](#businessreviews) (5)
 - [`businessWebhooks`](#businesswebhooks) (4)
 - [`cart`](#cart) (5)
 - [`commission`](#commission) (2)
@@ -155,6 +156,16 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:200 |
 | `GET` | `/api/businesses/:id/checkout-info` | ⚪ optional | routes/businesses.ts:213 |
 
+## businessReviews — Reviews of a business by verified customers.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/businesses/:businessId/reviews/` | ⚪ optional | routes/businessReviews.ts:61 |
+| `GET` | `/api/businesses/:businessId/reviews/mine` | 🔒 auth | routes/businessReviews.ts:86 |
+| `POST` | `/api/businesses/:businessId/reviews/` | 🔒 auth | routes/businessReviews.ts:102 |
+| `DELETE` | `/api/businesses/:businessId/reviews/:reviewId` | 🔒 auth | routes/businessReviews.ts:145 |
+| `PUT` | `/api/businesses/:businessId/reviews/:reviewId/status` | 👑 admin | routes/businessReviews.ts:159 |
+
 ## businessWebhooks — Business webhook management
 
 | Method | Path | Auth | Source |
@@ -263,7 +274,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/feed/businesses` | ⚪ optional | routes/feed.ts:46 |
+| `GET` | `/api/feed/businesses` | ⚪ optional | routes/feed.ts:47 |
 
 ## flags — flags
 

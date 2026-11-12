@@ -116,7 +116,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       const realBizFilter=req.realOnly?'AND b.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
       const guestBizFilter=guest?"AND b.visibility='public'":'';
       const { rows } = await pool.query(
-        `SELECT b.id,b.owner_id,b.business_name,b.business_category,b.business_description,b.business_logo_url,b.created_at${ds}
+        `SELECT b.id,b.owner_id,b.business_name,b.business_category,b.business_description,b.business_logo_url,b.created_at,b.average_rating,b.review_count${ds}
          FROM businesses b
          WHERE (b.business_name ILIKE $1 OR b.business_category ILIKE $1 OR b.business_description ILIKE $1)
            AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub WHERE paid_sub.business_id=b.id AND paid_sub.tier <> 'freemium' AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')

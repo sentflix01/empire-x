@@ -19,7 +19,7 @@ import BusinessShowroomFeed from '@/components/feed/BusinessShowroomFeed';
 const page = (sort: string) => ({
   data: {
     items: [
-      { type: 'business', record: { id: 'b1', owner_id: 'o1', business_name: 'Dawit Fashion', business_category: 'shop', created_at: '2026-11-01T00:00:00Z' }, distance_km: sort === 'nearest' ? 1.5 : null, relationship: 'friend' },
+      { type: 'business', record: { id: 'b1', owner_id: 'o1', business_name: 'Dawit Fashion', business_category: 'shop', created_at: '2026-11-01T00:00:00Z' }, distance_km: sort === 'nearest' ? 1.5 : null, relationship: 'friend', rating_avg: 4.5, rating_count: 12 },
       { type: 'business', record: { id: 'b2', owner_id: 'o2', business_name: 'Sara Bakery', business_category: 'food', created_at: '2026-11-02T00:00:00Z' }, distance_km: sort === 'nearest' ? 3 : null, relationship: 'following' },
     ],
     owners: { o1: { display_name: 'Dawit' }, o2: { display_name: 'Sara' } },
@@ -47,6 +47,10 @@ describe('Business feed', () => {
     const tags = screen.getAllByTestId('biz-relationship').map((el) => el.textContent);
     expect(tags).toEqual(['Friend', 'Following']);
     expect(screen.queryByTestId('biz-distance')).toBeNull();
+    // Only the reviewed business shows stars.
+    const ratings = screen.getAllByTestId('rating-summary');
+    expect(ratings).toHaveLength(1);
+    expect(ratings[0].textContent).toMatch(/4\.5.*12 reviews/);
   });
 
   it('"Near you" asks for location and shows distances nearest first', async () => {

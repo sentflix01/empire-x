@@ -14,12 +14,15 @@ import client, { apiFetch } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/lib/AuthContext';
+import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
 import { PaymentAccountList, type PaymentAccount } from '@/components/checkout/PurchaseModal';
 
 interface OrderView {
   order: {
     id: string; product_title: string; quantity: number; total_price: string | number; currency: string; status: string;
     listed_price_text?: string | null;
+    business_id?: string | null;
     payment_reference: string | null; has_receipt: boolean; payment_expires_at: string | null; created_at: string;
   };
   business: { business_name?: string; business_contact_phone?: string | null; business_contact_email?: string | null; pickup_address?: string | null } | null;
@@ -49,6 +52,7 @@ export default function OrderStatus() {
   const [reference, setReference] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const { user } = useAuth();
 
   const load = useCallback(async () => {
     try {
@@ -130,6 +134,10 @@ export default function OrderStatus() {
             </Button>
           </div>
         </section>
+      )}
+
+      {user && order.status === 'completed' && order.business_id && (
+        <RateBusinessPrompt businessId={order.business_id} businessName={business?.business_name} />
       )}
 
       {(business?.pickup_address || business?.business_contact_phone || business?.business_contact_email) && (

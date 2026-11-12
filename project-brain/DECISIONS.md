@@ -984,3 +984,17 @@ items in the open list until confirmed.
 - **Why:** "Nearest first" needs every business to have a location, but decision §2.3 keeps a private address hidden until an order. Exact coordinates were already leaking through `GET /api/businesses` and `/api/maps/*` even when the address was private; this closes that leak.
 - **Consequences:** `backend/lib/locationPrivacy.ts` (used by `lib/contactPrivacy.ts`, `routes/maps.ts`, `routes/products.ts`); pin validation on business create/update. Frontend: `components/map/LocationPinPicker.tsx`, `components/map/leafletLoader.tsx`, `hooks/useViewerLocation.ts` (one Addis Ababa fallback), the business editor (`views/BusinessCreate.tsx`). Tests: `backend/__tests__/locationPrivacy.test.ts`, `backend/test/db/businessLocation.db.test.js`, `frontend-next/test/map/useViewerLocation.test.tsx`, `frontend-next/e2e/business-location.spec.ts`. People's coordinates on the maps endpoint are a separate follow-up.
 
+### 2026-11-12 — Business reviews: verified customers only
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Verified customers", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. Only a signed-in buyer with a `completed` order from a business can rate it (1–5 stars, optional comment of up to 1000 characters). Owners cannot rate their own business.
+  2. Each person has one review per business. Sending again edits it.
+  3. The business keeps `average_rating` and `review_count`, recalculated from visible reviews whenever a review changes.
+  4. Anyone can report a review (`business_review` report target). Admins can hide or show it; hidden reviews leave the list and the average.
+- **Why:** The promo shows star ratings on businesses. Limiting them to real customers keeps them trustworthy without heavy moderation. Product reviews (`reviews`) stay as they are.
+- **Consequences:**
+  - Backend: `backend/db/migrate89.js`, `backend/routes/businessReviews.ts`; ratings in `routes/feed.ts` and `routes/search.ts`.
+  - Frontend: `components/ui/Stars.tsx` (shared with product reviews), `components/business/BusinessReviews.tsx` (business profile and site), `components/orders/RateBusinessPrompt.tsx` (`/orders` and `/order/<token>`).
+  - Tests: `backend/test/db/businessReviews.db.test.js`, `frontend-next/test/reviews/businessReviews.test.tsx`.

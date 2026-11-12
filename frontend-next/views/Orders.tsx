@@ -1,4 +1,5 @@
 ﻿'use client'
+import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -688,6 +689,13 @@ function Orders() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Buyer: rate the business once the order is completed */}
+                {!isSelling && order.status === "completed" && order.business_id && (
+                  <div className="px-4 pb-4">
+                    <RateBusinessPrompt businessId={String(order.business_id)} businessName={order.seller_id ? nameMap[order.seller_id] : null} />
+                  </div>
+                )}
 
                 {/* Inline return form for buyer */}
                 <AnimatePresence>

@@ -37,6 +37,10 @@
       "description": "businesses"
     },
     {
+      "name": "businessReviews",
+      "description": "Reviews of a business by verified customers."
+    },
+    {
       "name": "businessWebhooks",
       "description": "Business webhook management"
     },
@@ -2056,6 +2060,227 @@
         },
         "x-auth": "optional",
         "x-source": "backend/routes/businesses.ts:213"
+      }
+    },
+    "/api/businesses/{businessId}/reviews": {
+      "get": {
+        "operationId": "get_businesses_businessId_reviews",
+        "tags": [
+          "businessReviews"
+        ],
+        "summary": "GET /api/businesses/{businessId}/reviews",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "optional",
+        "x-source": "backend/routes/businessReviews.ts:61"
+      },
+      "post": {
+        "operationId": "post_businesses_businessId_reviews",
+        "tags": [
+          "businessReviews"
+        ],
+        "summary": "POST /api/businesses/{businessId}/reviews",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessReviews.ts:102"
+      }
+    },
+    "/api/businesses/{businessId}/reviews/mine": {
+      "get": {
+        "operationId": "get_businesses_businessId_reviews_mine",
+        "tags": [
+          "businessReviews"
+        ],
+        "summary": "GET /api/businesses/{businessId}/reviews/mine",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessReviews.ts:86"
+      }
+    },
+    "/api/businesses/{businessId}/reviews/{reviewId}": {
+      "delete": {
+        "operationId": "delete_businesses_businessId_reviews_reviewId",
+        "tags": [
+          "businessReviews"
+        ],
+        "summary": "DELETE /api/businesses/{businessId}/reviews/{reviewId}",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessReviews.ts:145"
+      }
+    },
+    "/api/businesses/{businessId}/reviews/{reviewId}/status": {
+      "put": {
+        "operationId": "put_businesses_businessId_reviews_reviewId_status",
+        "tags": [
+          "businessReviews"
+        ],
+        "summary": "PUT /api/businesses/{businessId}/reviews/{reviewId}/status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "admin",
+        "x-source": "backend/routes/businessReviews.ts:159"
       }
     },
     "/api/business-webhooks": {
@@ -4214,7 +4439,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/feed.ts:46"
+        "x-source": "backend/routes/feed.ts:47"
       }
     },
     "/api/flags/page-guided-tours": {

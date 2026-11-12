@@ -92,6 +92,9 @@ export interface Business extends BaseEntity {
   /** Map pin. Others get it rounded to about 1 km unless the address is public. */
   latitude?: number | string | null;
   longitude?: number | string | null;
+  /** Average stars from verified customers (business_reviews) and how many reviewed. */
+  average_rating?: number | string | null;
+  review_count?: number | null;
   business_name?: string;
   business_category?: string;
   business_template?: string | string[];

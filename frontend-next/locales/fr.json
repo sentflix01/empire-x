@@ -36,5 +36,21 @@
     "discover": "Découvrir",
     "myAccount": "Mon Compte",
     "searchPlaceholder": "Rechercher personnes, produits et showrooms..."
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "verifiedNote": "Only customers with a completed order can review.",
+    "customer": "Customer",
+    "showMore": "Show more reviews",
+    "one": "review",
+    "many": "reviews",
+    "thanks": "Thanks — your review helps other customers.",
+    "saveFailed": "Could not save your review. Please try again.",
+    "editTitle": "Your review",
+    "rateTitle": "Rate this business",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "What went well? (optional)",
+    "update": "Update review",
+    "submit": "Send review"
   }
 }

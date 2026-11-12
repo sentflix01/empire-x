@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { StarRating } from "@/components/ui/Stars";
 
 import { toast } from "sonner";
 import client from "@/api/client";
@@ -18,65 +18,6 @@ interface Review {
   created_at: string;
   display_name: string | null;
   avatar_url: string | null;
-}
-
-// ─── StarRating subcomponent (not exported) ───────────────────────────────────
-
-interface StarRatingProps {
-  value: number;
-  onChange?: (n: number) => void;
-  size?: "sm" | "md";
-}
-
-function StarRating({ value, onChange, size = "md" }: StarRatingProps) {
-  const [hover, setHover] = useState(0);
-  const iconSize = size === "sm" ? "w-3.5 h-3.5" : "w-5 h-5";
-
-  if (onChange) {
-    // Interactive mode
-    return (
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((n) => {
-          const filled = n <= (hover || value);
-          return (
-            <button
-              key={n}
-              type="button"
-              onClick={() => onChange(n)}
-              onMouseEnter={() => setHover(n)}
-              onMouseLeave={() => setHover(0)}
-              className="focus:outline-none"
-              aria-label={`Rate ${n} star${n !== 1 ? "s" : ""}`}
-            >
-              <Star
-                className={`${iconSize} transition-colors ${
-                  filled
-                    ? "fill-primary text-primary"
-                    : "text-muted-foreground"
-                }`}
-              />
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Display-only mode
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          className={`${iconSize} ${
-            n <= value
-              ? "fill-primary text-primary"
-              : "text-muted-foreground"
-          }`}
-        />
-      ))}
-    </div>
-  );
 }
 
 // ─── ReviewsSection (default export) ─────────────────────────────────────────

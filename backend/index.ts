@@ -346,6 +346,7 @@ app.use('/api/profile-partnerships', require('./routes/profilePartnerships'));
 app.use('/api/messages',     require('./routes/messages'));
 app.use('/api/internal',     require('./routes/internalJobs'));
 app.use('/api/notifications',require('./routes/notifications'));
+app.use('/api/businesses/:businessId/reviews', require('./routes/businessReviews'));
 app.use('/api/businesses',   require('./routes/businesses'));
 app.use('/api/showrooms',    require('./routes/showrooms'));
 app.use('/api/feed',         require('./routes/feed'));
