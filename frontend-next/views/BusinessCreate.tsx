@@ -5,11 +5,14 @@ import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { ArrowLeft, Store } from "lucide-react";
+import { withNoSSR } from "@/components/map/DynamicMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_CATEGORIES, getTemplateById } from "@/lib/businessTemplates";
+
+const LocationPinPicker = withNoSSR(() => import("@/components/map/LocationPinPicker"));
 
 /** Fill template sections with the user's real business data */
 function personalizeSections(sections, biz) {
@@ -62,6 +65,8 @@ function BusinessCreate() {
     pickup_address: string;
     public_contact_fields: string[];
     visibility: BusinessVisibility;
+    latitude: number | null;
+    longitude: number | null;
   };
   const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
@@ -73,6 +78,8 @@ function BusinessCreate() {
     public_contact_fields: ["business_contact_phone", "business_contact_email"],
     // Public by default: guests can open the site from a QR code or link (decision §2).
     visibility: "public",
+    // Map pin: customers see only the distance unless the address is public.
+    latitude: null, longitude: null,
   });
 
   useEffect(() => {
@@ -98,6 +105,8 @@ function BusinessCreate() {
         pickup_address: typeof b.pickup_address === "string" ? b.pickup_address : "",
         public_contact_fields: Array.isArray(b.public_contact_fields) ? (b.public_contact_fields as string[]) : ["business_contact_phone", "business_contact_email"],
         visibility: asVisibility(b.visibility),
+        latitude: b.latitude != null && b.latitude !== "" ? Number(b.latitude) : null,
+        longitude: b.longitude != null && b.longitude !== "" ? Number(b.longitude) : null,
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not load this business. Please try again.');
@@ -217,6 +226,14 @@ function BusinessCreate() {
           <div>
             <Label htmlFor="business-address">Business Address</Label>
             <Input id="business-address" autoComplete="street-address" value={business.business_address} onChange={e => setBusiness({...business, business_address: e.target.value})} placeholder="Your city or area" className="mt-1 h-11" />
+          </div>
+          <div>
+            <Label>Location on the map</Label>
+            <p className="mt-0.5 mb-2 text-xs text-muted-foreground">Your pin lets nearby customers find you. They see only how far away you are, unless you show your address below.</p>
+            <LocationPinPicker
+              value={business.latitude != null && business.longitude != null ? { lat: business.latitude, lng: business.longitude } : null}
+              onChange={pin => setBusiness({ ...business, latitude: pin ? pin.lat : null, longitude: pin ? pin.lng : null })}
+            />
           </div>
           <VisibilityFieldset value={business.visibility} onChange={visibility => setBusiness({ ...business, visibility })} />
           <fieldset className="rounded-xl border border-border/50 p-3">

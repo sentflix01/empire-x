@@ -971,3 +971,16 @@ items in the open list until confirmed.
 - **Gaps (the video shows features that do not exist yet):** the owner chose on 12 Nov 2026 to show the full vision. Not built yet: the Business feed sorted by distance with a "Near you · x km" chip and a friend tag; distance search and nearest-first sorting for businesses (Search sorts only people and products by distance, `backend/routes/search.ts`); star ratings for whole businesses (only products have reviews); hotel rooms with per-night booking and dates (today rooms are Services or Price list items and "Book or request" sends a message). Follow-up: build these, or re-cut the discovery shots in `scripts/promo/scenes/shots.js` if any is dropped.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`) and are referenced only through `lib/promoAssets.ts`. Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
+
+### 2026-11-12 — Business location: exact pin only when the address is public
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Pin + distance only", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. A business owner sets a map pin in the business editor (tap the map, drag the pin, or "Use my location").
+  2. Other people see the exact pin only when the owner made the address public. Otherwise they get coordinates rounded to about 1 km (enough for a neighbourhood pin on a map) and distances rounded to 0.5 km steps, never below 0.5 km.
+  3. Product coordinates are always rounded the same way for non-owners, because a product's pin can reveal the shop.
+  4. Owners and admins always see the exact pin.
+- **Why:** "Nearest first" needs every business to have a location, but decision §2.3 keeps a private address hidden until an order. Exact coordinates were already leaking through `GET /api/businesses` and `/api/maps/*` even when the address was private; this closes that leak.
+- **Consequences:** `backend/lib/locationPrivacy.ts` (used by `lib/contactPrivacy.ts`, `routes/maps.ts`, `routes/products.ts`); pin validation on business create/update. Frontend: `components/map/LocationPinPicker.tsx`, `components/map/leafletLoader.tsx`, `hooks/useViewerLocation.ts` (one Addis Ababa fallback), the business editor (`views/BusinessCreate.tsx`). Tests: `backend/__tests__/locationPrivacy.test.ts`, `backend/test/db/businessLocation.db.test.js`, `frontend-next/test/map/useViewerLocation.test.tsx`, `frontend-next/e2e/business-location.spec.ts`. People's coordinates on the maps endpoint are a separate follow-up.
+

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-09
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -143,16 +143,16 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/businesses/` | ⚪ optional | routes/businesses.ts:35 |
-| `GET` | `/api/businesses/:id` | ⚪ optional | routes/businesses.ts:53 |
-| `POST` | `/api/businesses/` | 🔒 auth | routes/businesses.ts:65 |
-| `PUT` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:86 |
-| `DELETE` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:99 |
-| `GET` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:156 |
-| `POST` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:164 |
-| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:181 |
-| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:199 |
-| `GET` | `/api/businesses/:id/checkout-info` | ⚪ optional | routes/businesses.ts:212 |
+| `GET` | `/api/businesses/` | ⚪ optional | routes/businesses.ts:36 |
+| `GET` | `/api/businesses/:id` | ⚪ optional | routes/businesses.ts:54 |
+| `POST` | `/api/businesses/` | 🔒 auth | routes/businesses.ts:66 |
+| `PUT` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:87 |
+| `DELETE` | `/api/businesses/:id` | 🔒 auth | routes/businesses.ts:100 |
+| `GET` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:157 |
+| `POST` | `/api/businesses/:id/payment-accounts` | 🔒 auth | routes/businesses.ts:165 |
+| `PUT` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:182 |
+| `DELETE` | `/api/businesses/:id/payment-accounts/:accountId` | 🔒 auth | routes/businesses.ts:200 |
+| `GET` | `/api/businesses/:id/checkout-info` | ⚪ optional | routes/businesses.ts:213 |
 
 ## businessWebhooks — Business webhook management
 
@@ -298,8 +298,8 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:26 |
-| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:104 |
+| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:39 |
+| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:119 |
 
 ## messages — Conversations and real-time messaging
 
@@ -442,16 +442,16 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:75 |
-| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:179 |
-| `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:199 |
-| `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:213 |
-| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:251 |
-| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:319 |
-| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:342 |
-| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:397 |
-| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:480 |
-| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:492 |
+| `GET` | `/api/products/` | ⚪ optional | routes/products.ts:77 |
+| `GET` | `/api/products/mine` | 🔒 auth | routes/products.ts:184 |
+| `GET` | `/api/products/lookup/:code` | 🔒 auth | routes/products.ts:204 |
+| `POST` | `/api/products/import-image` | 🔒 auth | routes/products.ts:218 |
+| `POST` | `/api/products/scan-batch` | 🔒 auth | routes/products.ts:256 |
+| `GET` | `/api/products/:id` | ⚪ optional | routes/products.ts:324 |
+| `POST` | `/api/products/` | 🔒 auth | routes/products.ts:347 |
+| `PUT` | `/api/products/:id` | 🔒 auth | routes/products.ts:402 |
+| `DELETE` | `/api/products/:id` | 🔒 auth | routes/products.ts:485 |
+| `POST` | `/api/products/bulk-import` | 🔒 auth | routes/products.ts:497 |
 
 ## profilePartnerships — profilePartnerships
 

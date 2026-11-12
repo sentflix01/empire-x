@@ -4,9 +4,13 @@
  * Only the contact fields an owner marked public leave the server for other
  * viewers (default: business phone and email). The business address is private
  * unless chosen, and the pickup address is never public: it is shared with a
- * buyer only on their order. Owners and admins always see everything.
+ * buyer only on their order. A private address also hides the exact map pin
+ * (coordinates are rounded to about 1 km, lib/locationPrivacy.ts). Owners and
+ * admins always see everything.
  * See docs/decisions/platform-model-decisions.md §2.3.
  */
+import { protectCoordinates } from './locationPrivacy';
+
 export const CONTACT_FIELDS = ['business_contact_phone', 'business_contact_email', 'business_address'] as const;
 export type ContactField = typeof CONTACT_FIELDS[number];
 export const DEFAULT_PUBLIC_CONTACT_FIELDS: ContactField[] = ['business_contact_phone', 'business_contact_email'];
@@ -25,7 +29,7 @@ export function redactContactFields<T extends Record<string, unknown>>(row: T, c
   const copy: Record<string, unknown> = { ...row };
   for (const field of CONTACT_FIELDS) if (!visible.has(field)) copy[field] = null;
   for (const field of OWNER_ONLY_FIELDS) delete copy[field];
-  return copy as T;
+  return protectCoordinates(copy, visible.has('business_address')) as T;
 }
 
 /** Validates an owner's chosen list; returns null when the input is invalid. */

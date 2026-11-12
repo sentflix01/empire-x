@@ -502,6 +502,24 @@ Signed-in users, owners and admins see private businesses as usual.
 
 For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
 
+## Business location (map pin)
+
+Owners set the pin with `latitude` and `longitude` on `POST /api/businesses`
+and `PUT /api/businesses/:id`. Send both together (or both `null` to remove
+the pin); latitude must be -90..90 and longitude -180..180, otherwise `422`.
+
+**Who sees the exact pin.** Only the owner and admins, or everyone when the
+owner made the address public (`public_contact_fields` includes
+`business_address`). Everyone else gets:
+- `latitude`/`longitude` rounded to 2 decimal places (about 1 km) on
+  `GET /api/businesses`, `GET /api/businesses/:id` and `/api/maps/*`;
+- `distance_km` rounded to 0.5 km steps, never below 0.5, on `/api/maps/*`.
+
+Product coordinates are always rounded the same way for non-owners, because a
+product's pin can reveal the shop. See `backend/lib/locationPrivacy.ts` and
+`project-brain/DECISIONS.md` ("Business location: exact pin only when the
+address is public").
+
 ## Scheduled jobs (internal)
 
 ### POST /api/internal/jobs/:name

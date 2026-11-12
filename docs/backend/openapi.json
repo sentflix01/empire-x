@@ -1690,7 +1690,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/businesses.ts:35"
+        "x-source": "backend/routes/businesses.ts:36"
       },
       "post": {
         "operationId": "post_businesses",
@@ -1718,7 +1718,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:65"
+        "x-source": "backend/routes/businesses.ts:66"
       }
     },
     "/api/businesses/{id}": {
@@ -1756,7 +1756,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/businesses.ts:53"
+        "x-source": "backend/routes/businesses.ts:54"
       },
       "put": {
         "operationId": "put_businesses_id",
@@ -1797,7 +1797,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:86"
+        "x-source": "backend/routes/businesses.ts:87"
       },
       "delete": {
         "operationId": "delete_businesses_id",
@@ -1835,7 +1835,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:99"
+        "x-source": "backend/routes/businesses.ts:100"
       }
     },
     "/api/businesses/{id}/payment-accounts": {
@@ -1875,7 +1875,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:156"
+        "x-source": "backend/routes/businesses.ts:157"
       },
       "post": {
         "operationId": "post_businesses_id_payment_accounts",
@@ -1916,7 +1916,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:164"
+        "x-source": "backend/routes/businesses.ts:165"
       }
     },
     "/api/businesses/{id}/payment-accounts/{accountId}": {
@@ -1967,7 +1967,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:181"
+        "x-source": "backend/routes/businesses.ts:182"
       },
       "delete": {
         "operationId": "delete_businesses_id_payment_accounts_accountId",
@@ -2013,7 +2013,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businesses.ts:199"
+        "x-source": "backend/routes/businesses.ts:200"
       }
     },
     "/api/businesses/{id}/checkout-info": {
@@ -2051,7 +2051,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/businesses.ts:212"
+        "x-source": "backend/routes/businesses.ts:213"
       }
     },
     "/api/business-webhooks": {
@@ -4573,7 +4573,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/maps.ts:26"
+        "x-source": "backend/routes/maps.ts:39"
       }
     },
     "/api/maps/nearby": {
@@ -4598,7 +4598,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/maps.ts:104"
+        "x-source": "backend/routes/maps.ts:119"
       }
     },
     "/api/messages/conversations": {
@@ -8179,7 +8179,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/products.ts:75"
+        "x-source": "backend/routes/products.ts:77"
       },
       "post": {
         "operationId": "post_products",
@@ -8207,7 +8207,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:342"
+        "x-source": "backend/routes/products.ts:347"
       }
     },
     "/api/products/mine": {
@@ -8234,7 +8234,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:179"
+        "x-source": "backend/routes/products.ts:184"
       }
     },
     "/api/products/lookup/{code}": {
@@ -8274,7 +8274,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:199"
+        "x-source": "backend/routes/products.ts:204"
       }
     },
     "/api/products/import-image": {
@@ -8304,7 +8304,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:213"
+        "x-source": "backend/routes/products.ts:218"
       }
     },
     "/api/products/scan-batch": {
@@ -8334,7 +8334,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:251"
+        "x-source": "backend/routes/products.ts:256"
       }
     },
     "/api/products/{id}": {
@@ -8372,7 +8372,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/products.ts:319"
+        "x-source": "backend/routes/products.ts:324"
       },
       "put": {
         "operationId": "put_products_id",
@@ -8413,7 +8413,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:397"
+        "x-source": "backend/routes/products.ts:402"
       },
       "delete": {
         "operationId": "delete_products_id",
@@ -8451,7 +8451,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:480"
+        "x-source": "backend/routes/products.ts:485"
       }
     },
     "/api/products/bulk-import": {
@@ -8481,7 +8481,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/products.ts:492"
+        "x-source": "backend/routes/products.ts:497"
       }
     },
     "/api/profile-partnerships/mine": {

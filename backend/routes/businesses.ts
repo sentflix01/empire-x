@@ -7,6 +7,7 @@ import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, witho
 import { getBusinessSubscriptionAccess, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
 import pool from '../db/pool';
 import { redactContactFields, parsePublicContactFields } from '../lib/contactPrivacy';
+import { locationFieldError } from '../lib/locationPrivacy';
 import { businessViewGate, isBusinessVisibility, rejectViewGate } from '../lib/siteVisibility';
 import { uuidParams } from '../lib/uuidParams';
 
@@ -25,7 +26,7 @@ function privacyFieldError(updates: Record<string, unknown>): string | null {
   if (updates.pickup_address !== undefined && updates.pickup_address !== null && (typeof updates.pickup_address !== 'string' || updates.pickup_address.length > 500)) {
     return 'pickup_address must be text of at most 500 characters';
   }
-  return null;
+  return locationFieldError(updates);
 }
 
 const router = Router();

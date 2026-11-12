@@ -7,6 +7,7 @@
  *   - Low-stock alerts via atomicWalletOp-free notification path
  *   - Price-drop alerts bulk INSERT replacing sequential loop
  */
+import { protectCoordinates } from '../lib/locationPrivacy';
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import logger from '../lib/logger';
@@ -40,7 +41,8 @@ function normalizeProduct(p: Record<string,unknown>): Record<string,unknown> {
 function publicProduct(p: Record<string, unknown>): Record<string, unknown> {
   const out = normalizeProduct(p);
   for (const key of ['cost_price', 'supplier_id', 'batch_number', 'variant_of']) delete out[key];
-  return out;
+  // A product's pin can reveal the shop: others get it rounded to about 1 km.
+  return protectCoordinates(out, false);
 }
 
 const PRODUCT_FIELDS = [

@@ -89,6 +89,9 @@ export interface Product extends BaseEntity {
 
 export interface Business extends BaseEntity {
   owner_id?: string;
+  /** Map pin. Others get it rounded to about 1 km unless the address is public. */
+  latitude?: number | string | null;
+  longitude?: number | string | null;
   business_name?: string;
   business_category?: string;
   business_template?: string | string[];
