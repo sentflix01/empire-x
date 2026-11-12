@@ -1,0 +1,30 @@
+{
+  "id": "F-067",
+  "kind": "defect",
+  "phase": "P10-architecture",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Showroom sections sent as a JSON array are saved in a format the site cannot read",
+  "standards": [
+    "ISO/IEC 25010:2023 functional correctness",
+    "OWASP API3:2023 (input contract)"
+  ],
+  "location": [
+    "backend/lib/builderSectionRequirements.js:27-41 (accepts arrays)",
+    "backend/routes/showrooms.ts:251-300 (stores the value in TEXT via createRecord)"
+  ],
+  "steps": [
+    "POST /api/showrooms with status published and sections as a JSON array (not a string) -> 201.",
+    "Stored value is a PostgreSQL array literal {\"{...}\",\"{...}\"}; the public page shows only the fallback \"Get in Touch\"."
+  ],
+  "expected": "Arrays are serialised to JSON before saving, or rejected.",
+  "actual": "Validation passes, storage corrupts the sections. The web builder sends JSON strings, so current users are not affected.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/sheet-showroom.jpg"
+  ],
+  "impact": "Latent data corruption for any other API client (future mobile app, scripts).",
+  "fix": "In POST/PUT normalise sections with JSON.stringify(normalizeSections(value)) before saving.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-11"
+}

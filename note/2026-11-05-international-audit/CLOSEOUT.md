@@ -3,6 +3,8 @@
 **Date:** 2026-11-08 · **Audit:** 2026-11-05 → 06 (`REPORT.md`) · **Fixes:** PRs #178, #179, #180 (merged and deployed; deploy run #527 green)
 **Production check:** 39 of 39 read-only checks passed on 2026-11-08 (`evidence/prod-verify-2026-11-08.json`, script `scripts/prod-verify.cjs`)
 
+> **Update 2026-11-11:** a re-audit to the full 13-phase prompt is in [`REAUDIT-2026-11-11.md`](REAUDIT-2026-11-11.md): GO WITH CONDITIONS, 16 new findings (1 High).
+
 ---
 
 ## 1. Verdict

@@ -1,0 +1,29 @@
+{
+  "id": "F-071",
+  "kind": "hardening",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Production content policy still allows images from localhost",
+  "standards": [
+    "OWASP A02:2025 (Security Misconfiguration)",
+    "ASVS 5.0 V3.4 (browser security headers)"
+  ],
+  "location": [
+    "frontend-next/lib/csp.ts:30"
+  ],
+  "steps": [
+    "curl -I https://nodbusiness.vercel.app/landing: img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002."
+  ],
+  "expected": "Development hosts only in development builds.",
+  "actual": "Production CSP lists http://localhost:3001 and :3002.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/prod-verify.json",
+    "frontend-next/lib/csp.ts:30"
+  ],
+  "impact": "Low: lets pages load images from the visitor's own localhost; a sign of environment mixing.",
+  "fix": "Add the localhost sources only when NODE_ENV !== \"production\".",
+  "effort": "S",
+  "environment": "production-passive",
+  "found_on": "2026-11-11"
+}

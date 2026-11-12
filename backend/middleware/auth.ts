@@ -3,6 +3,11 @@
  *
  * - requireAuth:          verifies Bearer JWT, checks Redis revocation, attaches req.user
  * - optionalAuth:         same but does not reject on missing/invalid token
+ *
+ * Status codes: 401 only for problems with the token or account (missing,
+ * invalid, expired, revoked, user not found); 403 for a banned account; 503
+ * AUTH_UNAVAILABLE when the user lookup itself fails (e.g. Postgres down), so
+ * the web app does not mistake an outage for an ended session.
  * - requireAdmin:         enforces role === 'admin' after requireAuth
  * - invalidateUserCache:  evict a user from the 60s Redis cache (call on ban/unban/role-change)
  *
@@ -213,14 +218,40 @@ function verifyAccessToken(
  * Auth failures use the documented error shape (audit F-007):
  * { error, code, request_id }. The message text is unchanged.
  */
-function authError(res: Response, status: 401 | 403, code: string, message: string): void {
+function authError(res: Response, status: 401 | 403 | 503, code: string, message: string): void {
   const body: Record<string, unknown> = { error: message, code };
   const requestId = (res.req as Request & { requestId?: string } | undefined)?.requestId;
   if (requestId) body.request_id = requestId;
   res.status(status).json(body);
 }
 
+/**
+ * True for a problem with the token itself (bad signature, malformed, wrong
+ * type, expired, not yet valid). TokenExpiredError and NotBeforeError are
+ * subclasses of JsonWebTokenError.
+ */
+function isTokenError(err: unknown): boolean {
+  return err instanceof jwt.JsonWebTokenError;
+}
+
+/**
+ * Anything else that fails while authenticating (Postgres out of connections,
+ * a dropped connection, ...) is our fault, not the caller's: answer 503 so the
+ * web app retries instead of treating it as an ended session and signing the
+ * person out with a 401.
+ */
+function authUnavailable(res: Response, err: unknown, where: 'requireAuth' | 'optionalAuth'): void {
+  const e = err as (Error & { code?: string }) | undefined;
+  const requestId = (res.req as Request & { requestId?: string } | undefined)?.requestId;
+  logger.error(
+    { err: e?.message, name: e?.name, code: e?.code, request_id: requestId, where },
+    'auth: user lookup failed; answering 503',
+  );
+  authError(res, 503, 'AUTH_UNAVAILABLE', 'Sign-in check is temporarily unavailable. Try again shortly.');
+}
+
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  let user: AuthUser | null;
   try {
     const header = req.headers.authorization;
     if (!header?.startsWith('Bearer ')) {
@@ -236,29 +267,43 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const user = await getCachedUser(payload.sub as string, isDemo);
-    if (!user) {
-      authError(res, 401, 'USER_NOT_FOUND', 'User not found');
-      return;
-    }
-    if (user.is_banned) {
-      authError(res, 403, 'ACCOUNT_SUSPENDED', 'Your account has been suspended. Contact support.');
-      return;
-    }
-
-    req.user = user;
-    if (user.is_demo) withoutRedis(next);
-    else next();
+    user = await getCachedUser(payload.sub as string, isDemo);
   } catch (err) {
-    if ((err as Error).name === 'TokenExpiredError') {
+    if ((err as Error)?.name === 'TokenExpiredError') {
       authError(res, 401, 'TOKEN_EXPIRED', 'Token expired');
       return;
     }
-    authError(res, 401, 'INVALID_TOKEN', 'Invalid token');
+    if (isTokenError(err)) {
+      authError(res, 401, 'INVALID_TOKEN', 'Invalid token');
+      return;
+    }
+    authUnavailable(res, err, 'requireAuth');
+    return;
   }
+
+  if (!user) {
+    authError(res, 401, 'USER_NOT_FOUND', 'User not found');
+    return;
+  }
+  if (user.is_banned) {
+    authError(res, 403, 'ACCOUNT_SUSPENDED', 'Your account has been suspended. Contact support.');
+    return;
+  }
+
+  // next() runs outside the try so an error thrown downstream is never
+  // reported as an authentication failure.
+  req.user = user;
+  if (user.is_demo) withoutRedis(next);
+  else next();
 }
 
-export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
+/**
+ * Attaches req.user when a valid token is sent; continues as a guest when no
+ * token, an invalid/expired/revoked token, or a banned user is presented.
+ * An infrastructure failure answers 503 rather than silently downgrading a
+ * signed-in person to a guest (decision 2026-11-12 in project-brain/DECISIONS.md).
+ */
+export async function optionalAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     if (req.demoSession) {
@@ -269,24 +314,25 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
     withoutRedis(next);
     return;
   }
+
+  let user: AuthUser | null = null;
   try {
     const payload = verifyAccessToken(header.slice(7), req.demoSession);
     const isDemo = payload.demo === true || Boolean(req.demoSession);
-    if (!isDemo && await isTokenRevoked(payload.jti, payload.sub, payload.iat)) {
-      req.user = null;
-      withoutRedis(next);
+    if (isDemo || !(await isTokenRevoked(payload.jti, payload.sub, payload.iat))) {
+      const found = await getCachedUser(payload.sub as string, isDemo);
+      user = found && !found.is_banned ? found : null;
+    }
+  } catch (err) {
+    if (!isTokenError(err)) {
+      authUnavailable(res, err, 'optionalAuth');
       return;
     }
-    const user = await getCachedUser(payload.sub as string, isDemo);
-    req.user = user && !user.is_banned ? user : null;
-    if (!req.user?.is_demo) {
-      next();
-      return;
-    }
-  } catch {
-    req.user = null;
+    user = null;
   }
-  if (req.user?.is_demo || !req.user) withoutRedis(next);
+
+  req.user = user;
+  if (!user || user.is_demo) withoutRedis(next);
   else next();
 }
 

@@ -1,3 +1,24 @@
+/** A product as GET /api/maps/nearby/product-search returns it. Price is NUMERIC, so a decimal string. */
+export interface MapSearchProduct {
+  id: string;
+  seller_id?: string;
+  title?: string;
+  price?: number | string | null;
+  currency?: string | null;
+  images?: unknown;
+}
+
+/** A person in a people search on the map. */
+export interface MapSearchPerson {
+  user_id: string;
+  display_name?: string | null;
+  headline?: string | null;
+  avatar_url?: string | null;
+  distance_km?: number;
+  latitude?: string | null;
+  longitude?: string | null;
+}
+
 export interface MapSearchResult {
   businesses: Array<{
     id: string;
@@ -9,7 +30,7 @@ export interface MapSearchResult {
     business_category?: string;
     avatar_url?: string;
     distance_km?: number;
-    matched_products?: any[];
+    matched_products?: MapSearchProduct[];
   }>;
   geo_products: Array<{
     id: string;
@@ -20,9 +41,9 @@ export interface MapSearchResult {
     longitude?: string;
     distance_km?: number;
   }>;
-  products_matched: any[];
+  products_matched: MapSearchProduct[];
   total_matches: number;
-  users?: any[];
+  users?: MapSearchPerson[];
   searchType?: 'people' | 'place';
 }
 

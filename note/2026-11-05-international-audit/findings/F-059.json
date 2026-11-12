@@ -1,0 +1,38 @@
+{
+  "id": "F-059",
+  "kind": "defect",
+  "phase": "P3-ux",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Production opens the page guide by itself for new visitors, contrary to the recorded decision",
+  "standards": [
+    "Nielsen heuristic 3 (user control and freedom)",
+    "ISO 9241-110 (user engagement / controllability)",
+    "Core Web Vitals LCP"
+  ],
+  "location": [
+    "GET https://nodbusiness.vercel.app/api/flags/page-guided-tours -> {\"enabled_for_user\":true}",
+    "backend/lib/featureFlags.ts:44 (default enabled:false)",
+    "project-brain/DECISIONS.md:853-858 (2026-11-06: off by default)",
+    "frontend-next/components/PageGuide.tsx:955-968"
+  ],
+  "steps": [
+    "Production, read-only, fresh browser, no sign-in: open /landing and /marketplace (desktop 1350 px and Pixel 7).",
+    "Wait 4 s: #page-guide-description is visible and the .z-guide overlay covers the page.",
+    "GET /api/flags/page-guided-tours returns enabled_for_user:true. Locally (code default) the guide stays closed (first-visit-tours.json)."
+  ],
+  "expected": "As decided on 2026-11-06 (F-031): the guide opens only when the visitor taps the Page guide button.",
+  "actual": "Production has the flag turned on (environment variable FF_PAGE_GUIDED_TOURS or an admin/Redis override), so the guide covers the landing page and marketplace on every first visit. Lighthouse reports the guide text as the landing page's LCP element (3.2 s).",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/prod-guide-autoopen-desktop.jpg",
+    "evidence/reaudit-2026-11-11/prod-guide-autoopen-phone.jpg",
+    "evidence/reaudit-2026-11-11/lh-prod-landing.json",
+    "evidence/reaudit-2026-11-11/first-visit-tours.json"
+  ],
+  "impact": "Every new visitor meets an overlay before seeing the product; first impressions and the landing LCP suffer. The running configuration contradicts a recorded owner decision.",
+  "fix": "Owner decision: either turn the flag off on production (remove FF_PAGE_GUIDED_TOURS / reset the admin override) or record a new decision in DECISIONS.md. Add the flag value to scripts/prod-verify.cjs so drift is caught.",
+  "effort": "S",
+  "environment": "production-passive",
+  "regression_test": "prod-verify: /api/flags/page-guided-tours matches the decided value.",
+  "found_on": "2026-11-11"
+}

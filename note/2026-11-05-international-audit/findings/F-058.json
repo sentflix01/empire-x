@@ -1,0 +1,44 @@
+{
+  "id": "F-058",
+  "kind": "vulnerability",
+  "phase": "P5-security",
+  "severity": "High",
+  "status": "CONFIRMED",
+  "title": "No length limits on user text: one member can make the public marketplace 20 times slower",
+  "standards": [
+    "OWASP API4:2023 (Unrestricted Resource Consumption)",
+    "OWASP A06:2025 (Insecure Design)",
+    "ASVS 5.0 V2.2 (input validation)",
+    "Core Web Vitals LCP (payload size)"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:L",
+    "score": 5.3
+  },
+  "location": [
+    "backend/routes/products.ts:342 (POST /api/products: no title/description length check; the bulk path caps titles at 200, products.ts:285)",
+    "backend/index.ts:268 (express.json limit 10mb)",
+    "POST /api/posts, POST /api/posts/:id/comments, POST /api/businesses (no length checks)"
+  ],
+  "steps": [
+    "Local stack, member account: POST /api/products with title and description of 900,000 characters each and a valid business_id -> 201, stored in full.",
+    "POST /api/posts, POST /api/posts/:id/comments, POST /api/businesses with 500,000-character content/name -> 201 each, stored in full.",
+    "GET /api/products?limit=20 as a guest: 15 items, 2,232,505 bytes.",
+    "Run scripts/load-test.mjs: public product list 45-58 rps, p50 219 ms at 10 clients and 4,409 ms at 200.",
+    "Hide the oversized rows (status=draft): list 10,144 bytes, 741-831 rps, p50 13-245 ms."
+  ],
+  "expected": "Server-side maximum lengths on every free-text field (e.g. title 200, description 5,000, post 5,000, comment 2,000, names 100) and a body limit sized to the largest legitimate JSON request.",
+  "actual": "Single-create and edit paths accept any length up to the 10 MB JSON body limit. One member's three oversized products made every visitor's marketplace page 2.2 MB and cut list throughput about 20 times. PostgreSQL also logs \"word is too long to be indexed\" for the full-text index.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/new-endpoints.json",
+    "evidence/reaudit-2026-11-11/load-test.json",
+    "evidence/reaudit-2026-11-11/load-test-products-after-cleanup.txt",
+    "evidence/reaudit-2026-11-11/sheet-feed.jpg"
+  ],
+  "impact": "Any signed-up member (no payment needed) can degrade the marketplace and feed for everyone, inflate storage and mobile data use (target market on slow, metered connections), and break layouts. CVSS 5.3 reflects availability only; rated High for product impact on a core public journey.",
+  "fix": "Add a shared length validator (e.g. backend/lib/textLimits.ts) used by product create/update, posts, comments, messages, business and profile fields; reject with 422 and a clear message. Lower express.json to ~1 MB except for routes that need more. Add matching maxLength on the frontend inputs. Clean up any existing oversized rows.",
+  "effort": "M",
+  "environment": "local",
+  "regression_test": "Jest/supertest: each create/update route rejects a field one character over its limit with 422.",
+  "found_on": "2026-11-11"
+}
