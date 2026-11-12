@@ -23,6 +23,7 @@ import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import LiveLocationSection from "@/components/showroom/LiveLocationSection";
 import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 /** Sections that list the business's real products (search, categories, Order). */
 export const CATALOGUE_TYPES = ["products", "featured_products", "inventory_catalog"];
@@ -231,7 +232,7 @@ export default function SectionRenderer({
                     <p className="text-sm font-medium truncate">{p.title}</p>
                     {p.description && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.description}</p>}
                     <div className="flex items-center justify-between mt-2">
-                      <p className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{p.price?.toLocaleString()} {p.currency || "USD"}</p>
+                      <p className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{formatAmount(p.price)} {p.currency || "USD"}</p>
                       {!isOwner && onBuy && showStock && (
                         <span className="text-xs text-muted-foreground">{Number(p.stock) > 0 ? `${p.stock} left` : 'Check availability'}</span>
                       )}

@@ -427,7 +427,9 @@
     "create": "ንግድ ፍጠር",
     "creating": "እየፈጠረ...",
     "noBusiness": "ምንም ንግድ የለም",
-    "switchBusiness": "ንግድ ቀይር"
+    "switchBusiness": "ንግድ ቀይር",
+    "productViews": "የምርት እይታዎች",
+    "engagement": "ተሳትፎ"
   },
   "referral": {
     "title": "የጥሪ ፕሮግራም",

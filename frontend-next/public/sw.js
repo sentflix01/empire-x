@@ -5,11 +5,11 @@
 // network, so no signed-in data is stored on the device and nothing needs
 // clearing on logout.
 
-const VERSION = 'v5'; // v5: logo files renamed (lib/brandAssets.ts)
+const VERSION = 'v6'; // v6: vector logo files (lib/brandAssets.ts)
 const SHELL_CACHE = `nodbusiness-shell-${VERSION}`;
 const STATIC_CACHE = `nodbusiness-static-${VERSION}`;
 const OFFLINE_URL = '/offline';
-const SHELL_ASSETS = [OFFLINE_URL, '/manifest.json', '/icons/icon-192-v2.png', '/icons/icon-512-v2.png'];
+const SHELL_ASSETS = [OFFLINE_URL, '/manifest.json', '/icons/icon-192-v3.png', '/icons/icon-512-v3.png'];
 const MAX_STATIC_ENTRIES = 300;
 
 // Next.js build output is content-hashed (a change gets a new URL), so a
@@ -109,8 +109,8 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'Nodbusiness', {
       body: data.body || '',
-      icon: '/icons/icon-192-v2.png',
-      badge: '/icons/icon-192-v2.png',
+      icon: '/icons/icon-192-v3.png',
+      badge: '/icons/icon-192-v3.png',
       data: { url: data.url || '/' },
     })
   );

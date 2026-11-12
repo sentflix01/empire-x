@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **369** across **52** mounted modules · Generated: 2026-11-08
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -15,7 +15,7 @@
 Standard error shape: `{ "error": string, "code": string, "request_id"?: string }`
 with `422 VALIDATION_ERROR`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 NOT_FOUND`, `500 INTERNAL_ERROR`. Every response also carries `API-Version: 1`.
 
-Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these codes: `401 UNAUTHORIZED` (no token), `401 INVALID_TOKEN`, `401 TOKEN_EXPIRED` (refresh and retry), `401 TOKEN_REVOKED`, `401 USER_NOT_FOUND`, `403 ACCOUNT_SUSPENDED`, `403 ADMIN_REQUIRED`, `403 MFA_SETUP_REQUIRED`.
+Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these codes: `401 UNAUTHORIZED` (no token), `401 INVALID_TOKEN`, `401 TOKEN_EXPIRED` (refresh and retry), `401 TOKEN_REVOKED`, `401 USER_NOT_FOUND`, `403 ACCOUNT_SUSPENDED`, `403 ADMIN_REQUIRED`, `403 MFA_SETUP_REQUIRED`, and `503 AUTH_UNAVAILABLE` when the check itself fails on the server (for example the database is unavailable); the session is still good, so retry rather than sign out. `optionalAuth` continues as a guest for a missing or bad token but answers the same `503 AUTH_UNAVAILABLE` when a token was sent and the check fails.
 
 ## Contents
 - [`admin`](#admin) (19)
@@ -54,7 +54,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`referral`](#referral) (1)
 - [`returns`](#returns) (6)
 - [`reviews`](#reviews) (4)
-- [`saves`](#saves) (3)
+- [`saves`](#saves) (4)
 - [`search`](#search) (1)
 - [`sharePreview`](#sharepreview) (2)
 - [`showrooms`](#showrooms) (12)
@@ -390,16 +390,16 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | Method | Path | Auth | Source |
 |---|---|---|---|
 | `GET` | `/api/orders/` | 🔒 auth | routes/orders.ts:94 |
-| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:123 |
-| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:131 |
-| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:186 |
-| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:264 |
-| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:334 |
-| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:648 |
-| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:682 |
-| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:750 |
-| `GET` | `/api/orders/chapa/status/:tx_ref` | 🔒 auth | routes/orders.ts:764 |
-| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:777 |
+| `GET` | `/api/orders/session/:sessionId` | 🔒 auth | routes/orders.ts:125 |
+| `GET` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:133 |
+| `POST` | `/api/orders/` | 🔒 auth | routes/orders.ts:188 |
+| `PUT` | `/api/orders/:id` | 🔒 auth | routes/orders.ts:266 |
+| `POST` | `/api/orders/checkout/session` | 🔒 auth | routes/orders.ts:336 |
+| `POST` | `/api/orders/webhook` | 🌐 public | routes/orders.ts:650 |
+| `POST` | `/api/orders/checkout/chapa` | 🔒 auth | routes/orders.ts:684 |
+| `GET` | `/api/orders/chapa/sandbox` | 🌐 public | routes/orders.ts:752 |
+| `GET` | `/api/orders/chapa/status/:tx_ref` | 🔒 auth | routes/orders.ts:766 |
+| `GET` | `/api/orders/chapa/verify/:tx_ref` | 🌐 public | routes/orders.ts:779 |
 
 ## polls — polls
 
@@ -530,7 +530,8 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 |---|---|---|---|
 | `GET` | `/api/saves/` | 🔒 auth | routes/saves.ts:8 |
 | `POST` | `/api/saves/toggle` | 🔒 auth | routes/saves.ts:64 |
-| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:79 |
+| `GET` | `/api/saves/my-products` | 🔒 auth | routes/saves.ts:84 |
+| `GET` | `/api/saves/check/:targetId` | 🔒 auth | routes/saves.ts:104 |
 
 ## search — Cross-entity full-text search
 

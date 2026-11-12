@@ -2,7 +2,7 @@
 
 > Security is built in from the start. This document explains every layer of protection.
 > For known threats and their mitigations, see `docs/architecture/THREAT_MODEL.md`.
-> **Verified against code on 2026-08-23.** Last updated: 2026-08-23
+> **Verified against code on 2026-08-23.** Last updated: 2026-11-12 (sign-in check 503; body limit and text limits)
 
 ---
 
@@ -35,11 +35,19 @@ requireAuth middleware
     ├── Extract Bearer token from Authorization header
     ├── verifyAccessToken(): jwt.verify + enforce payload.type === 'access'
     │       └── refresh tokens (type='refresh', 7d) are NEVER valid Bearer credentials
-    ├── Redis revocation check: revoked:{jti} and revoke_before:{userId} (fail-open if Redis down)
-    ├── getCachedUser(): SELECT id, email, role, is_banned (60s Redis cache)
-    │       └── 401 if deleted · 403 if banned
+    ├── Revocation check: revoked:{jti} and revoke_before:{userId} in Redis, falling back to
+    │   Postgres (auth_security_state) if Redis fails; allowed and logged only if both fail
+    ├── getCachedUser(): SELECT id, email, role, is_banned (30s in-process + 60s Redis cache)
+    │       └── 401 if deleted · 403 if banned · 503 AUTH_UNAVAILABLE if the lookup fails
     └── attach req.user = { id, email, role, is_banned } → next()
 ```
+
+401 is reserved for problems with the token or account (`UNAUTHORIZED`, `INVALID_TOKEN`,
+`TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`). Any other error while authenticating
+(database out of connections or unreachable) is logged and answered `503 AUTH_UNAVAILABLE`, so a
+short outage does not look like an ended session and the web app does not sign people out.
+`optionalAuth` continues as a guest for a missing, invalid, revoked or banned token, but answers
+the same 503 on an infrastructure error rather than silently downgrading a signed-in person.
 
 Token architecture (TD-001, TD-014; ADR-004 is superseded):
 - **Access token:** 15 min, returned in the response body; the client keeps it in memory only.
@@ -73,7 +81,7 @@ Socket.IO handshakes run the same access-type check plus revocation and ban chec
 8.  cors() — origin allowlist (wildcard-subdomain support), credentials enabled
 9.  global rate limiter on /api/ + stricter auth limiter (both SKIPPED entirely in development)
 10. express.raw() on /api/orders/webhook (Stripe needs raw body)
-11. express.json() / express.urlencoded() (10mb)
+11. express.json() / express.urlencoded() (2mb), then text-length limits per field (422 TEXT_TOO_LONG; lib/textLimits.ts, audit F-058)
 12. static /uploads
 13. routes (44 modules) → admin-only /metrics
 14. Sentry error handler → errorMiddleware → 404 catch-all

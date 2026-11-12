@@ -439,6 +439,18 @@ interface BusinessShowroomFeedProps {
   businesses?: Business[];
 }
 
+/**
+ * The feed's load error. "Check your connection" only when no answer came back;
+ * a server error (for example a Demo database that is briefly unavailable) is
+ * not the visitor's connection.
+ */
+export function feedLoadErrorMessage(err: unknown): string {
+  const status = err && typeof err === 'object' ? (err as { status?: unknown }).status : undefined;
+  return typeof status === 'number'
+    ? 'Business profiles could not be loaded right now. Please try again in a moment.'
+    : 'We could not load business profiles. Check your connection and try again.';
+}
+
 export default function BusinessShowroomFeed({ profile, currentUser, businesses: propBusinesses }: BusinessShowroomFeedProps) {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
@@ -522,9 +534,9 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         }
         setOwnerProfiles(map);
       }
-    } catch {
+    } catch (err) {
       setFeedBusinesses([]);
-      setFeedError('We could not load business profiles. Check your connection and try again.');
+      setFeedError(feedLoadErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -718,12 +730,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           {heroSection?.subtitle && (
             <p className="text-xs text-muted-foreground italic line-clamp-1">{heroSection.subtitle}</p>
           )}
-          {biz.business_description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description as string}</p>
+          {typeof biz.business_description === 'string' && biz.business_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description}</p>
           )}
-          {biz.business_address && (
+          {typeof biz.business_address === 'string' && biz.business_address && (
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address as string}
+              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address}
             </p>
           )}
 

@@ -1,0 +1,30 @@
+{
+  "id": "F-066",
+  "kind": "defect",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Product page sends a failing view-count update; views include the owner's own visits",
+  "standards": [
+    "ISO/IEC 25010:2023 functional correctness"
+  ],
+  "location": [
+    "frontend-next/views/ProductDetail.tsx:81",
+    "backend/routes/products.ts:337"
+  ],
+  "steps": [
+    "Sign in as the seller and open their product: PUT /api/products/:id {\"view_count\":N} -> 400 \"No updatable product fields provided\" (other users would get 403).",
+    "GET /api/products/:id already increments view_count for every request, including the owner and refreshes."
+  ],
+  "expected": "One server-side view count per visit that excludes the owner (and ideally repeat refreshes).",
+  "actual": "A dead client-side PUT on every product visit (console error) and an inflated \"Product views\" figure on Business Analytics.",
+  "evidence": [
+    "scripts/browser/reaudit-product-view-put.cjs",
+    "evidence/reaudit-2026-11-11/screens-console-dynamic.json"
+  ],
+  "impact": "Misleading analytics for sellers; wasted request and console error for every visitor.",
+  "fix": "Remove the client PUT; in GET skip the increment when the viewer is the owner (optionally de-duplicate per visitor per hour in Redis).",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-11"
+}

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface Profile {
@@ -301,7 +302,7 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
                   </div>
                   <div className="p-3">
                     <p className="text-xs font-semibold truncate">{p.title}</p>
-                    <p className="text-xs text-primary font-bold mt-0.5">{p.price?.toLocaleString()} {p.currency}</p>
+                    <p className="text-xs text-primary font-bold mt-0.5">{formatAmount(p.price)} {p.currency}</p>
                   </div>
                 </Link>
               );
@@ -317,8 +318,8 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
 export interface ProfilePeekProps {
   /** UUID of the user whose profile to show */
   authorId: string;
-  authorName?: string;
-  authorAvatar?: string;
+  authorName?: string | null;
+  authorAvatar?: string | null;
   /**
    * Which view to open first.
    * "personal" → personal profile tab

@@ -41,7 +41,7 @@ const siteSections = JSON.stringify([
   { type: 'services', servTitle: 'Studio Services', services: [{ name: 'Phone Repair', desc: 'Same day', price: '500 ETB' }] },
 ]);
 
-const profile = { user_id: 'owner-1', display_name: 'Abebe', business_sections: templateSections };
+const profile = { id: 'profile-1', user_id: 'owner-1', display_name: 'Abebe', business_sections: templateSections };
 const business = { id: 'biz-1', business_name: 'Abebe Electronics', owner_id: 'owner-1' };
 const site = {
   id: 'site-2', owner_id: 'owner-1', business_id: 'biz-1', status: 'published', slug: 'abebe-electronics',

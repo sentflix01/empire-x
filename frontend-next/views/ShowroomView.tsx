@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { entities } from "@/api/entities";
+import { entities, type Product, type Showroom } from "@/api/entities";
+import { sectionList } from "@/lib/showroomSectionsCodec";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -18,6 +19,8 @@ import NewsletterSignupsPanel from "@/components/showroom/NewsletterSignupsPanel
 import WhatsAppFloat from "@/components/showroom/WhatsAppFloat";
 import { siteFontFamily } from "@/lib/siteFonts";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
+
+type PurchaseItem = React.ComponentProps<typeof PurchaseModal>['item'];
 import QRLandingModal from "@/components/showroom/QRLandingModal";
 import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -141,8 +144,8 @@ function ShowroomView() {
   const router = useRouter();
   const id = params.id;
   const slugParam = params.slug;
-  const [showroom, setShowroom] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [showroom, setShowroom] = useState<Showroom | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('');
   const [productCategories, setProductCategories] = useState<string[]>([]);
@@ -156,7 +159,7 @@ function ShowroomView() {
   const [showQr, setShowQr] = useState(false);
   const { user } = useAuth();
   const [authResolved] = useState(true); // auth state from useAuth is synchronous
-  const [purchaseItem, setPurchaseItem] = useState(null);
+  const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
   const [quoteItem, setQuoteItem] = useState<{ name: string; desc?: string } | null>(null);
 
   const loadShowroom = useCallback(async () => {
@@ -253,7 +256,7 @@ function ShowroomView() {
   if (!showroom && signInRequired) return <SignInRequired />;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
-  const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
+  const sections = sectionList(showroom.sections);
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const isOwner = user?.id === showroom.owner_id;
@@ -282,9 +285,9 @@ function ShowroomView() {
   };
 
   // Handler called by SectionRenderer when a priced service or product is clicked
-  const handleBuy = (item) => {
+  const handleBuy = (item: Record<string, any>) => {
     // Guests can buy — they'll enter name/phone at checkout
-    setPurchaseItem(item);
+    setPurchaseItem({ ...item, title: String(item.title ?? item.name ?? '') });
   };
 
   // Handler for "Get Quote" service items
@@ -308,7 +311,7 @@ function ShowroomView() {
         <QRLandingModal
           businessName={showroom.title}
           businessCategory={showroom.category}
-          logoUrl={showroom.logo_url}
+          logoUrl={showroom.logo_url ?? undefined}
           currentPath={typeof window !== 'undefined' ? window.location.pathname : ''}
           themeColor={themeColor}
         />
@@ -448,7 +451,7 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <BrandLogo className="w-12 h-12 text-primary/40 mx-auto mb-3" />
+      <BrandLogo size={48} className="w-12 h-12 text-primary/40 mx-auto mb-3" />
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">

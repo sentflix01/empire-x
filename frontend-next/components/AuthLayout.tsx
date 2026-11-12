@@ -2,6 +2,7 @@
 import { HEX } from '@/lib/colorTokens';
 import React from "react";
 import { BRAND } from '@/lib/brandAssets';
+import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
 
 interface AuthLayoutProps {
   title: string
@@ -24,8 +25,9 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
               </div>
             ) : (
               <>
-                {/* Brand logo circle: the static SVG only. The intro video (1 MB)
-                    was downloaded on every sign-in page for a 64 px logo (F-045). */}
+                {/* Brand logo circle: the small intro video (62 KB) plays once, then
+                    fades to the sharp vector logo behind it. Reduced motion or data
+                    saving shows the vector logo only (F-045). */}
                 <div
                   className="relative w-16 h-16 rounded-full overflow-hidden"
                   style={{
@@ -33,10 +35,12 @@ export default function AuthLayout({ title, subtitle, footer, children, icon: Ic
                     backgroundImage: `url(${BRAND.icon})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    boxShadow: '0 0 0 2px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.15)',
+                    boxShadow: '0 0 0 3px rgba(255,255,255,0.9), 0 0 0 4px rgba(37,99,235,0.18), 0 6px 28px rgba(37,99,235,0.35)',
                   }}
                   aria-hidden="true"
-                />
+                >
+                  <BrandIntroVideo />
+                </div>
                 <span className="text-base font-black tracking-tight text-foreground">
                   Nodbusiness
                 </span>

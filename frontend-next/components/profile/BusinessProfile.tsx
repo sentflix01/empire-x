@@ -1,19 +1,24 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect, useCallback } from "react";
-import { entities } from "@/api/entities";
+import { entities, type Business, type Order, type Product, type Showroom, type UserProfile } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
+import { sectionList } from "@/lib/showroomSectionsCodec";
 
 import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
+
+type PurchaseItem = React.ComponentProps<typeof PurchaseModal>['item'];
 import { useStartChat } from "@/lib/messaging";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 
 /**
@@ -21,19 +26,29 @@ import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
  * published showroom linked to `businessId`. The API already drops sites that
  * are expired, private to guests, or past the 24-hour grace after a plan ends.
  */
-export function pickPublishedSite(showrooms, businessId) {
+export function pickPublishedSite<T extends { status?: string; business_id?: unknown; updated_at?: string }>(showrooms: T[] | null | undefined, businessId: string | null | undefined): T | null {
   if (!businessId || !Array.isArray(showrooms)) return null;
   const matches = showrooms.filter(s => s?.status === "published" && String(s.business_id ?? "") === String(businessId));
   matches.sort((a, b) => String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? "")));
   return matches[0] ?? null;
 }
 
-export default function BusinessProfile({ profile, business, user, isOwner }) {
-  const [products, setProducts] = useState([]);
-  const [site, setSite] = useState(null);
-  const [orders, setOrders] = useState([]);
+/** A business shown on a profile: a business record, possibly built from a published site. */
+export type ProfileBusinessRecord = Business & { showroom_id?: string; showroom_slug?: string };
+
+interface BusinessProfileProps {
+  profile: UserProfile;
+  business: ProfileBusinessRecord | null;
+  user: AuthUser | null;
+  isOwner: boolean;
+}
+
+export default function BusinessProfile({ profile, business, user, isOwner }: BusinessProfileProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [site, setSite] = useState<Showroom | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [purchaseItem, setPurchaseItem] = useState(null);
+  const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
 
   // Merge: prefer business entity fields, fall back to profile's embedded business fields
   const biz = { ...profile, ...business };
@@ -49,8 +64,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
       entities.Product.filter({ seller_id: profile.user_id, status: "active" }, "-created_at", 50).catch(() => []),
       isOwner ? entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 10).catch(() => []) : Promise.resolve([]),
       business?.id
-        ? entities.Showroom.filter({ owner_id: profile.user_id, status: "published" }, "-updated_at", 50).catch(() => [])
-        : Promise.resolve([]),
+        ? entities.Showroom.filter({ owner_id: profile.user_id, status: "published" }, "-updated_at", 50).catch(() => [] as Showroom[])
+        : Promise.resolve([] as Showroom[]),
     ]);
     setProducts(prods);
     setOrders(ords);
@@ -64,13 +79,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
   // Prefer the owner's published Studio site; the category template's sample
   // sections are only a fallback for businesses without one.
-  const sections = (() => {
-    try {
-      const raw = site ? site.sections : biz.business_sections;
-      const parsed = typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
-      return Array.isArray(parsed) ? parsed : [];
-    } catch { return []; }
-  })();
+  const sections = sectionList(site ? site.sections : biz.business_sections);
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const themeColor = (site && site.theme_color) || biz.business_theme_color || "#2563EB";
@@ -81,12 +90,13 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     : biz;
   const siteSlug = site ? site.slug : biz.showroom_slug;
   const siteEditId = site ? site.id : biz.showroom_id;
-  const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
+  const hours = (() => { try { return JSON.parse(String(biz.business_hours || "[]")); } catch { return []; } })();
 
-  const handleBuy = (product) => {
+  const handleBuy = (product: Record<string, any>) => {
     // Guests can buy: the Buy view asks for name, phone and email. Studio cards
     // carry their own product_type (linked product or website item).
-    setPurchaseItem(site ? product : { ...product, product_type: "product" });
+    const item = { ...product, title: String(product.title ?? product.name ?? '') };
+    setPurchaseItem(site ? item : { ...item, product_type: "product" });
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
@@ -224,7 +234,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                   <p className="text-xs text-muted-foreground">{o.buyer_name} • {o.quantity}x</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-primary">{o.total_price?.toLocaleString()} {o.currency}</p>
+                  <p className="text-sm font-bold text-primary">{formatAmount(o.total_price)} {o.currency}</p>
                   <Badge variant="outline" className="text-[10px] mt-0.5">{o.status}</Badge>
                 </div>
               </div>

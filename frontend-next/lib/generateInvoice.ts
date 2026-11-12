@@ -9,13 +9,14 @@ interface Order {
   id: string;
   product_title?: string;
   quantity?: number;
-  total_price?: number;
+  /** Number or decimal string (PostgreSQL NUMERIC) as the API sends it. */
+  total_price?: number | string;
   currency?: string;
   status?: string;
-  buyer_name?: string;
-  buyer_email?: string;
+  buyer_name?: string | null;
+  buyer_email?: string | null;
   seller_id?: string;
-  delivery_address?: string;
+  delivery_address?: string | null;
   created_at?: string;
   [key: string]: unknown;
 }
@@ -136,7 +137,7 @@ export async function generateInvoice(order: Order): Promise<void> {
 
   // ── Table row ─────────────────────────────────────────────────────────────
   const qty = order.quantity ?? 1;
-  const total = order.total_price ?? 0;
+  const total = Number(order.total_price ?? 0) || 0;
   const unitPrice = qty > 0 ? total / qty : total;
   const currency = order.currency ?? "ETB";
 

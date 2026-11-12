@@ -34,10 +34,10 @@ import SafeImage from '@/components/ui/SafeImage';
 interface Post {
   id: string;
   author_id: string;
-  author_name?: string;
-  author_avatar?: string;
-  content?: string;
-  image_url?: string;
+  author_name?: string | null;
+  author_avatar?: string | null;
+  content?: string | null;
+  image_url?: string | null;
   poll_options?: string;
   poll_ends_at?: string;
   /** In-app destination, e.g. /showroom/<slug> for a site announcement. */
@@ -126,7 +126,7 @@ function detectVariant(post: Post): Variant {
 }
 
 /* ── Hashtag renderer ───────────────────────────────── */
-function RenderText({ text }: { text?: string }) {
+function RenderText({ text }: { text?: string | null }) {
   if (!text) return null;
   return (
     <>

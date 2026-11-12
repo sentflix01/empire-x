@@ -114,7 +114,9 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     if (status) { params.push(status); conditions.push(`o.status=$${params.length}`); }
     const orderBy = sort==='created_at' ? 'o.created_at ASC' : 'o.created_at DESC';
     params.push(lim);
-    const { rows } = await pool.query(`SELECT o.* FROM orders o WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
+    // The product's photos for the order card (the product may since be deleted).
+    const { rows } = await pool.query(`SELECT o.*, p.images AS product_images FROM orders o LEFT JOIN products p ON p.id = o.product_id
+      WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
     res.json({ orders: rows.map(clientOrder), next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
   } catch { apiError.serverError(res, 'Failed to fetch orders'); }
 });

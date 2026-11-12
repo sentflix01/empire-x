@@ -9,15 +9,25 @@ import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
+/** GET /api/referral/my-code (backend routes/referral.ts). */
+interface ReferralData {
+  code: string;
+  referral_link: string;
+  referrals: number;
+  total_referred: number;
+  /** Points actually earned from referrals (point_transactions). */
+  earned: number;
+}
+
 function Referral() {
   const { t } = useTranslation();
-  const [referralData, setReferralData] = useState(null);
+  const [referralData, setReferralData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [codeCopied, setCodeCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [applyCode, setApplyCode] = useState("");
   const [applying, setApplying] = useState(false);
-  const [points, setPoints] = useState(null);
+  const [points, setPoints] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -120,7 +130,7 @@ function Referral() {
           <div className="w-8 h-8 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-2">
             <Star className="w-4 h-4 text-rating" />
           </div>
-          <p className="text-2xl font-bold">{(referralData?.total_referred ?? 0) * 50}</p>
+          <p className="text-2xl font-bold">{referralData?.earned ?? 0}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Points Earned</p>
         </div>
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center">

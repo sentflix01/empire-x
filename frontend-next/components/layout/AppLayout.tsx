@@ -21,7 +21,6 @@ import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
 import { HEX, IDENTITY } from '@/lib/colorTokens';
-import { BRAND } from '@/lib/brandAssets';
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
@@ -96,7 +95,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         <div className="bg-primary px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-              <BrandLogo className="w-4 h-4 text-white" />
+              <BrandLogo variant="onBlue" className="w-5 h-5" />
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
@@ -127,7 +126,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             href={user ? "/showroom/templates" : "/register"}
             className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition-all"
           >
-            <BrandLogo className="w-3.5 h-3.5" />
+            <BrandLogo variant="onBlue" className="w-4 h-4" />
             {user ? 'Browse Templates' : 'Create an account to build'}
           </Link>
         </div>
@@ -441,16 +440,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Logo */}
           <Link href="/feed" aria-label="Go to home" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
-            <Image
-              src={BRAND.icon}
-              alt="Nodbusiness"
-              width={32}
-              height={32}
-              loading="eager"
-              className="w-8 h-8 rounded-xl object-cover shadow-sm"
-            />
+            <BrandLogo size={32} label="Nodbusiness" className="w-8 h-8 shadow-sm" />
             {!sidebarCollapsed && (
-              <span className="hidden md:inline font-display text-lg font-bold tracking-tight text-primary whitespace-nowrap">
+              <span className="hidden md:inline font-body text-lg font-black tracking-tight text-primary whitespace-nowrap">
                 Nodbusiness
               </span>
             )}

@@ -1,7 +1,6 @@
 import { HEX } from '@/lib/colorTokens';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
 import {
   Bot,
@@ -19,7 +18,10 @@ import {
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import DemoEndedNotice from '@/components/landing/DemoEndedNotice';
 import { BRAND } from '@/lib/brandAssets';
+import Wordmark from '@/components/brand/Wordmark';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -65,7 +67,7 @@ export default function LandingPage() {
       {/* ── Top navigation bar ── */}
       <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-inverse/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">
-          <Image src={BRAND.logoWhite} alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
+          <Wordmark tone="dark" className="text-xl sm:text-2xl" />
         </div>
         <div className="flex items-center gap-2">
           <LandingPreferences />
@@ -127,7 +129,7 @@ export default function LandingPage() {
               backgroundImage: `url(${BRAND.icon})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 8px 40px rgba(0,0,0,0.5)',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 0 48px rgba(37,99,235,0.55), 0 8px 40px rgba(0,0,0,0.45)',
             }}
           >
             <BrandIntroVideo />
@@ -153,6 +155,7 @@ export default function LandingPage() {
           <p className="hidden sm:block mt-6 max-w-2xl text-sm font-medium leading-7 text-white/76 sm:text-xl">
             One simple platform where local businesses create showrooms, connect with customers, and manage orders.
           </p>
+          <DemoEndedNotice />
           {/* CTA buttons — always visible, stack on mobile */}
           <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3">
             <Link
@@ -245,7 +248,7 @@ export default function LandingPage() {
               <div className="rounded-[1.5rem] bg-secondary p-4 text-foreground">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src={BRAND.icon} alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
+                    <BrandLogo size={40} className="h-10 w-10 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-black">Nodbusiness</p>
                       <p className="text-xs text-muted-foreground">Merchant dashboard</p>

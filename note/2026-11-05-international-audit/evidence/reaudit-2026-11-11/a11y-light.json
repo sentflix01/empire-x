@@ -1,0 +1,1010 @@
+{
+  "ran_at": "2026-11-11T16:57:19.497Z",
+  "axe": "4.12.1",
+  "scheme": "light",
+  "tags": "wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa",
+  "base": "http://localhost:3002",
+  "results": [
+    {
+      "path": "/showroom/samples",
+      "url": "/login?return=%2Fshowroom%2Fsamples",
+      "status": 200,
+      "violations": [],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showroom/templates",
+      "url": "/login?return=%2Fshowroom%2Ftemplates",
+      "status": 200,
+      "violations": [],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/landing",
+      "url": "/landing",
+      "status": 200,
+      "violations": [],
+      "incomplete": 3,
+      "lang": "en",
+      "title": "Nodbusiness - Local merchant showrooms and orders | Nodbusiness",
+      "small_targets": 6,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/login",
+      "url": "/login",
+      "status": 200,
+      "violations": [],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/register",
+      "url": "/register",
+      "status": 200,
+      "violations": [],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/forgot-password",
+      "url": "/forgot-password",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 2,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/marketplace",
+      "url": "/marketplace",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/businesses",
+      "url": "/businesses",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showrooms",
+      "url": "/showrooms",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/feed",
+      "url": "/feed",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 9,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/explore",
+      "url": "/explore",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/nearby",
+      "url": "/nearby",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/service-agreement",
+      "url": "/service-agreement",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 2,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/offline",
+      "url": "/offline",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/products/593619f8-3e4a-42e9-a8e7-04d85b0b70fc",
+      "url": "/products/593619f8-3e4a-42e9-a8e7-04d85b0b70fc",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Product on Nodbusiness | Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showroom/e2e-coffee-house",
+      "url": "/showroom/e2e-coffee-house",
+      "status": 200,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".border-white\\/40"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "E2E Coffee House | Nodbusiness",
+      "small_targets": 2,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/profile/7274afbb-ca65-44f1-ab15-55f809d50744",
+      "url": "/profile/7274afbb-ca65-44f1-ab15-55f809d50744",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/does-not-exist",
+      "url": "/does-not-exist",
+      "status": 404,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 2,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/analytics",
+      "url": "/analytics",
+      "status": 200,
+      "violations": [
+        {
+          "id": "button-name",
+          "impact": "critical",
+          "wcag": [
+            "wcag2a",
+            "wcag412"
+          ],
+          "nodes": 10,
+          "sample": [
+            ".hover\\:border-primary\\/30.border-border\\/40.p-3:nth-child(1) > .gap-1.shrink-0.flex > a > .hover\\:bg-accent.hover\\:text",
+            ".hover\\:border-primary\\/30.border-border\\/40.p-3:nth-child(2) > .gap-1.shrink-0.flex > a > .hover\\:bg-accent.hover\\:text"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".text-muted-foreground\\/80"
+          ]
+        },
+        {
+          "id": "link-name",
+          "impact": "serious",
+          "wcag": [
+            "wcag2a",
+            "wcag244",
+            "wcag412"
+          ],
+          "nodes": 10,
+          "sample": [
+            ".hover\\:border-primary\\/30.border-border\\/40.p-3:nth-child(1) > .gap-1.shrink-0.flex > a",
+            ".hover\\:border-primary\\/30.border-border\\/40.p-3:nth-child(2) > .gap-1.shrink-0.flex > a"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 5,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/coupons",
+      "url": "/coupons",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/wallet",
+      "url": "/wallet",
+      "status": 200,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".mb-1",
+            "p[data-page-guide=\"wallet-currency\"]"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/referral",
+      "url": "/referral",
+      "status": 200,
+      "violations": [
+        {
+          "id": "button-name",
+          "impact": "critical",
+          "wcag": [
+            "wcag2a",
+            "wcag412"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".h-12",
+            ".w-9"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 3,
+          "sample": [
+            ".items-start.gap-3.flex:nth-child(1) > .text-white\\/90",
+            ".items-start.gap-3.flex:nth-child(2) > .text-white\\/90"
+          ]
+        },
+        {
+          "id": "label",
+          "impact": "critical",
+          "wcag": [
+            "wcag2a",
+            "wcag412"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".bg-secondary\\/30"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/scorecard",
+      "url": "/scorecard",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showrooms",
+      "url": "/showrooms",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/business/inventory",
+      "url": "/business/inventory",
+      "status": 200,
+      "violations": [
+        {
+          "id": "button-name",
+          "impact": "critical",
+          "wcag": [
+            "wcag2a",
+            "wcag412"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".disabled\\:pointer-events-none"
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".text-primary\\/70"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/business/edit",
+      "url": "/business/edit",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/privacy",
+      "url": "/privacy",
+      "status": 200,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".text-white\\/75",
+            ".text-white\\/85"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/nearby",
+      "url": "/nearby",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 5,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/feed",
+      "url": "/feed",
+      "status": 200,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "wcag": [
+            "wcag22aa",
+            "wcag258"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".hover\\:underline.hover\\:text-primary.gap-0\\.5:nth-child(1)",
+            ".hover\\:underline.hover\\:text-primary.gap-0\\.5:nth-child(3)"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 11,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/explore",
+      "url": "/explore",
+      "status": 200,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "wcag": [
+            "wcag22aa",
+            "wcag258"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".hover\\:text-primary.hover\\:underline.gap-0\\.5:nth-child(1)",
+            ".hover\\:text-primary.hover\\:underline.gap-0\\.5:nth-child(3)"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 7,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/marketplace",
+      "url": "/marketplace",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/messages",
+      "url": "/messages",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/notifications",
+      "url": "/notifications",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/orders",
+      "url": "/orders",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/cart",
+      "url": "/cart",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/settings",
+      "url": "/account",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/account",
+      "url": "/account",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/profile",
+      "url": "/profile",
+      "status": 200,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "wcag": [
+            "wcag22aa",
+            "wcag258"
+          ],
+          "nodes": 2,
+          "sample": [
+            ".hover\\:text-primary.hover\\:underline.gap-0\\.5:nth-child(1)",
+            ".hover\\:text-primary.hover\\:underline.gap-0\\.5:nth-child(3)"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/profile/edit",
+      "url": "/profile/edit",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 6,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/products/create",
+      "url": "/products/create",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 5,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/business/create",
+      "url": "/business/create",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/business/subscription",
+      "url": "/business/subscription",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showroom/create",
+      "url": "/showroom/create",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/search",
+      "url": "/search",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/friends",
+      "url": "/friends",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/bookmarks",
+      "url": "/bookmarks",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/products/593619f8-3e4a-42e9-a8e7-04d85b0b70fc",
+      "url": "/products/593619f8-3e4a-42e9-a8e7-04d85b0b70fc",
+      "status": 200,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "wcag": [
+            "wcag22aa",
+            "wcag258"
+          ],
+          "nodes": 5,
+          "sample": [
+            "button[aria-label=\"Rate 1 star\"]",
+            "button[aria-label=\"Rate 2 stars\"]"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Product on Nodbusiness | Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showroom/e2e-coffee-house",
+      "url": "/showroom/e2e-coffee-house",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "E2E Coffee House | Nodbusiness",
+      "small_targets": 2,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/profile/7274afbb-ca65-44f1-ab15-55f809d50744",
+      "url": "/profile/7274afbb-ca65-44f1-ab15-55f809d50744",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 6,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/does-not-exist",
+      "url": "/does-not-exist",
+      "status": 404,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 2,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    }
+  ]
+}

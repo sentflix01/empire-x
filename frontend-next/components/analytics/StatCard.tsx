@@ -8,9 +8,11 @@ interface StatCardProps {
   value: string | number;
   color: string;
   trend?: number;
+  /** A short note under the label, e.g. what the figure counts. */
+  note?: string;
 }
 
-export default function StatCard({ icon: Icon, label, value, color, trend }: StatCardProps) {
+export default function StatCard({ icon: Icon, label, value, color, trend, note }: StatCardProps) {
   return (
     <div className="bg-card rounded-2xl border border-border/50 p-4">
       <div className="flex items-start justify-between">
@@ -25,6 +27,7 @@ export default function StatCard({ icon: Icon, label, value, color, trend }: Sta
       </div>
       <p className="text-2xl font-bold mt-2">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
+      {note && <p className="text-[10px] text-muted-foreground/80">{note}</p>}
     </div>
   );
 }

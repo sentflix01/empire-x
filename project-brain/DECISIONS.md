@@ -922,3 +922,59 @@ items in the open list until confirmed.
 - **Decision:** The still icon is the last frame of the intro video (network of businesses over the globe, white on blue), cut to a circle, so the small and animated logos are the same picture. Logo files carry a version in their name (`-v2`) and are referenced only through `frontend-next/lib/brandAssets.ts`; when one changes, it gets a new name and the old name redirects (`next.config.ts`).
 - **Why:** After the recolour, browsers that had cached the old files under the same name kept showing the black logo. A new name is never in any cache, so every visitor sees a changed logo on the next page load.
 - **Consequences:** `scripts/brand/render-icons.mjs` builds the WebP icon, favicon, Apple touch icon and PWA icons from `nodbusiness-intro.mp4`. The icon SVG is retired. A unit test (`test/brand/brandAssets.test.ts`) keeps the names, files, manifest and service worker in step. Docs: `docs/brand/BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.
+
+### 2026-11-09 — Vector logo master; white-ring logo on blue; logo animation plays once
+
+- **Status:** Accepted (owner, 9 Nov 2026: fix logo quality, use the white-ring logo on blue backgrounds, update the wordmark "o"; chose "Animate, end sharp" for sign-in and landing). Supersedes the 2026-11-08 entry "Small logo is a still of the animated logo".
+- **Decision owner:** Project owner
+- **Decision:** The logo is a vector drawing (`scripts/brand/build-logo.mjs`): blue disc, globe with Natural Earth continents, network lines and eight boxes. It has a white-ring version for blue backgrounds and bolder small versions for 24 px and below. `BrandLogo` takes `variant="onBlue"`; `Wordmark` shows the name with the icon as the "o" in the heavy sans (also used for the app header name). The intro video plays once on the landing hero and the sign-in pages, then fades to the vector icon; reduced motion or data saving shows the icon only. Sign-in may now load the small 62 KB video (the F-045 budget test allows only that file).
+- **Why:** The raster still (cut from a compressed video frame) was blurry at small sizes; the blue disc vanished on blue backgrounds; the wordmark "o" was still the old thin mark.
+- **Consequences:** PNG and ICO icons are rendered from the vector by `render-icons.mjs`. Files are `-v3`; v1 and v2 names redirect. The share image uses the ringed icon. Unit tests check that logos styled for blue use the ring version and that the icons are vectors.
+
+### 2026-11-09 — An ended Demo session leaves Demo with an explanation
+
+- **Status:** Accepted (owner asked to fix "We could not load business profiles" seen in a Demo session, 9 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** When the API answers with `DEMO_SESSION_EXPIRED`, `DEMO_SESSION_INVALID` or `DEMO_DISABLED`, the web app stops trying to refresh, signs the browser out of Demo and opens `/landing?demo=ended` with a notice; Try Demo starts afresh. Load errors say "check your connection" only when no answer came back.
+- **Why:** An ended session made every request fail while the Demo banner stayed on screen, and the feed blamed the visitor's connection.
+- **Consequences:** `api/client.ts` (`isDemoEndedResponse`, `DEMO_ENDED_EVENT`), `lib/AuthContext.tsx`, `components/landing/DemoEndedNotice.tsx`, feed message. Tests: `test/demoEnded.test.tsx`, `e2e/demo-ended.spec.ts`. Docs: `docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md`.
+
+### 2026-11-09 — Business Analytics counts product saves, not likes
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Count saves")
+- **Decision owner:** Project owner
+- **Decision:** Products cannot be liked in Nodbusiness; people can only save (bookmark) them. Business Analytics shows **Product Saves**, read from `GET /api/saves/my-products`, which returns when each of the signed-in seller's products was saved, never who saved it (optional `business_id`). The CSV export uses the same figures.
+- **Why:** The screen read product likes from a client stub that always returned nothing, so "Product Likes" was always 0.
+- **Consequences:** `backend/routes/saves.ts`, index `idx_saves_target` (migrate88), `frontend-next/api/entities.ts` (`fetchMyProductSaves`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`. Tests: `test/db/productSaves.db.test.js`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts`. Revenue still counts every order; whether it should count only paid and completed orders is open with the owner.
+
+### 2026-11-09 — Revenue on Business Analytics counts paid orders only
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Paid + completed only")
+- **Decision owner:** Project owner
+- **Decision:** Revenue (the stat, the 7-day sales series and the CSV "Total Revenue (paid orders)") is money received: orders with status `paid`, `processing`, `shipped`, `delivered` or `completed`. Unpaid (`pending`, `awaiting_payment`, `payment_reported`, `confirmed`), `cancelled`, `expired`, `refunded` and `disputed` orders do not count. The Orders count, status breakdown and recent orders still show all orders.
+- **Why:** Revenue previously added every order, including cancelled and unpaid ones.
+- **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
+
+### 2026-11-12 — A failed sign-in check is a 503, not a 401
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for token problems (`INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`, `UNAUTHORIZED`). When the check fails on our side, such as a database error or an exhausted connection pool, it logs the error and answers `503 AUTH_UNAVAILABLE`.
+- **Why:** Every error used to become `401 INVALID_TOKEN`. The web client answers a 401 by refreshing and signing out, so a database outage signed people out. It also hid the real cause of the flaky `devopsVersions.db.test.js` (Postgres "too many clients already").
+- **Consequences:** `backend/middleware/auth.ts`. Test: `backend/test/authMiddleware.test.js`. Docs: `docs/backend/API_REFERENCE.md`. Investigation: `note/2026-11-12-devops-versions-flake.md`.
+
+### 2026-11-12 — `optionalAuth` also answers 503 on a failed sign-in check
+
+- **Status:** Accepted (owner asked to extend the 503 rule above to `optionalAuth` and to record the choice, 12 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** Follows "A failed sign-in check is a 503, not a 401" above. `optionalAuth` still continues as a guest for a missing, invalid, expired, revoked or banned token, but when a token was sent and the check fails on our side it **answers `503 AUTH_UNAVAILABLE` instead of continuing as a guest**. Token errors are any `jwt.JsonWebTokenError`; everything else counts as our failure. In both middlewares `next()` now runs outside the `try`, so an error from a later handler is never reported as a sign-in failure.
+- **Why:** As a guest, a signed-in person would hit guest-only routes that answer `401 SIGN_IN_REQUIRED`, which the web client treats as an expired session (refresh, then sign out), and could be served or cached a guest response.
+- **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web client needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on errors other than 401. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`, `docs/backend/API_REFERENCE.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
+
+### 2026-11-12 — Maximum lengths for text sent to the API
+
+- **Status:** Accepted (owner, 12 Nov 2026: "yes … fix the text limits first", approving the proposed limits)
+- **Decision owner:** Project owner
+- **Decision:** Every JSON request body is checked after parsing: product name 200, description 5,000, post and comment 5,000, business name 100, website sections 200,000 characters, and 10,000 for any other text field (full list in `backend/lib/textLimits.ts`). Longer text is refused with `422 TEXT_TOO_LONG`; bodies over 2 MB with `413`. The forms use the same limits as `maxLength`.
+- **Why:** Re-audit F-058: one member saved 900,000-character products, and every visitor's marketplace list became 2.2 MB and about 20 times slower.
+- **Consequences:** `backend/middleware/textLimits.ts` (mounted in `index.ts` after the body parsers), `backend/lib/textLimits.ts`, `frontend-next/lib/textLimits.ts` (kept in step by `backend/__tests__/textLimits.test.ts`), `docs/backend/API.md`, `docs/backend/SECURITY.md`. Rows already longer than a limit stay as they are; editing them requires shortening the text.

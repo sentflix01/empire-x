@@ -1,7 +1,7 @@
 {
-  "generated": "2026-11-05T17:02:27.462Z",
-  "mounts": 51,
-  "count": 354,
+  "generated": "2026-11-11T16:49:15.994Z",
+  "mounts": 53,
+  "count": 372,
   "endpoints": [
     {
       "method": "POST",
@@ -87,6 +87,15 @@
     },
     {
       "method": "POST",
+      "path": "/api/auth/mfa/verify",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
       "path": "/api/auth/google",
       "module": "routes/auth.ts",
       "access": "none",
@@ -144,6 +153,16 @@
     },
     {
       "method": "PUT",
+      "path": "/api/auth/update-name",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
       "path": "/api/auth/change-password",
       "module": "routes/auth.ts",
       "access": "auth",
@@ -177,6 +196,51 @@
       "access": "auth",
       "middleware": [
         "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/mfa/status",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/setup",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/enable",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/disable",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/recovery-codes",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
         "requireAuth"
       ]
     },
@@ -632,8 +696,10 @@
       "method": "GET",
       "path": "/api/orders/chapa/status/:tx_ref",
       "module": "routes/orders.ts",
-      "access": "none",
-      "middleware": []
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
     },
     {
       "method": "GET",
@@ -1468,6 +1534,16 @@
       ]
     },
     {
+      "method": "POST",
+      "path": "/api/upload/multiple",
+      "module": "routes/upload.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "acceptFiles"
+      ]
+    },
+    {
       "method": "GET",
       "path": "/api/admin/stats",
       "module": "routes/admin.ts",
@@ -1796,6 +1872,15 @@
     },
     {
       "method": "GET",
+      "path": "/api/saves/my-products",
+      "module": "routes/saves.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
       "path": "/api/saves/check/:targetId",
       "module": "routes/saves.ts",
       "access": "auth",
@@ -2082,6 +2167,16 @@
     },
     {
       "method": "POST",
+      "path": "/api/verification/documents",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "acceptDocument"
+      ]
+    },
+    {
+      "method": "POST",
       "path": "/api/verification/request",
       "module": "routes/verification.ts",
       "access": "auth",
@@ -2118,6 +2213,15 @@
       ]
     },
     {
+      "method": "GET",
+      "path": "/api/verification/:id/documents",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
       "method": "PUT",
       "path": "/api/verification/:id/approve",
       "module": "routes/verification.ts",
@@ -2139,6 +2243,13 @@
     },
     {
       "method": "GET",
+      "path": "/api/private-files/*key",
+      "module": "routes/privateFiles.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
       "path": "/api/ai/status",
       "module": "routes/ai.ts",
       "access": "none",
@@ -2147,6 +2258,15 @@
     {
       "method": "POST",
       "path": "/api/ai/generate",
+      "module": "routes/ai.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/generate-description",
       "module": "routes/ai.ts",
       "access": "auth",
       "middleware": [
@@ -2341,8 +2461,26 @@
       ]
     },
     {
+      "method": "DELETE",
+      "path": "/api/telegram/disconnect",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
       "method": "GET",
       "path": "/api/telegram/status",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/telegram/notifications",
       "module": "routes/telegram.ts",
       "access": "auth",
       "middleware": [
@@ -2953,8 +3091,48 @@
       ]
     },
     {
+      "method": "GET",
+      "path": "/api/devops/errors/stats",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/devops/errors/:id/resolve",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
       "method": "PUT",
       "path": "/api/devops/errors/:id/resolve",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/devops/errors/resolve-all",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/devops/errors/:id/to-ticket",
       "module": "routes/devops.ts",
       "access": "admin",
       "middleware": [
@@ -2975,12 +3153,25 @@
       "method": "GET",
       "path": "/api/devops/versions",
       "module": "routes/devops.ts",
-      "access": "none",
-      "middleware": []
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
     },
     {
       "method": "PUT",
       "path": "/api/devops/versions",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/devops/versions/:version",
       "module": "routes/devops.ts",
       "access": "admin",
       "middleware": [
@@ -3021,26 +3212,6 @@
     {
       "method": "GET",
       "path": "/api/devops/scorecard",
-      "module": "routes/devops.ts",
-      "access": "admin",
-      "middleware": [
-        "requireAuth",
-        "requireAdmin"
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/devops/log-report",
-      "module": "routes/devops.ts",
-      "access": "admin",
-      "middleware": [
-        "requireAuth",
-        "requireAdmin"
-      ]
-    },
-    {
-      "method": "GET",
-      "path": "/api/devops/log-report/:file",
       "module": "routes/devops.ts",
       "access": "admin",
       "middleware": [

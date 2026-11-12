@@ -80,6 +80,17 @@ describe('order lifecycle', () => {
     expect(await stock()).toBe(4);
   });
 
+  it('lists orders with the product photos for the order card', async () => {
+    await pool.query('UPDATE products SET images = $2 WHERE id = $1', [biz.productId, JSON.stringify(['/uploads/cod-photo.jpg'])]);
+    const { body } = await order(1);
+    const list = await request(app).get('/api/orders').query({ buyer_id: buyer.id }).set(auth(buyer));
+    expect(list.status).toBe(200);
+    const row = list.body.orders.find((o) => o.id === body.id);
+    expect(JSON.parse(row.product_images)).toEqual(['/uploads/cod-photo.jpg']);
+    expect(row.access_token_hash).toBeUndefined();
+    await setStatus(body.id, 'cancelled', buyer);
+  });
+
   it('keeps strangers out', async () => {
     const { body } = await order(1);
     expect((await setStatus(body.id, 'cancelled', stranger)).status).toBe(403);

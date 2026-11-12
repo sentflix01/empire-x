@@ -427,7 +427,9 @@
     "create": "Create Business",
     "creating": "Creating...",
     "noBusiness": "No business yet",
-    "switchBusiness": "Switch Business"
+    "switchBusiness": "Switch Business",
+    "productViews": "Product views",
+    "engagement": "Engagement"
   },
   "referral": {
     "title": "Referral Program",

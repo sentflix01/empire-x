@@ -31,9 +31,10 @@ interface PurchaseModalProps {
     id?: string;
     title: string;
     description?: string;
-    price?: number;
+    /** Number or decimal string ("100.00") as the API sends it. */
+    price?: number | string | null;
     currency?: string;
-    images?: string;
+    images?: string | null;
     product_type?: string;
     /** The price as written on the website, e.g. "From $16" (website items only). */
     listed_price?: string | null;

@@ -1,20 +1,27 @@
 'use client'
 import React, { useState } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import NextImage from 'next/image';
-import { entities } from "@/api/entities";
+import { entities, type Post } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
 import { useTranslation } from 'react-i18next';
 
-export default function CreatePostForm({ user, onPostCreated }) {
+interface CreatePostFormProps {
+  user: AuthUser | null;
+  onPostCreated: (post: Post) => void;
+}
+
+export default function CreatePostForm({ user, onPostCreated }: CreatePostFormProps) {
   const [content, setContent] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const { t } = useTranslation();
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
@@ -81,6 +88,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
         <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-primary/30 transition-colors">
           <input
             value={content}
+            maxLength={TEXT_LIMITS.content}
             onChange={e => setContent(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
             placeholder={t ? t('feed.whatsHappening') : "What's happening?"}

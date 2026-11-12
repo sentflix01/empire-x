@@ -6,6 +6,7 @@ import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { HomeMapTabDynamic as HomeMapTab } from "@/components/map/DynamicMap";
 import PostCard from "@/components/feed/PostCard";
+import type { Post } from "@/api/entities";
 import CreatePostForm from "@/components/feed/CreatePostForm";
 import Stories from "@/views/Stories";
 import { motion, AnimatePresence } from "framer-motion";
@@ -95,7 +96,7 @@ function Home() {
   // Guests see public businesses only; personal posts need sign-in (decision §7).
   const isGuest = authChecked && !isAuthenticated;
   const feedMode = isGuest ? "business" : homeFeedMode;
-  const [posts, setPosts]         = useState([]);
+  const [posts, setPosts]         = useState<FeedPost[]>([]);
   const [loading, setLoading]     = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore]     = useState(true);
@@ -156,7 +157,7 @@ function Home() {
       if (!reset && cursorRef.current) params.cursor = cursorRef.current;
       const res = await client.get("/api/posts", { params });
       const payload = res.data;
-      const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
+      const data: FeedPost[] = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(reset ? data : prev => [...prev, ...data]);
       cursorRef.current = payload?.next_cursor ?? null;
       if (!cursorRef.current) setHasMore(false);
@@ -175,7 +176,7 @@ function Home() {
       if (filter === "following") params.following = "true"; else params.feed = "true";
       const res = await client.get("/api/posts", { params });
       const payload = res.data;
-      const data = Array.isArray(payload) ? payload : (payload?.posts ?? []);
+      const data: FeedPost[] = Array.isArray(payload) ? payload : (payload?.posts ?? []);
       setPosts(prev => {
         const existingIds = new Set(prev.map(p => p.id));
         return [...prev, ...data.filter(p => !existingIds.has(p.id))];
@@ -197,11 +198,11 @@ function Home() {
     return () => obs.disconnect();
   }, [hasMore, loadingMore, loading, loadMore]);
 
-  const handlePostCreated = (post) => {
+  const handlePostCreated = (post: Post) => {
     setPosts(prev => [post, ...prev]);
   };
 
-  const handleFilterChange = async (key) => {
+  const handleFilterChange = async (key: string) => {
     setFilter(key);
     if (key === "nearby") return;
 
@@ -433,6 +434,9 @@ function Home() {
 
 
 
+
+/** A post as the feed card shows it. */
+type FeedPost = React.ComponentProps<typeof PostCard>['post'];
 
 export default function HomePage() {
   return <ErrorBoundary><Home /></ErrorBoundary>;

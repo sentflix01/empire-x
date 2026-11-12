@@ -11,8 +11,24 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { formatAmount } from "@/lib/money";
 
-const TX_ICONS = {
+/** GET /api/wallet/me (backend routes/wallet.ts). Money columns are NUMERIC, so they arrive as decimal strings. */
+interface WalletTransaction {
+  id: string;
+  type: 'credit' | 'debit' | 'withdrawal' | 'refund';
+  amount: number | string;
+  description?: string | null;
+  created_at: string;
+}
+interface WalletData {
+  id: string;
+  balance: number | string;
+  currency?: string | null;
+  transactions?: WalletTransaction[];
+}
+
+const TX_ICONS: Record<WalletTransaction['type'], { icon: React.ComponentType<{ className?: string }>; color: string }> = {
   credit: { icon: ArrowDownLeft, color: "text-success bg-success-subtle" },
   debit: { icon: ArrowUpRight, color: "text-destructive bg-destructive-subtle" },
   withdrawal: { icon: ArrowUpRight, color: "text-primary bg-primary/10" },
@@ -21,7 +37,7 @@ const TX_ICONS = {
 
 function Wallet() {
   const { t } = useTranslation();
-  const [wallet, setWallet] = useState<any>(null);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState("overview");
@@ -128,8 +144,8 @@ function Wallet() {
         </div>
         <div data-page-guide="wallet-balance" className="bg-primary rounded-2xl p-6 text-white mb-6">
           <p className="text-sm text-white/70 mb-1">{t('wallet.availableBalance')}</p>
-          <p className="text-4xl font-bold">{wallet?.balance?.toLocaleString() || "0"}</p>
-          <p data-page-guide="wallet-currency" className="text-sm text-white/70 mt-1">{wallet?.currency || "USD"}</p>
+          <p className="text-4xl font-bold">{formatAmount(wallet?.balance) || "0"}</p>
+          <p data-page-guide="wallet-currency" className="text-sm text-white/70 mt-1">{wallet?.currency || "ETB"}</p>
         </div>
         <div data-page-guide="wallet-filter" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
           {["overview","withdraw"].map(t2=>(
@@ -156,7 +172,7 @@ function Wallet() {
                     <p className="text-xs text-muted-foreground">{fromNow(tx.created_at)}</p>
                   </div>
                   <p className={`text-sm font-bold shrink-0 ${tx.type==="credit"||tx.type==="refund" ? "text-success" : "text-destructive"}`}>
-                    {tx.type==="credit"||tx.type==="refund" ? "+" : "-"}{tx.amount?.toLocaleString()} ETB
+                    {tx.type==="credit"||tx.type==="refund" ? "+" : "-"}{formatAmount(tx.amount)} {wallet.currency || "ETB"}
                   </p>
                 </div>
               );

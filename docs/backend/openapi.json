@@ -6975,7 +6975,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:186"
+        "x-source": "backend/routes/orders.ts:188"
       }
     },
     "/api/orders/session/{sessionId}": {
@@ -7015,7 +7015,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:123"
+        "x-source": "backend/routes/orders.ts:125"
       }
     },
     "/api/orders/{id}": {
@@ -7055,7 +7055,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:131"
+        "x-source": "backend/routes/orders.ts:133"
       },
       "put": {
         "operationId": "put_orders_id",
@@ -7096,7 +7096,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:264"
+        "x-source": "backend/routes/orders.ts:266"
       }
     },
     "/api/orders/checkout/session": {
@@ -7126,7 +7126,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:334"
+        "x-source": "backend/routes/orders.ts:336"
       }
     },
     "/api/orders/webhook": {
@@ -7149,7 +7149,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/orders.ts:648"
+        "x-source": "backend/routes/orders.ts:650"
       }
     },
     "/api/orders/checkout/chapa": {
@@ -7179,7 +7179,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:682"
+        "x-source": "backend/routes/orders.ts:684"
       }
     },
     "/api/orders/chapa/sandbox": {
@@ -7199,7 +7199,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/orders.ts:750"
+        "x-source": "backend/routes/orders.ts:752"
       }
     },
     "/api/orders/chapa/status/{tx_ref}": {
@@ -7239,7 +7239,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/orders.ts:764"
+        "x-source": "backend/routes/orders.ts:766"
       }
     },
     "/api/orders/chapa/verify/{tx_ref}": {
@@ -7272,7 +7272,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/orders.ts:777"
+        "x-source": "backend/routes/orders.ts:779"
       }
     },
     "/api/polls/{postId}/vote": {
@@ -9748,6 +9748,33 @@
         "x-source": "backend/routes/saves.ts:64"
       }
     },
+    "/api/saves/my-products": {
+      "get": {
+        "operationId": "get_saves_my_products",
+        "tags": [
+          "saves"
+        ],
+        "summary": "GET /api/saves/my-products",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/saves.ts:84"
+      }
+    },
     "/api/saves/check/{targetId}": {
       "get": {
         "operationId": "get_saves_check_targetId",
@@ -9785,7 +9812,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/saves.ts:79"
+        "x-source": "backend/routes/saves.ts:104"
       }
     },
     "/api/search": {

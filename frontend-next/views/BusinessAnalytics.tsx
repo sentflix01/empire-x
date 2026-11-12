@@ -3,11 +3,12 @@ import { CHART_SERIES, HEX } from '@/lib/colorTokens';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { entities } from "@/api/entities";
+import { entities, fetchMyProductSaves, type Business, type Order, type Product, type ProductSave, type UserProfile } from "@/api/entities";
+import { formatAmount, isRevenueOrder, sumAmounts } from "@/lib/money";
 import { useAuth } from "@/lib/AuthContext";
 
 import {
-  ArrowLeft, TrendingUp, ShoppingBag, Eye, BarChart3, Heart,
+  ArrowLeft, TrendingUp, ShoppingBag, Eye, BarChart3, Bookmark,
   Store, Plus, Pencil, Activity, DollarSign, Package, Download, FileSpreadsheet
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -31,11 +32,11 @@ function BusinessAnalytics() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [businesses, setBusinesses] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [likes, setLikes] = useState([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [saves, setSaves] = useState<ProductSave[]>([]);
   const [loading, setLoading] = useState(true);
   const selectedBizId = searchParams.get("business");
 
@@ -46,6 +47,7 @@ function BusinessAnalytics() {
   }, [user?.id]);
 
   const loadUser = async () => {
+    if (!user?.id) return;
     try {
       const [profiles, bizList] = await Promise.all([
         entities.UserProfile.filter({ user_id: user.id }).catch(() => []),
@@ -60,17 +62,17 @@ function BusinessAnalytics() {
     setLoading(false);
   };
 
-  const loadData = async (userId, _bizList) => {
+  const loadData = async (userId: string, _bizList: Business[]) => {
     const bizId = searchParams.get("business");
     const productFilter = bizId ? { seller_id: userId, business_id: bizId } : { seller_id: userId };
-    const [ords, prods, allLikes] = await Promise.all([
+    const [ords, prods, allSaves] = await Promise.all([
       entities.Order.filter({ seller_id: userId }, "-created_at", 300).catch(() => []),
       entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
-      (entities.Like as any).filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
+      fetchMyProductSaves(bizId).catch(() => [] as ProductSave[])
     ]);
-    setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
+    setOrders(ords);
     setProducts(prods);
-    setLikes(allLikes);
+    setSaves(allSaves);
   };
 
   // Reload data when switching business
@@ -81,18 +83,19 @@ function BusinessAnalytics() {
       Promise.all([
         entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 300).catch(() => []),
         entities.Product.filter(productFilter, "-created_at", 200).catch(() => []),
-        (entities.Like as any).filter({ target_type: "product" }, "-created_at", 500).catch(() => [])
-      ]).then(([ords, prods, allLikes]) => {
-        setOrders(Array.isArray(ords) ? ords : ords?.orders ?? []);
+        fetchMyProductSaves(bizId).catch(() => [] as ProductSave[])
+      ]).then(([ords, prods, allSaves]) => {
+        setOrders(ords);
         setProducts(prods);
-        setLikes(allLikes);
+        setSaves(allSaves);
       });
     }
   }, [searchParams, profile]);
 
-  const handleSelectBusiness = (id) => {
-    if (id) router.push(`/business/analytics?business=${id}`);
-    else router.push('/business/analytics');
+  const handleSelectBusiness = (id: string | null) => {
+    // The page is /analytics (app/(app)/analytics); /business/analytics does not exist.
+    if (id) router.push(`/analytics?business=${encodeURIComponent(id)}`);
+    else router.push('/analytics');
   };
 
   if (loading) return (
@@ -107,39 +110,42 @@ function BusinessAnalytics() {
 
   // Compute stats
   const bizProductIds = selectedBusiness ? products.map(p => p.id) : null;
-  const filteredOrders = selectedBusiness ? orders.filter(o => bizProductIds?.includes(o.product_id)) : orders;
-  const totalSales = filteredOrders.reduce((sum, o) => sum + (o.total_price || 0), 0);
+  const filteredOrders = selectedBusiness ? orders.filter(o => !!o.product_id && !!bizProductIds?.includes(o.product_id)) : orders;
+  // total_price is a decimal string ("100.00"): add numbers, not text.
+  // Revenue is money received: paid orders only (owner decision 2026-11-09).
+  const revenueOrders = filteredOrders.filter(isRevenueOrder);
+  const totalSales = sumAmounts(revenueOrders.map(o => o.total_price));
   const totalViews = products.reduce((sum, p) => sum + (p.view_count || 0), 0);
-  const totalLikes = products.reduce((sum, p) => sum + likes.filter(l => l.target_id === p.id).length, 0);
-  const totalEngagement = totalViews + totalLikes + filteredOrders.length;
+  const totalSaves = products.reduce((sum, p) => sum + saves.filter(l => l.target_id === p.id).length, 0);
+  const totalEngagement = totalViews + totalSaves + filteredOrders.length;
   const completedOrders = filteredOrders.filter(o => o.status === "completed" || o.status === "paid");
   const conversionRate = totalViews > 0 ? ((completedOrders.length / totalViews) * 100).toFixed(1) : 0;
 
   // Sales by day (last 7 days)
-  const salesData = [];
+  const salesData: Array<{ day: string; sales: number; orders: number }> = [];
   for (let i = 6; i >= 0; i--) {
     const day = subDays(new Date(), i);
     const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.created_at), day));
     salesData.push({
       day: dfFormat(day, 'EEE'),
-      sales: dayOrders.reduce((sum, o) => sum + (o.total_price || 0), 0),
+      sales: sumAmounts(dayOrders.filter(isRevenueOrder).map(o => o.total_price)),
       orders: dayOrders.length,
     });
   }
 
-  // Engagement trend (last 7 days) — views + likes + orders by day
-  const engagementData = [];
+  // Engagement trend (last 7 days) — saves + orders by day
+  const engagementData: Array<{ day: string; engagement: number; saves: number; orders: number }> = [];
   for (let i = 6; i >= 0; i--) {
     const day = subDays(new Date(), i);
-    const dayLikes = likes.filter(l => {
-      if (bizProductIds && !bizProductIds.includes(l.target_id)) return false;
-      return isSameDay(new Date(l.created_at), day);
+    const daySaves = saves.filter(l => {
+      if (bizProductIds && (!l.target_id || !bizProductIds.includes(l.target_id))) return false;
+      return !!l.created_at && isSameDay(new Date(l.created_at), day);
     }).length;
     const dayOrders = filteredOrders.filter(o => isSameDay(new Date(o.created_at), day)).length;
     engagementData.push({
       day: dfFormat(day, 'EEE'),
-      engagement: dayLikes + dayOrders,
-      likes: dayLikes,
+      engagement: daySaves + dayOrders,
+      saves: daySaves,
       orders: dayOrders,
     });
   }
@@ -150,9 +156,9 @@ function BusinessAnalytics() {
     .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
     .slice(0, 6)
     .map(p => ({
-      name: p.title?.length > 12 ? p.title.substring(0, 12) + "…" : p.title,
+      name: p.title && p.title.length > 12 ? p.title.substring(0, 12) + "…" : p.title,
       views: p.view_count || 0,
-      likes: likes.filter(l => l.target_id === p.id).length,
+      saves: saves.filter(l => l.target_id === p.id).length,
     }));
 
   // Sales by status (pie)
@@ -162,10 +168,10 @@ function BusinessAnalytics() {
   })).filter(s => s.value > 0);
 
   const stats = [
-    { label: t('business.revenue'), value: `${totalSales.toLocaleString()} ETB`, icon: DollarSign, color: "text-success bg-success-subtle" },
+    { label: t('business.revenue'), value: `${formatAmount(totalSales)} ETB`, icon: DollarSign, color: "text-success bg-success-subtle", note: 'Paid orders only' },
     { label: t('nav.orders'), value: filteredOrders.length, icon: ShoppingBag, color: "text-primary bg-primary-subtle" },
-    { label: t('business.overview'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
-    { label: t('business.overview'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },
+    { label: t('business.productViews'), value: totalViews, icon: Eye, color: "text-primary bg-primary-subtle" },
+    { label: t('business.engagement'), value: totalEngagement, icon: Activity, color: "text-brand-secondary bg-brand-secondary-subtle" },
   ];
 
   return (
@@ -186,8 +192,8 @@ function BusinessAnalytics() {
               className="rounded-full"
               onClick={() => {
                 const report = buildAnalyticsReport({
-                  bizName, stats: { totalSales, totalOrders: filteredOrders.length, totalViews, totalLikes, totalEngagement },
-                  salesData, engagementData, products, likes, orders: filteredOrders, conversionRate
+                  bizName, stats: { totalSales, totalOrders: filteredOrders.length, totalViews, totalSaves, totalEngagement },
+                  salesData, engagementData, products, saves, orders: filteredOrders, conversionRate
                 });
                 downloadCSV(`${bizName.replace(/\s+/g, "_")}_analytics_${dfFormat(new Date(), "yyyyMMdd")}.csv`, report);
               }}
@@ -228,9 +234,9 @@ function BusinessAnalytics() {
         {/* Secondary stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-card rounded-2xl border border-border/50 p-3 text-center">
-            <Heart className="w-4 h-4 text-destructive mx-auto mb-1" />
-            <p className="text-lg font-bold">{totalLikes}</p>
-            <p className="text-[10px] text-muted-foreground">Product Likes</p>
+            <Bookmark className="w-4 h-4 text-primary mx-auto mb-1" />
+            <p className="text-lg font-bold">{totalSaves}</p>
+            <p className="text-[10px] text-muted-foreground">Product Saves</p>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3 text-center">
             <Package className="w-4 h-4 text-primary mx-auto mb-1" />
@@ -263,7 +269,7 @@ function BusinessAnalytics() {
                 <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={50} />
                 <Tooltip
                   contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }}
-                  formatter={(value, name) => name === "sales" ? [`${value.toLocaleString()} ETB`, "Revenue"] : [value, t('nav.orders')]}
+                  formatter={(value, name) => name === "sales" ? [`${formatAmount(Number(value))} ETB`, "Revenue"] : [value, t('nav.orders')]}
                   cursor={{ fill: themeColor + "10" }}
                 />
                 <Bar dataKey="sales" fill={themeColor} radius={[6, 6, 0, 0]} name="sales" />
@@ -318,7 +324,7 @@ function BusinessAnalytics() {
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} width={70} />
                 <Tooltip
                   contentStyle={{ borderRadius: "12px", border: `1px solid ${HEX.border}`, fontSize: "12px" }}
-                  formatter={(value, name) => name === "views" ? [value, "Views"] : [value, "Likes"]}
+                  formatter={(value, name) => name === "views" ? [value, "Views"] : [value, "Saves"]}
                   cursor={{ fill: themeColor + "10" }}
                 />
                 <Bar dataKey="views" fill={themeColor} radius={[0, 6, 6, 0]} name="views" />
@@ -353,7 +359,7 @@ function BusinessAnalytics() {
           ) : (
             <div className="space-y-2">
               {products.slice(0, 8).map(p => {
-                const productLikes = likes.filter(l => l.target_id === p.id).length;
+                const productSaves = saves.filter(l => l.target_id === p.id).length;
                 const productOrders = filteredOrders.filter(o => o.product_id === p.id).length;
                 return (
                   <div key={p.id} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
@@ -364,7 +370,7 @@ function BusinessAnalytics() {
                           <Eye className="w-3 h-3" /> {p.view_count || 0}
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Heart className="w-3 h-3" /> {productLikes}
+                          <Bookmark className="w-3 h-3" aria-label="Saves" /> {productSaves}
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <ShoppingBag className="w-3 h-3" /> {productOrders}
@@ -373,7 +379,7 @@ function BusinessAnalytics() {
                       </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">
-                      <p className="text-sm font-bold text-primary">{(p.price || 0).toLocaleString()}</p>
+                      <p className="text-sm font-bold text-primary">{formatAmount(p.price) || '0'}</p>
                       <p className="text-xs text-muted-foreground">{p.stock || 0} stock</p>
                     </div>
                   </div>
@@ -395,7 +401,7 @@ function BusinessAnalytics() {
                     <p className="text-xs text-muted-foreground">{o.buyer_name} • {fromNow(o.created_at)}</p>
                   </div>
                   <div className="text-right ml-2 shrink-0">
-                    <p className="text-sm font-bold text-primary">{(o.total_price || 0).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-primary">{formatAmount(o.total_price) || '0'}</p>
                     <Badge variant="outline" className="text-[10px]">{o.status}</Badge>
                   </div>
                 </div>
