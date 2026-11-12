@@ -1,0 +1,33 @@
+{
+  "id": "F-062",
+  "kind": "defect",
+  "phase": "P9-i18n-seo",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "With Amharic selected, most core screens stay in English",
+  "standards": [
+    "ISO/IEC 25010:2023 interaction capability (user assistance)",
+    "W3C Internationalization best practices (externalised strings)"
+  ],
+  "location": [
+    "frontend-next/app/landing/page.tsx (0 t() calls, 8+ hard-coded sentences)",
+    "frontend-next/views/Login.tsx, views/BusinessAnalytics.tsx, views/ShowroomView.tsx, components/profile/AccountSettings.tsx, views/Orders.tsx (actions)",
+    "frontend-next/locales/en.json, am.json (587 keys, in sync)"
+  ],
+  "steps": [
+    "Local: set empire_lang=am, open /landing, /login, /analytics, /account, /orders at 390 px.",
+    "Headings, buttons and help text are English; only a few labels are Amharic.",
+    "Count: 29 of 297 .tsx files call useTranslation; at least 184 JSX text nodes of three or more English words."
+  ],
+  "expected": "Every user-facing string comes from the locale files, so choosing Amharic translates the whole interface.",
+  "actual": "The locale files are complete for the keys they have, but most screens never use them. Amharic users see a mixed-language app, including on sign-in and order actions.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/sheet-amharic.jpg"
+  ],
+  "impact": "Amharic is offered as a language in the primary market but does not deliver; trust and usability suffer for users who read Amharic first.",
+  "fix": "Extract strings screen by screen into en.json/am.json (core journeys first: landing, sign-in/up, feed, marketplace, product, cart/checkout, orders, account); add an ESLint rule (i18next/no-literal-string) in warn mode with a ratchet like the strict-type one.",
+  "effort": "L",
+  "environment": "local",
+  "regression_test": "Lint ratchet: count of literal JSX strings per file may only go down.",
+  "found_on": "2026-11-11"
+}
