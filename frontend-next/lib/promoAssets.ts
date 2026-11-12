@@ -26,14 +26,14 @@ const rendition = (name: string, width: number, height: number, version: string)
 export const PROMO = {
   /** 12 s, 8:3, wordless: the feed's "Build Your Mini Website" banner (loops). */
   banner: { small: rendition('banner', 640, 240, 'v2'), large: rendition('banner', 1280, 480, 'v2') },
-  /** 42 s, 9:16, English subtitles: the phone on the landing hero (loops). */
-  landing: { small: rendition('landing', 480, 854, 'v3'), large: rendition('landing', 720, 1280, 'v3') },
-  /** 112 s, 9:16, English titles and subtitles: the full guide; loads only when opened. */
+  /** 59 s, 9:16, English subtitles: the phone on the landing hero (loops). */
+  landing: { small: rendition('landing', 480, 854, 'v4'), large: rendition('landing', 720, 1280, 'v4') },
+  /** 170 s, 9:16, English titles and subtitles: the full guide; loads only when opened. */
   guide: {
-    small: rendition('guide', 480, 854, 'v3'),
-    large: rendition('guide', 720, 1280, 'v3'),
+    small: rendition('guide', 480, 854, 'v4'),
+    large: rendition('guide', 720, 1280, 'v4'),
     /** The same subtitles as a WebVTT track, for caption tools (CC). */
-    captions: '/promo/guide-v3.en.vtt',
+    captions: '/promo/guide-v4.en.vtt',
   },
 } as const satisfies Record<string, PromoClip>;
 

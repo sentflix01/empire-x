@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Full "how it works" guide, about 105 s, 9:16 (360 x 640 units, rendered at
+  Full "how it works" guide, about 165 s, 9:16 (360 x 640 units, rendered at
   2x = 720 x 1280). Opens from the "Watch how it works" button; never autoplays.
   Each step opens with a title card; subtitles explain every moment, callout
   bubbles name every tap, and the screens carry real words (copy.js).
@@ -20,7 +20,7 @@
 <script>
 const S = window.SHOTS;
 const slow = (shot, k) => Object.assign(shot, { k });
-window.ENGINE.run([S.intro(), S.life(), slow(S.start(), 0.75), S.pathA(), S.pathB(), S.fill(), S.style(), S.publish(), S.feed(), S.buyers(), S.finale()],
+window.ENGINE.run([S.intro(), S.life(), S.feedScroll(), S.friendBiz(), S.bizFeed(), S.searchNear(), S.compareHotels(), slow(S.start(), 0.75), S.pathA(), S.pathB(), S.fill(), S.style(), S.publish(), S.feed(), S.buyers(), S.finale()],
   { titleCards: true, captions: 'full' });
 </script>
 </body>

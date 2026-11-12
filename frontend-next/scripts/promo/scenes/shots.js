@@ -5,14 +5,19 @@
  *
  *   intro      many apps -> one Nodbusiness phone
  *   life    1  post a photo on the Personal feed; likes, comments, chat
- *   start   2  tap "Build your mini website"; pick a category; templates
- *   pathA   2  a ready-made template becomes a full site
- *   pathB   2  or start blank and add sections with +
- *   fill    3  photo, name, pasted link, opening hours, a product to sell
- *   style   4  pick a colour; the site on computer, tablet and phone
- *   publish 5  tap Publish
- *   feed    5  the site becomes a Business feed card; followers; QR scan
- *   buyers  6  a customer orders, messages and pays the seller directly
+ *   feedScroll 2  scroll the Personal feed; zoom a photo without leaving
+ *   friendBiz  2  peek at a friend, switch to their business, close
+ *   bizFeed    2  the Business feed: shops near you, friends' businesses
+ *   searchNear 3  search "hotel room" near me: map, nearest first
+ *   compareHotels 3  peek at hotels, compare rooms and prices, book
+ *   start   4  tap "Build your mini website"; pick a category; templates
+ *   pathA   4  a ready-made template becomes a full site
+ *   pathB   4  or start blank and add sections with +
+ *   fill    5  photo, name, pasted link, opening hours, a product to sell
+ *   style   6  pick a colour; the site on computer, tablet and phone
+ *   publish 7  tap Publish
+ *   feed    7  the site becomes a Business feed card; followers; QR scan
+ *   buyers  8  a customer orders, messages and pays the seller directly
  *   finale     Personal <-> Business; everything in one app; end card
  * Needs copy.js, common.js and engine.js first.
  */
@@ -193,7 +198,347 @@ function life() {
   };
 }
 
-// ---------------------------------------------------------------- 2 start
+// ---------------------------------------------------------------- shared discovery pieces
+const MAXI = (f) => `<path d="M-9 -3 V-9 H-3 M3 -9 H9 V-3 M9 3 V9 H3 M-3 9 H-9 V3" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+const XMARK = (f) => `<path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="${f}" stroke-width="3.2" stroke-linecap="round"/>`;
+const STAR = (f) => `<path d="M0 -10 L2.9 -3.6 L9.6 -3.1 L4.5 1.4 L6 8.1 L0 4.6 L-6 8.1 L-4.5 1.4 L-9.6 -3.1 L-2.9 -3.6 Z" fill="${f}"/>`;
+const WIFI = (f) => `<path d="M-14 -4 Q0 -16 14 -4 M-9 2 Q0 -6 9 2 M-4 8 Q0 4 4 8" fill="none" stroke="${f}" stroke-width="3" stroke-linecap="round"/><circle cy="13" r="2.5" fill="${f}"/>`;
+const PARK = (f) => `<rect x="-12" y="-12" width="24" height="24" rx="6" fill="${f}"/><text x="0" y="7" font-family="${window.ENGINE.FONT}" font-size="17" font-weight="800" fill="${C.paper}" text-anchor="middle">P</text>`;
+const CAL = (f) => `<rect x="-12" y="-10" width="24" height="22" rx="4" fill="none" stroke="${f}" stroke-width="3"/><path d="M-12 -3 H12 M-6 -14 V-7 M6 -14 V-7" stroke="${f}" stroke-width="3" stroke-linecap="round"/>`;
+const TABG = [
+  (f) => `<path d="M-9 -6 H9 M-9 0 H9 M-9 6 H9" stroke="${f}" stroke-width="2.6" stroke-linecap="round"/>`,
+  (f) => g(ICON.store(f), 'scale(.5)'),
+  (f) => `<circle cx="-5" cy="-3" r="4.5" fill="${f}"/><circle cx="6" cy="-2" r="3.5" fill="${f}" opacity=".7"/><path d="M-13 9 Q-5 1 3 9 Z" fill="${f}"/>`,
+  (f) => `<rect x="-9" y="-9" width="18" height="18" rx="3" fill="none" stroke="${f}" stroke-width="2.6"/><path d="M-5 -3 H5 M-5 2 H5" stroke="${f}" stroke-width="2.2"/>`,
+  (f) => g(GLYPH.briefcase(f), 'scale(.55)'),
+];
+/** The phone's bottom bar; `tabhl` (a pill) marks the active tab and is moved in draw(). */
+function bottomBar() {
+  return `<rect x="0" y="582" width="360" height="58" fill="${C.paper}"/><rect x="0" y="582" width="360" height="1" fill="${C.line}"/>
+    <rect data-k="tabhl" x="-30" y="588" width="60" height="46" rx="14" fill="${C.blueSubtle}"/>
+    ${TABG.map((ic, i) => `<g transform="translate(${36 + i * 72} 604)">${ic(C.slate)}</g>${tx(36 + i * 72, 628, L(`ui.tabs.${i}`), { size: 10, weight: 700, fill: C.slate, anchor: 'middle' })}`).join('')}
+    <g data-k="tabon3" transform="translate(252 604)">${TABG[3](C.blue)}</g><g data-k="tabon4" transform="translate(324 604)">${TABG[4](C.blue)}</g>`;
+}
+/** A personal post card (height 300) at y. */
+function post(y, who, faceFill, sky, hill, k = '', extra = '') {
+  return `<g${k ? ` data-k="${k}"` : ''}>
+    <rect x="16" y="${y}" width="328" height="300" rx="16" fill="${C.paper}" stroke="${C.line}"/>
+    <circle cx="44" cy="${y + 28}" r="15" fill="${faceFill}"/>${at(44, y + 28, 0.5, face(`f-${who}`, faceFill))}
+    ${tx(68, y + 26, who, { size: 15, weight: 800 })}${tx(68, y + 42, L('ui.ago'), { size: 11, weight: 500, fill: C.slate })}
+    ${photo(28, y + 56, 304, 190, sky, hill, 12)}
+    ${at(46, y + 272, 0.8, GLYPH.heart(C.violet))}${tx(62, y + 277, '32', { size: 13, weight: 700, fill: C.slate })}${at(106, y + 272, 0.7, GLYPH.comment(C.blue))}${tx(122, y + 277, '5', { size: 13, weight: 700, fill: C.slate })}
+    ${extra}
+  </g>`;
+}
+/** A business card in the Business feed (height 236) centred at x 180. */
+function bizCardMini(k, name, line, theme, items, prices, icons, chip, friend) {
+  return `<g data-k="${k}">
+    <rect x="-164" y="0" width="328" height="236" rx="18" fill="${C.paper}" stroke="${C.line}"/>
+    <path d="M-164 54 V18 A18 18 0 0 1 -146 0 H146 A18 18 0 0 1 164 18 V54 Z" fill="${theme}"/>
+    <rect x="-150" y="30" width="44" height="44" rx="11" fill="${C.paper}" stroke="${C.line}"/>${at(-128, 52, 0.55, ICON.store(theme))}
+    ${friend ? `<g><rect x="60" y="12" width="92" height="26" rx="13" fill="${C.paper}"/><circle cx="74" cy="25" r="9" fill="${C.blueTint}"/>${at(74, 25, 0.3, face(`${k}-ff`, C.blueTint))}${tx(88, 30, L('ui.friendTag'), { size: 12, weight: 800, fill: C.violet })}</g>` : ''}
+    ${tx(-96, 72, name, { size: 16, weight: 800, fit: 170 })}${tx(-96, 88, line, { size: 11, weight: 500, fill: C.slate, fit: 170 })}
+    <rect x="-150" y="98" width="${measureW(chip) + 20}" height="20" rx="10" fill="${C.blueSubtle}"/>${tx(-140, 112, chip, { size: 10.5, weight: 800, fill: C.blue })}
+    <clipPath id="${k}-cl"><rect x="-152" y="124" width="304" height="104" rx="10"/></clipPath>
+    <g clip-path="url(#${k}-cl)"><g data-k="${k}-strip">
+      ${[0, 1, 2, 3, 4, 5].map((i) => `<g transform="translate(${-152 + i * 104} 126)">
+        <rect width="96" height="100" rx="12" fill="${C.page}" stroke="${C.line}"/>
+        <rect x="6" y="6" width="84" height="44" rx="8" fill="${[C.violetSubtle, C.blueSubtle, C.greenSubtle][i % 3]}"/>${at(48, 28, 0.6, icons[i % 3])}
+        ${tx(8, 66, items[i % 3], { size: 12, weight: 800 })}${tx(8, 80, prices[i % 3], { size: 10.5, weight: 800, fill: theme })}
+        <rect x="8" y="84" width="80" height="12" rx="6" fill="${theme}" opacity=".85"/></g>`).join('')}
+    </g></g></g>`;
+}
+const measureW = (s) => window.ENGINE.measure(s, 10.5, 800);
+const slideStrip = (root, k, lt, t0) => {
+  const n = Math.min(3, Math.max(0, (lt - t0) / 0.9)), i = Math.floor(n), f = n - i;
+  const el = $(root, `${k}-strip`);
+  if (el) el.setAttribute('transform', `translate(${(-104 * (i + easeInOut(Math.min(1, f / 0.55)))).toFixed(1)} 0)`);
+};
+const FRIEND_ICONS = [ICON.dress(C.violet), ICON.shoe(C.blueDeep), ICON.bag(C.violet)];
+
+// ---------------------------------------------------------------- 2 feeds: scroll and zoom
+function feedScroll() {
+  return {
+    dur: 10, title: 'feeds', step: 2,
+    captions: [[0.2, 4.6, 'scroll1'], [4.7, 10, 'scroll2']],
+    markup: `<rect width="360" height="640" fill="${C.page}"/>
+      <g data-k="col">
+        ${[0, 1, 2, 3, 4].map((i) => `<g transform="translate(${40 + i * 70} 104)"><circle r="25" fill="none" stroke="${i === 0 ? C.violet : C.blue}" stroke-width="3"/><circle r="20" fill="${[C.violetSubtle, C.blueTint, C.greenSubtle, C.violetTint, C.blueSubtle][i]}"/></g>`).join('')}
+        <rect x="16" y="140" width="328" height="32" rx="16" fill="${C.paper}" stroke="${C.line}"/>
+        <rect x="16" y="140" width="64" height="32" rx="16" fill="${C.ink}"/>${tx(48, 160, L('ui.newsLabel'), { size: 11, weight: 800, fill: C.paper, anchor: 'middle', ls: 1 })}
+        <clipPath id="news-cl"><rect x="84" y="140" width="252" height="32"/></clipPath>
+        <g clip-path="url(#news-cl)"><g data-k="news">${tx(90, 161, L('ui.news'), { size: 12.5, weight: 700, fill: C.blue })}</g></g>
+        ${post(184, L('ui.friend'), C.blueTint, C.blueTint, C.blue)}
+        <g><rect x="16" y="500" width="328" height="132" rx="16" fill="${C.paper}" stroke="${C.line}"/>
+          <circle cx="44" cy="528" r="15" fill="${C.greenSubtle}"/>${tx(68, 526, 'Sara', { size: 15, weight: 800 })}${tx(68, 542, L('ui.ago'), { size: 11, weight: 500, fill: C.slate })}
+          <rect x="28" y="556" width="304" height="64" rx="12" fill="${C.violetSubtle}"/>${at(58, 588, 0.9, CAL(C.violet))}${tx(84, 594, L('ui.event'), { size: 14, weight: 800, fill: C.violet, fit: 240 })}</g>
+        ${post(648, L('ui.friend2'), C.greenSubtle, C.greenSubtle, C.green, 'zpost')}
+        ${post(964, 'Hanna', C.violetTint, C.violetTint, C.violet)}
+      </g>
+      ${topbar('personal')}
+      ${bottomBar()}
+      <g data-k="viewer">
+        <rect data-k="vbg" width="360" height="640" fill="#000000"/>
+        <g data-k="vphoto">${photo(-180, -112, 360, 225, C.greenSubtle, C.green, 0)}</g>
+        <g data-k="vclose" transform="translate(326 36)"><circle r="16" fill="#ffffff" opacity=".18"/>${XMARK('#ffffff')}</g>
+      </g>`,
+    draw(lt, root) {
+      const p = P(root);
+      const sc = easeInOut(prog(lt, 0.9, 3.0));
+      p('col', { y: -316 * sc });
+      $(root, 'news').setAttribute('transform', `translate(${(-((lt * 40) % 460)).toFixed(1)} 0)`);
+      p('tabhl', { x: 252, o: 1 }); p('tabon3', { o: 1 }); p('tabon4', { o: 0 });
+      // Photo viewer: opens from the post's photo, zooms in, then swipes down to close.
+      const open = easeInOut(prog(lt, 3.95, 4.45));
+      const zoom = easeInOut(prog(lt, 5.2, 5.7));
+      const drag = easeIn(prog(lt, 6.7, 7.4));
+      const from = { x: 180, y: 648 - 316 + 56 + 95, s: 304 / 360 };
+      p('viewer', { o: lt > 3.95 && drag < 1 ? 1 : 0 });
+      p('vbg', { o: open * (1 - drag) });
+      p('vphoto', { x: lerp(from.x, 180, open), y: lerp(from.y, 320, open) + 260 * drag, s: lerp(from.s, 1, open) * lerp(1, 1.9, zoom) * lerp(1, 0.75, drag) });
+      p('vclose', { x: 326, y: 36, o: open * (1 - drag) });
+    },
+    hand: [[0.4, 260, 540], [0.9, 260, 540, false, 'scroll'], [3.0, 260, 230], [3.6, 180, 435, true, 'zoom'], [3.85, 180, 435, true], [5.2, 200, 330, true, 'zoomMore'], [6.4, 180, 260, false, 'swipeDown'], [7.4, 180, 540], [8.2, 270, 560]],
+  };
+}
+
+// ---------------------------------------------------------------- 2 feeds: peek at a friend
+function friendBiz() {
+  const prods = [0, 1, 2];
+  return {
+    dur: 10, title: 'feeds', step: 2,
+    captions: [[0.2, 3.9, 'peek1'], [4.0, 10, 'peek2']],
+    markup: `<rect width="360" height="640" fill="${C.page}"/>
+      ${post(76, L('ui.friend'), C.blueTint, C.blueTint, C.blue, '', `<g transform="translate(318 104)"><circle r="17" fill="${C.blueSubtle}"/>${MAXI(C.blue)}</g>`)}
+      ${post(392, L('ui.friend2'), C.greenSubtle, C.greenSubtle, C.green)}
+      ${topbar('personal')}
+      ${bottomBar()}
+      <rect data-k="dim" width="360" height="640" fill="${C.ink}"/>
+      <g data-k="peek">
+        <rect x="12" y="16" width="336" height="520" rx="22" fill="${C.paper}"/>
+        <circle cx="42" cy="46" r="16" fill="${C.blueTint}"/>${at(42, 46, 0.55, face('pk-face', C.blueTint))}
+        ${tx(66, 52, L('ui.friend'), { size: 16, weight: 800 })}
+        <rect x="134" y="32" width="160" height="30" rx="15" fill="${C.page}" stroke="${C.line}"/>
+        <rect data-k="knob" x="136" y="34" width="78" height="26" rx="13" fill="${C.violet}"/>
+        ${tx(175, 52, L('ui.personal'), { size: 11.5, weight: 800, fill: C.paper, anchor: 'middle', k: 'tP' })}${tx(255, 52, L('ui.business'), { size: 11.5, weight: 800, fill: C.slate, anchor: 'middle', k: 'tB' })}
+        <g transform="translate(322 46)"><circle r="14" fill="${C.page}"/>${g(XMARK(C.ink), 'scale(.8)')}</g>
+        <g data-k="pkP">
+          <rect x="24" y="76" width="312" height="80" rx="14" fill="${C.violetTint}"/>
+          ${tx(32, 180, L('ui.followers'), { size: 13, weight: 800, fill: C.slate })}${bar(32, 192, 220, 9, C.line)}${bar(32, 208, 160, 9, C.line)}
+          ${[0, 1, 2, 3, 4, 5].map((i) => photo(24 + (i % 3) * 106, 232 + Math.floor(i / 3) * 104, 100, 98, [C.blueTint, C.violetTint, C.greenSubtle][i % 3], [C.blue, C.violet, C.green][i % 3], 10)).join('')}
+        </g>
+        <g data-k="pkB">
+          <rect x="24" y="76" width="312" height="80" rx="14" fill="${C.blue}"/>
+          <rect x="36" y="120" width="56" height="56" rx="14" fill="${C.paper}" stroke="${C.line}"/>${at(64, 148, 0.7, ICON.store(C.blue))}
+          ${tx(104, 172, L('ui.friendShop'), { size: 17, weight: 800 })}${tx(104, 190, L('ui.friendLine'), { size: 12, weight: 500, fill: C.slate })}
+          <rect x="32" y="204" width="86" height="24" rx="12" fill="${C.greenSubtle}"/>${tx(75, 220, L('ui.openNow'), { size: 11.5, weight: 800, fill: C.green, anchor: 'middle' })}
+          ${prods.map((i) => `<g><rect x="${24 + i * 106}" y="244" width="100" height="150" rx="14" fill="${C.page}" stroke="${C.line}"/>
+            <rect x="${30 + i * 106}" y="250" width="88" height="70" rx="10" fill="${[C.violetSubtle, C.blueSubtle, C.violetTint][i]}"/>${at(74 + i * 106, 285, 0.85, FRIEND_ICONS[i])}
+            ${tx(32 + i * 106, 342, L(`ui.friendItems.${i}`), { size: 14, weight: 800 })}${tx(32 + i * 106, 360, L(`ui.friendPrices.${i}`), { size: 12, weight: 800, fill: C.blue })}
+            <rect x="${32 + i * 106}" y="368" width="84" height="20" rx="10" fill="${C.blue}"/>${tx(74 + i * 106, 382, L('ui.order'), { size: 11, weight: 800, fill: C.paper, anchor: 'middle' })}</g>`).join('')}
+          ${bar(32, 414, 290, 9, C.line)}${bar(32, 430, 200, 9, C.line)}
+        </g>
+      </g>`,
+    draw(lt, root) {
+      const p = P(root);
+      p('tabhl', { x: 252 }); p('tabon3', { o: 1 }); p('tabon4', { o: 0 });
+      const drop = back(prog(lt, 1.4, 1.95)), lift = easeIn(prog(lt, 7.8, 8.25));
+      p('peek', { y: lerp(-560, 0, drop) - 600 * lift, o: lt > 1.35 && lift < 1 ? 1 : 0 });
+      p('dim', { o: 0.45 * Math.min(prog(lt, 1.35, 1.7), 1 - prog(lt, 7.8, 8.2)) });
+      const biz = easeInOut(prog(lt, 4.05, 4.4));
+      p('knob', { x: 78 * biz });
+      $(root, 'tP').setAttribute('fill', biz > 0.5 ? C.slate : C.paper);
+      $(root, 'tB').setAttribute('fill', biz > 0.5 ? C.paper : C.slate);
+      $(root, 'knob').setAttribute('fill', biz > 0.5 ? C.blue : C.violet);
+      p('pkP', { o: 1 - biz });
+      p('pkB', { o: biz });
+      mood(root, 'pk-face', 'smile');
+    },
+    hand: [[0.6, 250, 400], [1.2, 318, 104, true, 'peek'], [4.0, 255, 47, true, 'switchBiz'], [5.6, 260, 330], [7.6, 322, 46, true, 'close'], [8.4, 260, 520]],
+  };
+}
+
+// ---------------------------------------------------------------- 2 feeds: the Business feed
+function bizFeed() {
+  const cards = [
+    { k: 'c0', name: L('ui.friendShop'), line: L('ui.friendLine'), theme: C.violet, items: [0, 1, 2].map((i) => L(`ui.friendItems.${i}`)), prices: [0, 1, 2].map((i) => L(`ui.friendPrices.${i}`)), icons: FRIEND_ICONS, chip: L('ui.nearYou'), friend: true },
+    { k: 'c1', name: L('ui.bakery'), line: L('ui.bakeryLine'), theme: C.green, items: ['Bread', 'Cake', 'Coffee'], prices: ['30 ETB', '350 ETB', '40 ETB'], icons: [ICON.basket(C.green), ICON.cup(C.violet), ICON.cup(C.blue)], chip: 'Near you · 0.6 km', friend: false },
+    { k: 'c2', name: L('ui.name'), line: L('ui.line'), theme: C.blue, items: [0, 1, 2].map((i) => L(`ui.items.${i}`)), prices: [0, 1, 2].map((i) => L(`ui.prices.${i}`)), icons: [ICON.dress(C.violet), ICON.cup(C.blue), ICON.basket(C.green)], chip: 'Near you · 2.1 km', friend: false },
+  ];
+  return {
+    dur: 8, title: 'feeds', step: 2, land: 'bizL',
+    captions: [[0.2, 4.4, 'biz1'], [4.5, 8, 'biz2']],
+    markup: `<rect width="360" height="640" fill="${C.page}"/>
+      <g data-k="pers">${post(80, L('ui.friend2'), C.greenSubtle, C.greenSubtle, C.green)}${post(396, 'Hanna', C.violetTint, C.violetTint, C.violet)}</g>
+      <g data-k="bcol">${cards.map((c, i) => g(bizCardMini(c.k, c.name, c.line, c.theme, c.items, c.prices, c.icons, c.chip, c.friend), `translate(180 ${80 + i * 252})`)).join('')}</g>
+      ${topbar('personal')}
+      ${bottomBar()}
+      <rect data-k="ring" x="10" y="74" width="340" height="248" rx="22" fill="none" stroke="${C.violet}" stroke-width="3"/>`,
+    draw(lt, root) {
+      const p = P(root);
+      const sw = easeInOut(prog(lt, 1.05, 1.35));
+      p('tabhl', { x: lerp(252, 324, sw) });
+      p('tabon3', { o: 1 - sw }); p('tabon4', { o: sw });
+      const inB = easeInOut(prog(lt, 1.2, 1.8));
+      p('pers', { x: -360 * inB, o: 1 - inB });
+      const sc = easeInOut(prog(lt, 5.6, 7.2));
+      p('bcol', { x: 360 * (1 - inB), y: -250 * sc, o: inB });
+      cards.forEach((c, i) => slideStrip(root, c.k, lt, 2.2 + 0.3 * i));
+      p('ring', { o: window_(lt, 4.6, 4.8, 5.4, 5.6) });
+    },
+    hand: [[0.4, 260, 520], [1.0, 324, 610, true, 'bizTab'], [2.0, 280, 520], [5.6, 260, 520, false, 'scroll'], [7.2, 260, 300], [7.8, 280, 520]],
+  };
+}
+
+// ---------------------------------------------------------------- 3 find: search near me
+const HOTEL_PINS = [{ x: 214, y: 186 }, { x: 128, y: 236 }, { x: 262, y: 262 }];
+function hotelRows(y0) {
+  return [0, 1, 2].map((i) => `<g data-k="row${i}" transform="translate(0 ${y0 + i * 88})">
+    <rect x="16" y="0" width="328" height="80" rx="14" fill="${C.paper}" stroke="${C.line}"/>
+    ${photo(24, 8, 64, 64, [C.blueTint, C.violetTint, C.greenSubtle][i], [C.blue, C.violet, C.green][i], 10)}
+    <circle cx="30" cy="14" r="11" fill="${C.blue}"/>${tx(30, 18.5, String(i + 1), { size: 12, weight: 800, fill: C.paper, anchor: 'middle' })}
+    ${tx(100, 26, L(`ui.hotels.${i}`), { size: 15, weight: 800 })}
+    ${at(106, 44, 0.75, STAR(C.violet))}${tx(116, 49, `${L(`ui.ratings.${i}`)} · ${L(`ui.reviews.${i}`)}`, { size: 11.5, weight: 700, fill: C.slate })}
+    ${tx(100, 68, L(`ui.fromPrices.${i}`), { size: 12, weight: 800, fill: C.blue })}
+    <rect x="270" y="10" width="64" height="22" rx="11" fill="${C.blueSubtle}"/>${at(282, 21, 0.38, ICON.pin(C.blue))}${tx(310, 26, L(`ui.dists.${i}`), { size: 11, weight: 800, fill: C.blue, anchor: 'middle' })}
+  </g>`).join('');
+}
+function searchMap() {
+  return `<rect x="16" y="104" width="328" height="196" rx="16" fill="#eaf0f7"/>
+    <clipPath id="map-cl"><rect x="16" y="104" width="328" height="196" rx="16"/></clipPath>
+    <g clip-path="url(#map-cl)"><g fill="none" stroke="${C.paper}" stroke-linecap="round">
+      <path d="M0 170 Q120 200 200 160 T380 150" stroke-width="12"/><path d="M150 100 Q170 220 130 320" stroke-width="10"/><path d="M0 260 Q180 230 380 290" stroke-width="8"/></g>
+      <rect x="240" y="200" width="70" height="50" rx="10" fill="${C.greenSubtle}"/></g>
+    <circle data-k="radius" cx="180" cy="212" r="84" fill="${C.blue}" fill-opacity=".06" stroke="${C.blue}" stroke-width="2" stroke-dasharray="6 6"/>
+    <g data-k="you"><circle cx="180" cy="212" r="9" fill="${C.violet}" stroke="${C.paper}" stroke-width="3"/>${tx(180, 236, L('ui.you'), { size: 11, weight: 800, fill: C.violet, anchor: 'middle' })}</g>
+    ${HOTEL_PINS.map((h, i) => `<g data-k="pin${i}"><g transform="scale(.7)">${ICON.pin(C.blue)}</g>${tx(0, -1, String(i + 1), { size: 10, weight: 800, fill: C.blue, anchor: 'middle' })}</g>`).join('')}`;
+}
+function searchBar(typedText) {
+  return `<rect width="360" height="64" fill="${C.paper}"/><rect y="63" width="360" height="1" fill="${C.line}"/>
+    <rect x="16" y="12" width="328" height="40" rx="20" fill="${C.page}" stroke="${C.line}"/>
+    ${at(38, 32, 0.45, `<circle r="12" fill="none" stroke="${C.slate}" stroke-width="4"/><path d="M8 8 L16 16" stroke="${C.slate}" stroke-width="4" stroke-linecap="round"/>`)}
+    ${typedText}`;
+}
+function searchNear() {
+  return {
+    dur: 12, title: 'find', step: 3, land: 'nearL',
+    captions: [[0.2, 4.4, 'near1'], [4.5, 12, 'near2']],
+    markup: `<rect width="360" height="640" fill="${C.page}"/>
+      ${searchBar(`${tx(56, 38, L('ui.searchPh'), { size: 13.5, weight: 500, fill: C.slate, k: 'ph', fit: 270 })}${typed('q', 56, 38, L('ui.query'), { size: 15, weight: 800 })}`)}
+      <g data-k="chips">
+        <g data-k="chipNear"><rect data-k="chipNearBg" x="16" y="70" width="104" height="28" rx="14" fill="${C.paper}" stroke="${C.line}"/>${at(32, 84, 0.4, ICON.pin(C.violet))}${tx(76, 89, L('ui.nearMe'), { size: 12.5, weight: 800, fill: C.ink, anchor: 'middle', k: 'chipNearT' })}</g>
+        ${[0, 1, 2].map((i) => `<rect data-k="rad${i}" x="${130 + i * 70}" y="70" width="62" height="28" rx="14" fill="${C.paper}" stroke="${C.line}"/>${tx(161 + i * 70, 89, L(`ui.radius.${i}`), { size: 12.5, weight: 800, fill: C.slate, anchor: 'middle', k: `radt${i}` })}`).join('')}
+      </g>
+      <g data-k="map">${searchMap()}</g>
+      <g data-k="resHead">${tx(18, 324, L('ui.results'), { size: 13, weight: 800, fill: C.slate, fit: 320 })}</g>
+      ${hotelRows(336)}
+      <g data-k="arrow"><path d="M332 340 V590" stroke="${C.violet}" stroke-width="3" stroke-dasharray="5 6"/><path d="M325 582 L332 594 L339 582 Z" fill="${C.violet}"/></g>`,
+    draw(lt, root) {
+      const p = P(root);
+      const tq = prog(lt, 1.2, 2.2);
+      p('ph', { o: lt < 1.15 ? 1 : 0 });
+      $(root, 'q-clip').setAttribute('width', (textW(root, 'q') * tq + 4).toFixed(1));
+      const near = lt > 2.85, rad = lt > 3.45;
+      $(root, 'chipNearBg').setAttribute('fill', near ? C.violet : C.paper);
+      $(root, 'chipNearBg').setAttribute('stroke', near ? C.violet : C.line);
+      $(root, 'chipNearT').setAttribute('fill', near ? C.paper : C.ink);
+      [0, 1, 2].forEach((i) => {
+        const on = rad && i === 1;
+        $(root, `rad${i}`).setAttribute('fill', on ? C.blue : C.paper);
+        $(root, `rad${i}`).setAttribute('stroke', on ? C.blue : C.line);
+        $(root, `radt${i}`).setAttribute('fill', on ? C.paper : C.slate);
+      });
+      p('map', { o: prog(lt, 2.9, 3.3) });
+      const r = $(root, 'radius');
+      r.setAttribute('r', (84 * easeOut(prog(lt, 3.45, 3.9))).toFixed(1));
+      HOTEL_PINS.forEach((h, i) => {
+        const q = prog(lt, 4.0 + 0.25 * i, 4.4 + 0.25 * i);
+        p(`pin${i}`, { x: h.x, y: lerp(h.y - 40, h.y, back(q)), o: q });
+      });
+      p('resHead', { o: prog(lt, 4.8, 5.1) });
+      [0, 1, 2].forEach((i) => p(`row${i}`, { x: 40 * (1 - easeOut(prog(lt, 5.0 + 0.3 * i, 5.5 + 0.3 * i))), y: 336 + i * 88, o: prog(lt, 5.0 + 0.3 * i, 5.3 + 0.3 * i) }));
+      $(root, 'row0').setAttribute('transform', `translate(${(40 * (1 - easeOut(prog(lt, 5.0, 5.5)))).toFixed(1)} 336)`);
+      $(root, 'row1').setAttribute('transform', `translate(${(40 * (1 - easeOut(prog(lt, 5.3, 5.8)))).toFixed(1)} 424)`);
+      $(root, 'row2').setAttribute('transform', `translate(${(40 * (1 - easeOut(prog(lt, 5.6, 6.1)))).toFixed(1)} 512)`);
+      p('arrow', { o: window_(lt, 6.6, 6.9, 10.5, 11.0) });
+    },
+    hand: [[0.4, 250, 520], [0.8, 180, 32, true, 'search'], [2.8, 68, 84, true, 'nearMe'], [3.4, 230, 84, true], [4.2, 260, 560]],
+  };
+}
+
+// ---------------------------------------------------------------- 3 find: compare hotels and book
+function hotelPanel(i) {
+  const amen = [WIFI, (f) => g(ICON.cup(f), 'scale(.6)'), PARK];
+  return `<g transform="translate(${i * 360} 0)">
+    <rect x="12" y="52" width="336" height="540" rx="22" fill="${C.paper}"/>
+    <clipPath id="gal${i}-cl"><rect x="24" y="64" width="312" height="150" rx="14"/></clipPath>
+    <g clip-path="url(#gal${i}-cl)"><g data-k="gal${i}">${[0, 1, 2].map((j) => photo(24 + j * 312, 64, 312, 150, [C.blueTint, C.violetTint, C.greenSubtle][(i + j) % 3], [C.blue, C.violet, C.green][(i + j) % 3], 0)).join('')}</g></g>
+    ${[0, 1, 2].map((j) => `<circle data-k="dot${i}${j}" cx="${164 + j * 16}" cy="204" r="4" fill="${C.paper}" opacity=".6"/>`).join('')}
+    ${tx(28, 242, L(`ui.hotels.${i}`), { size: 19, weight: 800 })}
+    ${at(34, 260, 0.85, STAR(C.violet))}${tx(46, 265, `${L(`ui.ratings.${i}`)} · ${L(`ui.reviews.${i}`)}`, { size: 12.5, weight: 700, fill: C.slate })}
+    <rect x="252" y="226" width="80" height="24" rx="12" fill="${C.blueSubtle}"/>${tx(292, 242, L(`ui.dists.${i}`), { size: 12, weight: 800, fill: C.blue, anchor: 'middle' })}
+    ${[0, 1, 2].map((j) => `<g transform="translate(${28 + j * 104} 280)"><rect width="96" height="30" rx="15" fill="${C.page}" stroke="${C.line}"/>${at(18, 15, 0.6, amen[j](C.blue))}${tx(34, 20, L(`ui.amenities.${j}`), { size: 11, weight: 800, fill: C.ink, fit: 58 })}</g>`).join('')}
+    ${[0, 1].map((j) => `<g transform="translate(24 ${324 + j * 70})"><rect width="312" height="62" rx="14" fill="${C.page}" stroke="${C.line}"/>
+      ${photo(8, 8, 46, 46, C.blueSubtle, C.blueDeep, 8)}
+      ${tx(64, 26, L(`ui.rooms.${j}`), { size: 14, weight: 800 })}${tx(64, 46, `${L(`ui.roomPrices.${i}.${j}`)} ${L('ui.perNight')}`, { size: 12, weight: 800, fill: C.blue })}
+      <rect data-k="bk${i}${j}" x="236" y="16" width="66" height="30" rx="15" fill="${C.blue}"/>${tx(269, 36, L('ui.book'), { size: 13, weight: 800, fill: C.paper, anchor: 'middle' })}</g>`).join('')}
+    <rect x="24" y="470" width="312" height="52" rx="14" fill="${C.violetSubtle}"/>${at(44, 496, 0.8, STAR(C.violet))}${tx(60, 501, L('ui.review'), { size: 12.5, weight: 600, fill: C.violet, fit: 266 })}
+    ${bar(24, 540, 220, 9, C.line)}${bar(24, 556, 150, 9, C.line)}
+  </g>`;
+}
+function compareHotels() {
+  return {
+    dur: 14, title: 'find', step: 3, land: 'cmpL',
+    captions: [[0.2, 3.0, 'cmp1'], [3.1, 6.4, 'cmp2'], [6.5, 9.9, 'cmp3'], [10.0, 14, 'cmp4']],
+    markup: `<rect width="360" height="640" fill="${C.page}"/>
+      ${searchBar(tx(56, 38, L('ui.query'), { size: 15, weight: 800 }))}
+      <g data-k="map0">${searchMap()}</g>
+      ${tx(18, 324, L('ui.results'), { size: 13, weight: 800, fill: C.slate, fit: 320 })}
+      ${hotelRows(336)}
+      <rect data-k="dim" width="360" height="640" fill="${C.ink}"/>
+      <clipPath id="hp-cl"><rect x="0" y="0" width="360" height="640"/></clipPath>
+      <g data-k="hp"><g data-k="track">${hotelPanel(0)}${hotelPanel(1)}</g>
+        <g transform="translate(326 72)"><circle r="14" fill="${C.ink}" opacity=".55"/>${g(XMARK(C.paper), 'scale(.75)')}</g></g>
+      <g data-k="sheet">
+        <rect x="0" y="380" width="360" height="272" rx="24" fill="${C.paper}" stroke="${C.line}"/>${bar(160, 390, 40, 6, C.line)}
+        ${tx(24, 428, L('ui.bookTitle'), { size: 16, weight: 800, fit: 312 })}
+        <rect x="24" y="444" width="312" height="44" rx="14" fill="${C.page}" stroke="${C.line}"/>${at(46, 466, 0.75, CAL(C.blue))}${tx(66, 471, L('ui.dates'), { size: 14, weight: 700, fit: 260 })}
+        ${tx(24, 516, L('ui.total'), { size: 15, weight: 800, fill: C.blue })}
+        <g data-k="sendBtn"><rect x="24" y="530" width="312" height="46" rx="23" fill="${C.blue}"/>${tx(180, 559, L('ui.sendRequest'), { size: 16, weight: 800, fill: C.paper, anchor: 'middle' })}</g>
+        <g data-k="sentBtn"><rect x="24" y="530" width="312" height="46" rx="23" fill="${C.green}"/>${tx(170, 559, L('ui.sent'), { size: 16, weight: 800, fill: C.paper, anchor: 'middle' })}${at(240, 553, 0.6, ICON.check(C.paper))}</g>
+      </g>
+      <g data-k="msg">
+        <rect x="16" y="10" width="328" height="64" rx="20" fill="${C.paper}" stroke="${C.line}"/>
+        <circle cx="46" cy="42" r="18" fill="${C.blue}"/>${at(46, 42, 0.5, ICON.store(C.paper))}
+        ${tx(74, 34, L('ui.hotels.1'), { size: 13, weight: 800 })}${tx(74, 54, L('ui.reply'), { size: 13, weight: 500, fill: C.slate, fit: 256 })}
+      </g>
+      ${at(0, 0, 1, face('guest'))}`,
+    draw(lt, root) {
+      const p = P(root);
+      const up = easeOut(prog(lt, 1.0, 1.5));
+      p('dim', { o: 0.5 * prog(lt, 1.0, 1.3) });
+      p('hp', { y: 600 * (1 - up), o: prog(lt, 1.0, 1.1) });
+      // Photos slide in the first hotel; then a swipe brings the second.
+      const n = Math.min(2, Math.max(0, (lt - 2.0) / 0.7)), gi = Math.floor(n), gf = n - gi;
+      $(root, 'gal0').setAttribute('transform', `translate(${(-312 * (gi + easeInOut(Math.min(1, gf / 0.5)))).toFixed(1)} 0)`);
+      [0, 1, 2].forEach((j) => $(root, `dot0${j}`).setAttribute('opacity', Math.round(Math.min(2, n)) === j ? 1 : 0.5));
+      [0, 1, 2].forEach((j) => $(root, `dot1${j}`).setAttribute('opacity', j === 0 ? 1 : 0.5));
+      const sw = easeInOut(prog(lt, 4.9, 5.6));
+      p('track', { x: -360 * sw });
+      $(root, 'bk11').setAttribute('fill', lt > 6.95 ? C.green : C.blue);
+      const sh = back(prog(lt, 7.1, 7.6));
+      p('sheet', { y: 300 * (1 - sh), o: prog(lt, 7.1, 7.2) });
+      p('sendBtn', { o: lt < 8.75 ? 1 : 0 });
+      p('sentBtn', { o: lt >= 8.75 ? 1 : 0 });
+      p('msg', { y: lerp(-90, 0, back(prog(lt, 10.2, 10.6))), o: prog(lt, 10.2, 10.3) });
+      p('guest', { x: 180, y: 290, s: 1.6 * back(prog(lt, 10.8, 11.2)), o: prog(lt, 10.8, 10.9) });
+      mood(root, 'guest', 'big');
+    },
+    hand: [[0.4, 260, 560], [0.8, 180, 376, true, 'hotel'], [2.4, 270, 160], [4.7, 300, 300, false, 'swipe'], [5.6, 70, 300], [6.9, 293, 434, true, 'book'], [8.6, 180, 553, true, 'send'], [9.4, 270, 620]],
+  };
+}
+
+// ---------------------------------------------------------------- 4 start
 const CATS = [
   { glyph: ICON.store, c: C.blue }, { glyph: GLYPH.cross, c: C.violet }, { glyph: ICON.cup, c: C.green },
   { glyph: GLYPH.helmet, c: C.blue }, { glyph: GLYPH.truck, c: C.violet }, { glyph: GLYPH.cap, c: C.blue },
@@ -218,7 +563,7 @@ function templatesMarkup() {
 }
 function start() {
   return {
-    dur: 7, title: 'start', step: 2,
+    dur: 7, title: 'start', step: 4,
     captions: [[0.2, 2.4, 'start1'], [2.5, 4.0, 'start2'], [4.1, 7, 'start3']], land: 'start1',
     markup: `
       <g data-k="scrA">
@@ -268,7 +613,7 @@ function start() {
 // ---------------------------------------------------------------- 2 path A
 function pathA() {
   return {
-    dur: 5, title: 'start', step: 2,
+    dur: 5, title: 'start', step: 4,
     captions: [[0.2, 5, 'pathA1']], land: 'pathA1',
     markup: `${templatesMarkup()}
       <g data-k="site">${site(C.violet)}</g>
@@ -295,7 +640,7 @@ const BLOCKS = [
 const ROWS = [GLYPH.gallery(C.blue), ICON.cup(C.violet), GLYPH.camera(C.green), GLYPH.clock(C.blue), GLYPH.comment(C.violet)];
 function pathB() {
   return {
-    dur: 6, title: 'start', step: 2,
+    dur: 6, title: 'start', step: 4,
     captions: [[0.2, 6, 'pathB1']], land: 'pathB1',
     markup: `<rect width="360" height="640" fill="${C.page}"/>${studioBar(L('ui.addSections'))}
       <rect data-k="canvas" x="24" y="72" width="312" height="292" rx="14" fill="${C.paper}" stroke="${C.slate}" stroke-width="2" stroke-dasharray="8 6"/>
@@ -325,7 +670,7 @@ function fill() {
   const days = [0, 1, 2, 3, 4, 5, 6].map((i) => 76 + i * 36);
   const tapsH = [12.4, 12.8, 13.2, 13.6, 14.0];
   return {
-    dur: 19.5, title: 'fill', step: 3,
+    dur: 19.5, title: 'fill', step: 5,
     captions: [[0.2, 4.9, 'fill1'], [5.0, 8.3, 'fill2'], [8.4, 11.9, 'fill3'], [12.0, 15.2, 'fill4'], [15.3, 19.5, 'fill5']], land: 'fillL',
     markup: `<rect width="360" height="640" fill="${C.page}"/>${studioBar(L('ui.edit'))}
       <rect x="16" y="64" width="328" height="190" rx="14" fill="${C.paper}" stroke="${C.line}"/>
@@ -431,7 +776,7 @@ function fill() {
 const THEMES = [C.blue, C.violet, C.green, C.ink];
 function style() {
   return {
-    dur: 8, title: 'style', step: 4,
+    dur: 8, title: 'style', step: 6,
     captions: [[0.2, 3.9, 'style1'], [4.0, 8, 'style2']], land: 'style2',
     markup: `<rect width="360" height="640" fill="${C.page}"/>${studioBar(L('ui.makeYours'))}
       <g data-k="edit">
@@ -475,7 +820,7 @@ function style() {
 // ---------------------------------------------------------------- 5 publish
 function publish() {
   return {
-    dur: 5, title: 'publish', step: 5,
+    dur: 5, title: 'publish', step: 7,
     captions: [[0.3, 5, 'pub1']], land: 'pub1',
     markup: `<rect width="360" height="640" fill="${C.page}"/>
       <g transform="translate(27 70) scale(.85)">${site(C.blue)}</g>
@@ -529,7 +874,7 @@ function bizCard(theme = C.blue) {
 }
 function feed() {
   return {
-    dur: 7, title: 'publish', step: 5,
+    dur: 7, title: 'publish', step: 7,
     captions: [[0.2, 4.0, 'feed1'], [4.1, 7, 'feed2']], land: 'feed1',
     markup: `<rect width="360" height="640" fill="${C.page}"/>
       <g data-k="o0"><rect x="16" y="-120" width="328" height="170" rx="18" fill="${C.paper}" stroke="${C.line}"/><rect x="16" y="-120" width="328" height="70" rx="18" fill="${C.greenSubtle}"/></g>
@@ -573,7 +918,7 @@ function buyers() {
   const order = toShot(B, 60, 179);
   const okBtn = toShot(S, 60, 200);
   return {
-    dur: 10, title: 'buyers', step: 6,
+    dur: 10, title: 'buyers', step: 8,
     captions: [[0.2, 4.5, 'buy1'], [4.6, 7.4, 'buy2'], [7.5, 10, 'buy3']], land: 'buy2',
     markup: `<rect width="360" height="640" fill="${C.page}"/>
       <g data-k="bph">${window.ENGINE.phoneFrame(w, h, `
@@ -690,5 +1035,5 @@ function finale() {
   };
 }
 
-window.SHOTS = { intro, life, start, pathA, pathB, fill, style, publish, feed, buyers, finale, parts: { site, retheme } };
+window.SHOTS = { intro, life, feedScroll, friendBiz, bizFeed, searchNear, compareHotels, start, pathA, pathB, fill, style, publish, feed, buyers, finale, parts: { site, retheme } };
 })();

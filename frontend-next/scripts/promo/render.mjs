@@ -38,12 +38,12 @@ const KB = 1024;
 const SCENES = {
   // Full step-by-step guide; downloads only when someone taps "Watch how it works".
   guide: {
-    version: 'v3', css: [360, 640], scale: 2, fps: 30, poster: 6.0, captions: true,
-    renditions: [{ w: 720, h: 1280, budget: 3000 * KB }, { w: 480, h: 854, budget: 1600 * KB }],
+    version: 'v4', css: [360, 640], scale: 2, fps: 30, poster: 6.0, captions: true,
+    renditions: [{ w: 720, h: 1280, budget: 4500 * KB }, { w: 480, h: 854, budget: 2400 * KB }],
   },
   landing: {
-    version: 'v3', css: [360, 640], scale: 2, fps: 30, poster: 30.0,
-    renditions: [{ w: 720, h: 1280, budget: 1500 * KB }, { w: 480, h: 854, budget: 800 * KB }],
+    version: 'v4', css: [360, 640], scale: 2, fps: 30, poster: 18.6,
+    renditions: [{ w: 720, h: 1280, budget: 2000 * KB }, { w: 480, h: 854, budget: 1100 * KB }],
   },
   // Wordless; plays small behind the feed banner's own text.
   banner: {

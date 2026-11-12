@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
-  Landing loop, about 44 s, 9:16 (720 x 1280), plays in the phone on /landing.
-  The guide's story (guide.html) faster, without the blank-canvas path, colours
-  and devices: one subtitle per shot, the step tab and on-screen words; no
+  Landing loop, about 58 s, 9:16 (720 x 1280), plays in the phone on /landing.
+  The guide's story (guide.html) faster, without the photo zoom, the friend
+  peek, the blank-canvas path, colours and devices: one subtitle per shot, the step tab and on-screen words; no
   title cards or callouts. Shots are in shots.js. Rendered by render.mjs.
 -->
 <html>
@@ -20,7 +20,8 @@
 const S = window.SHOTS;
 const fast = (shot, k) => Object.assign(shot, { k });
 window.ENGINE.run([
-  fast(S.intro(), 1.75), fast(S.life(), 2), fast(S.start(), 1.75), fast(S.pathA(), 1.4),
+  fast(S.intro(), 1.75), fast(S.life(), 2), fast(S.bizFeed(), 1.6), fast(S.searchNear(), 2), fast(S.compareHotels(), 2.3),
+  fast(S.start(), 1.75), fast(S.pathA(), 1.4),
   fast(S.fill(), 2.6), fast(S.publish(), 1.4), fast(S.feed(), 1.75), fast(S.buyers(), 2.2), fast(S.finale(), 1.6),
 ], { titleCards: false, callouts: false, captions: 'landing' });
 </script>
