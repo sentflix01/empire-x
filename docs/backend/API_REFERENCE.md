@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-12
+> Endpoints: **371** across **53** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -32,6 +32,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`directOrders`](#directorders) (12)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
+- [`feed`](#feed) (1)
 - [`flags`](#flags) (4)
 - [`friends`](#friends) (1)
 - [`hashtags`](#hashtags) (3)
@@ -257,6 +258,12 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings` | 🔒 auth | routes/externalSources.ts:212 |
 | `DELETE` | `/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId` | 🔒 auth | routes/externalSources.ts:228 |
 | `POST` | `/api/showrooms/:showroomId/external-sources/:sourceId/refresh` | 🔒 auth | routes/externalSources.ts:240 |
+
+## feed — The Business feed, built on the server.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/feed/businesses` | ⚪ optional | routes/feed.ts:46 |
 
 ## flags — flags
 

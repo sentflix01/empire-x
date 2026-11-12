@@ -73,6 +73,10 @@
       "description": "External Data Sources"
     },
     {
+      "name": "feed",
+      "description": "The Business feed, built on the server."
+    },
+    {
       "name": "flags",
       "description": "flags"
     },
@@ -4186,6 +4190,31 @@
         },
         "x-auth": "auth",
         "x-source": "backend/routes/externalSources.ts:240"
+      }
+    },
+    "/api/feed/businesses": {
+      "get": {
+        "operationId": "get_feed_businesses",
+        "tags": [
+          "feed"
+        ],
+        "summary": "GET /api/feed/businesses",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "optional",
+        "x-source": "backend/routes/feed.ts:46"
       }
     },
     "/api/flags/page-guided-tours": {

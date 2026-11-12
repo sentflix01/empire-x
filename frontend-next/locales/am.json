@@ -133,7 +133,13 @@
     "viewMoreComments_plural": "{{count}} ተጨማሪ አስተያየቶች አሳይ",
     "hideComments": "አስተያየቶችን ደብቅ",
     "businessShowroom": "የንግድ ሾዎሩም",
-    "loadingShowroom": "እየጫነ..."
+    "loadingShowroom": "እየጫነ...",
+    "kmAway": "km away",
+    "friend": "Friend",
+    "nearYou": "Near you",
+    "newest": "Newest",
+    "sortBusinesses": "Sort businesses",
+    "defaultLocation": "We could not get your location, so distances are from central Addis Ababa."
   },
   "marketplace": {
     "title": "ገበያ",
@@ -429,7 +435,13 @@
     "noBusiness": "ምንም ንግድ የለም",
     "switchBusiness": "ንግድ ቀይር",
     "productViews": "የምርት እይታዎች",
-    "engagement": "ተሳትፎ"
+    "engagement": "ተሳትፎ",
+    "mapUnavailable": "The map could not load. Check your connection and try again.",
+    "useMyLocation": "Use my location",
+    "removePin": "Remove pin",
+    "pinSet": "Pin set",
+    "pinHint": "Tap the map to place your pin",
+    "locationBlocked": "We could not get your location, so the map shows Addis Ababa. Tap the map to place your pin."
   },
   "referral": {
     "title": "የጥሪ ፕሮግራም",

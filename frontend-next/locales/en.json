@@ -133,7 +133,13 @@
     "viewMoreComments_plural": "View {{count}} more comments",
     "hideComments": "Hide comments",
     "businessShowroom": "Business showroom",
-    "loadingShowroom": "Loading..."
+    "loadingShowroom": "Loading...",
+    "kmAway": "km away",
+    "friend": "Friend",
+    "nearYou": "Near you",
+    "newest": "Newest",
+    "sortBusinesses": "Sort businesses",
+    "defaultLocation": "We could not get your location, so distances are from central Addis Ababa."
   },
   "marketplace": {
     "title": "Marketplace",
@@ -429,7 +435,13 @@
     "noBusiness": "No business yet",
     "switchBusiness": "Switch Business",
     "productViews": "Product views",
-    "engagement": "Engagement"
+    "engagement": "Engagement",
+    "mapUnavailable": "The map could not load. Check your connection and try again.",
+    "useMyLocation": "Use my location",
+    "removePin": "Remove pin",
+    "pinSet": "Pin set",
+    "pinHint": "Tap the map to place your pin",
+    "locationBlocked": "We could not get your location, so the map shows Addis Ababa. Tap the map to place your pin."
   },
   "referral": {
     "title": "Referral Program",

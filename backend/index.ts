@@ -348,6 +348,7 @@ app.use('/api/internal',     require('./routes/internalJobs'));
 app.use('/api/notifications',require('./routes/notifications'));
 app.use('/api/businesses',   require('./routes/businesses'));
 app.use('/api/showrooms',    require('./routes/showrooms'));
+app.use('/api/feed',         require('./routes/feed'));
 app.use('/api/upload',       require('./routes/upload'));
 app.use('/api/admin',        require('./routes/admin'));
 app.use('/api/search',       require('./routes/search'));

@@ -13,6 +13,7 @@ async function mockApi(page: Page, saved: Record<string, unknown>[]) {
   await page.route('**/api/**', (r) => r.fulfill(json([])));
   await page.route('**/api/auth/refresh', (r) => r.fulfill(json({ access_token: 'e2e-token' })));
   await page.route('**/api/auth/me', (r) => r.fulfill(json({ id: OWNER, full_name: 'Shop Owner', role: 'user', onboarding_completed: true })));
+  await page.route('**/api/profiles?*', (r) => r.fulfill(json([{ id: 'prof', user_id: OWNER, display_name: 'Shop Owner', profile_type: 'business' }])));
   await page.route(`**/api/businesses/${BIZ}`, async (r) => {
     if (r.request().method() === 'PUT') { saved.push(r.request().postDataJSON()); return r.fulfill(json({ id: BIZ })); }
     return r.fulfill(json({ id: BIZ, owner_id: OWNER, business_name: 'Coffee Corner', business_category: 'food', latitude: null, longitude: null }));
