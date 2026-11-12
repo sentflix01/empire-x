@@ -2,7 +2,7 @@
 
 > Security is built in from the start. This document explains every layer of protection.
 > For known threats and their mitigations, see `docs/architecture/THREAT_MODEL.md`.
-> **Verified against code on 2026-08-23.** Last updated: 2026-08-23
+> **Verified against code on 2026-08-23.** Last updated: 2026-11-12
 
 ---
 
@@ -38,8 +38,16 @@ requireAuth middleware
     ├── Redis revocation check: revoked:{jti} and revoke_before:{userId} (fail-open if Redis down)
     ├── getCachedUser(): SELECT id, email, role, is_banned (60s Redis cache)
     │       └── 401 if deleted · 403 if banned
+    ├── token problem (bad, expired, revoked) → 401
+    ├── server-side failure (Postgres/Redis down, too many connections) → 503 AUTH_UNAVAILABLE
     └── attach req.user = { id, email, role, is_banned } → next()
 ```
+
+A server-side failure is not answered with 401: the web app treats a 401 as an
+expired session (refresh, then sign out), so an outage used to sign people out.
+`optionalAuth` follows the same rule: a bad token falls back to guest, a
+server-side failure answers 503 rather than showing a signed-in person the guest
+view. See `project-brain/DECISIONS.md` (2026-11-12).
 
 Token architecture (TD-001, TD-014; ADR-004 is superseded):
 - **Access token:** 15 min, returned in the response body; the client keeps it in memory only.

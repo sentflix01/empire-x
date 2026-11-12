@@ -955,3 +955,14 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+### 2026-11-12 — Auth answers 503, not 401, when it cannot check a token
+
+- **Status:** Accepted (owner, 12 Nov 2026: return 503 from `requireAuth` and from `optionalAuth`)
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` and `optionalAuth` keep `401` for token problems (bad, expired or revoked token, user not found). Any other error while checking the token, such as Postgres or Redis being down or out of connections, answers `503 { code: "AUTH_UNAVAILABLE" }` with `Retry-After: 5`. With a bad token `optionalAuth` still continues as a guest; with a server-side failure it answers 503 instead of quietly showing a signed-in person the guest view.
+- **Why:** Every error became `401 INVALID_TOKEN`. The web app treats a 401 as an expired session: it refreshes, the refresh fails too while the database is down, and the person is signed out. Found when DB tests ran out of Postgres connections in CI (fixed separately on branch `fix/db-tests-close-pools`).
+- **Consequences:**
+  - No frontend change: `lib/AuthContext.tsx` already keeps the session on 5xx, and `api/client.ts` refreshes only on 401.
+  - A revocation-check failure on its own still lets the request through (logged), as before; only the user lookup failing now gives 503.
+  - Code: `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). Tests: `backend/__tests__/authErrorShape.test.ts`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`.
+

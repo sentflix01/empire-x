@@ -15,11 +15,18 @@ process.env.JWT_SECRET = 'test-secret-for-auth-error-shape';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const requestId = require('../middleware/requestId');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, optionalAuth } = require('../middleware/auth');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pool = require('../db/pool').default as { query: jest.Mock };
 
 const app = express();
 app.use(requestId);
 app.get('/private', requireAuth, (_req, res) => { res.json({ ok: true }); });
+app.get('/public', optionalAuth, (req, res) => {
+  res.json({ user: (req as express.Request & { user?: { id: string } | null }).user?.id ?? null });
+});
+
+const validToken = () => jwt.sign({ sub: 'u1', type: 'access', jti: `j-${Math.random()}` }, process.env.JWT_SECRET as string);
 app.get('/admin', (req, _res, next) => {
   (req as express.Request & { user?: unknown }).user = JSON.parse(String(req.headers['x-test-user']));
   next();
@@ -63,3 +70,41 @@ describe('requireAdmin', () => {
     }
   });
 });
+
+describe('server-side failure while checking a token (DB down)', () => {
+  beforeEach(() => {
+    pool.query.mockReset();
+    pool.query.mockRejectedValue(new Error('sorry, too many clients already'));
+  });
+  afterAll(() => { pool.query.mockReset(); });
+
+  it('requireAuth answers 503 AUTH_UNAVAILABLE, not 401, so the app does not sign people out', async () => {
+    const res = await request(app).get('/private').set('Authorization', `Bearer ${validToken()}`).expect(503);
+    shape(res.body, 'AUTH_UNAVAILABLE', 'Sign-in is temporarily unavailable. Please try again.');
+    expect(res.headers['retry-after']).toBe('5');
+  });
+
+  it('optionalAuth answers 503 instead of quietly treating a signed-in person as a guest', async () => {
+    const res = await request(app).get('/public').set('Authorization', `Bearer ${validToken()}`).expect(503);
+    shape(res.body, 'AUTH_UNAVAILABLE', 'Sign-in is temporarily unavailable. Please try again.');
+  });
+
+  it('a bad token is still a token problem: 401 for requireAuth, guest for optionalAuth', async () => {
+    await request(app).get('/private').set('Authorization', 'Bearer not-a-jwt').expect(401);
+    const res = await request(app).get('/public').set('Authorization', 'Bearer not-a-jwt').expect(200);
+    expect(res.body).toEqual({ user: null });
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+});
+
+describe('optionalAuth with a working database', () => {
+  it('attaches the signed-in user', async () => {
+    pool.query.mockReset();
+    pool.query.mockImplementation(async (sql: string) => (/FROM users/i.test(sql)
+      ? { rows: [{ id: 'u1', role: 'user', is_banned: false, is_demo: false }] }
+      : { rows: [] }));
+    const res = await request(app).get('/public').set('Authorization', `Bearer ${validToken()}`).expect(200);
+    expect(res.body).toEqual({ user: 'u1' });
+  });
+});
+

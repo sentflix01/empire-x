@@ -3,6 +3,8 @@
  *
  * - requireAuth:          verifies Bearer JWT, checks Redis revocation, attaches req.user
  * - optionalAuth:         same but does not reject on missing/invalid token
+ *   Both answer 503 AUTH_UNAVAILABLE (not 401) when a server-side dependency
+ *   fails while checking the token, so an outage does not sign people out.
  * - requireAdmin:         enforces role === 'admin' after requireAuth
  * - invalidateUserCache:  evict a user from the 60s Redis cache (call on ban/unban/role-change)
  *
@@ -213,11 +215,28 @@ function verifyAccessToken(
  * Auth failures use the documented error shape (audit F-007):
  * { error, code, request_id }. The message text is unchanged.
  */
-function authError(res: Response, status: 401 | 403, code: string, message: string): void {
+function authError(res: Response, status: 401 | 403 | 503, code: string, message: string): void {
   const body: Record<string, unknown> = { error: message, code };
   const requestId = (res.req as Request & { requestId?: string } | undefined)?.requestId;
   if (requestId) body.request_id = requestId;
   res.status(status).json(body);
+}
+
+/**
+ * A server-side failure while checking a token (Postgres or Redis down, too
+ * many connections) is not the caller's fault. Answering 401 made the web app
+ * refresh and then sign the person out during an outage, so it gets 503
+ * AUTH_UNAVAILABLE instead. Token problems are JsonWebTokenError (including
+ * TokenExpiredError) and still get 401.
+ */
+function isTokenError(err: unknown): boolean {
+  return err instanceof jwt.JsonWebTokenError;
+}
+
+function authUnavailable(res: Response, err: unknown): void {
+  logger.error({ err: (err as Error)?.message }, 'auth: could not check the token; answering 503');
+  res.setHeader('Retry-After', '5');
+  authError(res, 503, 'AUTH_UNAVAILABLE', 'Sign-in is temporarily unavailable. Please try again.');
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -250,6 +269,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     if (user.is_demo) withoutRedis(next);
     else next();
   } catch (err) {
+    if (!isTokenError(err)) {
+      authUnavailable(res, err);
+      return;
+    }
     if ((err as Error).name === 'TokenExpiredError') {
       authError(res, 401, 'TOKEN_EXPIRED', 'Token expired');
       return;
@@ -258,7 +281,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
+export async function optionalAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     if (req.demoSession) {
@@ -283,7 +306,13 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
       next();
       return;
     }
-  } catch {
+  } catch (err) {
+    // A bad or expired token falls back to guest; a server-side failure must not
+    // quietly show a signed-in person the guest view.
+    if (!isTokenError(err)) {
+      authUnavailable(res, err);
+      return;
+    }
     req.user = null;
   }
   if (req.user?.is_demo || !req.user) withoutRedis(next);

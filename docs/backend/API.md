@@ -4,6 +4,8 @@
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
+> Auth errors also carry `code` and `request_id`. A token problem answers `401` (`UNAUTHORIZED`, `INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`). If the server cannot check the token (database or Redis unavailable), protected and optional-auth routes answer `503 { code: "AUTH_UNAVAILABLE" }` with `Retry-After: 5`; clients should retry and keep the session.
+> Last reviewed: 2026-11-12
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
 
 ---
