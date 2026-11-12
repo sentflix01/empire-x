@@ -1,6 +1,7 @@
 'use client';
 import { HEX, Z } from '@/lib/colorTokens';
 import SafeImage from '@/components/ui/SafeImage';
+import { formatPersonDistance } from '@/lib/personDistance';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -340,9 +341,9 @@ function NearbyPersonCard({ person, onOpenProfile }: { person: NearbyPerson; onO
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate">{person.display_name}</p>
           {person.headline && <p className="text-xs text-muted-foreground truncate">{person.headline}</p>}
-          {person.distance_km != null && (
+          {formatPersonDistance(person.distance_km) && (
             <p className="biz-text text-xs font-semibold" style={{ ...themeTextStyle(accentColor) }}>
-              📍 {person.distance_km < 1 ? `${Math.round(person.distance_km * 1000)}m` : `${person.distance_km.toFixed(1)} km`} away
+              📍 {formatPersonDistance(person.distance_km)}
             </p>
           )}
         </div>
@@ -451,9 +452,8 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
           users,
           searchType: "people",
         };
+        // People are listed with a rounded distance only; they get no map pins.
         setSearchState({ query: trimmed, results: nextResults, loading: false, searchType: "people" });
-        const firstGeo = users.find((u: any) => u.latitude && u.longitude);
-        if (firstGeo) setMapCenter([parseFloat(firstGeo.latitude), parseFloat(firstGeo.longitude)]);
       } else {
         const res = await client.get("/api/maps/nearby/product-search", {
           params: { lat: userLocation.lat, lon: userLocation.lon, q: trimmed, radius_km: nearbyRadius, category: nearbyCategory },
@@ -490,7 +490,6 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   const display = getMapSearchDisplayState(searchState);
   const mapBizMarkers = searchResults?.searchType === "place" ? searchResults.businesses : [];
   const mapProductMarkers = searchResults?.searchType === "place" ? (searchResults.geo_products ?? []) : [];
-  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u) => u.latitude && u.longitude) : [];
 
   return (
     <AnimatePresence mode="wait">
@@ -678,26 +677,6 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: p.seller_id, view: "business" });
-                    },
-                  }}
-                />
-              ))}
-              {mapUserMarkers.map(u => (
-                <map.Marker
-                  key={`user-${u.user_id}`}
-                  position={[Number(u.latitude), Number(u.longitude)]}
-                  icon={makeLabeledIcon(u.display_name ?? "User", "green")}
-                  eventHandlers={{
-                    mouseover: (e: LeafletMouseEvent) => {
-                      if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                      setHoverCard({ ownerId: u.user_id, view: "personal", name: u.display_name ?? "User",
-                        category: u.headline, avatarUrl: u.avatar_url, distanceKm: u.distance_km, ...pinPosition(e) });
-                    },
-                    mouseout: () => { setHoverCard(null); },
-                    dblclick: (e: LeafletMouseEvent) => {
-                      e.originalEvent?.stopPropagation?.();
-                      setHoverCard(null);
-                      setSelectedMarker({ ownerId: u.user_id, view: "personal" });
                     },
                   }}
                 />
