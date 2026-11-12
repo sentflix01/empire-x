@@ -1,5 +1,5 @@
 {
-  "frontend_calls": 222,
+  "frontend_calls": 223,
   "matched": [
     {
       "path": "/api",
@@ -110,6 +110,18 @@
       ]
     },
     {
+      "path": "/api/ai/generate-description",
+      "files": [
+        "frontend-next/views/ProductCreate.tsx"
+      ]
+    },
+    {
+      "path": "/api/ai/status",
+      "files": [
+        "frontend-next/views/ProductCreate.tsx"
+      ]
+    },
+    {
       "path": "/api/auth/change-password",
       "files": [
         "frontend-next/components/profile/AccountSettings.tsx",
@@ -167,6 +179,42 @@
       ]
     },
     {
+      "path": "/api/auth/mfa/disable",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/enable",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/recovery-codes",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/setup",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/status",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/verify",
+      "files": [
+        "frontend-next/api/auth.ts"
+      ]
+    },
+    {
       "path": "/api/auth/refresh",
       "files": [
         "frontend-next/api/client.ts"
@@ -191,6 +239,12 @@
       "files": [
         "frontend-next/api/auth.ts",
         "frontend-next/views/ResetPassword.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/update-name",
+      "files": [
+        "frontend-next/components/profile/AccountSettings.tsx"
       ]
     },
     {
@@ -268,6 +322,18 @@
       ]
     },
     {
+      "path": "/api/delivery",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/delivery/order/:p",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
       "path": "/api/devops",
       "files": [
         "frontend-next/views/DevOps.tsx"
@@ -298,25 +364,31 @@
       ]
     },
     {
+      "path": "/api/devops/errors/:p/to-ticket",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
       "path": "/api/devops/errors/report",
       "files": [
         "frontend-next/components/GlobalErrorReporter.tsx"
       ]
     },
     {
+      "path": "/api/devops/errors/resolve-all",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/stats",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
       "path": "/api/devops/health-summary",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/log-report",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/log-report/:p",
       "files": [
         "frontend-next/views/DevOps.tsx"
       ]
@@ -341,6 +413,12 @@
     },
     {
       "path": "/api/devops/versions",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/versions/:p",
       "files": [
         "frontend-next/views/DevOps.tsx"
       ]
@@ -969,6 +1047,12 @@
       ]
     },
     {
+      "path": "/api/saves/my-products",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
       "path": "/api/saves/toggle",
       "files": [
         "frontend-next/lib/socialApi.ts",
@@ -1183,6 +1267,12 @@
       ]
     },
     {
+      "path": "/api/telegram/notifications",
+      "files": [
+        "frontend-next/components/settings/TelegramSettings.tsx"
+      ]
+    },
+    {
       "path": "/api/telegram/status",
       "files": [
         "frontend-next/components/settings/TelegramSettings.tsx"
@@ -1205,6 +1295,18 @@
       "path": "/api/upload",
       "files": [
         "frontend-next/lib/uploadFile.ts"
+      ]
+    },
+    {
+      "path": "/api/upload/multiple",
+      "files": [
+        "frontend-next/lib/uploadFile.ts"
+      ]
+    },
+    {
+      "path": "/api/verification/documents",
+      "files": [
+        "frontend-next/components/profile/VerificationRequest.tsx"
       ]
     },
     {
@@ -1278,111 +1380,15 @@
       ]
     },
     {
-      "path": "/api/ai/generate-description",
-      "files": [
-        "frontend-next/views/ProductCreate.tsx"
-      ]
-    },
-    {
-      "path": "/api/auth/update-name",
-      "files": [
-        "frontend-next/components/profile/AccountSettings.tsx"
-      ]
-    },
-    {
-      "path": "/api/delivery/:p",
-      "files": [
-        "frontend-next/views/Orders.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/errors/:p/to-ticket",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/errors/resolve-all",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/errors/stats",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/devops/versions/:p",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
       "path": "/api/direct-orders/:p/:p",
       "files": [
         "frontend-next/views/Orders.tsx"
       ]
     },
     {
-      "path": "/api/docs/file",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/implementation",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/library",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/notes",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/progress",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/search",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
-      "path": "/api/docs/strategy/versions",
-      "files": [
-        "frontend-next/views/DevOps.tsx"
-      ]
-    },
-    {
       "path": "/api/social/:p/:p",
       "files": [
         "frontend-next/views/PrivacyAndSecurity.tsx"
-      ]
-    },
-    {
-      "path": "/api/telegram/notifications",
-      "files": [
-        "frontend-next/components/settings/TelegramSettings.tsx"
-      ]
-    },
-    {
-      "path": "/api/upload/multiple",
-      "files": [
-        "frontend-next/lib/uploadFile.ts"
       ]
     }
   ],
@@ -1417,6 +1423,7 @@
     "GET /api/wallet/topup/chapa/sandbox",
     "GET /api/wallet/topup/chapa/verify/:tx_ref",
     "POST /api/wallet/topup/stripe",
+    "GET /api/verification/:id/documents",
     "PUT /api/verification/:id/approve",
     "PUT /api/verification/:id/reject",
     "GET /api/hashtags/:name/posts",
@@ -1428,7 +1435,6 @@
     "POST /api/variants/product/:productId",
     "PUT /api/returns/:id/approve",
     "PUT /api/returns/:id/reject",
-    "GET /api/delivery/order/:orderId",
     "GET /api/share-preview/showroom/:slug",
     "GET /api/share-preview/product/:id",
     "GET /api/direct-orders/link/:token/receipt",

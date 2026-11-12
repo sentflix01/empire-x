@@ -10,17 +10,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, X, Search, Navigation, Loader2, ShoppingBag } from "lucide-react";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import { toast } from "sonner";
-import type { MapSearchResult, MapSearchState } from "@/types/map-search";
+import type { MapSearchPerson, MapSearchProduct, MapSearchResult, MapSearchState } from "@/types/map-search";
 import { getMapSearchDisplayState } from "@/types/map-search";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
 import { themeTextStyle } from '@/lib/contrast';
+import type * as Leaflet from "leaflet";
+import type * as ReactLeaflet from "react-leaflet";
+import type { LeafletMouseEvent } from "leaflet";
+import { firstImage } from "@/lib/spotlightTiles";
+import { formatAmount } from "@/lib/money";
 
 // Leaflet modules — assigned after dynamic import inside useEffect
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
 // Instead we use dynamic import() which is truly deferred
-let MapContainer: any, TileLayer: any, Marker: any, Circle: any, useMap: any;
-let MarkerClusterGroup: any;
-let L: any;
+let MapContainer: typeof ReactLeaflet.MapContainer | undefined;
+let TileLayer: typeof ReactLeaflet.TileLayer | undefined;
+let Marker: typeof ReactLeaflet.Marker | undefined;
+let Circle: typeof ReactLeaflet.Circle | undefined;
+let useMap: typeof ReactLeaflet.useMap | undefined;
+let MarkerClusterGroup: React.ComponentType<{ chunkedLoading?: boolean; maxClusterRadius?: number; showCoverageOnHover?: boolean; children?: React.ReactNode }> | undefined;
+let L: typeof Leaflet | undefined;
 let leafletLoaded = false;
 
 async function loadLeaflet() {
@@ -49,12 +58,13 @@ async function loadLeaflet() {
   Marker = rl.Marker;
   Circle = rl.Circle;
   useMap = rl.useMap;
-  MarkerClusterGroup = function MarkerGroup({ children }: any) { return <>{children}</>; };
-  L = leaflet.default;
+  MarkerClusterGroup = function MarkerGroup({ children }: { children?: React.ReactNode }) { return <>{children}</>; };
+  const leafletLib = leaflet.default;
+  L = leafletLib;
 
   // Fix default marker icons
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
+    delete (leafletLib.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+  leafletLib.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -113,14 +123,26 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
   });
 }
 
+type MatchedProduct = MapSearchProduct;
+
+type SearchBusiness = MapSearchResult["businesses"][number];
+type NearbyPerson = MapSearchPerson;
+
+/** Hover position: the pin's screen rectangle, or the pointer when it cannot be found. */
+function pinPosition(e: LeafletMouseEvent): { x: number; y: number } {
+  const target = e.originalEvent.target as Element | null;
+  const rect = target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
+  return { x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX, y: rect ? rect.top : e.originalEvent.clientY };
+}
+
 interface HoverData {
   ownerId: string;
   view: "personal" | "business";
   name: string;
-  category?: string;
-  avatarUrl?: string;
+  category?: string | null;
+  avatarUrl?: string | null;
   distanceKm?: number;
-  matchedProducts?: any[];
+  matchedProducts?: MatchedProduct[];
   x: number;
   y: number;
 }
@@ -228,7 +250,8 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
 }
 
 function MapFlyTo({ center, zoom }: { center: [number, number]; zoom?: number }) {
-  const map = useMap();
+  // Rendered only inside the loaded map, so react-leaflet's useMap is set.
+  const map = useMap!();
   const [lat, lng] = center;
   useEffect(() => {
     map.flyTo(center, zoom ?? map.getZoom(), { duration: 0.8 });
@@ -244,7 +267,7 @@ const NEARBY_CATEGORIES: { value: string; label: string; icon?: any }[] = [
 ];
 
 // Search result business card
-function SearchResultBusinessCard({ business, query, onOpenProfile }) {
+export function SearchResultBusinessCard({ business, query, onOpenProfile }: { business: SearchBusiness; query: string; onOpenProfile: () => void }) {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -264,24 +287,24 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
           </div>
         )}
       </div>
-      {business.matched_products?.length > 0 && (
+      {business.matched_products && business.matched_products.length > 0 && (
         <div className="px-4 pb-4">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             Has {business.matched_products.length} match{business.matched_products.length !== 1 ? "es" : ""} for "{query}"
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {business.matched_products.slice(0, 4).map(p => {
-              const pImgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
+            {business.matched_products.slice(0, 4).map((p) => {
+              const image = firstImage(p.images);
               return (
                 <div key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded-xl p-2">
                   <div className="w-9 h-9 rounded-lg bg-secondary/60 overflow-hidden shrink-0">
-                    {pImgs[0]
-                      ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                    {image
+                      ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={image} alt={p.title ?? ""} className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-4 h-4 text-muted-foreground/30 m-auto mt-2.5" />}
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium truncate">{p.title}</p>
-                    <p className="text-[11px] text-primary font-bold">{p.price?.toLocaleString()} {p.currency || "USD"}</p>
+                    <p className="text-[11px] text-primary font-bold">{formatAmount(p.price)} {p.currency || "ETB"}</p>
                   </div>
                 </div>
               );
@@ -304,7 +327,7 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
 }
 
 // Nearby person card for people search results
-function NearbyPersonCard({ person, onOpenProfile }) {
+function NearbyPersonCard({ person, onOpenProfile }: { person: NearbyPerson; onOpenProfile: () => void }) {
   const accentColor = HEX.success;
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
@@ -459,10 +482,15 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   const searchQuery = searchState.query;
   const searchLoading = searchState.loading;
   const searchResults = searchState.results;
+
+  // The map parts, once Leaflet has loaded (local names keep the narrowing inside callbacks).
+  const map = leafletReady && MapContainer && TileLayer && Marker && Circle && MarkerClusterGroup
+    ? { MapContainer, TileLayer, Marker, Circle, MarkerClusterGroup }
+    : null;
   const display = getMapSearchDisplayState(searchState);
   const mapBizMarkers = searchResults?.searchType === "place" ? searchResults.businesses : [];
   const mapProductMarkers = searchResults?.searchType === "place" ? (searchResults.geo_products ?? []) : [];
-  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u: any) => u.latitude && u.longitude) : [];
+  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u) => u.latitude && u.longitude) : [];
 
   return (
     <AnimatePresence mode="wait">
@@ -568,19 +596,19 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             </span>
           </div>
 
-          {!leafletReady ? (
+          {!map ? (
             <div className="w-full h-full flex items-center justify-center bg-secondary/30">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-          <MapContainer
+          <map.MapContainer
             className="isolate"
             center={mapCenter}
             zoom={13}
             style={{ height: "100%", width: "100%" }}
             doubleClickZoom={false}
           >
-            <TileLayer
+            <map.TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
@@ -588,26 +616,23 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
             {userLocation && user && (
               <>
-                <Marker
+                <map.Marker
                   position={[userLocation.lat, userLocation.lon]}
                   icon={makeLabeledIcon(user.full_name ?? "You", "gold")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                      setHoverCard({ ownerId: user.id, view: "personal", name: user.full_name ?? "You",
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                      setHoverCard({ ownerId: user.id, view: "personal", name: user.full_name ?? "You", ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: user.id, view: "personal" });
                     },
                   }}
                 />
-                <Circle
+                <map.Circle
                   center={[userLocation.lat, userLocation.lon]}
                   radius={nearbyRadius * 1000}
                   pathOptions={{ color: HEX.primary, fillColor: HEX.primary, fillOpacity: 0.06, weight: 1.5, dashArray: "6" }}
@@ -615,24 +640,21 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
               </>
             )}
 
-            <MarkerClusterGroup chunkedLoading maxClusterRadius={50} showCoverageOnHover={false}>
+            <map.MarkerClusterGroup chunkedLoading maxClusterRadius={50} showCoverageOnHover={false}>
               {mapBizMarkers.filter(b => b.latitude && b.longitude).map(b => (
-                <Marker
+                <map.Marker
                   key={b.id}
-                  position={[parseFloat(b.latitude), parseFloat(b.longitude)]}
+                  position={[Number(b.latitude), Number(b.longitude)]}
                   icon={makeLabeledIcon(b.business_name || b.display_name || "Business", display.shouldShowResults ? "red" : "blue")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: b.owner_id, view: "business",
                         name: b.business_name || b.display_name || "Business", category: b.business_category,
-                        avatarUrl: b.avatar_url, distanceKm: b.distance_km, matchedProducts: b.matched_products,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        avatarUrl: b.avatar_url, distanceKm: b.distance_km, matchedProducts: b.matched_products, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: b.owner_id, view: "business" });
@@ -641,21 +663,18 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 />
               ))}
               {mapProductMarkers.filter(p => p.latitude && p.longitude).map(p => (
-                <Marker
+                <map.Marker
                   key={`prod-${p.id}`}
-                  position={[parseFloat(p.latitude), parseFloat(p.longitude)]}
+                  position={[Number(p.latitude), Number(p.longitude)]}
                   icon={makeLabeledIcon(p.title ?? "Product", display.shouldShowResults ? "blue" : "blue")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: p.seller_id, view: "business", name: p.title ?? "Product",
-                        category: p.category, distanceKm: p.distance_km,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        category: p.category, distanceKm: p.distance_km, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: p.seller_id, view: "business" });
@@ -664,21 +683,18 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 />
               ))}
               {mapUserMarkers.map(u => (
-                <Marker
+                <map.Marker
                   key={`user-${u.user_id}`}
-                  position={[parseFloat(u.latitude), parseFloat(u.longitude)]}
+                  position={[Number(u.latitude), Number(u.longitude)]}
                   icon={makeLabeledIcon(u.display_name ?? "User", "green")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: u.user_id, view: "personal", name: u.display_name ?? "User",
-                        category: u.headline, avatarUrl: u.avatar_url, distanceKm: u.distance_km,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        category: u.headline, avatarUrl: u.avatar_url, distanceKm: u.distance_km, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: u.user_id, view: "personal" });
@@ -686,8 +702,8 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   }}
                 />
               ))}
-            </MarkerClusterGroup>
-          </MapContainer>
+            </map.MarkerClusterGroup>
+          </map.MapContainer>
           )}
         </div>
 
@@ -707,7 +723,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         </AnimatePresence>
 
         {/* ── Search Results Summary ── */}
-        {display.shouldShowResults && (
+        {display.shouldShowResults && searchResults && (
           <div className="bg-primary-subtle border border-primary/30 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
@@ -740,7 +756,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         )}
 
         {/* ── Search Results List ── */}
-        {display.shouldShowResults && !searchLoading && (
+        {display.shouldShowResults && searchResults && !searchLoading && (
           <div className="space-y-3">
             {searchResults.searchType === "people" ? (
               (searchResults.users ?? []).length === 0 ? (

@@ -1,0 +1,147 @@
+{
+  "ran_at": "2026-11-11T17:15:43.212Z",
+  "frontend": "https://nodbusiness.vercel.app",
+  "backend": "https://nodbusiness-backend-9psf.onrender.com",
+  "passed": 23,
+  "total": 23,
+  "results": [
+    {
+      "finding": "F-030",
+      "check": "API /health answers 200",
+      "pass": true,
+      "detail": "200 in 1825 ms; services {\"database\":\"connected\",\"redis\":\"connecting\",\"ai\":\"gemini\",\"email\":\"smtp\",\"storage\":\"supabase\"}"
+    },
+    {
+      "finding": "F-030",
+      "check": "API answers a second request within 2 s",
+      "pass": true,
+      "detail": "321 ms"
+    },
+    {
+      "finding": "F-007",
+      "check": "Unauthenticated request: 401 with code and request_id",
+      "pass": true,
+      "detail": "{\"error\":\"Authentication required\",\"code\":\"UNAUTHORIZED\",\"request_id\":\"2c09512a-9144-46c2-8ef8-9940c1f2c067\"}"
+    },
+    {
+      "finding": "F-034",
+      "check": "Malformed product id: 404, not 500",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "finding": "F-023",
+      "check": "/api/devops/versions requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-006",
+      "check": "/api/devops/errors/stats requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-005",
+      "check": "/api/telegram/status requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-019",
+      "check": "Chapa status needs sign-in",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "finding": "F-016",
+      "check": "Page CSP uses a nonce and strict-dynamic",
+      "pass": true,
+      "detail": "default-src 'self'; script-src 'self' 'nonce-kn2PmPuD4OG0ABy5TNJhLA==' 'strict-dynamic' https://accounts.google.com https://browser.sentry-cdn.com; style-src 's"
+    },
+    {
+      "finding": "F-052",
+      "check": "CSP no longer allows Stripe hosts",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "finding": "F-016",
+      "check": "No X-Powered-By header",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "finding": "F-047",
+      "check": "Landing no longer promotes a wallet or \"payments\"",
+      "pass": true,
+      "detail": "checked server HTML"
+    },
+    {
+      "finding": "F-036",
+      "check": "Unknown page: 404 (no sign-in redirect)",
+      "pass": true,
+      "detail": "404 "
+    },
+    {
+      "finding": "F-036",
+      "check": "/orders sends guests to sign-in",
+      "pass": true,
+      "detail": "307 → /login?return=%2Forders"
+    },
+    {
+      "finding": "F-012",
+      "check": "/products/create sends guests to sign-in",
+      "pass": true,
+      "detail": "307 → /login?return=%2Fproducts%2Fcreate"
+    },
+    {
+      "finding": "F-036",
+      "check": "Share image is served to guests/crawlers",
+      "pass": true,
+      "detail": "200 image/png"
+    },
+    {
+      "finding": "F-048",
+      "check": "Service worker v3 or later is published",
+      "pass": true,
+      "detail": "200, v6"
+    },
+    {
+      "finding": "F-048",
+      "check": "Offline page is public",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "finding": "F-055",
+      "check": "Legal page has the Accessibility statement",
+      "pass": true,
+      "detail": "tab=accessibility"
+    },
+    {
+      "finding": "F-044",
+      "check": "Show-password target at least 24 × 24 px",
+      "pass": true,
+      "detail": "{\"x\":791,\"y\":526.25,\"width\":40,\"height\":40}"
+    },
+    {
+      "finding": "F-046",
+      "check": "Colour-system tokens are live",
+      "pass": true,
+      "detail": "--brand-secondary: 262 83% 58%"
+    },
+    {
+      "finding": "F-044",
+      "check": "/feed: no sideways scroll at 320 px",
+      "pass": true,
+      "detail": "320 / 320"
+    },
+    {
+      "finding": "F-044",
+      "check": "/marketplace: no sideways scroll at 320 px",
+      "pass": true,
+      "detail": "320 / 320"
+    }
+  ]
+}
