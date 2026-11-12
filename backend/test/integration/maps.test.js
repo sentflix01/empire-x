@@ -5,7 +5,10 @@ const express = require('express');
 const pool = require('../helpers/mockPool');
 
 jest.mock('../../middleware/auth', () => ({
-  optionalAuth: (_req, _res, next) => next(),
+  optionalAuth: (req, _res, next) => {
+    if (req.headers['x-test-user']) req.user = { id: req.headers['x-test-user'] };
+    next();
+  },
 }));
 
 const maps = require('../../routes/maps');
@@ -82,5 +85,37 @@ describe('businesses column names', () => {
     const sql = pool.query.mock.calls[0][0];
     expect(sql).toMatch(/business_name AS name,business_name,business_category AS category/);
     expect(response.body.businesses[0]).toMatchObject({ name: 'Shop', business_name: 'Shop' });
+  });
+
+  it('nearby people never returns coordinates and filters hidden and blocked people', async () => {
+    const viewer = '00000000-0000-4000-8000-000000000001';
+    pool.query.mockResolvedValueOnce({ rows: [
+      { user_id: 'p1', display_name: 'Near', latitude: '9.0027', longitude: '38.75' },
+      { user_id: 'p2', display_name: 'Far', latitude: '9.0200', longitude: '38.75' },
+      { user_id: 'p3', display_name: 'Out', latitude: '10.0', longitude: '38.75' },
+    ] });
+    const response = await request(buildApp())
+      .get('/api/maps/nearby?lat=9&lon=38.75&type=people&radius=10')
+      .set('x-test-user', viewer);
+    expect(response.status).toBe(200);
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).toMatch(/COALESCE\(up\.searchable, TRUE\)/);
+    expect(sql).toMatch(/FROM blocks sb WHERE \(sb\.blocker_id=\$2 AND sb\.blocked_id=up\.user_id\) OR \(sb\.blocker_id=up\.user_id AND sb\.blocked_id=\$2\)/);
+    expect(params[1]).toBe(viewer);
+    expect(response.body.people).toEqual([
+      expect.objectContaining({ user_id: 'p1', distance_km: 0.5, distance_approx: true }),
+      expect.objectContaining({ user_id: 'p2', distance_km: 2.5, distance_approx: true }),
+    ]);
+    for (const person of response.body.people) {
+      expect(person).not.toHaveProperty('latitude');
+      expect(person).not.toHaveProperty('longitude');
+    }
+  });
+
+  it('nearby people is empty for guests', async () => {
+    const response = await request(buildApp()).get('/api/maps/nearby?lat=9&lon=38.75&type=people');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({});
+    expect(pool.query).not.toHaveBeenCalled();
   });
 });

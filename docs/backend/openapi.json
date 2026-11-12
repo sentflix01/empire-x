@@ -4573,7 +4573,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/maps.ts:26"
+        "x-source": "backend/routes/maps.ts:27"
       }
     },
     "/api/maps/nearby": {
@@ -4598,7 +4598,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/maps.ts:104"
+        "x-source": "backend/routes/maps.ts:105"
       }
     },
     "/api/messages/conversations": {
@@ -9837,7 +9837,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/search.ts:46"
+        "x-source": "backend/routes/search.ts:52"
       }
     },
     "/api/share-preview/showroom/{slug}": {

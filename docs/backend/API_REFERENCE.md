@@ -298,8 +298,8 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:26 |
-| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:104 |
+| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:27 |
+| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:105 |
 
 ## messages — Conversations and real-time messaging
 
@@ -537,7 +537,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:46 |
+| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:52 |
 
 ## sharePreview — Link-preview data for shared business and product links.
 

@@ -6,6 +6,7 @@ Last reviewed: 2026-11-12
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
+> Last reviewed: 2026-11-12
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
 > **Text limits** (audit F-058, `backend/lib/textLimits.ts`): JSON bodies are at most 2 MB, and every text field has a maximum length — product `title` 200, `description` 5,000, post/comment `content` 5,000, `business_name` 100, website `sections` 200,000, any other text 10,000 characters. Longer text answers `422 { "code": "TEXT_TOO_LONG", "field", "max", "error" }` before the route runs; a larger body answers `413`.
 > **Last updated:** 2026-11-12
@@ -505,6 +506,63 @@ Signed-in users, owners and admins see private businesses as usual.
 - Stories, poll results and `/api/profile-partnerships/profile/:userId` return `401`.
 
 For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
+
+## Maps
+
+### GET /api/maps/nearby?lat=9.0&lon=38.75&type=all|products|businesses|people&radius=10&limit=50
+
+`lat` and `lon` are required (`400` otherwise). `radius` is in km (default 10);
+`limit` is per type (default 50, at most 200). The response has one array per
+requested type: `products`, `businesses`, `people`. Products and businesses
+carry `latitude`, `longitude` and `distance_km` (0.1 km).
+
+**People** are returned to signed-in users only (guests get no `people` key)
+and never with coordinates:
+
+```json
+{ "people": [{ "user_id": "uuid", "display_name": "Abebe", "avatar_url": null,
+  "headline": "Designer", "is_verified": false,
+  "distance_km": 0.5, "distance_approx": true }] }
+```
+
+- `distance_km` is rounded **up** to the next 0.5 km, so it means "within this
+  distance". The smallest value is `0.5`, shown as "< 0.5 km". Results are
+  sorted nearest first and filtered by `radius` on the server.
+- Left out: the viewer, people who turned off "appear in search"
+  (`user_profiles.searchable = false`), and anyone the viewer blocked or who
+  blocked the viewer — the same rules as people in `/api/search`.
+
+See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+
+### GET /api/maps/nearby/product-search?q=coffee&lat=9.0&lon=38.75&radius_km=10&category=
+
+Active products matching `q` (2–120 characters) within `radius_km`, plus the
+businesses that sell them: `{ businesses, geo_products, products_matched, total_matches }`.
+
+## Search
+
+### GET /api/search?q=abebe&type=all|users|products|showrooms|posts&sort=relevance|distance|recent&lat=&lon=&radius_km=&limit=20
+
+`q` needs at least 2 characters (`400` otherwise); `limit` is at most 50. The
+response has one array per requested type: `users`, `products`, `showrooms`,
+`posts`. Guests get empty `users` and `posts`.
+
+`lat` (−90 to 90) and `lon` (−180 to 180) may be negative or 0; values out of
+range are ignored. `radius_km` is ignored unless it is a positive, finite number.
+
+**People** (`users`) follow the same distance rule as people on the map:
+
+- When `lat`/`lon` are given, `distance_km` is rounded **up** to the next
+  0.5 km and `distance_approx: true` is added. People without a location
+  have `distance_km: null` and no `distance_approx`. People never come back
+  with coordinates.
+- `radius_km` and `sort=distance` use the exact distance on the server; the
+  rounding only applies to what is sent.
+- Left out: people who turned off "appear in search" (the viewer still finds
+  their own profile) and anyone the viewer blocked or who blocked the viewer.
+
+Products keep `distance_km` at 0.1 km, and showrooms have `distance_km: null`.
+See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
 
 ## Scheduled jobs (internal)
 
