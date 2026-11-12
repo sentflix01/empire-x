@@ -955,3 +955,10 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+### 2026-11-12 — Auth infrastructure failures answer 503, not 401
+
+- **Status:** Accepted (owner asked for it after a CI database test got 401 instead of 403 when Postgres ran out of connections, 12 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for problems with the token or account (`UNAUTHORIZED`, `INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`; any `jwt.JsonWebTokenError`); a banned account stays 403. Any other error while authenticating (the user lookup failing in Postgres) is logged and answered `503 { code: "AUTH_UNAVAILABLE" }`. `optionalAuth` still continues as a guest for a missing, invalid, revoked or banned token, but **answers the same 503 on an infrastructure error instead of continuing as a guest**: a silent guest downgrade would make guest-only routes answer `401 SIGN_IN_REQUIRED` (which the web app treats as an expired session) and could cache a guest response for a signed-in person. `next()` is called outside the `try` so errors from later handlers are never reported as auth failures.
+- **Why:** Every error used to become `401 INVALID_TOKEN`; the web app's 401 interceptor then refreshed and cleared the session, so a short database outage signed people out.
+- **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web app needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on non-401 errors. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md` (status table), `docs/backend/SECURITY.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
