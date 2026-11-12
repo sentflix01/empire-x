@@ -87,6 +87,9 @@ describe('PromoGuide', () => {
     expect(dialog).toContainElement(video);
     expect(video.querySelector('source')?.getAttribute('src')).toMatch(/^\/promo\/guide-\d+x\d+-v\d+\.mp4$/);
     expect(video).toHaveAttribute('controls');
+    const track = video.querySelector('track');
+    expect(track?.getAttribute('src')).toMatch(/^\/promo\/guide-v\d+\.en\.vtt$/);
+    expect(track?.getAttribute('srclang')).toBe('en');
   });
 
   it('closes with Escape or the close button, and focus returns to the button', async () => {

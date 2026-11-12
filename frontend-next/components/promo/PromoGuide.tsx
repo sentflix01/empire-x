@@ -1,8 +1,8 @@
 'use client';
 /**
- * "Watch how it works": a button that opens the full wordless guide
- * (PROMO.guide, about 92 s) in a phone-shaped player with the browser's own
- * controls. Nothing is downloaded until the button is pressed (decision
+ * "Watch how it works": a button that opens the full guide (PROMO.guide,
+ * about 112 s, with English titles and subtitles) in a phone-shaped player
+ * with the browser's own controls. Nothing is downloaded until the button is pressed (decision
  * "Promo videos load when visible"). The player is a modal dialog: focus
  * stays inside, Esc or the 44 px close button closes it, and focus returns
  * to the button.
@@ -70,7 +70,7 @@ export default function PromoGuide({ variant = 'pill', className }: Props) {
         <Dialog.Content className="fixed left-[4vw] top-1/2 z-overlay w-[min(calc(96vw_-_88px),380px,calc(86svh*9/16))] -translate-y-1/2 focus:outline-none sm:left-1/2 sm:w-[min(92vw,380px,calc(86svh*9/16))] sm:-translate-x-1/2">
           <Dialog.Title className="sr-only">{t('promo.guideTitle', 'How Nodbusiness works')}</Dialog.Title>
           <Dialog.Description className="sr-only">
-            {t('promo.guideDescription', 'A wordless animation in six steps: post your life on the Personal feed; start a website from a ready-made template or from blank sections; fill it by adding photos, pasting links and filling simple forms; pick a colour and see it on computer, tablet and phone; publish it to the Business feed, where people find it and scan its QR code; customers order, message you and pay you directly. One account holds your personal life and your business.')}
+            {t('promo.guideDescription', 'An animation with subtitles, in six steps: post your life on the Personal feed; start a website from a ready-made template or from blank sections; fill it by adding photos, pasting links and filling simple forms; pick a colour and see it on computer, tablet and phone; publish it to the Business feed, where people find it and scan its QR code; customers order, message you and pay you directly. One account holds your personal life and your business.')}
           </Dialog.Description>
           <div className="rounded-[2.25rem] bg-inverse p-2 shadow-2xl ring-1 ring-white/15">
             {clip && (
@@ -88,6 +88,8 @@ export default function PromoGuide({ variant = 'pill', className }: Props) {
                 data-testid="promo-guide-video"
               >
                 <source src={clip.mp4} type="video/mp4" />
+                {/* Subtitles are drawn into the video; this track is the same text for caption tools (CC). */}
+                {PROMO.guide.captions && <track kind="subtitles" src={PROMO.guide.captions} srcLang="en" label="English" />}
               </video>
             )}
           </div>

@@ -1,23 +1,77 @@
 /*
  * Shot engine for the 9:16 promo clips (guide.html, landing.html).
  *
+ * Frame layout (360 x 640 units):
+ *   - the app screen ("scene") is drawn at 80% in a rounded card at the top;
+ *   - below it, the subtitle band: a step tab (number + title) and one or two
+ *     lines of subtitles with **highlighted** words (copy.js);
+ *   - title cards (guide only) open each step full-frame.
+ *
  * A clip is a list of shots played one after another with a short
  * cross-fade. Each shot draws one screen in its own time (lt, seconds) and
  * may give:
- *   cam:  [[lt, scale, focusX, focusY], ...]   zoom about a point (eased)
- *   hand: [[lt, x, y, tap?], ...]              the pointing hand; tap = press
- *   step: 1..6                                 the step badge (guide only)
+ *   cam:      [[lt, scale, focusX, focusY], ...]        zoom about a point
+ *   hand:     [[lt, x, y, tap?, calloutKey?], ...]      the pointing hand
+ *   title:    copy key of its step title; step: 1..6 (0 = no number)
+ *   captions: [[from, to, copyKey], ...]                 guide subtitles
+ *   land:     copy key of its one landing subtitle
  * A clip can replay a shot faster with { ...shot, k: 2 } (k = speed).
  * Everything is a function of t, so frames are exact (render.mjs).
- * Needs common.js first.
+ * Needs copy.js and common.js first.
  */
 /* eslint-disable */
 (function () {
 const { C, prog, lerp, easeOut, easeInOut, easeIn, back, place } = window.PROMO;
 
-const $ = (root, k) => root.querySelector(`[data-k="${k}"]`);
-/** P(root)('name', {x, y, s, r, o}) places the element data-k="name" in that shot. */
-const P = (root) => (k, o) => place($(root, k), o);
+// ---------- Words ----------
+
+const LANG = new URLSearchParams(location.search).get('lang') || 'en';
+const FONT = 'PromoInter, Inter, Arial, sans-serif';
+const HL = 'hsl(221 83% 78%)'; // the primary blue, lightened, for highlighted words on dark
+function lookup(obj, path) { return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj); }
+/** L('ui.cats.2') → the word in the current language (English if missing). */
+function L(path) {
+  const v = lookup(window.COPY[LANG], path);
+  return v == null ? lookup(window.COPY.en, path) ?? path : v;
+}
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const plain = (s) => String(s).replace(/\*\*/g, '');
+
+/** A text label. fit = max width; the font shrinks to fit (after fonts load). */
+function tx(x, y, str, o = {}) {
+  const { size = 14, weight = 600, fill = C.ink, anchor = 'start', fit = 0, k = '', ls = 0, opacity = 1 } = o;
+  return `<text ${k ? `data-k="${k}"` : ''} x="${x}" y="${y}" font-family="${FONT}" font-size="${size}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}"${fit ? ` data-fit="${fit}"` : ''}${ls ? ` letter-spacing="${ls}"` : ''} opacity="${opacity}">${esc(str)}</text>`;
+}
+function fitTexts(root) {
+  root.querySelectorAll('text[data-fit]').forEach((t) => {
+    const max = Number(t.getAttribute('data-fit'));
+    const len = t.getComputedTextLength();
+    if (len > max) t.setAttribute('font-size', (Number(t.getAttribute('font-size')) * max / len).toFixed(2));
+  });
+}
+const canvas = document.createElement('canvas').getContext('2d');
+function measure(str, size, weight) { canvas.font = `${weight} ${size}px PromoInter, Inter, Arial, sans-serif`; return canvas.measureText(str).width; }
+
+/** Splits "a **b c** d" into words with a bold flag, then into lines no wider than maxW. */
+function wrapRich(str, size, maxW) {
+  // A word that starts a part with no space before it (e.g. "**feed**.") is glued to the previous word.
+  const words = [];
+  const parts = String(str).split('**');
+  parts.forEach((part, i) => {
+    const glueFirst = i > 0 && part.length > 0 && !/^\s/.test(part) && !/\s$/.test(parts[i - 1]);
+    part.split(/\s+/).filter(Boolean).forEach((w, j) => words.push({ w, bold: i % 2 === 1, glue: glueFirst && j === 0 && words.length > 0 }));
+  });
+  const space = measure(' ', size, 600);
+  const lines = [[]]; let width = 0;
+  words.forEach((word) => {
+    const ww = measure(word.w, size, word.bold ? 800 : 500);
+    const line = lines[lines.length - 1];
+    const gap = line.length && !word.glue ? space : 0;
+    if (line.length && !word.glue && width + gap + ww > maxW) { lines.push([word]); width = ww; }
+    else { width += gap + ww; line.push(word); }
+  });
+  return lines;
+}
 
 // ---------- Shared pictures ----------
 
@@ -44,6 +98,9 @@ function face(k = 'face', fill = C.blueTint) {
     <g class="cheeks" opacity="0"><circle cx="-14" cy="5" r="4" fill="${C.violet}" opacity=".25"/><circle cx="14" cy="5" r="4" fill="${C.violet}" opacity=".25"/></g>
   </g>`;
 }
+const $ = (root, k) => root.querySelector(`[data-k="${k}"]`);
+/** P(root)('name', {x, y, s, r, o}) places the element data-k="name" in that shot. */
+const P = (root) => (k, o) => place($(root, k), o);
 function mood(root, k, m) {
   const g = $(root, k);
   if (!g) return;
@@ -124,33 +181,115 @@ function keyed(keys, lt) {
 
 // ---------- Runner ----------
 
+const SCENE = { x: 36, y: 12, s: 0.8 };       // the app screen inside the frame
+const toCanvas = (x, y) => ({ x: SCENE.x + SCENE.s * x, y: SCENE.y + SCENE.s * y });
+const CAP = { size: 15.5, line: 20, maxW: 312, bottom: 630 };
+const LEAD = 2.0;                              // seconds of title card before a step
+
 function run(shots, opts = {}) {
   const W = 360, H = 640, FADE = 0.35;
   const svg = document.getElementById('svg');
+  const titleCards = !!opts.titleCards;
+  const mode = opts.captions || 'full';
   let t = 0;
-  shots.forEach((s) => { s.k = s.k || 1; s.start = t; s.len = s.dur / s.k; t += s.len; });
+  shots.forEach((s, i) => {
+    s.k = s.k || 1;
+    s.lead = titleCards && s.title && (i === 0 || shots[i - 1].title !== s.title) ? LEAD : 0;
+    s.start = t; s.len = (s.lead + s.dur) / s.k; t += s.len;
+  });
   const total = t;
 
-  const steps = opts.steps ? `
-    <g id="stepbar" opacity="0">
-      <rect x="96" y="602" width="168" height="30" rx="15" fill="${C.ink}" opacity=".78"/>
-      <circle id="stepnum-bg" cx="114" cy="617" r="12" fill="${C.blue}"/>
-      <text id="stepnum" x="114" y="622" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="15" fill="#fff">1</text>
-      ${[0, 1, 2, 3, 4, 5].map((i) => `<circle class="dot" cx="${140 + i * 20}" cy="617" r="5" fill="#fff" opacity=".35"/>`).join('')}
-    </g>` : '';
+  // Subtitles on the clip's own clock, also exported for the WebVTT track.
+  const caps = [];
+  shots.forEach((s) => {
+    const list = mode === 'landing' ? (s.land ? [[0.15, s.dur - 0.1, s.land]] : []) : (s.captions || []);
+    list.forEach(([a, b, key]) => caps.push({
+      start: s.start + (s.lead + a) / s.k, end: Math.min(s.start + (s.lead + b) / s.k, s.start + s.len), key, shot: s,
+    }));
+  });
+  window.CAPTIONS = caps.map((c) => ({ start: c.start, end: c.end, text: plain(L(`cap.${c.key}`)) }));
 
-  svg.innerHTML = `<rect width="${W}" height="${H}" fill="${C.page}"/>
-    ${shots.map((s, i) => `<g data-shot="${i}" opacity="0" style="display:none"><g class="cam"><rect width="${W}" height="${H}" fill="${s.bg || C.page}"/>${s.markup}</g></g>`).join('')}
-    ${steps}
-    <g id="hand" opacity="0">
-      <circle id="hand-ring" r="16" fill="none" stroke="${C.blue}" stroke-width="3" opacity="0"/>
-      <g id="hand-body">${HAND}</g>
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.ink}"/><stop offset="1" stop-color="#172554"/></linearGradient>
+      <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.blue}"/><stop offset="1" stop-color="${C.violet}"/></linearGradient>
+      <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#ffffff" stop-opacity=".35"/></linearGradient>
+      <clipPath id="sceneClip"><rect width="${W}" height="${H}" rx="26"/></clipPath>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#bg)"/>
+    <circle cx="330" cy="560" r="120" fill="${C.violet}" opacity=".18"/><circle cx="20" cy="610" r="90" fill="${C.blue}" opacity=".18"/>
+    <g transform="translate(${SCENE.x} ${SCENE.y}) scale(${SCENE.s})">
+      <g clip-path="url(#sceneClip)">
+        <rect width="${W}" height="${H}" fill="${C.page}"/>
+        ${shots.map((s, i) => `<g data-shot="${i}" opacity="0" style="display:none"><g class="cam"><rect width="${W}" height="${H}" fill="${s.bg || C.page}"/>${s.markup}</g></g>`).join('')}
+      </g>
+      <rect width="${W}" height="${H}" rx="26" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="2"/>
+      <g id="hand" opacity="0">
+        <circle id="hand-ring" r="16" fill="none" stroke="${C.blue}" stroke-width="3" opacity="0"/>
+        <g id="hand-body">${HAND}</g>
+      </g>
+    </g>
+    <g id="callout" opacity="0">
+      <path id="co-tail" d="M-8 0 L0 9 L8 0 Z" fill="#ffffff"/>
+      <rect id="co-box" x="0" y="0" width="10" height="32" rx="16" fill="#ffffff"/>
+      <text id="co-text" x="0" y="21" font-family="${FONT}" font-size="14" font-weight="700" fill="${C.ink}" text-anchor="middle"></text>
+    </g>
+    <g id="caps" opacity="0">
+      <g id="tab">
+        <rect id="tab-box" x="12" y="0" width="10" height="24" rx="12" fill="${C.blue}"/>
+        <circle id="tab-num-bg" cx="25" cy="12" r="9" fill="#ffffff"/>
+        <text id="tab-num" x="25" y="16.5" font-family="${FONT}" font-size="12" font-weight="800" fill="${C.blue}" text-anchor="middle"></text>
+        <text id="tab-title" x="40" y="16.5" font-family="${FONT}" font-size="12.5" font-weight="700" fill="#ffffff"></text>
+      </g>
+      <rect id="band" x="12" y="0" width="336" height="44" rx="16" fill="#020617" opacity=".9" stroke="#ffffff" stroke-opacity=".1"/>
+      <text id="cap-a" font-family="${FONT}" font-size="${CAP.size}" font-weight="500" fill="#ffffff" text-anchor="middle"></text>
+      <text id="cap-b" font-family="${FONT}" font-size="${CAP.size}" font-weight="500" fill="#ffffff" text-anchor="middle"></text>
+    </g>
+    <g id="tcard" opacity="0">
+      <rect width="${W}" height="${H}" fill="url(#card)"/>
+      <circle cx="300" cy="90" r="120" fill="#ffffff" opacity=".07"/><circle cx="40" cy="560" r="150" fill="#ffffff" opacity=".06"/>
+      <text id="tc-eyebrow" x="180" y="0" font-family="${FONT}" font-size="13" font-weight="800" fill="#ffffff" fill-opacity=".8" letter-spacing="3" text-anchor="middle"></text>
+      <g id="tc-words"></g>
+      <rect id="tc-line" x="0" y="0" width="0" height="5" rx="2.5" fill="url(#sweep)"/>
     </g>`;
   shots.forEach((s, i) => { s.root = svg.querySelector(`[data-shot="${i}"]`); s.camEl = s.root.querySelector('.cam'); });
 
-  const handEl = document.getElementById('hand');
-  const ringEl = document.getElementById('hand-ring');
-  const bodyEl = document.getElementById('hand-body');
+  const el = (id) => document.getElementById(id);
+  const handEl = el('hand'), ringEl = el('hand-ring'), bodyEl = el('hand-body');
+
+  // Layouts that need the font: subtitles, step tab, title cards, callouts.
+  let ready = false;
+  const capLayout = {};
+  const titleLayout = {};
+  function layout() {
+    fitTexts(svg);
+    caps.forEach((c) => {
+      if (capLayout[c.key]) return;
+      const lines = wrapRich(L(`cap.${c.key}`), CAP.size, CAP.maxW);
+      const body = lines.map((line, i) => `<tspan x="180" dy="${i ? CAP.line : 0}">${line.map((wd, j) => `<tspan font-weight="${wd.bold ? 800 : 500}" fill="${wd.bold ? HL : '#ffffff'}">${j && !wd.glue ? ' ' : ''}${esc(wd.w)}</tspan>`).join('')}</tspan>`).join('');
+      capLayout[c.key] = { body, n: lines.length };
+    });
+    shots.forEach((s) => {
+      if (!s.title || titleLayout[s.title]) return;
+      const text = L(`title.${s.title}`);
+      const size = 34, maxW = 300;
+      const lines = wrapRich(text, size, maxW);
+      const space = measure(' ', size, 800);
+      const widths = lines.map((ln) => ln.reduce((a, w, j) => a + measure(w.w, size, 800) + (j ? space : 0), 0));
+      const y0 = 312 - ((lines.length - 1) * 42) / 2;
+      let idx = 0;
+      const words = lines.map((ln, li) => {
+        let x = 180 - widths[li] / 2;
+        return ln.map((w) => {
+          const m = `<text class="tw" data-i="${idx++}" x="${x.toFixed(1)}" y="${(y0 + li * 42).toFixed(1)}" font-family="${FONT}" font-size="${size}" font-weight="800" fill="#ffffff">${esc(w.w)}</text>`;
+          x += measure(w.w, size, 800) + space;
+          return m;
+        }).join('');
+      }).join('');
+      titleLayout[s.title] = { words, count: idx, lineY: y0 + (lines.length - 1) * 42 + 22, lineW: Math.max(...widths), eyebrowY: y0 - 46, tabW: measure(text, 12.5, 700) };
+    });
+    ready = true;
+  }
 
   function camOf(s, lt) {
     if (!s.cam) return { z: 1, fx: W / 2, fy: H / 2 };
@@ -158,6 +297,7 @@ function run(shots, opts = {}) {
     return { z, fx, fy };
   }
 
+  let shownCard = null, capKeyA = null, capKeyB = null, calloutKey = null;
   window.DURATION = total;
   window.setTime = function (T) {
     let active = null;
@@ -169,19 +309,20 @@ function run(shots, opts = {}) {
       if (!on) return;
       if (T < end || last) active = s;
       let o = prog(T, s.start, s.start + FADE);
-      if (i === 0 && !opts.fadeInFirst) o = Math.max(o, prog(T, 0, 0.25));
-      if (last) o = Math.min(o, 1 - prog(T, total - 0.8, total));
+      if (i === 0) o = Math.max(o, prog(T, 0, 0.25));
+      if (last) o = Math.min(o, 1 - prog(T, total - 0.6, total));
       s.root.setAttribute('opacity', o.toFixed(3));
-      const lt = (T - s.start) * s.k;
+      const lt = (T - s.start) * s.k - s.lead;
       const c = camOf(s, lt);
       s.camEl.setAttribute('transform', `translate(${c.fx} ${c.fy}) scale(${c.z.toFixed(4)}) translate(${-c.fx} ${-c.fy})`);
       s.draw && s.draw(lt, s.root);
     });
+    const s = active;
+    const lt = s ? (T - s.start) * s.k - s.lead : 0;
 
     // The hand follows the active shot's keys, through its camera.
-    const s = active;
-    if (s && s.hand) {
-      const lt = (T - s.start) * s.k;
+    let callout = null;
+    if (s && s.hand && lt > -0.2) {
       const keys = s.hand;
       const first = keys[0][0], lastK = keys[keys.length - 1][0];
       let x = keys[0][1], y = keys[0][2];
@@ -199,13 +340,18 @@ function run(shots, opts = {}) {
       const vis = Math.min(prog(lt, first - 0.5, first - 0.2), 1 - prog(lt, lastK + 0.5, lastK + 0.8));
       const enter = 1 - easeOut(prog(lt, first - 0.5, first - 0.1));
       place(handEl, { x: sx + 60 * enter, y: sy + 90 * enter, o: vis * (T < s.start + 0.15 ? 0 : 1) });
-      // Press and ring on tap keys.
       let press = 1, ring = 0;
-      keys.forEach(([tk, , , tapK]) => {
-        if (!tapK) return;
-        press = Math.min(press, 1 - 0.16 * Math.sin(Math.PI * prog(lt, tk - 0.1, tk + 0.15)));
-        const r = prog(lt, tk, tk + 0.5);
-        if (r > 0 && r < 1) ring = r;
+      keys.forEach(([tk, kx, ky, tapK, call]) => {
+        if (tapK) {
+          press = Math.min(press, 1 - 0.16 * Math.sin(Math.PI * prog(lt, tk - 0.1, tk + 0.15)));
+          const r = prog(lt, tk, tk + 0.5);
+          if (r > 0 && r < 1) ring = r;
+        }
+        if (call && opts.callouts !== false && lt > tk - 1.0 && lt < tk + 0.35) {
+          const cc = camOf(s, lt);
+          const p = toCanvas(cc.fx + cc.z * (kx - cc.fx), cc.fy + cc.z * (ky - cc.fy));
+          callout = { key: call, x: p.x, y: p.y, o: Math.min(prog(lt, tk - 1.0, tk - 0.8), 1 - prog(lt, tk + 0.15, tk + 0.35)), pop: back(prog(lt, tk - 1.0, tk - 0.7)) };
+        }
       });
       place(bodyEl, { s: press });
       ringEl.setAttribute('r', (12 + 24 * easeOut(ring)).toFixed(2));
@@ -214,29 +360,104 @@ function run(shots, opts = {}) {
       handEl.setAttribute('opacity', 0);
     }
 
-    if (opts.steps) {
-      const bar_ = document.getElementById('stepbar');
-      const step = s && s.step ? s.step : 0;
-      const shown = step > 0 ? 1 : 0;
-      bar_.setAttribute('opacity', (shown * 0.95).toFixed(2));
-      if (step) {
-        document.getElementById('stepnum').textContent = String(step);
-        bar_.querySelectorAll('.dot').forEach((d, i) => {
-          d.setAttribute('opacity', i < step ? 1 : 0.35);
-          d.setAttribute('fill', i === step - 1 ? C.blueTint : '#fff');
-          d.setAttribute('r', i === step - 1 ? 6.5 : 5);
-        });
+    // Callout bubble above (or below) the target.
+    const co = el('callout');
+    if (callout && ready) {
+      if (calloutKey !== callout.key) {
+        calloutKey = callout.key;
+        el('co-text').textContent = L(`call.${callout.key}`);
       }
+      const w = measure(L(`call.${callout.key}`), 14, 700) + 28;
+      const below = callout.y < 90;
+      const bx = Math.min(Math.max(callout.x, w / 2 + 8), W - w / 2 - 8);
+      const by = below ? callout.y + 26 : callout.y - 50;
+      el('co-box').setAttribute('x', (-w / 2).toFixed(1)); el('co-box').setAttribute('width', w.toFixed(1));
+      el('co-tail').setAttribute('transform', below ? `translate(${(callout.x - bx).toFixed(1)} 0) scale(1 -1)` : `translate(${(callout.x - bx).toFixed(1)} 32)`);
+      co.setAttribute('transform', `translate(${bx.toFixed(1)} ${by.toFixed(1)}) scale(${callout.pop.toFixed(3)})`);
+      co.setAttribute('opacity', callout.o.toFixed(3));
+    } else {
+      co.setAttribute('opacity', 0);
+    }
+
+    // Subtitles: the current line fades in over the last one.
+    const capsEl = el('caps');
+    if (ready && caps.length) {
+      const now = caps.filter((c) => T >= c.start - 0.05 && T <= c.end + 0.3);
+      const cur = now[now.length - 1] || null;
+      const prev = now.length > 1 ? now[now.length - 2] : null;
+      const anyNear = caps.some((c) => T >= c.start - 0.3 && T <= c.end + 0.5);
+      const bandO = anyNear ? Math.min(1, ...caps.filter((c) => T >= c.start - 0.3 && T <= c.end + 0.5).map((c) => Math.min(prog(T, c.start - 0.3, c.start), 1 - prog(T, c.end + 0.2, c.end + 0.5)))) : 0;
+      // A step's band stays up between its lines.
+      const stepUp = s && caps.some((c) => c.shot.title === s.title && T >= c.start - 0.3) && caps.some((c) => c.shot.title === s.title && T <= c.end + 0.5);
+      capsEl.setAttribute('opacity', (stepUp ? 1 : bandO).toFixed(3));
+      const setCap = (id, key, o) => {
+        const t_ = el(id);
+        if (!key) { t_.setAttribute('opacity', 0); return; }
+        if (t_.dataset.key !== key) { t_.innerHTML = capLayout[key].body; t_.dataset.key = key; }
+        t_.setAttribute('opacity', o.toFixed(3));
+      };
+      const n = cur ? capLayout[cur.key].n : 1;
+      const h = 24 + CAP.line * n;
+      const bandY = CAP.bottom - h;
+      el('band').setAttribute('y', bandY); el('band').setAttribute('height', h);
+      const textY = bandY + 12 + CAP.size * 0.82;
+      ['cap-a', 'cap-b'].forEach((id) => el(id).setAttribute('y', textY.toFixed(1)));
+      // The old line fades out first, then the new one fades in: never two lines on top of each other.
+      const handover = prev && cur && T < cur.start + 0.3;
+      if (cur) setCap('cap-a', cur.key, Math.min(handover ? prog(T, cur.start + 0.12, cur.start + 0.3) : prog(T, cur.start, cur.start + 0.2), 1 - prog(T, cur.end, cur.end + 0.25)));
+      else setCap('cap-a', null, 0);
+      if (handover) setCap('cap-b', prev.key, 1 - prog(T, cur.start - 0.06, cur.start + 0.12));
+      else setCap('cap-b', null, 0);
+      // Step tab above the band.
+      const tabT = s && s.title && titleLayout[s.title];
+      el('tab').setAttribute('opacity', tabT ? 1 : 0);
+      if (tabT) {
+        const hasNum = !!s.step;
+        el('tab-num').textContent = hasNum ? String(s.step) : '';
+        el('tab-num-bg').setAttribute('opacity', hasNum ? 1 : 0);
+        el('tab-title').textContent = L(`title.${s.title}`);
+        el('tab-title').setAttribute('x', hasNum ? 40 : 24);
+        el('tab-box').setAttribute('width', (tabT.tabW + (hasNum ? 40 : 24)).toFixed(1));
+        el('tab').setAttribute('transform', `translate(0 ${bandY - 30})`);
+      }
+    } else {
+      capsEl.setAttribute('opacity', 0);
+    }
+
+    // Title card for the first shot of a step.
+    const card = el('tcard');
+    if (ready && s && s.lead > 0 && (T - s.start) * s.k < s.lead) {
+      const r = (T - s.start) * s.k;
+      const L_ = titleLayout[s.title];
+      if (shownCard !== s.title) {
+        shownCard = s.title;
+        el('tc-words').innerHTML = L_.words;
+        el('tc-eyebrow').textContent = s.step ? `${L('step')} ${s.step}` : L('welcome');
+        el('tc-eyebrow').setAttribute('y', L_.eyebrowY.toFixed(1));
+        el('tc-line').setAttribute('y', L_.lineY.toFixed(1));
+      }
+      card.setAttribute('opacity', Math.min(prog(r, 0, 0.25), 1 - prog(r, s.lead - 0.35, s.lead)).toFixed(3));
+      el('tc-eyebrow').setAttribute('opacity', prog(r, 0.1, 0.4).toFixed(3));
+      card.querySelectorAll('.tw').forEach((w) => {
+        const i = Number(w.dataset.i), f = easeOut(prog(r, 0.15 + 0.09 * i, 0.55 + 0.09 * i));
+        w.setAttribute('transform', `translate(0 ${(16 * (1 - f)).toFixed(2)})`);
+        w.setAttribute('opacity', f.toFixed(3));
+      });
+      const lw = L_.lineW * easeInOut(prog(r, 0.6, 1.15)) * 0.6;
+      el('tc-line').setAttribute('x', (180 - lw / 2).toFixed(1)); el('tc-line').setAttribute('width', lw.toFixed(1));
+    } else {
+      card.setAttribute('opacity', 0);
     }
   };
   window.setTime(0);
-  window.READY = new Promise((resolve) => {
-    const imgs = [...svg.querySelectorAll('image')];
-    if (!imgs.length) return resolve(true);
-    let n = imgs.length;
-    imgs.forEach((im) => { const i = new Image(); i.onload = i.onerror = () => { if (--n === 0) resolve(true); }; i.src = im.getAttribute('href'); });
-  });
+  window.READY = (async () => {
+    await document.fonts.ready;
+    await Promise.all([...svg.querySelectorAll('image')].map((im) => new Promise((resolve) => { const i = new Image(); i.onload = i.onerror = resolve; i.src = im.getAttribute('href'); })));
+    layout();
+    window.setTime(0);
+    return true;
+  })();
 }
 
-window.ENGINE = { $, P, face, mood, photo, bar, GLYPH, HAND, phoneFrame, keyed, run };
+window.ENGINE = { $, P, face, mood, photo, bar, GLYPH, HAND, phoneFrame, keyed, run, L, tx, FONT, measure };
 })();

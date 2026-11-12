@@ -1,0 +1,6 @@
+/* Inter (OFL, see ../fonts/OFL.txt) for every word in the promo scenes. */
+@font-face { font-family: PromoInter; src: url(../fonts/inter-latin-400-normal.woff2) format('woff2'); font-weight: 400 500; }
+@font-face { font-family: PromoInter; src: url(../fonts/inter-latin-600-normal.woff2) format('woff2'); font-weight: 600 700; }
+@font-face { font-family: PromoInter; src: url(../fonts/inter-latin-800-normal.woff2) format('woff2'); font-weight: 800 900; }
+html, body { margin: 0; background: #0f172a; }
+svg { display: block; }

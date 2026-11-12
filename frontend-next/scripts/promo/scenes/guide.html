@@ -1,15 +1,16 @@
 <!doctype html>
 <!--
-  Full "how it works" guide, about 92 s, 9:16 (360 x 640 units, rendered at
+  Full "how it works" guide, about 105 s, 9:16 (360 x 640 units, rendered at
   2x = 720 x 1280). Opens from the "Watch how it works" button; never autoplays.
-  Slow and wordless so anyone can follow: a hand shows every tap, the camera
-  zooms in on each field, and a numbered badge shows the six steps.
-  Shots are in shots.js. Rendered by scripts/promo/render.mjs.
+  Each step opens with a title card; subtitles explain every moment, callout
+  bubbles name every tap, and the screens carry real words (copy.js).
+  Shots are in shots.js. Rendered by scripts/promo/render.mjs (?lang=en).
 -->
 <html>
 <head>
 <meta charset="utf-8">
-<style>html,body{margin:0;background:#f8fafc}svg{display:block}</style>
+<link rel="stylesheet" href="fonts.css">
+<script src="../copy.js"></script>
 <script src="common.js"></script>
 <script src="engine.js"></script>
 <script src="shots.js"></script>
@@ -18,7 +19,9 @@
 <svg id="svg" width="360" height="640" viewBox="0 0 360 640" xmlns="http://www.w3.org/2000/svg"></svg>
 <script>
 const S = window.SHOTS;
-window.ENGINE.run([S.intro(), S.life(), S.start(), S.pathA(), S.pathB(), S.fill(), S.style(), S.publish(), S.feed(), S.buyers(), S.finale()], { steps: true });
+const slow = (shot, k) => Object.assign(shot, { k });
+window.ENGINE.run([S.intro(), S.life(), slow(S.start(), 0.75), S.pathA(), S.pathB(), S.fill(), S.style(), S.publish(), S.feed(), S.buyers(), S.finale()],
+  { titleCards: true, captions: 'full' });
 </script>
 </body>
 </html>

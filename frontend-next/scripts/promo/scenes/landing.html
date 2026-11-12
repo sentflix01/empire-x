@@ -1,14 +1,15 @@
 <!doctype html>
 <!--
-  Landing loop, about 36 s, 9:16 (720 x 1280), plays in the phone on /landing.
-  The guide's story (guide.html) at 2-2.6x speed, without the slower extras
-  (blank-canvas path, colours and devices) and without step numbers.
-  Shots are in shots.js. Rendered by scripts/promo/render.mjs.
+  Landing loop, about 44 s, 9:16 (720 x 1280), plays in the phone on /landing.
+  The guide's story (guide.html) faster, without the blank-canvas path, colours
+  and devices: one subtitle per shot, the step tab and on-screen words; no
+  title cards or callouts. Shots are in shots.js. Rendered by render.mjs.
 -->
 <html>
 <head>
 <meta charset="utf-8">
-<style>html,body{margin:0;background:#f8fafc}svg{display:block}</style>
+<link rel="stylesheet" href="fonts.css">
+<script src="../copy.js"></script>
 <script src="common.js"></script>
 <script src="engine.js"></script>
 <script src="shots.js"></script>
@@ -19,9 +20,9 @@
 const S = window.SHOTS;
 const fast = (shot, k) => Object.assign(shot, { k });
 window.ENGINE.run([
-  fast(S.intro(), 2), fast(S.life(), 2.2), fast(S.start(), 2.3), fast(S.pathA(), 2),
-  fast(S.fill(), 2.6), fast(S.publish(), 1.6), fast(S.feed(), 2), fast(S.buyers(), 2.4), fast(S.finale(), 1.6),
-]);
+  fast(S.intro(), 1.75), fast(S.life(), 2), fast(S.start(), 1.75), fast(S.pathA(), 1.4),
+  fast(S.fill(), 2.6), fast(S.publish(), 1.4), fast(S.feed(), 1.75), fast(S.buyers(), 2.2), fast(S.finale(), 1.6),
+], { titleCards: false, callouts: false, captions: 'landing' });
 </script>
 </body>
 </html>

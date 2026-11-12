@@ -10,9 +10,10 @@
  *
  * Each scene draws a frame for any time t (window.setTime), so Playwright
  * steps through it frame by frame and ffmpeg encodes the frames. Output goes
- * to public/promo/<scene>-<w>x<h>-<version>.mp4 plus a -poster.webp,
+ * to public/promo/<scene>-<w>x<h>-<version>.mp4 plus a -poster.webp (and, for
+ * the guide, <scene>-<version>.en.vtt subtitles),
  * and every file must fit its size budget; the encoder lowers quality step by
- * step until it does. When a scene changes, bump VERSION and update
+ * step until it does. When a scene changes, bump its version and update
  * lib/promoAssets.ts (old names stay cached in browsers and the service worker).
  *
  * H.264 only: for these flat graphics it is smaller than VP9 at the same look,
@@ -31,21 +32,22 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, '../../public/promo');
-const VERSION = 'v2';
+const LANG = 'en';
 const KB = 1024;
 
 const SCENES = {
   // Full step-by-step guide; downloads only when someone taps "Watch how it works".
   guide: {
-    css: [360, 640], scale: 2, fps: 30, poster: 4.9,
-    renditions: [{ w: 720, h: 1280, budget: 2500 * KB }, { w: 480, h: 854, budget: 1300 * KB }],
+    version: 'v3', css: [360, 640], scale: 2, fps: 30, poster: 6.0, captions: true,
+    renditions: [{ w: 720, h: 1280, budget: 3000 * KB }, { w: 480, h: 854, budget: 1600 * KB }],
   },
   landing: {
-    css: [360, 640], scale: 2, fps: 30, poster: 26.5,
-    renditions: [{ w: 720, h: 1280, budget: 1200 * KB }, { w: 480, h: 854, budget: 600 * KB }],
+    version: 'v3', css: [360, 640], scale: 2, fps: 30, poster: 30.0,
+    renditions: [{ w: 720, h: 1280, budget: 1500 * KB }, { w: 480, h: 854, budget: 800 * KB }],
   },
+  // Wordless; plays small behind the feed banner's own text.
   banner: {
-    css: [640, 240], scale: 2, fps: 30, poster: 6.5,
+    version: 'v2', css: [640, 240], scale: 2, fps: 30, poster: 6.5,
     renditions: [{ w: 1280, h: 480, budget: 400 * KB }, { w: 640, h: 240, budget: 200 * KB }],
   },
 };
@@ -59,7 +61,7 @@ const previewDir = flag('--out') ?? os.tmpdir();
 const ffmpeg = (a) => execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...a], { stdio: 'inherit' });
 
 async function frames(page, name, cfg, times, dir) {
-  await page.goto(pathToFileURL(path.join(here, 'scenes', `${name}.html`)).href);
+  await page.goto(`${pathToFileURL(path.join(here, 'scenes', `${name}.html`)).href}?lang=${LANG}`);
   await page.evaluate(() => window.READY);
   const files = [];
   for (const [i, t] of times.entries()) {
@@ -72,7 +74,7 @@ async function frames(page, name, cfg, times, dir) {
 }
 
 function encode(dir, cfg, r) {
-  const file = path.join(outDir, `${cfg.name}-${r.w}x${r.h}-${VERSION}.mp4`);
+  const file = path.join(outDir, `${cfg.name}-${r.w}x${r.h}-${cfg.version}.mp4`);
   const scale = `scale=${r.w}:${r.h}:flags=lanczos,format=yuv420p`;
   // Constant-quality encodes; the loop raises CRF until the file fits.
   for (let crf = 25; crf <= 51; crf += 3) {
@@ -92,7 +94,8 @@ try {
     if (!SCENES[name]) throw new Error(`unknown scene ${name}`);
     const context = await browser.newContext({ viewport: { width: cfg.css[0], height: cfg.css[1] }, deviceScaleFactor: cfg.scale });
     const page = await context.newPage();
-    const duration = await page.goto(pathToFileURL(path.join(here, 'scenes', `${name}.html`)).href).then(() => page.evaluate(() => window.DURATION));
+    const duration = await page.goto(`${pathToFileURL(path.join(here, 'scenes', `${name}.html`)).href}?lang=${LANG}`).then(() => page.evaluate(async () => { await window.READY; return window.DURATION; }));
+    const captions = cfg.captions ? await page.evaluate(() => window.CAPTIONS) : null;
 
     if (preview) {
       fs.mkdirSync(previewDir, { recursive: true });
@@ -114,9 +117,16 @@ try {
     for (const r of cfg.renditions) {
       const { file, size, crf } = encode(dir, cfg, r);
       console.log(`${path.relative(process.cwd(), file)}  ${(size / KB).toFixed(0)} KB  crf ${crf}`);
-      const poster = path.join(outDir, `${name}-${r.w}x${r.h}-${VERSION}-poster.webp`);
+      const poster = path.join(outDir, `${name}-${r.w}x${r.h}-${cfg.version}-poster.webp`);
       ffmpeg(['-i', posterFrame, '-vf', `scale=${r.w}:${r.h}:flags=lanczos`, '-c:v', 'libwebp', '-quality', '82', poster]);
       console.log(`${path.relative(process.cwd(), poster)}  ${(fs.statSync(poster).size / KB).toFixed(0)} KB`);
+    }
+    if (captions) {
+      const stamp = (x) => new Date(x * 1000).toISOString().slice(11, 23);
+      const vtt = `WEBVTT\n\n${captions.map((c, i) => `${i + 1}\n${stamp(c.start)} --> ${stamp(c.end)}\n${c.text}\n`).join('\n')}`;
+      const file = path.join(outDir, `${name}-${cfg.version}.${LANG}.vtt`);
+      fs.writeFileSync(file, vtt);
+      console.log(`${path.relative(process.cwd(), file)}  ${captions.length} captions`);
     }
     fs.rmSync(dir, { recursive: true, force: true });
   }

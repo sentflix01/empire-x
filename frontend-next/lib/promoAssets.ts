@@ -4,7 +4,8 @@
  * scripts/promo/scenes by scripts/promo/render.mjs.
  *
  * Each clip has a small and a large rendition, each an H.264 MP4 (plays in
- * every browser) with a WebP poster. When a clip changes, bump the -vN suffix
+ * every browser) with a WebP poster. The guide and landing clips carry English
+ * text drawn into the picture (scripts/promo/copy.js). When a clip changes, bump the -vN suffix
  * here and in the render script: browsers and the service worker keep the old
  * file under its old name.
  */
@@ -15,20 +16,25 @@ export type PromoRendition = {
   poster: string;
 };
 
-export type PromoClip = { small: PromoRendition; large: PromoRendition };
+export type PromoClip = { small: PromoRendition; large: PromoRendition; captions?: string };
 
-const rendition = (name: string, width: number, height: number): PromoRendition => {
-  const base = `/promo/${name}-${width}x${height}-v2`;
+const rendition = (name: string, width: number, height: number, version: string): PromoRendition => {
+  const base = `/promo/${name}-${width}x${height}-${version}`;
   return { width, height, mp4: `${base}.mp4`, poster: `${base}-poster.webp` };
 };
 
 export const PROMO = {
-  /** 12 s, 8:3: the feed's "Build Your Mini Website" banner (loops). */
-  banner: { small: rendition('banner', 640, 240), large: rendition('banner', 1280, 480) },
-  /** 36 s, 9:16: the phone on the landing hero (loops). */
-  landing: { small: rendition('landing', 480, 854), large: rendition('landing', 720, 1280) },
-  /** 92 s, 9:16: the full step-by-step guide; loads only when someone opens it. */
-  guide: { small: rendition('guide', 480, 854), large: rendition('guide', 720, 1280) },
+  /** 12 s, 8:3, wordless: the feed's "Build Your Mini Website" banner (loops). */
+  banner: { small: rendition('banner', 640, 240, 'v2'), large: rendition('banner', 1280, 480, 'v2') },
+  /** 42 s, 9:16, English subtitles: the phone on the landing hero (loops). */
+  landing: { small: rendition('landing', 480, 854, 'v3'), large: rendition('landing', 720, 1280, 'v3') },
+  /** 112 s, 9:16, English titles and subtitles: the full guide; loads only when opened. */
+  guide: {
+    small: rendition('guide', 480, 854, 'v3'),
+    large: rendition('guide', 720, 1280, 'v3'),
+    /** The same subtitles as a WebVTT track, for caption tools (CC). */
+    captions: '/promo/guide-v3.en.vtt',
+  },
 } as const satisfies Record<string, PromoClip>;
 
 /**

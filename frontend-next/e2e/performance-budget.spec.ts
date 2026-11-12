@@ -5,7 +5,7 @@ import { test, expect, type APIRequestContext, type Page } from '@playwright/tes
  * visible"): the 1 MB intro video is never downloaded; the landing hero and
  * the sign-in logo use the small version (once, then the vector logo) only
  * when motion is allowed; the only video on app pages is the feed banner's
- * promo clip, under 400 KB; the landing promo clip stays under 1.2 MB; with
+ * promo clip, under 400 KB; the landing promo clip stays under 1.5 MB; with
  * reduced motion no page loads any video; the splash shows once per session
  * and briefly.
  */
@@ -55,7 +55,7 @@ test('the landing hero uses the small logo video and one promo clip', async ({ p
   expect(promo.length).toBeLessThanOrEqual(1);
   for (const path of promo) {
     expect(path).toMatch(/^\/promo\/landing-\d+x\d+-v\d+\.mp4$/);
-    expect(await sizeOf(request, path)).toBeLessThan(1200 * KB);
+    expect(await sizeOf(request, path)).toBeLessThan(1500 * KB);
   }
 });
 
