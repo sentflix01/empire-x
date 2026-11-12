@@ -1,0 +1,32 @@
+{
+  "id": "F-052",
+  "kind": "hardening",
+  "phase": "P10-architecture",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Unused and undeclared packages; TypeScript strict mode off",
+  "standards": [
+    "OWASP A03:2025 (reduce attack surface)",
+    "ISO/IEC 25010:2023 maintainability"
+  ],
+  "location": [
+    "backend/package.json",
+    "frontend-next/package.json",
+    "backend/tsconfig.json",
+    "frontend-next/tsconfig.json"
+  ],
+  "steps": [
+    "depcheck 1.4.7 on both packages, each candidate verified by source search."
+  ],
+  "expected": "Every declared dependency is used and every import is declared; strict typing enabled.",
+  "actual": "Unused (no source reference): backend @aws-sdk/s3-request-presigner, chapa-nodejs, express-validator, rate-limit-redis; frontend @hello-pangea/dnd, @hookform/resolvers, @radix-ui/react-toast, @stripe/react-stripe-js, @stripe/stripe-js, canvas-confetti, zod. Imported but only installed transitively: @radix-ui/react-collapsible. strict is false in backend and unset in frontend; 43 explicit any in backend, 244 in frontend; only 2 ts-ignore/expect-error.",
+  "evidence": [
+    "evidence/wave5/depcheck.txt",
+    "evidence/wave5/code-health.txt"
+  ],
+  "impact": "Larger install and audit surface (unused Stripe JS also keeps js.stripe.com in the CSP); a transitive-only import can break on an unrelated upgrade.",
+  "fix": "Remove the unused packages, add @radix-ui/react-collapsible explicitly, drop js.stripe.com from the CSP if Stripe Elements is unused, and enable strict per-directory (start with lib/ and routes/).",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "repository"
+}

@@ -1,0 +1,203 @@
+{
+  "/login": [
+    {
+      "el": "a",
+      "name": "Skip to main content",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[email]",
+      "name": "you@example.com",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Forgot password?",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[password]",
+      "name": "••••••••",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Show password",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[submit]",
+      "name": "Sign in",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Terms",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Privacy Policy",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Create account",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[submit]",
+      "name": "Nodbusiness AI",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Page guide",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "body"
+    }
+  ],
+  "/register": [
+    {
+      "el": "a",
+      "name": "Skip to main content",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[email]",
+      "name": "you@example.com",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[password]",
+      "name": "At least 8 characters",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Show password",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[password]",
+      "name": "Repeat your password",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "input[checkbox]",
+      "name": "",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Terms of Service",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Privacy Policy",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Sign in",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[submit]",
+      "name": "Nodbusiness AI",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Page guide",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "body"
+    }
+  ],
+  "register_terms_checkbox_keyboard": {
+    "checked_after_space": true,
+    "focused_is_checkbox": true
+  },
+  "/landing": [
+    {
+      "el": "a",
+      "name": "Skip to main content",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Theme: Light",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Change language",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Create Account",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Sign In",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Create Account",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "button[button]",
+      "name": "Try Demo",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    },
+    {
+      "el": "a",
+      "name": "Explore as Guest",
+      "visible_focus_indicator": true,
+      "on_screen": true
+    }
+  ],
+  "skip_link": {
+    "hash": "#main-content",
+    "focused": "A",
+    "main_exists": false
+  }
+}

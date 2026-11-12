@@ -24,6 +24,8 @@ import {
   Minimize2, UserIcon, Store, MapPin,
 } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import { fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface Profile {
@@ -76,7 +78,7 @@ function PersonalProfileEmbed({ profile }: any) {
     <div className="max-w-2xl mx-auto px-4 py-4 space-y-4 pb-12">
       {/* Avatar / cover card */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-        <div className="h-28 bg-gradient-to-r from-amber-400 to-orange-500">
+        <div className="h-28 bg-primary">
           {profile?.cover_url && (
             <SafeImage fill={false} width={800} height={600} loading="lazy" src={profile.cover_url} alt={`${profile.display_name || 'User'}'s cover`} className="w-full h-full object-cover" />
           )}
@@ -87,7 +89,7 @@ function PersonalProfileEmbed({ profile }: any) {
               {profile?.avatar_url
                 ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={profile.avatar_url} alt={`${profile.display_name || 'User'}'s avatar`} className="w-full h-full object-cover rounded-xl" />
                 : (
-                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                  <div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white text-3xl font-bold">
                     {(profile?.display_name ?? "?").charAt(0)}
                   </div>
                 )
@@ -155,7 +157,7 @@ function PersonalProfileEmbed({ profile }: any) {
         <h3 className="font-semibold text-sm mb-3 px-1">Posts</h3>
         {loadingPosts ? (
           <div className="flex justify-center py-8">
-            <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           </div>
         ) : posts.length === 0 ? (
           <div className="bg-card rounded-2xl border border-border/50 p-8 text-center text-sm text-muted-foreground">
@@ -212,7 +214,7 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
                 : (
                   <div
                     className="w-full h-full rounded-xl flex items-center justify-center text-white text-3xl font-bold"
-                    style={{ backgroundColor: themeColor }}
+                    style={{ backgroundColor: fillForWhiteText(themeColor) }}
                   >
                     {(biz.business_name ?? "B").charAt(0)}
                   </div>
@@ -239,17 +241,17 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
           )}
           <div className="flex flex-wrap gap-2 mt-3">
             {biz.business_contact_phone && (
-              <a href={`tel:${biz.business_contact_phone}`} className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full">
+              <a href={`tel:${biz.business_contact_phone}`} className="text-xs bg-primary-subtle text-primary px-3 py-1.5 rounded-full">
                 📞 {biz.business_contact_phone}
               </a>
             )}
             {biz.business_contact_email && (
-              <a href={`mailto:${biz.business_contact_email}`} className="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-full">
+              <a href={`mailto:${biz.business_contact_email}`} className="text-xs bg-success-subtle text-success px-3 py-1.5 rounded-full">
                 ✉️ {biz.business_contact_email}
               </a>
             )}
             {biz.business_hours && (
-              <span className="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full">
+              <span className="text-xs bg-primary-subtle text-primary px-3 py-1.5 rounded-full">
                 🕐 {biz.business_hours}
               </span>
             )}
@@ -300,7 +302,7 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
                   </div>
                   <div className="p-3">
                     <p className="text-xs font-semibold truncate">{p.title}</p>
-                    <p className="text-xs text-amber-600 font-bold mt-0.5">{p.price?.toLocaleString()} {p.currency}</p>
+                    <p className="text-xs text-primary font-bold mt-0.5">{formatAmount(p.price)} {p.currency}</p>
                   </div>
                 </Link>
               );
@@ -316,8 +318,8 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
 export interface ProfilePeekProps {
   /** UUID of the user whose profile to show */
   authorId: string;
-  authorName?: string;
-  authorAvatar?: string;
+  authorName?: string | null;
+  authorAvatar?: string | null;
   /**
    * Which view to open first.
    * "personal" → personal profile tab
@@ -383,9 +385,9 @@ export default function ProfilePeek({
 
   return createPortal(
     <AnimatePresence>
-      {/* Backdrop — z-[1000] sits above Leaflet map layers (max z ~650) */}
+      {/* Backdrop — maps are isolated (isolate), so the modal layer is enough */}
       <motion.div
-        className="fixed inset-0 z-[1000] flex items-start justify-center pt-16 px-4 bg-transparent pointer-events-none"
+        className="fixed inset-0 z-modal flex items-start justify-center pt-16 px-4 bg-transparent pointer-events-none"
         initial={{ y: -8 }}
         animate={{ y: 0 }}
         exit={{ y: -8 }}
@@ -423,7 +425,7 @@ export default function ProfilePeek({
                     onClick={() => setPeekView("personal")}
                     className={`px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1 transition-all ${
                       peekView === "personal"
-                        ? "bg-blue-500 text-white shadow-sm"
+                        ? "bg-primary text-white shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -436,7 +438,7 @@ export default function ProfilePeek({
                         ? "text-white shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
-                    style={peekView === "business" ? { backgroundColor: themeColor } : {}}
+                    style={peekView === "business" ? { backgroundColor: fillForWhiteText(themeColor) } : {}}
                   >
                     <Store className="w-3 h-3" /> Business
                   </button>
@@ -447,7 +449,7 @@ export default function ProfilePeek({
               <Link
                 href={`/profile/${authorId}?view=${peekView === "business" ? "business" : "personal"}`}
                 onClick={onClose}
-                className="text-xs font-medium text-amber-600 hover:underline"
+                className="text-xs font-medium text-primary hover:underline"
               >
                 Full page →
               </Link>
@@ -465,7 +467,7 @@ export default function ProfilePeek({
           <div className="flex-1 overflow-y-auto">
             {loading ? (
               <div className="flex items-center justify-center h-full">
-                <div className="w-10 h-10 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+                <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
               </div>
             ) : !profile ? (
               <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">

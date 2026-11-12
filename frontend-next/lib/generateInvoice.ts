@@ -3,18 +3,20 @@
  * jspdf is already installed in the project.
  */
 import { jsPDF } from "jspdf";
+import { BRAND } from '@/lib/brandAssets';
 
 interface Order {
   id: string;
   product_title?: string;
   quantity?: number;
-  total_price?: number;
+  /** Number or decimal string (PostgreSQL NUMERIC) as the API sends it. */
+  total_price?: number | string;
   currency?: string;
   status?: string;
-  buyer_name?: string;
-  buyer_email?: string;
+  buyer_name?: string | null;
+  buyer_email?: string | null;
   seller_id?: string;
-  delivery_address?: string;
+  delivery_address?: string | null;
   created_at?: string;
   [key: string]: unknown;
 }
@@ -22,7 +24,7 @@ interface Order {
 /** Loads the brand emblem as a data URL for the PDF header; null if it can't be fetched. */
 export async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch("/icons/icon-192.png");
+    const res = await fetch(BRAND.appIcon192);
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise((resolve) => {
@@ -135,7 +137,7 @@ export async function generateInvoice(order: Order): Promise<void> {
 
   // ── Table row ─────────────────────────────────────────────────────────────
   const qty = order.quantity ?? 1;
-  const total = order.total_price ?? 0;
+  const total = Number(order.total_price ?? 0) || 0;
   const unitPrice = qty > 0 ? total / qty : total;
   const currency = order.currency ?? "ETB";
 

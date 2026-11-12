@@ -28,16 +28,14 @@ documents when verified; do not copy stale values into new work.
 
 | Topic | Conflicting evidence | Required action |
 |---|---|---|
-| Backend Express version | Root `README.md` describes Express 4; `backend/package.json` currently declares Express 5. | Treat the package manifest as the installed dependency declaration; update the overview after maintainers verify compatibility and deployment state. |
-| Frontend hosting | `frontend-next/README.md` mentions Cloudflare Pages, while root project docs describe Vercel. | Verify the active deployment target and update deployment docs before changing deployment configuration. |
-| Local developer setup | `docs/ONBOARDING.md` and root `README.md` have differing and partially duplicated setup instructions. | Confirm the supported local database/env path, then consolidate the docs without changing credentials or live resources. |
+| Backend Express version | Root `README.md` describes Express 4; `backend/package.json` currently declares Express 5. | ✅ Resolved 2026-10-31 — `README.md` updated to Express 5. Treat `package.json` as authoritative. |
+| Frontend hosting | `frontend-next/README.md` mentions Cloudflare Pages, while root project docs describe Vercel. | ✅ Resolved 2026-10-31 — `frontend-next/README.md` updated to Vercel throughout. Active deployment is Vercel as confirmed by `ENVIRONMENT_VARIABLES.md` and CI/CD workflows. |
+| Local developer setup | `docs/ONBOARDING.md` and root `README.md` have differing and partially duplicated setup instructions. | ✅ Resolved 2026-10-31 — `docs/ONBOARDING.md` is the canonical local setup guide. Root `README.md` links to it for detail. |
 
 ## Open decisions
 
-- Confirm and document one canonical local setup path (database, env templates,
-  package installation, migration workflow, and startup commands).
-- Confirm the active frontend hosting target and make all deployment guidance
-  consistent with the live project.
+- ~~Confirm and document one canonical local setup path~~ ✅ Resolved 2026-10-31 — `docs/ONBOARDING.md` is canonical.
+- ~~Confirm the active frontend hosting target~~ ✅ Resolved 2026-10-31 — Vercel confirmed; `frontend-next/README.md` updated.
 - Decide whether the engineering handbook's broad statements (for example,
   mandatory feature flags or endpoint versioning) are universal requirements
   or recommendations, then align them with actual practice.
@@ -777,3 +775,206 @@ items in the open list until confirmed.
   - Code: `backend/routes/notifications.ts`, `frontend-next/views/Notifications.tsx`, `frontend-next/components/layout/AppLayout.tsx`
   - Tests: `backend/test/db/notificationHistory.db.test.js`, `frontend-next/test/notifications.history.test.tsx`
 
+
+### 2026-11-05 — Shared Claude Code setup: permission rules, skills, no MCP servers yet
+
+- **Status:** Accepted
+- **Decision owner:** Project owner (5 Nov 2026: approved "commit it to the repo" and "no MCP servers for now, scripts instead")
+- **Context:** Agent work had no shared, versioned guardrails or procedures; work notes are spread across `.kiro/specs/`, `.agents/tasks/`, `implementation plan/` and `note/`.
+- **Decision:**
+  1. **Permissions:** `.claude/settings.json` denies reading or editing local `.env` files, force-push, `--no-verify` commits and staging `.env`; it pre-approves only read-only and check commands. Personal overrides go in the gitignored `.claude/settings.local.json`.
+  2. **Skills:** `.claude/skills/` holds `local-stack`, `audit-finding`, `security-audit` and `a11y-audit`. Skills link to existing docs instead of repeating them; `AGENTS.md` stays the single source of working rules.
+  3. **MCP servers:** none added. Reproducible scripts and Playwright are used instead. A server may be added later only if it is official or well maintained, pinned to an exact version, least-privilege, pointed at the local stack, and documented in `.mcp.json` and `docs/`.
+- **Consequences:** Every Claude Code session in this repo gets the same rules. Custom guard hooks (production, local-database and secret checks) are not part of this change; secret scanning in CI is tracked as an audit finding.
+- **Open:** whether to consolidate `.kiro/specs/`, `.agents/tasks/` and `implementation plan/` into one location (owner decision).
+- **Related documentation:** `CONTRIBUTING.md` (Agent tooling), `note/2026-11-05-international-audit/README.md`
+
+### 2026-11-06 — Identity documents are private; viewable by admins only; kept until account deletion
+
+- **Status:** Accepted (defaults chosen by the owner: "use the defaults and go ahead", 6 Nov 2026). Revisit the retention period with counsel.
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-013: verification selfies and government IDs were stored as public uploads with guessable, non-expiring URLs; F-014: files were never deleted when an account was deleted.
+- **Decision:**
+  1. **Storage:** identity documents live in private storage (`PRIVATE_SUPABASE_BUCKET`, falling back to `RECEIPTS_SUPABASE_BUCKET`); rows hold a `private:` reference, never a URL. Production refuses uploads without a private bucket.
+  2. **Who may view:** the person who uploaded them and admins only, through links that expire after 5 minutes (`GET /api/verification/:id/documents`).
+  3. **Retention:** kept until the account is deleted; replaced documents are deleted when a new request is submitted.
+  4. **Erasure:** deleting an account deletes the person's stored files (identity documents, profile images, post and story media, chat files) after the database change commits.
+- **Consequences:** Production must set `PRIVATE_SUPABASE_BUCKET` (a bucket with public access disabled) and run `npm run migrate:verification-docs -- --apply` once to move existing documents. No admin screen shows the documents yet; admins use the API endpoint.
+- **Open:** retention after review (delete on decision, or after N days) — owner and counsel.
+- **Related documentation:** `docs/backend/API.md` (Verification), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Accessible colour shades for text and white-on-colour fills
+
+- **Status:** Accepted for the app (default applied while fixing audit F-041); **owner to confirm** the brand shades for print and marketing.
+- **Decision owner:** Project owner
+- **Context:** axe found 123 colour-contrast failures on 27 of 36 page states in light mode and more in dark mode. The brand amber `#F59E0B` with white text is 2.1:1; amber text on white 3.2:1; business theme colours such as the default gold `#D4AF37` 2.1:1. WCAG 2.2 AA needs 4.5:1 for normal text.
+- **Decision:**
+  1. `frontend-next/app/globals.css` redefines amber-500 `#b45309`, amber-600 `#92400e`, red-500 `#c81e1e`, green-600 `#157a3a`, yellow-600 `#a16207`, blue-500 `#2563eb`, and darkens `--muted-foreground` and `--destructive` in light mode. Lighter shades stay for decoration.
+  2. Dark mode lightens the same text classes, turns pale `bg-*-50` tints into dark tints, and uses `#2563eb` as primary so white text on it passes; `text-primary` is lightened.
+  3. Business-chosen colours keep their hue but are darkened or lightened only as far as needed (`frontend-next/lib/contrast.ts`).
+- **Consequences:** Amber buttons and accents look deeper (orange-brown rather than bright amber). axe reports 0 contrast failures on 44 page states in both themes. The brand book still lists `#F59E0B` for primary CTAs; a note there points here.
+- **Open:** owner to confirm the on-screen amber and whether the brand book should adopt it.
+- **Related documentation:** `docs/product/ACCESSIBILITY.md` (Color Contrast), `docs/product/DESIGN_SYSTEM.md`, `docs/brand/BRAND_GUIDELINES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Nonce-based script policy; pages render per request
+
+- **Status:** Accepted (owner asked to fix F-016, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** The production Content-Security-Policy allowed `'unsafe-inline'` scripts, so injected markup such as F-057's map labels could run code. Next.js App Router pages carry inline scripts; the only supported ways to drop `'unsafe-inline'` are a per-request nonce (pages must render per request) or experimental SRI, which was tested and does not cover the per-page inline scripts (4 violations on every page).
+- **Decision:** `frontend-next/proxy.ts` creates a nonce for every page request and sends `script-src 'self' 'nonce-…' 'strict-dynamic'` (`lib/csp.ts`); the root layout passes the nonce to the theme script. `X-Powered-By` is turned off. Inline styles stay allowed (React style attributes cannot carry a nonce).
+- **Consequences:** The 52 pages that were prerendered as static files now render per request. Measured locally on a production build: about +5 ms server time per page (2.4 → 7.2 ms median). On Vercel these pages are no longer served from the CDN cache, so cold starts can add latency and function usage rises. No CSP violations on 9 guest and 18 signed-in pages; existing browser specs pass.
+- **Open:** revisit if Next.js gains hash-based CSP for prerendered pages.
+- **Related documentation:** `docs/infrastructure/SECURITY_HARDENING.md`, `docs/operations/TECHNICAL_DEBT.md` (TD-013), `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Two-factor sign-in with authenticator apps; required for admins
+
+- **Status:** Accepted (owner asked to fix F-017, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-017: no MFA, only a length rule for passwords, and an optional OTP secret.
+- **Decision:**
+  1. TOTP (RFC 6238) with 10 one-time recovery codes, built on Node crypto (no new dependency). Anyone can turn it on in Settings (`two_factor_auth` flag, default on).
+  2. Sign-in (password, Google, email-code verification) answers with a 5-minute, single-use challenge instead of a session when it is on; codes cannot be replayed; 5 wrong codes lock for 15 minutes.
+  3. Admins must use it: admin-only routes refuse until it is on (`ADMIN_MFA_REQUIRED`, default on in production). Admins cannot turn it off.
+  4. Secrets are encrypted with a key derived from `MFA_ENCRYPTION_KEY`, falling back to `JWT_SECRET`.
+  5. Passkeys (WebAuthn) are a later step.
+- **Consequences:** After deploying, each admin signs in, opens Account settings and turns on two-factor sign-in before using admin tools. Migration 86 adds `user_mfa`. Rotating `JWT_SECRET` without `MFA_ENCRYPTION_KEY` set breaks existing setups (recovery codes still work); set `MFA_ENCRYPTION_KEY` in production to decouple them.
+- **Open:** passkeys; whether business owners should also be required to use it.
+- **Related documentation:** `docs/backend/API.md` (Two-factor sign-in), `docs/operations/ENVIRONMENT_VARIABLES.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Migrations run once each, recorded in schema_migrations
+
+- **Status:** Accepted (owner asked to fix F-009, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-009: every deploy re-ran all migrations, the server re-ran migrations 83–85 at every start, and nothing recorded what had run. CONTRIBUTING.md already described a `schema_migrations` table that did not exist.
+- **Decision:** `backend/db/migrate-all.js` keeps `schema_migrations` with a sha256 checksum per file, runs only unrecorded migrations, refuses to continue when an applied file changed (`--rerun <file>` for deliberate re-runs), and uses a Postgres advisory lock. No manual backfill: the first run on an existing database executes everything once more (as every deploy did) and records it. Migrations must stay idempotent.
+- **Consequences:** Deploys run only new migrations. Editing an applied migration now fails the deploy until it is moved to a new file or re-run on purpose. `npm run migrate:status` shows what is pending.
+- **Related documentation:** `docs/infrastructure/MIGRATION_GUIDE.md`, `docs/backend/DATABASE.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Page guide opens only on request by default; compliance docs no longer claim "Compliant"
+
+- **Status:** Accepted (owner: "continue as you recommended", 6 Nov 2026, on the suggested defaults for F-031 and F-054)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **F-031:** `page_guided_tours` now only decides whether the guide opens by itself on a first visit, and is **off** by default. The **Page guide** button always works. The guide never opens by itself on the sign-in, register and password pages.
+  2. **F-054:** the Ethiopia data protection and GDPR documents say "Aligned, with known gaps — not a legal opinion" instead of "Compliant". The data protection proclamation number is marked "to be confirmed by counsel" (the document cited 1309/2024; the audit brief cites 1321/2024); the number was not chosen here.
+- **Open:** counsel to confirm the proclamation number and obligations; update the status after the fixes are deployed and reviewed.
+- **Related documentation:** `docs/product/PAGE_GUIDED_TOURS.md`, `docs/product/FEATURE_FLAGS.md`, `docs/compliance/ETHIOPIA_DATA_PROTECTION.md`, `docs/compliance/GDPR_AUDIT.md`
+
+### 2026-11-06 — DevOps console: error triage routes added, Knowledge Base tab removed
+
+- **Status:** Accepted (owner: "ok merge it and continue", 6 Nov 2026; the finding allowed either option)
+- **Decision owner:** Project owner
+- **Context:** Audit finding F-006: the admin console called 11 routes the backend did not have, and sent PATCH where the backend accepted only PUT.
+- **Decision:**
+  1. Implemented, admin only: error stats, `since` filtering, PATCH resolve, bulk resolve by level, convert an error to one bug ticket, and saving one version status at a time.
+  2. Removed the Knowledge Base tab and its seven `/api/docs/*` calls. The backend image is built from `backend/` only, so `docs/` is not on the server; serving repository files from production would also add a file-reading endpoint for little value. The docs stay readable in the repository.
+- **Update 2026-11-08:** the Task Log tab and its `GET /api/devops/log-report` routes are removed for the same reason (owner: "continue as you recommended"). The implementation log stays readable in the repository (`docs/log-report/`).
+- **Related documentation:** `docs/Production/backend/routes/devops.md`, `docs/Production/frontend-next/views/DevOps.md`, `note/2026-11-05-international-audit/FIXES.md`
+
+### 2026-11-06 — Migration ledger renamed to migration_ledger
+
+- **Status:** Accepted (fix for the failed production deploy, run #525, 6 Nov 2026)
+- **Decision owner:** Project owner
+- **Context:** The first deploy after #178 stopped at "Run DB Migrations" with `column "name" does not exist`. Production already had a `schema_migrations` table from another tool, with other columns; `CREATE TABLE IF NOT EXISTS` kept it and the ledger query failed. Nothing ran and the backend and frontend deploys were skipped.
+- **Decision:** The ledger table is `migration_ledger`. The existing `schema_migrations` table is left untouched. `migrate-all.js` checks the ledger's columns and stops with a clear message, before running anything, if a `migration_ledger` table has another shape. Supersedes the table name in the 2026-11-06 "Migrations run once each" entry.
+- **Consequences:** The next deploy runs every migration once more (all idempotent, as every deploy did before) and records them. The owner may later inspect `schema_migrations` in Supabase and decide whether it is still needed.
+
+### 2026-11-06 — Every product must belong to a business
+
+- **Status:** Accepted (owner: "continue", 6 Nov 2026; fix as recommended in audit F-033)
+- **Decision owner:** Project owner
+- **Context:** A product with no business was accepted (201) but hidden from everyone except its seller.
+- **Decision:** `POST /api/products` and new items in `POST /api/products/scan-batch` answer `422 BUSINESS_REQUIRED` when no business can be resolved (own `business_id`, the showroom's business, or the seller's only business). Admins follow the same rule. The product form says "Create a business first" and links to it.
+- **Consequences:** Sellers create a business before listing. Existing products without a business are unchanged (migration 77 already linked those whose seller has exactly one business).
+
+### 2026-11-07 — Proprietary licence; public accessibility statement
+
+- **Status:** Accepted (owner chose "Proprietary" and the shared inbox as contact, 7 Nov 2026; audit F-055)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. The code is proprietary: `LICENSE` says all rights reserved, and every `package.json` has `"license": "UNLICENSED"` (npm's marker for code that may not be reused).
+  2. An accessibility statement is published as the Accessibility tab of the legal page: target WCAG 2.2 AA, status partially conformant, known limitations, and the shared contact inbox (`CONTACT_EMAIL`), not a new address.
+- **Open (F-055):** a Refund Policy tab needs the owner's or counsel's wording; an OpenAPI file and a docs freshness check are not done yet.
+- **Related documentation:** `LICENSE`, `docs/compliance/ACCESSIBILITY_STATEMENT.md`
+
+### 2026-11-07 — One colour system: blue primary, violet secondary, no decorative accent
+
+- **Status:** Accepted (owner, 7 Nov 2026: "agree with major and secondary… don't need decoration for accent… follow like Facebook, LinkedIn"; audit F-046)
+- **Decision owner:** Project owner
+- **Context:** The two brand documents disagreed (blue vs amber as primary); the app used both, amber meant buttons, warnings and premium at once, and 2,259 raw palette classes plus ~100 hex colours bypassed the theme.
+- **Decision:**
+  1. Primary blue `#2563eb` for the main action and selection; its tint `#eff6ff` for highlighted areas. Secondary violet `#7c3aed` for the business identity and the AI assistant. Status colours (success, warning, error) only for states; red for unread counts. Neutrals for most of the screen. No gold, no decorative accent, no gradients in the app.
+  2. Tokens in `app/globals.css`, mirrored for maps/charts in `lib/colorTokens.ts` (kept in sync by a test). `npm run check:colors` (in `npm run lint`) blocks raw palette classes, arbitrary colour classes and stray hex values.
+  3. Exempt: colours each business chooses for its own showroom, other companies' brand colours (Google, Telegram, WhatsApp), the black-and-white logo, and the landing-page hero (the one marketing gradient).
+- **Consequences:** New UI must use tokens. `docs/brand/COLOR_SYSTEM.md` is the source of truth; `BRAND_BOOK.md` and `BRAND_GUIDELINES.md` now point to it.
+
+### 2026-11-08 — Logo recoloured: white on brand blue
+
+- **Status:** Accepted (owner, 8 Nov 2026: "convert only the color of the logo to make similar with the app", chose "White on blue")
+- **Decision owner:** Project owner
+- **Decision:** The logo keeps its shape; only its colours change. The icon is a blue `#2563eb` disc or tile with a white globe ring, network lines (85% white) and boxes, and blue slots. The wordmark's globe is drawn in blue on light backgrounds; its letters stay ink. The white wordmark (dark backgrounds) gets blue slots. The intro videos map black → blue, white → white, greys → blue tints.
+- **Consequences:** PWA icons, the Apple touch icon and the favicon are rebuilt from the SVG by `frontend-next/scripts/brand/render-icons.mjs`. Logo backgrounds in the splash, sign-in, landing and share image use `HEX.primary`; the colour guard no longer allows the old black. Docs: `docs/brand/COLOR_SYSTEM.md`, `BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.
+
+### 2026-11-08 — Small logo is a still of the animated logo; logo files are versioned by name
+
+- **Status:** Accepted (owner, 8 Nov 2026: "let the small logo add globe inside the circle like the big one")
+- **Decision owner:** Project owner
+- **Decision:** The still icon is the last frame of the intro video (network of businesses over the globe, white on blue), cut to a circle, so the small and animated logos are the same picture. Logo files carry a version in their name (`-v2`) and are referenced only through `frontend-next/lib/brandAssets.ts`; when one changes, it gets a new name and the old name redirects (`next.config.ts`).
+- **Why:** After the recolour, browsers that had cached the old files under the same name kept showing the black logo. A new name is never in any cache, so every visitor sees a changed logo on the next page load.
+- **Consequences:** `scripts/brand/render-icons.mjs` builds the WebP icon, favicon, Apple touch icon and PWA icons from `nodbusiness-intro.mp4`. The icon SVG is retired. A unit test (`test/brand/brandAssets.test.ts`) keeps the names, files, manifest and service worker in step. Docs: `docs/brand/BRAND_BOOK.md`, `BRAND_GUIDELINES.md`.
+
+### 2026-11-09 — Vector logo master; white-ring logo on blue; logo animation plays once
+
+- **Status:** Accepted (owner, 9 Nov 2026: fix logo quality, use the white-ring logo on blue backgrounds, update the wordmark "o"; chose "Animate, end sharp" for sign-in and landing). Supersedes the 2026-11-08 entry "Small logo is a still of the animated logo".
+- **Decision owner:** Project owner
+- **Decision:** The logo is a vector drawing (`scripts/brand/build-logo.mjs`): blue disc, globe with Natural Earth continents, network lines and eight boxes. It has a white-ring version for blue backgrounds and bolder small versions for 24 px and below. `BrandLogo` takes `variant="onBlue"`; `Wordmark` shows the name with the icon as the "o" in the heavy sans (also used for the app header name). The intro video plays once on the landing hero and the sign-in pages, then fades to the vector icon; reduced motion or data saving shows the icon only. Sign-in may now load the small 62 KB video (the F-045 budget test allows only that file).
+- **Why:** The raster still (cut from a compressed video frame) was blurry at small sizes; the blue disc vanished on blue backgrounds; the wordmark "o" was still the old thin mark.
+- **Consequences:** PNG and ICO icons are rendered from the vector by `render-icons.mjs`. Files are `-v3`; v1 and v2 names redirect. The share image uses the ringed icon. Unit tests check that logos styled for blue use the ring version and that the icons are vectors.
+
+### 2026-11-09 — An ended Demo session leaves Demo with an explanation
+
+- **Status:** Accepted (owner asked to fix "We could not load business profiles" seen in a Demo session, 9 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** When the API answers with `DEMO_SESSION_EXPIRED`, `DEMO_SESSION_INVALID` or `DEMO_DISABLED`, the web app stops trying to refresh, signs the browser out of Demo and opens `/landing?demo=ended` with a notice; Try Demo starts afresh. Load errors say "check your connection" only when no answer came back.
+- **Why:** An ended session made every request fail while the Demo banner stayed on screen, and the feed blamed the visitor's connection.
+- **Consequences:** `api/client.ts` (`isDemoEndedResponse`, `DEMO_ENDED_EVENT`), `lib/AuthContext.tsx`, `components/landing/DemoEndedNotice.tsx`, feed message. Tests: `test/demoEnded.test.tsx`, `e2e/demo-ended.spec.ts`. Docs: `docs/operations/DEMO_WORKSPACE_DEPLOYMENT.md`.
+
+### 2026-11-09 — Business Analytics counts product saves, not likes
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Count saves")
+- **Decision owner:** Project owner
+- **Decision:** Products cannot be liked in Nodbusiness; people can only save (bookmark) them. Business Analytics shows **Product Saves**, read from `GET /api/saves/my-products`, which returns when each of the signed-in seller's products was saved, never who saved it (optional `business_id`). The CSV export uses the same figures.
+- **Why:** The screen read product likes from a client stub that always returned nothing, so "Product Likes" was always 0.
+- **Consequences:** `backend/routes/saves.ts`, index `idx_saves_target` (migrate88), `frontend-next/api/entities.ts` (`fetchMyProductSaves`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`. Tests: `test/db/productSaves.db.test.js`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts`. Revenue still counts every order; whether it should count only paid and completed orders is open with the owner.
+
+### 2026-11-09 — Revenue on Business Analytics counts paid orders only
+
+- **Status:** Accepted (owner, 9 Nov 2026: "Paid + completed only")
+- **Decision owner:** Project owner
+- **Decision:** Revenue (the stat, the 7-day sales series and the CSV "Total Revenue (paid orders)") is money received: orders with status `paid`, `processing`, `shipped`, `delivered` or `completed`. Unpaid (`pending`, `awaiting_payment`, `payment_reported`, `confirmed`), `cancelled`, `expired`, `refunded` and `disputed` orders do not count. The Orders count, status breakdown and recent orders still show all orders.
+- **Why:** Revenue previously added every order, including cancelled and unpaid ones.
+- **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
+
+### 2026-11-12 — A failed sign-in check is a 503, not a 401
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for token problems (`INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`, `UNAUTHORIZED`). When the check fails on our side, such as a database error or an exhausted connection pool, it logs the error and answers `503 AUTH_UNAVAILABLE`.
+- **Why:** Every error used to become `401 INVALID_TOKEN`. The web client answers a 401 by refreshing and signing out, so a database outage signed people out. It also hid the real cause of the flaky `devopsVersions.db.test.js` (Postgres "too many clients already").
+- **Consequences:** `backend/middleware/auth.ts`. Test: `backend/test/authMiddleware.test.js`. Docs: `docs/backend/API_REFERENCE.md`. Investigation: `note/2026-11-12-devops-versions-flake.md`.
+
+### 2026-11-12 — `optionalAuth` also answers 503 on a failed sign-in check
+
+- **Status:** Accepted (owner asked to extend the 503 rule above to `optionalAuth` and to record the choice, 12 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** Follows "A failed sign-in check is a 503, not a 401" above. `optionalAuth` still continues as a guest for a missing, invalid, expired, revoked or banned token, but when a token was sent and the check fails on our side it **answers `503 AUTH_UNAVAILABLE` instead of continuing as a guest**. Token errors are any `jwt.JsonWebTokenError`; everything else counts as our failure. In both middlewares `next()` now runs outside the `try`, so an error from a later handler is never reported as a sign-in failure.
+- **Why:** As a guest, a signed-in person would hit guest-only routes that answer `401 SIGN_IN_REQUIRED`, which the web client treats as an expired session (refresh, then sign out), and could be served or cached a guest response.
+- **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web client needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on errors other than 401. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`, `docs/backend/API_REFERENCE.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
+
+### 2026-11-12 — Maximum lengths for text sent to the API
+
+- **Status:** Accepted (owner, 12 Nov 2026: "yes … fix the text limits first", approving the proposed limits)
+- **Decision owner:** Project owner
+- **Decision:** Every JSON request body is checked after parsing: product name 200, description 5,000, post and comment 5,000, business name 100, website sections 200,000 characters, and 10,000 for any other text field (full list in `backend/lib/textLimits.ts`). Longer text is refused with `422 TEXT_TOO_LONG`; bodies over 2 MB with `413`. The forms use the same limits as `maxLength`.
+- **Why:** Re-audit F-058: one member saved 900,000-character products, and every visitor's marketplace list became 2.2 MB and about 20 times slower.
+- **Consequences:** `backend/middleware/textLimits.ts` (mounted in `index.ts` after the body parsers), `backend/lib/textLimits.ts`, `frontend-next/lib/textLimits.ts` (kept in step by `backend/__tests__/textLimits.test.ts`), `docs/backend/API.md`, `docs/backend/SECURITY.md`. Rows already longer than a limit stay as they are; editing them requires shortening the text.

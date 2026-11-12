@@ -5,8 +5,20 @@ import { MessageCircle, ExternalLink, Unlink, Bell, BellOff, Loader2, Check } fr
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+/**
+ * GET /api/telegram/status (backend routes/telegram.ts). The backend does not
+ * send a bot link or username yet, so the screen must not assume them.
+ */
+interface TelegramStatus {
+  connected: boolean;
+  notifications_enabled: boolean;
+  bot_configured?: boolean;
+  connect_url?: string | null;
+  bot_username?: string | null;
+}
+
 export default function TelegramSettings() {
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState<TelegramStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -27,7 +39,7 @@ export default function TelegramSettings() {
     setToggling(true);
     try {
       const { data } = await client.put("/api/telegram/notifications", { enabled: !status.notifications_enabled });
-      setStatus(s => ({ ...s, notifications_enabled: data.enabled }));
+      setStatus(s => (s ? { ...s, notifications_enabled: data.enabled } : s));
       toast.success(data.enabled ? "Telegram notifications enabled!" : "Telegram notifications disabled");
     } catch {
       toast.error("Failed to update notification settings");
@@ -39,7 +51,7 @@ export default function TelegramSettings() {
     setDisconnecting(true);
     try {
       await client.delete("/api/telegram/disconnect");
-      setStatus(s => ({ ...s, connected: false, notifications_enabled: false }));
+      setStatus(s => (s ? { ...s, connected: false, notifications_enabled: false } : s));
       toast.success("Telegram disconnected");
     } catch {
       toast.error("Failed to disconnect Telegram");
@@ -65,7 +77,7 @@ export default function TelegramSettings() {
           <h3 className="font-semibold">Telegram Notifications</h3>
           <p className="text-xs text-muted-foreground">Get order & message alerts on Telegram</p>
         </div>
-        <div className={`ml-auto px-2.5 py-1 rounded-full text-xs font-medium ${status?.connected ? "bg-green-50 text-green-600" : "bg-secondary text-muted-foreground"}`}>
+        <div className={`ml-auto px-2.5 py-1 rounded-full text-xs font-medium ${status?.connected ? "bg-success-subtle text-success" : "bg-secondary text-muted-foreground"}`}>
           {status?.connected ? "Connected" : "Not connected"}
         </div>
       </div>
@@ -73,29 +85,38 @@ export default function TelegramSettings() {
       {!status?.connected ? (
         /* Connect flow */
         <div className="space-y-3">
-          <div className="bg-secondary/40 rounded-xl p-4 space-y-2">
-            <p className="text-sm font-medium">How to connect:</p>
-            <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-              <li>Click <strong>Open Telegram Bot</strong> below</li>
-              <li>Press <strong>Start</strong> in the Telegram chat</li>
-              <li>Come back here and refresh</li>
-            </ol>
-          </div>
-          <div className="flex gap-2">
-            <a
-              href={status?.connect_url || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1"
-            >
-              <Button className="w-full rounded-full bg-[#2CA5E0] hover:bg-[#1A94D2] text-white">
-                <ExternalLink className="w-4 h-4 mr-2" /> Open Telegram Bot
+          {status?.connect_url && (
+            <div className="bg-secondary/40 rounded-xl p-4 space-y-2">
+              <p className="text-sm font-medium">How to connect:</p>
+              <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Click <strong>Open Telegram Bot</strong> below</li>
+                <li>Press <strong>Start</strong> in the Telegram chat</li>
+                <li>Come back here and refresh</li>
+              </ol>
+            </div>
+          )}
+          {status?.connect_url ? (
+            <div className="flex gap-2">
+              <a
+                href={status.connect_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1"
+              >
+                <Button className="w-full rounded-full bg-[#2CA5E0] hover:bg-[#1A94D2] text-white">
+                  <ExternalLink className="w-4 h-4 mr-2" /> Open Telegram Bot
+                </Button>
+              </a>
+              <Button variant="outline" className="rounded-full" onClick={loadStatus}>
+                Refresh
               </Button>
-            </a>
-            <Button variant="outline" className="rounded-full" onClick={loadStatus}>
-              Refresh
-            </Button>
-          </div>
+            </div>
+          ) : (
+            // The button used to open "#": the backend has no bot link yet.
+            <p className="text-sm text-muted-foreground" role="status">
+              Connecting Telegram is not available yet. We will let you know when it is.
+            </p>
+          )}
         </div>
       ) : (
         /* Connected — settings */
@@ -103,7 +124,7 @@ export default function TelegramSettings() {
           <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
             <div className="flex items-center gap-2">
               {status.notifications_enabled ? (
-                <Bell className="w-4 h-4 text-amber-500" />
+                <Bell className="w-4 h-4 text-primary" />
               ) : (
                 <BellOff className="w-4 h-4 text-muted-foreground" />
               )}
@@ -115,15 +136,15 @@ export default function TelegramSettings() {
             <button
               onClick={handleToggle}
               disabled={toggling}
-              className={`w-12 h-6 rounded-full transition-colors relative ${status.notifications_enabled ? "bg-amber-500" : "bg-secondary"}`}
+              className={`w-12 h-6 rounded-full transition-colors relative ${status.notifications_enabled ? "bg-primary" : "bg-secondary"}`}
             >
               <div className={`w-5 h-5 rounded-full bg-card shadow absolute top-0.5 transition-transform ${status.notifications_enabled ? "translate-x-6" : "translate-x-0.5"}`} />
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-1.5 text-xs text-success bg-success-subtle rounded-xl px-3 py-2">
             <Check className="w-3.5 h-3.5" />
-            Connected to @{status.bot_username}. Type /stop in Telegram to disable anytime.
+            {status.bot_username ? `Connected to @${status.bot_username}.` : 'Connected.'} Type /stop in Telegram to disable anytime.
           </div>
 
           <button

@@ -1,0 +1,40 @@
+{
+  "__note": "Swahili (Kenya/Tanzania) — stub file. All missing keys fall back to English (fallbackLng: 'en'). Replace values with proper Swahili translations.",
+  "nav": {
+    "home": "Nyumbani",
+    "explore": "Gundua",
+    "friends": "Marafiki",
+    "businesses": "Biashara",
+    "marketplace": "Soko",
+    "messages": "Ujumbe",
+    "profile": "Wasifu",
+    "notifications": "Arifa",
+    "orders": "Maagizo",
+    "bookmarks": "Alamisho",
+    "wallet": "Mkoba",
+    "showrooms": "Maonyesho",
+    "search": "Tafuta"
+  },
+  "auth": {
+    "login": "Ingia",
+    "loginTitle": "Karibu tena",
+    "register": "Jisajili",
+    "logout": "Toka"
+  },
+  "common": {
+    "loading": "Inapakia…",
+    "save": "Hifadhi",
+    "cancel": "Ghairi",
+    "delete": "Futa",
+    "edit": "Hariri",
+    "close": "Funga",
+    "back": "Rudi",
+    "search": "Tafuta",
+    "retry": "Jaribu tena",
+    "createShowroom": "Unda Maonyesho",
+    "showroomStudio": "Maonyesho Studio",
+    "discover": "Gundua",
+    "myAccount": "Akaunti Yangu",
+    "searchPlaceholder": "Tafuta watu, bidhaa na maonyesho..."
+  }
+}

@@ -1,0 +1,17 @@
+# F-042 after fix — e2e/landmarks.spec.ts on a local production build (2026-11-06)
+  ✓   1 [chromium] › e2e/landmarks.spec.ts:12:7 › /landing has a skip-link target, one main landmark and a heading
+  ✓   2 [chromium] › e2e/landmarks.spec.ts:12:7 › /login has a skip-link target, one main landmark and a heading
+  ✓   3 [chromium] › e2e/landmarks.spec.ts:12:7 › /register has a skip-link target, one main landmark and a heading
+  ✓   4 [chromium] › e2e/landmarks.spec.ts:12:7 › /forgot-password has a skip-link target, one main landmark and a heading
+  ✓   5 [chromium] › e2e/landmarks.spec.ts:12:7 › /service-agreement has a skip-link target, one main landmark and a heading
+  ✓   6 [chromium] › e2e/landmarks.spec.ts:12:7 › /marketplace has a skip-link target, one main landmark and a heading
+  ✓   7 [chromium] › e2e/landmarks.spec.ts:12:7 › /feed has a skip-link target, one main landmark and a heading
+  ✓   8 [chromium] › e2e/landmarks.spec.ts:12:7 › /businesses has a skip-link target, one main landmark and a heading
+  ✓   9 [chromium] › e2e/landmarks.spec.ts:12:7 › /offline has a skip-link target, one main landmark and a heading
+  ✓  10 [chromium] › e2e/landmarks.spec.ts:12:7 › /no-such-page has a skip-link target, one main landmark and a heading
+  ✓  11 [chromium] › e2e/landmarks.spec.ts:26:5 › a public showroom without a hero still has an h1
+  11 passed
+
+Public showroom with no hero section (temporary test data, deleted after):
+/showroom/<slug>  {"mains":1,"target":true,"h1":[{"text":"<showroom title>","srOnly":true}]}
+/showrooms/<id>   {"mains":1,"target":true,"h1":[{"text":"<showroom title>","srOnly":true}]}

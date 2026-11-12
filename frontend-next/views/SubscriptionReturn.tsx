@@ -71,8 +71,8 @@ function SubscriptionReturn() {
   return (
     <div className="mx-auto max-w-md space-y-5 py-8">
       {result?.status === 'paid' ? (
-        <div className="space-y-4 rounded-2xl border border-emerald-500/30 bg-card p-6 text-center">
-          <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" aria-hidden="true" />
+        <div className="space-y-4 rounded-2xl border border-success/30 bg-card p-6 text-center">
+          <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden="true" />
           <h1 className="font-display text-2xl font-bold text-foreground">Payment received</h1>
           <p className="text-sm text-muted-foreground">
             Your {TIER_LABEL[result.tier]} plan is active until <strong className="text-foreground">{formatDate(result.period_end)}</strong>.
@@ -101,7 +101,7 @@ function SubscriptionReturn() {
         </div>
       ) : timedOut ? (
         <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-center">
-          <Clock className="mx-auto h-12 w-12 text-amber-500" aria-hidden="true" />
+          <Clock className="mx-auto h-12 w-12 text-primary" aria-hidden="true" />
           <h1 className="font-display text-2xl font-bold text-foreground">Still waiting for Chapa</h1>
           <p className="text-sm text-muted-foreground">
             If you completed the payment, your plan activates automatically as soon as Chapa confirms it, and you&apos;ll get a notification. You don&apos;t need to pay again.

@@ -18,7 +18,7 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(({ className, .
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
-type TabsTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { value?: string; className?: string }
+type TabsTriggerProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "value"> & { value: string; className?: string }
 const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(({ className, value, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
@@ -31,7 +31,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(({ cla
 ))
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
-type TabsContentProps = React.HTMLAttributes<HTMLDivElement> & { value?: string; className?: string }
+type TabsContentProps = React.HTMLAttributes<HTMLDivElement> & { value: string; className?: string }
 const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(({ className, value, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}

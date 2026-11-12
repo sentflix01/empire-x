@@ -52,32 +52,32 @@ beforeEach(() => {
 describe('F-H2 variant ownership', () => {
   const ownedBy = (sellerId: string) => (sql: string) => (
     sql.includes('JOIN products p') ? Promise.resolve({ rows: [{ seller_id: sellerId }] })
-      : Promise.resolve({ rows: [{ id: 'variant-1' }], rowCount: 1 })
+      : Promise.resolve({ rows: [{ id: 'f2922871-e4a8-47cf-8f17-a3e60f654d6e' }], rowCount: 1 })
   );
 
   it.each(['put', 'delete'] as const)('rejects %s from a user who does not own the product', async (method) => {
     mockPool.query.mockImplementation(ownedBy('user-a'));
-    const response = await request(app)[method]('/api/variants/variant-1').set('x-user-id', 'user-b').send({ price: 1, stock: 999 });
+    const response = await request(app)[method]('/api/variants/f2922871-e4a8-47cf-8f17-a3e60f654d6e').set('x-user-id', 'user-b').send({ price: 1, stock: 999 });
     expect(response.status).toBe(403);
     expect(sqlCalls().some((sql) => /UPDATE product_variants|DELETE FROM product_variants/.test(sql))).toBe(false);
   });
 
   it.each(['put', 'delete'] as const)('allows %s by the product seller', async (method) => {
     mockPool.query.mockImplementation(ownedBy('user-a'));
-    const response = await request(app)[method]('/api/variants/variant-1').set('x-user-id', 'user-a').send({ price: 5 });
+    const response = await request(app)[method]('/api/variants/f2922871-e4a8-47cf-8f17-a3e60f654d6e').set('x-user-id', 'user-a').send({ price: 5 });
     expect(response.status).toBe(200);
-    expect(mockPool.query.mock.calls[0][1]).toEqual(['variant-1']);
+    expect(mockPool.query.mock.calls[0][1]).toEqual(['f2922871-e4a8-47cf-8f17-a3e60f654d6e']);
   });
 
   it('allows an admin to delete any variant', async () => {
     mockPool.query.mockImplementation(ownedBy('user-a'));
-    const response = await request(app).delete('/api/variants/variant-1').set('x-user-id', 'admin-1').set('x-user-role', 'admin');
+    const response = await request(app).delete('/api/variants/f2922871-e4a8-47cf-8f17-a3e60f654d6e').set('x-user-id', 'admin-1').set('x-user-role', 'admin');
     expect(response.status).toBe(200);
     expect(sqlCalls()).toContain('DELETE FROM product_variants WHERE id=$1');
   });
 
   it('returns 404 for a variant that does not exist', async () => {
-    const response = await request(app).delete('/api/variants/missing').set('x-user-id', 'user-a');
+    const response = await request(app).delete('/api/variants/5a013c49-5082-41c6-816a-c388f93a2c11').set('x-user-id', 'user-a');
     expect(response.status).toBe(404);
   });
 });

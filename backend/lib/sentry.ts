@@ -15,8 +15,21 @@
  */
 import type { Application, RequestHandler, ErrorRequestHandler } from 'express';
 import logger from './logger';
+import { scrubSentryBreadcrumb, scrubSentryEvent } from './redact';
 
 let _sentryInitialized = false;
+
+/**
+ * Privacy options applied to every Sentry event (audit F-015): no default
+ * PII, and guest order tokens, signed-link signatures, cookies and auth
+ * headers are removed from URLs, headers and breadcrumbs before sending.
+ */
+export const sentryPrivacyOptions = {
+  sendDefaultPii: false,
+  beforeSend: <T extends Record<string, unknown>>(event: T): T => scrubSentryEvent(event),
+  beforeSendTransaction: <T extends Record<string, unknown>>(event: T): T => scrubSentryEvent(event),
+  beforeBreadcrumb: <T extends Record<string, unknown>>(crumb: T): T => scrubSentryBreadcrumb(crumb),
+};
 
 export function initSentryCore(): void {
   if (_sentryInitialized) return;
@@ -37,6 +50,7 @@ export function initSentryCore(): void {
       release: `nodbusiness-backend@${(require('../package.json') as { version: string }).version}`,
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
       ignoreErrors: ['TokenExpiredError', 'JsonWebTokenError', 'NotFoundError'],
+      ...sentryPrivacyOptions,
     });
 
     _sentryInitialized = true;
@@ -78,4 +92,4 @@ export function getSentryErrorHandler(): ErrorRequestHandler | null {
   }
 }
 
-module.exports = { initSentryCore, attachSentryToApp, getSentryErrorHandler };
+module.exports = { initSentryCore, attachSentryToApp, getSentryErrorHandler, sentryPrivacyOptions };

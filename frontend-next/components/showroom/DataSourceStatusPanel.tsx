@@ -65,8 +65,8 @@ interface StatusBadgeProps {
 function StatusBadge({ status, httpStatus }: StatusBadgeProps) {
   if (status === 'healthy') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-success-subtle text-success-subtle-foreground">
+        <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
         Healthy
       </span>
     );
@@ -74,8 +74,8 @@ function StatusBadge({ status, httpStatus }: StatusBadgeProps) {
 
   if (status === 'failing') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-        <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-destructive-subtle text-destructive-subtle-foreground">
+        <span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" />
         Failing{httpStatus ? ` (${httpStatus})` : ''}
       </span>
     );
@@ -83,8 +83,8 @@ function StatusBadge({ status, httpStatus }: StatusBadgeProps) {
 
   // never_fetched
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-secondary text-muted-foreground">
+      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 inline-block" />
       Never fetched
     </span>
   );
@@ -165,13 +165,13 @@ export default function DataSourceStatusPanel({ showroomId }: Props) {
   if (error) {
     return (
       <div className="p-6">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-2">
+        <div className="rounded-xl border border-destructive/30 bg-destructive-subtle p-4 text-sm text-destructive flex items-start gap-2">
           <span className="mt-0.5 shrink-0">⚠</span>
           <span>{error}</span>
         </div>
         <button
           onClick={fetchHealth}
-          className="mt-3 text-xs text-amber-700 underline underline-offset-2 hover:text-amber-900"
+          className="mt-3 text-xs text-primary underline underline-offset-2 hover:text-primary-subtle-foreground"
         >
           Try again
         </button>
@@ -193,7 +193,7 @@ export default function DataSourceStatusPanel({ showroomId }: Props) {
         <h3 className="text-sm font-semibold text-foreground">Data Source Status</h3>
         <button
           onClick={fetchHealth}
-          className="text-xs text-amber-700 underline underline-offset-2 hover:text-amber-900"
+          className="text-xs text-primary underline underline-offset-2 hover:text-primary-subtle-foreground"
         >
           Refresh all
         </button>
@@ -232,7 +232,7 @@ export default function DataSourceStatusPanel({ showroomId }: Props) {
                   type="button"
                   disabled={isRefreshing}
                   onClick={() => handleRefresh(record)}
-                  className="text-[11px] px-2.5 py-1 rounded-lg border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="text-[11px] px-2.5 py-1 rounded-lg border border-primary/30 text-primary bg-primary-subtle hover:bg-primary-subtle transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
                   {isRefreshing ? 'Refreshing…' : 'Refresh Cache'}
                 </button>

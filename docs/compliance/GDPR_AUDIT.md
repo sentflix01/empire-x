@@ -2,8 +2,8 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Status:** Compliant (Continuous Monitoring)
-> **Last Updated:** August 2026
+> **Status:** Aligned, with known gaps — not a legal opinion. The November 2026 audit found gaps (public identity documents, files kept after account deletion, guest order links in logs: findings F-013, F-014, F-015). Fixes are in the code on branch `claude/charming-lamport-n3ppii` but not yet deployed; legal review pending.
+> **Last Updated:** 6 November 2026 (status only; content from August 2026)
 
 ---
 

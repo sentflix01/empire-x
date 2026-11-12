@@ -20,6 +20,10 @@ concurrency:
   group: scheduled-jobs
   cancel-in-progress: false
 
+# Least privilege for the workflow token (audit F-022); jobs ask for more only where needed.
+permissions:
+  contents: read
+
 jobs:
   run:
     name: Run backend jobs

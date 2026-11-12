@@ -5,7 +5,7 @@ import client from "@/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings } from "lucide-react";
+import { Home, Search, MessageCircle, ShoppingBag, Bell, User, UserRound, Plus, TrendingUp, Bookmark, Wallet, Moon, Sun, Languages, ShoppingCart, Tag, Package, ShieldAlert, BarChart3, Store, Flame, Users, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X, Gift, LogOut, Lock, Shield, ArrowLeft, Settings, Loader2, Briefcase, Newspaper } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -20,10 +20,11 @@ import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import { useProfileView } from "@/lib/ProfileViewContext";
 import { useAppStore } from "@/store";
 import { isGuestBrowsablePath } from "@/lib/publicPaths";
+import { HEX, IDENTITY } from '@/lib/colorTokens';
 // AccountSettings popup replaced by /settings navigation
 
 /* ── Right Panel — shortcuts, trending, suggestions ── */
-function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string } | null }) {
+function RightPanel({ user }: { user: { full_name?: string; email?: string; role?: string; has_wallet_balance?: boolean } | null }) {
   // Real hashtag counts only (audit LEGAL-04: the panel used to show invented numbers).
   const [trending, setTrending] = useState<Array<{ name: string; post_count: number }>>([]);
   useEffect(() => {
@@ -37,21 +38,21 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
     return () => { cancelled = true; };
   }, []);
   const quickLinks = [
-    { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: "#2563EB" },
-    { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: "#7c3aed" },
-    { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: "#6B7280" },
-    { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: "#f59e0b" },
+    { path: "/showrooms",  icon: Store,        label: "Showrooms",   color: HEX.primary },
+    { path: "/marketplace",icon: ShoppingBag,  label: "Marketplace", color: HEX.primary },
+    { path: "/bookmarks",  icon: Bookmark,     label: "Bookmarks",   color: HEX.primary },
+    { path: "/wallet",     icon: Wallet,       label: "Wallet",      color: HEX.primary },
   ];
-  const visibleQuickLinks = user
-    ? quickLinks
-    : quickLinks.filter(item => item.path !== '/bookmarks' && item.path !== '/wallet');
+  // The wallet only pays out old balances (audit F-047): link it only when there is one.
+  const visibleQuickLinks = quickLinks.filter(item =>
+    item.path === '/wallet' ? Boolean(user?.has_wallet_balance) : item.path !== '/bookmarks' || Boolean(user));
 
   return (
     <>
       {/* Quick links */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Flame className="w-4 h-4 text-amber-500" />
+          <Flame className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Quick Links</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
@@ -79,9 +80,9 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <span className="text-xs font-bold text-primary uppercase tracking-wide">Sponsored</span>
           <span className="text-[10px] text-muted-foreground">Ad</span>
         </div>
-        <div className="rounded-xl bg-empire-gradient p-3 mb-3 shadow-md shadow-primary/20">
+        <div className="rounded-xl bg-primary p-3 mb-3 shadow-md shadow-primary/20">
           <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
-          <p className="text-white/85 text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
+          <p className="text-white text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
         </div>
         <Link href={user ? "/analytics" : "/register"} className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
           {user ? 'Promote Now' : 'Join Free'}
@@ -91,23 +92,23 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {/* Showroom Studio */}
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
         {/* Header gradient */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 px-4 py-3">
+        <div className="bg-primary px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-              <BrandLogo className="w-4 h-4 text-white" />
+              <BrandLogo variant="onBlue" className="w-5 h-5" />
             </div>
             <div>
               <p className="text-white font-bold text-sm leading-tight">Showroom Studio</p>
-              <p className="text-white/75 text-[10px]">Ready-made website templates</p>
+              <p className="text-white text-[10px]">Ready-made website templates</p>
             </div>
           </div>
         </div>
         {/* Template previews — 3 mini skeleton cards */}
         <div className="grid grid-cols-3 gap-1.5 p-3">
           {[
-            { label: "Shop",    color: "from-orange-100 to-amber-100" },
-            { label: "Blog",    color: "from-blue-100 to-cyan-100" },
-            { label: "Agency",  color: "from-purple-100 to-violet-100" },
+            { label: "Shop",    color: "from-primary-subtle to-primary-subtle" },
+            { label: "Blog",    color: "from-primary-subtle to-primary-subtle" },
+            { label: "Agency",  color: "from-brand-secondary-subtle to-brand-secondary-subtle" },
           ].map(t => (
             <div key={t.label} className={`rounded-lg overflow-hidden bg-gradient-to-br ${t.color} aspect-[3/2] flex flex-col gap-0.5 p-1.5`}>
               <div className="h-2 bg-white/60 rounded-sm w-full" />
@@ -116,16 +117,16 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
                 <div className="bg-white/50 rounded-sm" />
                 <div className="bg-white/50 rounded-sm" />
               </div>
-              <p className="text-[8px] font-semibold text-center text-gray-500 mt-0.5">{t.label}</p>
+              <p className="text-[8px] font-semibold text-center text-muted-foreground mt-0.5">{t.label}</p>
             </div>
           ))}
         </div>
         <div className="px-3 pb-3">
           <Link
             href={user ? "/showroom/templates" : "/register"}
-            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-semibold transition-all"
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition-all"
           >
-            <BrandLogo className="w-3.5 h-3.5" />
+            <BrandLogo variant="onBlue" className="w-4 h-4" />
             {user ? 'Browse Templates' : 'Create an account to build'}
           </Link>
         </div>
@@ -135,7 +136,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
       {trending.length > 0 && (
       <div className="bg-card dark:bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-blue-500" />
+          <TrendingUp className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Trending</span>
         </div>
         <div className="space-y-2">
@@ -144,15 +145,15 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
             return (
             <Link key={tag} href={`/hashtag/${tag.slice(1)}`} className="flex items-center justify-between hover:bg-secondary px-2 py-1.5 rounded-lg transition-all group">
               <div>
-                <p className="text-xs font-semibold group-hover:text-amber-600 transition-colors">{tag}</p>
+                <p className="text-xs font-semibold group-hover:text-primary transition-colors">{tag}</p>
                 <p className="text-[10px] text-muted-foreground">{post_count} {post_count === 1 ? 'post' : 'posts'}</p>
               </div>
-              <Flame className="w-3.5 h-3.5 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Flame className="w-3.5 h-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
           );
           })}
         </div>
-        <Link href="/explore" className="block text-center mt-2 text-xs text-amber-600 hover:underline font-medium">
+        <Link href="/explore" className="block text-center mt-2 text-xs text-primary hover:underline font-medium">
           See all trending →
         </Link>
       </div>
@@ -184,7 +185,7 @@ function ViewTogglePill({
         aria-pressed={value === 'personal'}
         className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'personal'
-          ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 8px rgba(59,130,246,0.35)' }
+          ? { background: IDENTITY.personal.css, color: 'white' }
           : {}}
       >
         <User className="w-2.5 h-2.5 shrink-0" />
@@ -195,7 +196,7 @@ function ViewTogglePill({
         aria-pressed={value === 'business'}
         className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'business'
-          ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 8px rgba(245,158,11,0.35)' }
+          ? { background: IDENTITY.business.css, color: 'white' }
           : {}}
       >
         <Store className="w-2.5 h-2.5 shrink-0" />
@@ -211,6 +212,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   pathnameRef.current = pathname;
+  // Warm backend cache in background — only once per session
+  const hasWarmed = useRef(false);
   const router = useRouter();
   const { user, isAuthenticated, authChecked, isLoadingAuth, logout } = useAuth();
   const hasSignedInUser = authChecked && isAuthenticated && Boolean(user);
@@ -227,14 +230,25 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [accountOpen, setAccountOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [drawerSettingsOpen, setDrawerSettingsOpen] = useState(false);
   const [, setHomeTabsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; cover_url?: string } | null>(null);
+  // Prefer the most recent profile fetch; fall back to the /me response so the
+  // avatar is available immediately on login without waiting for a second API call.
+  const avatarUrl = userProfile?.avatar_url || user?.avatar_url || '';
+  const coverUrl  = userProfile?.cover_url  || user?.cover_url  || '';
   const { cart } = useCart();
   const isShowroomBuilder = pathname === "/showroom/create";
   const isImmersiveRoute = isShowroomBuilder || pathname.startsWith("/messages/");
+
+  const handleLogout = () => {
+    setLoggingOut(true);
+    resetSocket();
+    logout();
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -293,23 +307,26 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           : undefined,
       });
     };
-    // Hydrate bookmark state so bookmark buttons show correct saved state immediately
+    // Fire these in parallel — don't wait for the profile fetch to update the bell badge
     hydrateBookmarks();
+    loadUnreadCount(user);
     entities.UserProfile.filter({ user_id: user.id }).then(profiles => {
       if (!active) return;
       if (profiles.length === 0 && pathnameRef.current !== "/onboarding") {
         router.push("/onboarding");
         return;
       }
-      loadUnreadCount(user);
       connectSocket();
       getSocket().on("new_notification", onNotification);
     });
 
-    // Warm backend cache in background — don't await, don't block
-    client.get('/api/trending/warm').catch(() => {});
-    client.get('/api/trending').catch(() => {});
-    client.get('/api/posts?limit=10').catch(() => {});
+    // Warm backend cache in background — only once per session
+    if (!hasWarmed.current) {
+      hasWarmed.current = true;
+      client.get('/api/trending/warm').catch(() => {});
+      client.get('/api/trending').catch(() => {});
+      client.get('/api/posts?limit=10').catch(() => {});
+    }
     // Load user profile for avatar/cover in drawer
     client.get(`/api/profiles?user_id=${user.id}&limit=1`).then(r => {
       const profiles = Array.isArray(r.data) ? r.data : [];
@@ -336,11 +353,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const loadUnreadCount = async (_u?: any) => {
     try {
-      // Use direct client call — backend uses req.user.id from JWT, not a query param
-      const { data } = await client.get('/api/notifications?limit=60');
-      // The endpoint answers { notifications, next_cursor }; reading it as a list kept the badge at 0.
-      const notifications = Array.isArray(data) ? data : Array.isArray(data?.notifications) ? data.notifications : [];
-      setUnreadCount(notifications.filter((notif: any) => !notif.is_read && notif.type !== 'message' && notif.type !== 'inquiry').length);
+      // Use the lightweight unread-count endpoint instead of loading 60 full
+      // notification objects just to count them.
+      const { data } = await client.get('/api/notifications/unread-count');
+      setUnreadCount(typeof data?.count === 'number' ? data.count : 0);
     } catch {}
   };
 
@@ -364,7 +380,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const accountItems = [
     { path: "/orders",   icon: Package,     label: tr('nav.orders') },
     { path: "/cart",     icon: ShoppingCart, label: "Cart", badge: cart.count > 0 ? cart.count : null },
-    { path: "/wallet",   icon: Wallet,       label: tr('nav.wallet') },
+    ...(user?.has_wallet_balance ? [{ path: "/wallet", icon: Wallet, label: tr('nav.wallet') }] : []),
     { path: "/referral", icon: Gift,         label: "Referral" },
     { path: "/coupons",  icon: Tag,          label: "My Coupons" },
     { path: "/privacy",  icon: Shield,       label: "Privacy" },
@@ -382,19 +398,19 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       className={`flex items-center gap-3 rounded-xl transition-all text-sm font-medium group relative
         ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
         ${isActive(path)
-          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+          ? "bg-primary-subtle text-primary"
           : "text-muted-foreground hover:bg-secondary hover:text-foreground"
         }`}
     >
       <Icon className="w-4 h-4 shrink-0" />
       {!sidebarCollapsed && <span className="truncate">{label}</span>}
       {!sidebarCollapsed && badge ? (
-        <span className="ml-auto w-5 h-5 bg-[#f59e0b] text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
+        <span className="ml-auto w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">
           {badge > 9 ? "9+" : badge}
         </span>
       ) : null}
       {sidebarCollapsed && badge ? (
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#f59e0b] rounded-full" />
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
       ) : null}
       {sidebarCollapsed && (
         <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -405,7 +421,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-[100dvh] bg-background flex flex-col">
       {/* ── Header ── */}
       <header data-page-guide="app-header" className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="w-full px-4 h-14 flex items-center gap-3">
@@ -424,16 +440,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
           {/* Logo */}
           <Link href="/feed" aria-label="Go to home" className={`flex items-center gap-2 shrink-0 transition-all w-8 ${sidebarCollapsed ? "md:w-8" : "md:w-44"}`}>
-            <Image
-              src="/brand/nodbusiness-icon.svg"
-              alt="Nodbusiness"
-              width={32}
-              height={32}
-              loading="eager"
-              className="w-8 h-8 rounded-xl object-cover shadow-sm"
-            />
+            <BrandLogo size={32} label="Nodbusiness" className="w-8 h-8 shadow-sm" />
             {!sidebarCollapsed && (
-              <span className="hidden md:inline font-display text-lg font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+              <span className="hidden md:inline font-body text-lg font-black tracking-tight text-primary whitespace-nowrap">
                 Nodbusiness
               </span>
             )}
@@ -481,7 +490,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <div className="flex items-center gap-1 ml-auto">
             {/* Mobile search — full-width overlay when open */}
             {searchOpen && (
-              <div className="fixed inset-x-0 top-0 z-[200] h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
+              <div className="fixed inset-x-0 top-0 z-fullscreen h-14 bg-background border-b border-border flex items-center px-3 gap-2 shadow-lg">
                 <form className="flex-1"
                   onSubmit={e => {
                     e.preventDefault();
@@ -511,23 +520,23 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <>
                 <Link href="/cart" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Cart">
                   <ShoppingCart className="w-5 h-5 text-muted-foreground" />
-                  {cart.count > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cart.count > 9 ? "9+" : cart.count}</span>}
+                  {cart.count > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{cart.count > 9 ? "9+" : cart.count}</span>}
                 </Link>
                 <Link href="/messages" className="relative p-2 rounded-full hover:bg-secondary transition-colors md:hidden"
                   aria-label={messagesBadge.chats ? `Messages, ${messagesBadge.chats} unread` : "Messages"}>
                   <MessageCircle className="w-5 h-5 text-muted-foreground" />
-                  {messagesBadge.chats > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messagesBadge.chats > 9 ? "9+" : messagesBadge.chats}</span>}
+                  {messagesBadge.chats > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messagesBadge.chats > 9 ? "9+" : messagesBadge.chats}</span>}
                 </Link>
                 <Link href="/notifications" className="relative p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Notifications">
                   <Bell className="w-5 h-5 text-muted-foreground" />
-                  {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                  {unreadCount > 0 && <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">{unreadCount > 9 ? "9+" : unreadCount}</span>}
                 </Link>
                 <Link href="/bookmarks" className="p-2 rounded-full hover:bg-secondary transition-colors flex items-center justify-center" aria-label="Bookmarks">
                   <Bookmark className="w-5 h-5 text-muted-foreground" />
                 </Link>
-                <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
-                  {userProfile?.avatar_url
-                    ? <Image src={userProfile.avatar_url} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
+                <Link href="/profile" aria-label={`Profile: ${displayName}`} className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0 overflow-hidden ml-1">
+                  {avatarUrl
+                    ? <Image src={avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </Link>
               </>
@@ -539,11 +548,11 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   aria-label="Back to landing page"
                 >
                   <Home className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="whitespace-nowrap">Landing</span>
+                  <span className="hidden whitespace-nowrap min-[360px]:inline">Landing</span>
                 </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
                 <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
-                {authChecked && <span title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
+                {authChecked && <span role="img" title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
                 </span>}
               </>
@@ -564,20 +573,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {!sidebarCollapsed && (
             <div className="shrink-0">
               {/* Cover + avatar */}
-              <div className="relative h-20 bg-empire-gradient">
-                {userProfile?.cover_url && (
-                  <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+              <div className="relative h-20 bg-primary">
+                {coverUrl && (
+                  <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent" />
                 {/* Avatar overlapping cover */}
                 {hasSignedInUser ? (
-                  <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
-                    {userProfile?.avatar_url
-                      ? <Image src={userProfile.avatar_url} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                  <Link href="/profile" aria-label={`Profile: ${displayName}`} className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0">
+                    {avatarUrl
+                      ? <Image src={avatarUrl} alt={displayName} width={40} height={40} className="w-full h-full object-cover" unoptimized />
                       : userInitial}
                   </Link>
                 ) : (
-                  <div aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-slate-500 flex items-center justify-center text-white shadow-lg shrink-0">
+                  <div role="img" aria-label="Guest session" title="Browsing as guest" className="absolute -bottom-5 left-4 w-10 h-10 rounded-xl ring-2 ring-card overflow-hidden bg-muted-foreground flex items-center justify-center text-white shadow-lg shrink-0">
                     <UserRound className="h-5 w-5" />
                   </div>
                 )}
@@ -586,7 +595,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               <div className="pt-7 pb-2 px-4 border-b border-border/40">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <p className="text-xs font-bold truncate text-foreground leading-tight">{displayName}</p>
-                  {isDemoSession && <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-800 dark:bg-amber-400/15 dark:text-amber-200">Demo</span>}
+                  {isDemoSession && <span className="shrink-0 rounded-full bg-primary-subtle px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary-subtle-foreground">Demo</span>}
                 </div>
                 <p className="text-[10px] text-muted-foreground truncate">{hasSignedInUser ? (isDemoSession ? 'Temporary practice session' : userEmail) : 'Read-only guest access'}</p>
               </div>
@@ -597,16 +606,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           {sidebarCollapsed && (
             <div className="shrink-0 flex justify-center pt-3 pb-2 border-b border-border/40">
               {hasSignedInUser ? <Link href="/profile" aria-label={`Profile: ${displayName}`} className="relative group">
-                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
-                  {userProfile?.avatar_url
-                    ? <Image src={userProfile.avatar_url} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
+                <div className="w-9 h-9 rounded-xl ring-2 ring-border overflow-hidden bg-primary flex items-center justify-center text-white font-bold text-sm">
+                  {avatarUrl
+                    ? <Image src={avatarUrl} alt={displayName} width={36} height={36} className="w-full h-full object-cover" unoptimized />
                     : userInitial}
                 </div>
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
                   {displayName}
                 </span>
               </Link> : (
-                <div title="Browsing as guest" aria-label="Guest session" className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-secondary text-muted-foreground">
+                <div role="img" title="Browsing as guest" aria-label="Guest session" className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
                 </div>
               )}
@@ -649,7 +658,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <Link
               href="/showroom/create?step=3"
               title={sidebarCollapsed ? t('common.createShowroom') : undefined}
-              className={`relative flex items-center gap-3 rounded-xl bg-empire-gradient text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
+              className={`relative flex items-center gap-3 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-90 transition-all shadow-sm group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
             >
               <Plus className="w-4 h-4 shrink-0" />
@@ -667,9 +676,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               title={sidebarCollapsed ? t('common.showroomStudio') : undefined}
               className={`relative flex items-center gap-3 rounded-xl transition-all text-sm font-medium group
                 ${sidebarCollapsed ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}
-                ${isActive('/showroom/templates') ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                ${isActive('/showroom/templates') ? 'bg-primary-subtle text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
             >
-              <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" />
+              <BrandLogo className="w-4 h-4 shrink-0 text-primary" />
               {!sidebarCollapsed && <span>{t('common.showroomStudio')}</span>}
               {sidebarCollapsed && (
                 <span className="absolute left-full ml-2 px-2 py-1 rounded-lg bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
@@ -697,7 +706,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <div className="my-2 border-t border-border/40" />
 
             {!hasSignedInUser && !sidebarCollapsed && (
-              <div className="mx-1 my-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-950/20">
+              <div className="mx-1 my-3 rounded-2xl border border-primary/30 bg-primary-subtle p-3">
                 <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Sign in or join to save your activity.</p>
                 <div className="mt-3 flex gap-2">
@@ -765,7 +774,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   >
                     <div className="flex items-center gap-2.5 text-muted-foreground">
                       {mounted && theme === 'dark'
-                        ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                        ? <Sun className="w-4 h-4 shrink-0 text-primary" />
                         : <Moon className="w-4 h-4 shrink-0" />}
                       <span>Theme</span>
                     </div>
@@ -836,13 +845,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
               {hasSignedInUser ? (
                 <button
-                  onClick={() => { resetSocket(); logout(); }}
+                  onClick={handleLogout}
+                  disabled={loggingOut}
                   title={sidebarCollapsed ? "Log out" : undefined}
                   aria-label="Log out"
-                  className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'}`}
+                  className={`flex items-center gap-2.5 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground text-sm font-medium ${sidebarCollapsed ? 'justify-center px-0 py-2.5 flex-1 w-full' : 'px-3 py-2 flex-1'} ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}
                 >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  {!sidebarCollapsed && <span>Log out</span>}
+                  {loggingOut
+                    ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+                    : <LogOut className="w-4 h-4 shrink-0" />}
+                  {!sidebarCollapsed && <span>{loggingOut ? 'Signing out…' : 'Log out'}</span>}
                 </button>
               ) : (
                 <>
@@ -857,7 +869,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         </nav>
 
         {/* ── Main content ── */}
-        <main data-page-guide="main-content" className={`flex-1 min-w-0 transition-all duration-200
+        <main id="main-content" tabIndex={-1} data-page-guide="main-content" className={`outline-none flex-1 min-w-0 transition-all duration-200
           ${sidebarCollapsed ? "md:ml-14" : "md:ml-56"}
           xl:mr-72
           ${isImmersiveRoute
@@ -866,7 +878,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <WorkspaceSwitcher />
           {isLoadingAuth ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
             children
@@ -887,16 +899,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <>
               {/* Backdrop — click to close */}
               <div
-                className="fixed inset-0 z-[70] bg-black/50 md:hidden"
+                className="fixed inset-0 z-drawer-backdrop bg-black/50 md:hidden"
                 onClick={() => setDrawerOpen(false)}
               />
               {/* Panel — full height, same width as screen minus a handle strip */}
-              <div className="fixed inset-y-0 left-0 z-[80] md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
+              <div className="fixed inset-y-0 left-0 z-drawer md:hidden bg-white dark:bg-card w-[84vw] max-w-sm flex flex-col shadow-2xl">
 
                 {/* ── Cover photo + avatar inside it — full width, no side padding ── */}
-                <div className="relative h-40 shrink-0 bg-empire-gradient">
-                  {userProfile?.cover_url && (
-                    <Image src={userProfile.cover_url} alt="" fill className="object-cover" unoptimized />
+                <div className="relative h-40 shrink-0 bg-primary">
+                  {coverUrl && (
+                    <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
                   )}
                   {/* Dark gradient at bottom so avatar stands out */}
                   <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
@@ -913,13 +925,13 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {/* Avatar — bottom-left, INSIDE the cover area */}
                   {hasSignedInUser ? (
                     <Link href="/profile" onClick={() => setDrawerOpen(false)}
-                      className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-xl">
-                      {userProfile?.avatar_url
-                        ? <Image src={userProfile.avatar_url} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
+                      className="absolute bottom-3 left-4 w-16 h-16 rounded-2xl ring-3 ring-white/70 overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-xl">
+                      {avatarUrl
+                        ? <Image src={avatarUrl} alt={displayName} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                         : userInitial}
                     </Link>
                   ) : (
-                    <div aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-500 text-white shadow-xl">
+                    <div role="img" aria-label="Guest session" className="absolute bottom-3 left-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted-foreground text-white shadow-xl">
                       <UserRound className="h-8 w-8" />
                     </div>
                   )}
@@ -928,9 +940,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <div className="absolute bottom-3 left-24 right-3 min-w-0">
                     <div className="flex min-w-0 items-center gap-1.5">
                       <p className="text-sm font-bold text-white truncate leading-tight drop-shadow-sm">{displayName}</p>
-                      {isDemoSession && <span className="shrink-0 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Demo</span>}
+                      {isDemoSession && <span className="shrink-0 rounded-full bg-primary/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Demo</span>}
                     </div>
-                    <p className="text-[11px] text-white/80 truncate drop-shadow-sm">{isDemoSession ? 'Temporary practice session' : userEmail}</p>
+                    <p className="text-[11px] text-white truncate drop-shadow-sm">{isDemoSession ? 'Temporary practice session' : userEmail}</p>
                   </div>
                 </div>
 
@@ -941,9 +953,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   {visibleMainNavItems.map(({ path, icon: Icon, label, badge }) => (
                     <React.Fragment key={path}>
                       <Link href={path} onClick={() => setDrawerOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                         <Icon className="w-4 h-4 shrink-0" /><span className="flex-1">{label}</span>
-                        {badge ? <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span> : null}
+                        {badge ? <span className="w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span> : null}
                       </Link>
                       {/* Personal | Business pill — under Home in drawer */}
                       {path === '/feed' && isAuthenticated && isActive('/feed') && (
@@ -971,53 +983,53 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   {/* Create Showroom + Studio */}
                   {hasSignedInUser && <>
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <Link href="/showroom/create?step=3" onClick={() => setDrawerOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold shadow-sm">
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-sm">
                     <Plus className="w-4 h-4 shrink-0" /><span>{tr('common.createShowroom')}</span>
                   </Link>
                   <Link href="/showroom/templates" onClick={() => setDrawerOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
-                    <BrandLogo className="w-4 h-4 shrink-0 text-amber-500" /><span>{tr('common.showroomStudio')}</span>
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive('/showroom/templates') ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
+                    <BrandLogo className="w-4 h-4 shrink-0 text-primary" /><span>{tr('common.showroomStudio')}</span>
                   </Link>
                   </>}
 
                   {/* DISCOVER — collapsible, matches desktop */}
                   {hasSignedInUser ? <>
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setDiscoverOpen(v => !v)}
                     className="w-full flex items-center justify-between px-3 py-1 group"
                   >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
                   </button>
                   {discoverOpen && extraNavItems.map(({ path, icon: Icon, label }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" /><span>{label}</span>
                     </Link>
                   ))}
 
                   {/* MY ACCOUNT — collapsible, matches desktop */}
-                  <div className="my-2 border-t border-gray-100 dark:border-border" />
+                  <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setAccountOpen(v => !v)}
                     className="w-full flex items-center justify-between px-3 py-1 group"
                   >
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />
                   </button>
                   {accountOpen && accountItems.map(({ path, icon: Icon, label, badge }) => (
                     <Link key={path} href={path} onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${isActive(path) ? 'bg-primary/10 text-primary' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                       <Icon className="w-4 h-4 shrink-0" />
                       <span className="flex-1">{label}</span>
-                      {badge && <span className="w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
+                      {badge && <span className="w-5 h-5 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0">{badge > 9 ? '9+' : badge}</span>}
                     </Link>
                   ))}
                   </> : (
-                    <div className="my-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/20 dark:bg-amber-950/20">
+                    <div className="my-3 rounded-2xl border border-primary/30 bg-primary-subtle p-3">
                       <p className="text-xs font-bold text-foreground">Browsing as a guest</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">Sign in or join to save your activity.</p>
                       <div className="mt-3 flex gap-2">
@@ -1034,7 +1046,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 </div>
 
                 {/* ── Footer: Settings popup + Log out side by side ── */}
-                <div className="border-t border-gray-100 dark:border-border px-3 py-3 shrink-0 flex items-center gap-1 bg-white dark:bg-card relative"
+                <div className="border-t border-border dark:border-border px-3 py-3 shrink-0 flex items-center gap-1 bg-white dark:bg-card relative"
                   style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
 
                   {/* Settings popup — appears above footer, same style as desktop */}
@@ -1066,7 +1078,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                           className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-secondary transition-colors text-sm">
                           <div className="flex items-center gap-2.5 text-muted-foreground">
                             {mounted && theme === 'dark'
-                              ? <Sun className="w-4 h-4 shrink-0 text-amber-400" />
+                              ? <Sun className="w-4 h-4 shrink-0 text-primary" />
                               : <Moon className="w-4 h-4 shrink-0" />}
                             <span>Theme</span>
                           </div>
@@ -1106,12 +1118,16 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
                   <button
                     onClick={() => setDrawerSettingsOpen(v => !v)}
-                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-gray-600 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-secondary hover:text-gray-900 dark:hover:text-foreground'}`}>
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-sm font-medium ${drawerSettingsOpen ? 'bg-secondary text-foreground' : 'text-muted-foreground dark:text-muted-foreground hover:bg-secondary dark:hover:bg-secondary hover:text-foreground dark:hover:text-foreground'}`}>
                     <Settings className="w-4 h-4 shrink-0" /><span>Settings</span>
                   </button>
-                  {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); resetSocket(); logout(); }}
-                    className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-destructive/10 hover:text-red-600 dark:hover:text-destructive transition-colors text-gray-600 dark:text-muted-foreground text-sm font-medium">
-                    <LogOut className="w-4 h-4 shrink-0" /><span>Log out</span>
+                  {hasSignedInUser ? <button onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                    disabled={loggingOut}
+                    className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-destructive-subtle dark:hover:bg-destructive/10 hover:text-destructive dark:hover:text-destructive transition-colors text-muted-foreground dark:text-muted-foreground text-sm font-medium ${loggingOut ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    {loggingOut
+                      ? <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+                      : <LogOut className="w-4 h-4 shrink-0" />}
+                    <span>{loggingOut ? 'Signing out…' : 'Log out'}</span>
                   </button> : <Link href={`/login?return=${encodeURIComponent(pathname)}`} onClick={() => setDrawerOpen(false)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground"><User className="h-4 w-4" /><span>Sign in</span></Link>}
                 </div>
               </div>
@@ -1123,24 +1139,71 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <nav data-page-guide="mobile-navigation" aria-label="Mobile navigation" className="md:hidden fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-xl border-t border-border z-50"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex items-center h-16 px-1">
-              {/* More — LEFT */}
-              <button onClick={() => { setDrawerOpen(v => !v); }}
-                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Menu className="w-5 h-5" /><span className="text-[10px] font-medium">More</span>
+
+              {/* 1 — More: opens the full drawer menu */}
+              <button
+                onClick={() => { setDrawerOpen(v => !v); }}
+                aria-label="Open menu"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${drawerOpen ? 'text-primary' : 'text-muted-foreground'}`}
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-[10px] font-medium">More</span>
               </button>
-              <Link href="/explore" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/explore') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <TrendingUp className={`w-5 h-5 ${isActive('/explore') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Explore</span>
+
+              {/* 2 — Businesses: browse the business directory */}
+              <Link
+                href="/businesses"
+                aria-label="Businesses"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-primary' : 'text-muted-foreground'}`}
+              >
+                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Businesses</span>
               </Link>
-              <Link href={hasSignedInUser ? '/friends' : '/marketplace'} className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive(hasSignedInUser ? '/friends' : '/marketplace') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                {hasSignedInUser ? <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} /> : <Store className="w-5 h-5" />}<span className="text-[10px] font-medium">{hasSignedInUser ? 'Friends' : 'Marketplace'}</span>
+
+              {/* 3 — Friends: social connections */}
+              <Link
+                href={hasSignedInUser ? '/friends' : '/login?return=/friends'}
+                aria-label="Friends"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/friends') ? 'text-primary' : 'text-muted-foreground'}`}
+              >
+                <Users className={`w-5 h-5 ${isActive('/friends') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Friends</span>
               </Link>
-              <Link href="/businesses" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/businesses') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Store className={`w-5 h-5 ${isActive('/businesses') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Businesses</span>
-              </Link>
-              {/* Home — RIGHT, plain link, no chevron */}
-              <Link href="/feed" className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${isActive('/feed') ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                <Home className={`w-5 h-5 ${isActive('/feed') ? 'stroke-[2.5]' : ''}`} /><span className="text-[10px] font-medium">Home</span>
-              </Link>
+
+              {/* 4 — Social-Feed: personal content feed (Newspaper icon = posts/articles) */}
+              <button
+                onClick={() => {
+                  setHomeFeedMode('personal');
+                  router.push('/feed');
+                }}
+                aria-label="Social Feed"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
+                  isActive('/feed') && homeFeedMode === 'personal'
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Newspaper className={`w-5 h-5 ${isActive('/feed') && homeFeedMode === 'personal' ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Social-Feed</span>
+              </button>
+
+              {/* 5 — Business-Feed: business/commerce feed (Briefcase icon) */}
+              <button
+                onClick={() => {
+                  setHomeFeedMode('business');
+                  router.push('/feed');
+                }}
+                aria-label="Business Feed"
+                className={`flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all ${
+                  isActive('/feed') && homeFeedMode === 'business'
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                <Briefcase className={`w-5 h-5 ${isActive('/feed') && homeFeedMode === 'business' ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-medium">Business-Feed</span>
+              </button>
+
             </div>
           </nav>
         </>

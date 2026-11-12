@@ -1,0 +1,33 @@
+{
+  "id": "F-044",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Small reflow, target-size and forced-colours gaps",
+  "standards": [
+    "WCAG 2.2 SC 1.4.10 (Reflow)",
+    "WCAG 2.2 SC 2.5.8 (Target Size, Minimum)",
+    "WCAG 2.2 SC 1.4.11 (Non-text Contrast)"
+  ],
+  "location": [
+    "frontend-next/components/layout/AppLayout.tsx (header actions group)",
+    "frontend-next/components/AuthLayout.tsx (password toggle)",
+    "Button component (frontend-next/components/ui/button.tsx)"
+  ],
+  "steps": [
+    "a11y-scan.cjs reflow at 320 px; axe target-size; forced-colors emulation screenshots."
+  ],
+  "expected": "No horizontal scroll at 320 px; targets ≥ 24×24 px or spaced; buttons keep a visible boundary in Windows High Contrast.",
+  "actual": "16 of 36 page states scroll horizontally at 320 px, all by 3 px (header action group with the guest badge). 8 targets under 24 px (password visibility toggle, product page controls). In forced-colours mode the primary 'Sign in' button loses its background and border and reads as plain text.",
+  "evidence": [
+    "evidence/wave4/a11y-scan.json",
+    "evidence/wave4/a11y-detail.json",
+    "evidence/wave4/forced-colors-login.png"
+  ],
+  "impact": "Minor sideways jiggle on small phones; harder tapping; button affordance lost for high-contrast users.",
+  "fix": "Allow the header action group to shrink (min-w-0, smaller gap at <360 px); give icon buttons h-11 w-11 hit areas; add `forced-colors:border forced-colors:border-[ButtonText]` to the Button variants.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

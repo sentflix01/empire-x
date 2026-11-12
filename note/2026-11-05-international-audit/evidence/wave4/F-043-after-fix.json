@@ -1,0 +1,35 @@
+{
+  "checked_on": "2026-11-06",
+  "tool": "scripts/browser/a11y-elements.cjs (axe-core 4.10.3), local stack, 44 page states (12 guest + 18 member + product and profile pages for both)",
+  "rules": [
+    "button-name",
+    "link-name",
+    "label",
+    "select-name",
+    "image-alt",
+    "svg-img-alt",
+    "nested-interactive",
+    "aria-prohibited-attr"
+  ],
+  "before": {
+    "button-name": 14,
+    "link-name": 12,
+    "label": 2,
+    "select-name": 1,
+    "image-alt": 1,
+    "svg-img-alt": 3,
+    "nested-interactive": 13,
+    "aria-prohibited-attr": 18
+  },
+  "after": {
+    "button-name": 0,
+    "link-name": 0,
+    "label": 0,
+    "select-name": 0,
+    "image-alt": 0,
+    "svg-img-alt": 0,
+    "nested-interactive": 0,
+    "aria-prohibited-attr": 0
+  },
+  "pages_with_errors_after": []
+}

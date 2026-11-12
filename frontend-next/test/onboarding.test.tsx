@@ -26,7 +26,8 @@ describe('Onboarding', () => {
     expect(screen.getByRole('heading', { name: 'Personal Information' })).toBeTruthy();
     expect(screen.queryByText(/Choose Your Account Type/i)).toBeNull();
     expect(screen.queryByText(/Business Profile/i)).toBeNull();
-    expect(screen.getByRole('img', { name: 'Nodbusiness' })).toBeTruthy();
+    // BrandLogoVideo renders a <div aria-label="Nodbusiness"> with a <video>, not an <img>
+    expect(screen.getByLabelText('Nodbusiness')).toBeTruthy();
     expect(document.body.textContent).not.toContain('\u{1F451}');
     expect((screen.getByLabelText('Full Name') as HTMLInputElement).value).toBe('Sent Reader');
   });

@@ -1,0 +1,32 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-020",
+  "kind": "vulnerability",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Sandbox payment pages place an unchecked return_url into page script (non-production)",
+  "standards": [
+    "OWASP A05:2025 (XSS)",
+    "OWASP A01:2025 (open redirect)",
+    "ASVS 5.0 V1.2"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N",
+    "score": 2.1
+  },
+  "location": [
+    "backend/routes/orders.ts:745-751",
+    "backend/routes/wallet.ts:189-200"
+  ],
+  "expected": "return_url is validated against the frontend origin and encoded for a JavaScript context.",
+  "actual": "return_url is URL-decoded and interpolated into window.location.href='…' inside an inline script. Both routes return 404 in production (NODE_ENV check), so exposure is limited to local and any staging environment running in sandbox mode.",
+  "evidence": [
+    "backend/routes/orders.ts:746-750"
+  ],
+  "impact": "On a staging deployment, a crafted link could run script on the API origin or redirect testers. No production impact.",
+  "fix": "Accept only return URLs under getPrimaryFrontendUrl() (as subscriptionsEtb.ts already does) and pass values via JSON.stringify into the script, or drop the inline script for a plain link.",
+  "effort": "S"
+}

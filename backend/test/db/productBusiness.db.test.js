@@ -90,12 +90,10 @@ describe('product to business link (FUNC-03)', () => {
     expect(res.body.checkout_blocker).toBe('no_plan');
   });
 
-  it('leaves the choice to a seller with several businesses', async () => {
+  it('makes a seller with several businesses choose one (F-033)', async () => {
     const unchosen = await request(app).post('/api/products').set(auth(multiSeller)).send(product());
-    expect(unchosen.status).toBe(201);
-    expect(unchosen.body.business_id).toBeNull();
-    expect(unchosen.body.payment_ready).toBe(false);
-    expect(unchosen.body.checkout_blocker).toBe('no_business');
+    expect(unchosen.status).toBe(422);
+    expect(unchosen.body).toEqual({ error: 'Choose which business sells this product.', code: 'BUSINESS_REQUIRED', reason: 'choose_business' });
 
     const chosen = await request(app).post('/api/products').set(auth(multiSeller)).send(product({ business_id: multiBizB }));
     expect(chosen.status).toBe(201);
@@ -139,5 +137,43 @@ describe('product to business link (FUNC-03)', () => {
 
     await expect(migrate77(pool)).resolves.toBeUndefined();
     expect(await after(single)).toBe(sellerBiz);
+  });
+});
+
+describe('a product needs a business (F-033)', () => {
+  let noBizSeller;
+  beforeAll(async () => { noBizSeller = await createUser(); });
+  afterAll(async () => { await deleteUser(noBizSeller.id); });
+
+  it('refuses a seller with no business, and creates nothing', async () => {
+    const title = `DB Test Orphan ${tag()}`;
+    const res = await request(app).post('/api/products').set(auth(noBizSeller)).send(product({ title }));
+    expect(res.status).toBe(422);
+    expect(res.body).toEqual({ error: 'Create a business first, then add products to it.', code: 'BUSINESS_REQUIRED', reason: 'no_business' });
+    const { rows } = await pool.query('SELECT 1 FROM products WHERE seller_id=$1', [noBizSeller.id]);
+    expect(rows).toHaveLength(0);
+  });
+
+  it('refuses admins without a business too', async () => {
+    await pool.query("UPDATE users SET role='admin' WHERE id=$1", [noBizSeller.id]);
+    try {
+      const res = await request(app).post('/api/products').set(auth(noBizSeller)).send(product());
+      expect(res.status).toBe(422);
+    } finally {
+      await pool.query("UPDATE users SET role='user' WHERE id=$1", [noBizSeller.id]);
+    }
+  });
+
+  it('refuses new items in a scan batch without a business', async () => {
+    const res = await request(app).post('/api/products/scan-batch').set(auth(noBizSeller)).send({ items: [{ title: 'Water', price: 15 }] });
+    expect(res.status).toBe(422);
+    expect(res.body.code).toBe('BUSINESS_REQUIRED');
+  });
+
+  it('puts scan-batch products under the seller\'s only business', async () => {
+    const res = await request(app).post('/api/products/scan-batch').set(auth(seller)).send({ items: [{ title: `DB Test Scan ${tag()}`, price: 15 }] });
+    expect(res.status).toBe(201);
+    const { rows: [row] } = await pool.query('SELECT business_id FROM products WHERE id=$1', [res.body.created[0]]);
+    expect(row.business_id).toBe(sellerBiz);
   });
 });

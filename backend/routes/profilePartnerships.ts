@@ -5,8 +5,11 @@ import logger from '../lib/logger';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { requireSignInForPersonal } from '../lib/siteVisibility';
 import { personProfileJoin } from '../lib/personProfile';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['businessId', 'userId', 'id']);
 const RATE_MAX = 0.5;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

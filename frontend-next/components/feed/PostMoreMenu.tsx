@@ -170,27 +170,27 @@ export default function PostMoreMenu({ post, isAuthor, isAdmin, signedIn, myReac
                   <VolumeX className="h-4 w-4" aria-hidden="true" /><span>Mute {name}<span className="block text-xs text-muted-foreground">Hide their posts. They won’t know.</span></span>
                 </button>
                 {confirmBlock ? (
-                  <div className="mx-3 my-1 rounded-xl border border-red-200 bg-red-50 p-3 text-sm dark:border-red-500/30 dark:bg-red-500/10">
-                    <p className="font-medium text-red-900 dark:text-red-100">Block {name}? You won’t see each other’s posts, comments or messages, and you’ll stop following each other.</p>
+                  <div className="mx-3 my-1 rounded-xl border border-destructive/30 bg-destructive-subtle p-3 text-sm">
+                    <p className="font-medium text-destructive-subtle-foreground">Block {name}? You won’t see each other’s posts, comments or messages, and you’ll stop following each other.</p>
                     <div className="mt-2 flex gap-2">
                       <button type="button" onClick={run(async () => { await setBlocked(post.author_id, true); close(); onRemoved('blocked'); })}
-                        className="min-h-10 flex-1 rounded-full bg-red-600 px-3 font-semibold text-white">Block</button>
+                        className="min-h-10 flex-1 rounded-full bg-destructive px-3 font-semibold text-white">Block</button>
                       <button type="button" onClick={() => setConfirmBlock(false)} className="min-h-10 flex-1 rounded-full border border-border bg-background px-3">Cancel</button>
                     </div>
                   </div>
                 ) : (
-                  <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={() => setConfirmBlock(true)}>
+                  <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={() => setConfirmBlock(true)}>
                     <Ban className="h-4 w-4" aria-hidden="true" />Block {name}
                   </button>
                 )}
-                <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={() => { close(); setReportOpen(true); }}>
+                <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={() => { close(); setReportOpen(true); }}>
                   <Flag className="h-4 w-4" aria-hidden="true" />Report post
                 </button>
               </div>
             )}
             {(isAuthor || isAdmin) && onDelete && (
               <div className="mt-1 border-t border-border/60 pt-1">
-                <button role="menuitem" type="button" className={`${item} text-red-600`} onClick={() => { close(); onDelete(); }}>
+                <button role="menuitem" type="button" className={`${item} text-destructive`} onClick={() => { close(); onDelete(); }}>
                   <Trash2 className="h-4 w-4" aria-hidden="true" />Delete post
                 </button>
               </div>

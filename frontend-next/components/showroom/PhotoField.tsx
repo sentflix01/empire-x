@@ -50,13 +50,13 @@ export default function PhotoField({ id, label, value, onChange }: {
             Change photo
           </button>
           <button type="button" onClick={() => onChange('')} disabled={busy} aria-label={`Remove ${label.toLowerCase()}`}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-red-50 hover:text-red-600 disabled:opacity-50">
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive-subtle hover:text-destructive disabled:opacity-50">
             <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       ) : (
         <button type="button" onClick={() => input.current?.click()} disabled={busy}
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-60 dark:text-amber-200 dark:hover:bg-amber-500/10">
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 text-sm font-medium text-primary-subtle-foreground hover:bg-primary-subtle disabled:opacity-60">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ImagePlus className="h-4 w-4" aria-hidden="true" />}
           {busy ? 'Uploading…' : 'Add photo'}
         </button>

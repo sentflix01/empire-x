@@ -68,9 +68,9 @@
 | **Website** | https://supabase.com |
 | **Account** | sentflix01 (GitHub login) |
 | **Project name** | `empire-x's Project` |
-| **Project ref** | `tpgzlokgnjxcerexxoda` |
-| **Project URL** | https://tpgzlokgnjxcerexxoda.supabase.co |
-| **API URL** | https://tpgzlokgnjxcerexxoda.supabase.co |
+| **Project ref** | `your-project-ref` |
+| **Project URL** | https://your-project-ref.supabase.co |
+| **API URL** | https://your-project-ref.supabase.co |
 | **Region** | AWS eu-west-1 (Ireland) |
 | **PostgreSQL version** | 15 |
 | **Plan** | Free |
@@ -79,9 +79,9 @@
 **Connection strings:**
 | Purpose | URL format | Port |
 |---|---|---|
-| App (live server) | `postgresql://postgres.tpgzlokgnjxcerexxoda:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require` | 6543 |
+| App (live server) | `postgresql://postgres.your-project-ref:PASS@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require` | 6543 |
 | Migrations (CI) | Same pooler URL (port 6543) | 6543 |
-| Backups (`pg_dump`) | `postgresql://postgres:PASS@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require` | 5432 |
+| Backups (`pg_dump`) | `postgresql://postgres:PASS@db.your-project-ref.supabase.co:5432/postgres?sslmode=require` | 5432 |
 
 **Storage:**
 - Bucket name: `uploads`

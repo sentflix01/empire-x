@@ -8,6 +8,19 @@
  * Requirements: 5.2, 5.4
  */
 
+import { scrubSentryBreadcrumb, scrubSentryEvent } from './redact';
+
+/**
+ * Privacy options for every event (audit F-015): no default PII, and guest
+ * order tokens and signed-link signatures are removed from URLs.
+ */
+export const sentryPrivacyOptions = {
+  sendDefaultPii: false,
+  beforeSend: <T extends Record<string, unknown>>(event: T): T => scrubSentryEvent(event),
+  beforeSendTransaction: <T extends Record<string, unknown>>(event: T): T => scrubSentryEvent(event),
+  beforeBreadcrumb: <T extends Record<string, unknown>>(crumb: T): T => scrubSentryBreadcrumb(crumb),
+};
+
 // Dynamically import Sentry to avoid crashing when the package is absent
 let _Sentry: any = null;
 
@@ -36,6 +49,7 @@ export async function initSentry() {
     environment: process.env.NODE_ENV || 'development',
     // Expose to ErrorBoundary via globalThis
     integrations: [],
+    ...sentryPrivacyOptions,
   });
 
   // Expose for ErrorBoundary.componentDidCatch
@@ -51,11 +65,12 @@ export async function captureError(err: unknown, context?: Record<string, unknow
   }
 }
 
-export async function setSentryUser(user: { id: string; email?: string } | null) {
+/** Only the user id is sent; email and other contact details stay out of error tracking. */
+export async function setSentryUser(user: { id: string } | null) {
   const Sentry = await getSentry();
   if (!Sentry?.setUser) return;
   if (user) {
-    Sentry.setUser({ id: user.id, email: user.email });
+    Sentry.setUser({ id: user.id });
   } else {
     Sentry.setUser(null);
   }

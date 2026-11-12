@@ -13,6 +13,19 @@ import BookmarkButton from "@/components/ui/BookmarkButton";
 import { useAppStore } from "@/store";
 import { useAuth } from "@/lib/AuthContext";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { firstImage } from "@/lib/spotlightTiles";
+import { formatAmount } from "@/lib/money";
+
+/** GET /api/wishlists/price-alerts: the alert joined with the product. Prices are NUMERIC (decimal strings). */
+interface PriceAlert {
+  product_id: string;
+  target_price: number | string;
+  is_triggered?: boolean;
+  title: string;
+  current_price: number | string;
+  currency?: string | null;
+  images?: unknown;
+}
 
 function Bookmarks() {
   const { t } = useTranslation();
@@ -26,20 +39,22 @@ function Bookmarks() {
 
   const savedIds = useAppStore(s => s.savedIds);
   const hydrate  = useAppStore(s => s.hydrate);
+  const hasHydrated = useAppStore(s => s.hasHydrated);
   const storeError = useAppStore(s => s.error);
   const isHydrating = useAppStore(s => s.isHydrating);
   const { user, authChecked } = useAuth();
 
   const [tab, setTab] = useState("all");
-  const [alerts, setAlerts] = useState([]);
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState(false);
 
-  // Hydrate only when the store has no bookmarks yet
+  // Load bookmarks once. Keying this on savedIds re-ran it after every empty
+  // result (a new `{}` each time) and requested /api/saves in a loop (F-040).
+  // A failed load leaves hasHydrated false, so the next visit retries; the
+  // error state's Retry button calls hydrate() directly.
   useEffect(() => {
-    if (Object.keys(savedIds).length === 0) {
-      hydrate();
-    }
-  }, [hydrate, savedIds]);
+    if (!hasHydrated) hydrate();
+  }, [hasHydrated, hydrate]);
 
   useEffect(() => {
     if (tab === "alerts") loadAlerts();
@@ -56,7 +71,7 @@ function Bookmarks() {
     setAlertsLoading(false);
   };
 
-  const handleRemoveAlert = async (productId) => {
+  const handleRemoveAlert = async (productId: string) => {
     try {
       await client.delete(`/api/wishlists/price-alerts/${productId}`);
       setAlerts(prev => prev.filter(a => a.product_id !== productId));
@@ -72,14 +87,14 @@ function Bookmarks() {
   return (
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
-          <Bookmark className="w-6 h-6 text-amber-500"/>
+          <Bookmark className="w-6 h-6 text-primary"/>
           <h1 data-page-guide="bookmarks-header" className="font-display text-2xl font-bold">{t('bookmarks.title')}</h1>
         </div>
 
         <div data-page-guide="bookmarks-tabs" className="flex gap-1 overflow-x-auto pb-2 mb-4">
           {TABS.map(t=>(
             <button key={t.key} onClick={()=>setTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${tab===t.key?"bg-amber-500 text-white":"bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${tab===t.key?"bg-primary text-white":"bg-card border border-border/50 text-muted-foreground hover:bg-secondary"}`}>
               {t.icon && <t.icon className="w-3.5 h-3.5"/>}{t.label}
             </button>
           ))}
@@ -88,7 +103,7 @@ function Bookmarks() {
         {/* Price Alerts tab */}
         {tab === "alerts" && (
           alertsLoading ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>
           ) : alerts.length === 0 ? (
             <div className="text-center py-16">
               <Bell className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3"/>
@@ -98,33 +113,33 @@ function Bookmarks() {
           ) : (
             <div className="space-y-3">
               {alerts.map(a => {
-                const imgs = (() => { try { return JSON.parse(a.images || "[]"); } catch { return []; } })();
+                const image = firstImage(a.images);
                 const dropped = a.is_triggered;
-                const pct = a.current_price > 0
-                  ? Math.round(((a.current_price - a.target_price) / a.current_price) * 100)
-                  : 0;
+                const current = Number(a.current_price);
+                const target = Number(a.target_price);
+                const pct = current > 0 ? Math.round(((current - target) / current) * 100) : 0;
                 return (
-                  <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-green-300 dark:border-green-700" : "border-border/50"}`}>
+                  <div key={a.product_id} className={`bg-card rounded-2xl border p-4 flex items-center gap-3 ${dropped ? "border-success/30" : "border-border/50"}`}>
                     {/* Thumbnail */}
                     <div className="w-14 h-14 rounded-xl bg-secondary/30 shrink-0 overflow-hidden relative">
-                      {imgs[0]
-                        ? <NextImage src={imgs[0]} alt={a.title} fill className="object-cover" unoptimized />
+                      {image
+                        ? <NextImage src={image} alt={a.title} fill className="object-cover" unoptimized />
                         : <div className="w-full h-full flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-muted-foreground/20"/></div>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link href={`/products/${a.product_id}`} className="text-sm font-semibold hover:underline line-clamp-1">{a.title}</Link>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Current: <span className="font-medium text-foreground">{parseFloat(a.current_price).toLocaleString()} {a.currency}</span>
-                        {" · "}Target: <span className="font-medium text-amber-600">{parseFloat(a.target_price).toLocaleString()}</span>
+                        Current: <span className="font-medium text-foreground">{formatAmount(a.current_price)} {a.currency}</span>
+                        {" · "}Target: <span className="font-medium text-primary">{formatAmount(a.target_price)}</span>
                       </p>
                       {dropped ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-success bg-success-subtle px-2 py-0.5 rounded-full mt-1">
                           {t('bookmarks.priceDropped')}
                         </span>
                       ) : pct > 0 ? (
                         <span className="text-[10px] text-muted-foreground mt-0.5 block">{t('bookmarks.priceAboveTarget', { pct })}</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full mt-1">
                           {t('bookmarks.priceAtTarget')}
                         </span>
                       )}
@@ -143,10 +158,10 @@ function Bookmarks() {
         {/* Bookmarks tabs */}
         {tab !== "alerts" && (
           isHydrating ? (
-            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/></div>
+            <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin"/></div>
           ) : (storeError || (!user && authChecked)) && filtered.length === 0 ? (
             <ErrorState
-              message={!user ? 'Sign in to see your bookmarks' : storeError}
+              message={!user ? 'Sign in to see your bookmarks' : (storeError || 'Could not load your bookmarks')}
               onRetry={!user ? () => { window.location.href = '/login?return=/bookmarks'; } : () => hydrate()}
             />
           ) : filtered.length === 0 ? (

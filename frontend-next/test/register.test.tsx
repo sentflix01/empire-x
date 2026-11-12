@@ -105,5 +105,9 @@ describe('Register form', () => {
     render(<Register />);
     expect(screen.getByRole('heading', { name: /check your email/i })).toBeTruthy();
     expect(screen.getByText(/pending@example\.com/i)).toBeTruthy();
+    // The code field has an accessible name (audit F-035, WCAG 4.1.2).
+    const code = screen.getByRole('textbox', { name: 'Verification code' });
+    expect(code.getAttribute('autocomplete')).toBe('one-time-code');
+    expect(code.getAttribute('inputmode')).toBe('numeric');
   });
 });

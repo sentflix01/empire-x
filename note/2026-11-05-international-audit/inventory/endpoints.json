@@ -1,0 +1,3440 @@
+{
+  "generated": "2026-11-11T16:49:15.994Z",
+  "mounts": 53,
+  "count": 372,
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/verify-otp",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/resend-otp",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/demo",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/demo/exit",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/demo/reset",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/workspace",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/onboarding-mode",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/verify",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/google",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me/export",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/auth/me",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/forgot-password",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/reset-password",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/update-name",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/change-password",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/refresh",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "module": "routes/auth.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout-all",
+      "module": "routes/auth.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/mfa/status",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/setup",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/enable",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/disable",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/mfa/recovery-codes",
+      "module": "routes/mfa.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/me",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/by-user/:userId",
+      "module": "routes/profiles.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/me/follows",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/follows",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/:id",
+      "module": "routes/profiles.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles",
+      "module": "routes/profiles.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profiles",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profiles/me/upsert",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profiles/:id",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/profiles/me/ticker",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profiles/follow/:targetUserId",
+      "module": "routes/profiles.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/posts",
+      "module": "routes/posts.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/posts/:id",
+      "module": "routes/posts.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/posts",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/posts/:id",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/posts/:id",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/posts/:id/like",
+      "module": "routes/posts.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/posts/:id/like",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/posts/:id/reaction",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/posts/:id/reaction",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/posts/:id/reactions",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/posts/:id/hide",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/posts/:id/hide",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/posts/:id/settings",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/posts/:id/comments",
+      "module": "routes/posts.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/posts/:id/comments",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/posts/:postId/comments/:commentId",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/posts/:postId/comments/:commentId",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/posts/:postId/comments/:commentId/reaction",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/posts/:postId/comments/:commentId/reaction",
+      "module": "routes/posts.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/products",
+      "module": "routes/products.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/products/mine",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/products/lookup/:code",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/products/import-image",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/products/scan-batch",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/products/:id",
+      "module": "routes/products.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/products",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/products/:id",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/products/:id",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/products/bulk-import",
+      "module": "routes/products.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/session/:sessionId",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/:id",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/orders/:id",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/checkout/session",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/webhook",
+      "module": "routes/orders.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/orders/checkout/chapa",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/chapa/sandbox",
+      "module": "routes/orders.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/chapa/status/:tx_ref",
+      "module": "routes/orders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/orders/chapa/verify/:tx_ref",
+      "module": "routes/orders.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-partnerships/mine",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-partnerships/business/:businessId/products",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-partnerships/profile/:userId",
+      "module": "routes/profilePartnerships.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "requireSignInForPersonal"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile-partnerships",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile-partnerships/:id/accept",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile-partnerships/:id/decline",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/profile-partnerships/:id/terminate",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-partnerships/my-commissions",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile-partnerships/payouts",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profile-partnerships/:id/payouts",
+      "module": "routes/profilePartnerships.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/conversations",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/unread-count",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/conversations/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/:id/read",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/delivered",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/conversations/:id/mute",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/conversations/:id/archive",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/:id/accept",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/conversations/:id/for-me",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/find-or-create",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/business",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/quick-replies",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/quick-replies",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/conversations/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/conversations/:convId/messages",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/:convId/messages",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/messages/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/messages/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/messages/:id/for-me",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/conversations/:id/history",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/:id/leave",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/conversations/:id/members",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/conversations/:id/members/:userId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/conversations/:id/members/:userId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/conversations/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/presence",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/presence/:userId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/presence/settings",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/block/:targetId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/block/:targetId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/block/:targetId",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/messages/:id/forward",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/inquiry",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/messages/:id/reactions",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/messages/:id/reactions",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/messages/:id/reactions",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/search",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/messages/:id/pin",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/messages/:id/pin",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/conversations/:convId/pins",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/saved/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/saved/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/messages/saved",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/share-product",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/messages/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/:id",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/messages/:id/for-me",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/messages/:id/forward",
+      "module": "routes/messages.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/internal/jobs/:name",
+      "module": "routes/internalJobs.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/unread-count",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notifications/read-all",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/notifications/mark-read",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notifications/:id/read",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/notifications/:id",
+      "module": "routes/notifications.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/businesses",
+      "module": "routes/businesses.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/businesses/:id",
+      "module": "routes/businesses.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/businesses",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/businesses/:id",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/businesses/:id",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/businesses/:id/payment-accounts",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/businesses/:id/payment-accounts",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/businesses/:id/payment-accounts/:accountId",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/businesses/:id/payment-accounts/:accountId",
+      "module": "routes/businesses.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/businesses/:id/checkout-info",
+      "module": "routes/businesses.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms",
+      "module": "routes/showrooms.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/slug/:slug",
+      "module": "routes/showrooms.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms/:id/recheck/:sectionKey",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:id/doctor",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/sitemap-data",
+      "module": "routes/showrooms.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms/:id/newsletter",
+      "module": "routes/showrooms.ts",
+      "access": "optional",
+      "middleware": [
+        "<anonymous>",
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:id/newsletter",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/showrooms/:id/spotlight",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:id",
+      "module": "routes/showrooms.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/showrooms/:id",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/showrooms/:id",
+      "module": "routes/showrooms.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/upload",
+      "module": "routes/upload.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "multerMiddleware"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/upload/multiple",
+      "module": "routes/upload.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "acceptFiles"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/stats",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/:id/role",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/users/:id",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/:id/ban",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/users/:id/unban",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/verifications",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/verifications/:userId",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/verifications/:userId",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/posts",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/posts/:id",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/products",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/products/:id",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/orders",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/reports",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/reports/:id",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/:id/verify",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/stats/revenue",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/audit-logs",
+      "module": "routes/admin.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/search",
+      "module": "routes/search.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/stories",
+      "module": "routes/stories.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "requireSignInForPersonal"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/stories/user/:userId",
+      "module": "routes/stories.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "requireSignInForPersonal"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/stories",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/stories/:id/view",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/stories/:id/reactions",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/stories/:id/comments",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/stories/:id/comments",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/stories/:id",
+      "module": "routes/stories.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews",
+      "module": "routes/reviews.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/product/:productId",
+      "module": "routes/reviews.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/reviews",
+      "module": "routes/reviews.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/reviews/:id",
+      "module": "routes/reviews.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/saves",
+      "module": "routes/saves.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/saves/toggle",
+      "module": "routes/saves.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/saves/my-products",
+      "module": "routes/saves.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/saves/check/:targetId",
+      "module": "routes/saves.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/moderation/report",
+      "module": "routes/moderation.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/moderation/reports",
+      "module": "routes/moderation.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/moderation/reports/:id",
+      "module": "routes/moderation.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/social/relationship/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/social/mute/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/social/mute/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/social/restrict/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/social/restrict/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/social/block/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/social/block/:userId",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/social/people",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/social/privacy",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/social/privacy",
+      "module": "routes/social.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/wallet/me",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/topup",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/withdraw",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/debit",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/refund",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/topup/chapa",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/wallet/topup/chapa/sandbox",
+      "module": "routes/wallet.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/wallet/topup/chapa/verify/:tx_ref",
+      "module": "routes/wallet.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/wallet/topup/stripe",
+      "module": "routes/wallet.ts",
+      "access": "auth",
+      "middleware": [
+        "<anonymous>",
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/push/vapid-public-key",
+      "module": "routes/push.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/push/subscribe",
+      "module": "routes/push.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/push/unsubscribe",
+      "module": "routes/push.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/trending",
+      "module": "routes/trending.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/trending/warm",
+      "module": "routes/trending.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/suggestions/people",
+      "module": "routes/suggestions.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/suggestions/dismiss/:targetUserId",
+      "module": "routes/suggestions.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/friends/mutual",
+      "module": "routes/friends.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/verification/documents",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "acceptDocument"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/verification/request",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/verification/status",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/verification/my-request",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/verification",
+      "module": "routes/verification.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/verification/:id/documents",
+      "module": "routes/verification.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/verification/:id/approve",
+      "module": "routes/verification.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/verification/:id/reject",
+      "module": "routes/verification.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/private-files/*key",
+      "module": "routes/privateFiles.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/status",
+      "module": "routes/ai.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/generate",
+      "module": "routes/ai.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/generate-description",
+      "module": "routes/ai.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/chat",
+      "module": "routes/ai.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/referral/my-code",
+      "module": "routes/referral.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/referral/apply",
+      "module": "routes/referral.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/referral/use",
+      "module": "routes/referral.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/hashtags/trending",
+      "module": "routes/hashtags.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/hashtags/:name",
+      "module": "routes/hashtags.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/hashtags/:name/posts",
+      "module": "routes/hashtags.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/polls/:postId/vote",
+      "module": "routes/polls.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/polls/:postId/results",
+      "module": "routes/polls.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth",
+        "requireSignInForPersonal"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/coupons",
+      "module": "routes/coupons.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/coupons/mine",
+      "module": "routes/coupons.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/coupons/validate",
+      "module": "routes/coupons.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/coupons/use",
+      "module": "routes/coupons.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/coupons/:id/toggle",
+      "module": "routes/coupons.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/coupons/:id",
+      "module": "routes/coupons.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/commission/my-commissions",
+      "module": "routes/commission.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/commission/admin/summary",
+      "module": "routes/commission.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/maps/nearby/product-search",
+      "module": "routes/maps.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/maps/nearby",
+      "module": "routes/maps.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/telegram/connect",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/telegram/disconnect",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/telegram/disconnect",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/telegram/status",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/telegram/notifications",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/telegram/test",
+      "module": "routes/telegram.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/cart",
+      "module": "routes/cart.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/cart/add",
+      "module": "routes/cart.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/cart/:itemId",
+      "module": "routes/cart.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/cart/:itemId",
+      "module": "routes/cart.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/cart",
+      "module": "routes/cart.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/wishlists",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/wishlists/check/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wishlists",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/wishlists/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/wishlists/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/wishlists/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/wishlists/price-alerts/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/price-alerts/check/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/price-alerts/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/price-alerts/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/price-alerts/price-alerts",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/price-alerts/price-alerts/:productId",
+      "module": "routes/wishlists.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/variants/product/:productId",
+      "module": "routes/variants.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/variants/product/:productId",
+      "module": "routes/variants.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/variants/:id",
+      "module": "routes/variants.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/variants/:id",
+      "module": "routes/variants.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/returns",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/returns/seller",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/returns",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/returns/:id/approve",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/returns/:id/reject",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/returns/:id",
+      "module": "routes/returns.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/delivery/order/:orderId",
+      "module": "routes/delivery.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/delivery",
+      "module": "routes/delivery.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/flags/page-guided-tours",
+      "module": "routes/flags.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/flags",
+      "module": "routes/flags.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/flags/:name",
+      "module": "routes/flags.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/flags/:name",
+      "module": "routes/flags.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:showroomId/external-sources/health",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:showroomId/external-sources",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms/:showroomId/external-sources",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership",
+        "requirePaidTier"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership",
+        "requirePaidTier"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership",
+        "requirePaidTier"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/showrooms/:showroomId/external-sources/:sourceId/refresh",
+      "module": "routes/externalSources.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "assertOwnership"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/proxy/:showroomId/:sectionKey",
+      "module": "routes/proxy.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/share-preview/showroom/:slug",
+      "module": "routes/sharePreview.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/share-preview/product/:id",
+      "module": "routes/sharePreview.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/direct-orders/checkout-info",
+      "module": "routes/directOrders.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/requests",
+      "module": "routes/directOrders.ts",
+      "access": "optional",
+      "middleware": [
+        "<anonymous>",
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders",
+      "module": "routes/directOrders.ts",
+      "access": "optional",
+      "middleware": [
+        "<anonymous>",
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/direct-orders/link/:token",
+      "module": "routes/directOrders.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/link/:token/report-payment",
+      "module": "routes/directOrders.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>",
+        "multerMiddleware"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/:id/report-payment",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "multerMiddleware"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/:id/confirm-payment",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/:id/reject-payment",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/:id/set-price",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/direct-orders/:id/decline-request",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/direct-orders/link/:token/receipt",
+      "module": "routes/directOrders.ts",
+      "access": "none",
+      "middleware": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/direct-orders/:id/receipt",
+      "module": "routes/directOrders.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/devops",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/devops/:id",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/devops/:id",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/errors",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/errors/stats",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/devops/errors/:id/resolve",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/devops/errors/:id/resolve",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/devops/errors/resolve-all",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/devops/errors/:id/to-ticket",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/devops/errors/report",
+      "module": "routes/devops.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/versions",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/devops/versions",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/devops/versions/:version",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/health-summary",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/telemetry",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/devops/copilot",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/devops/scorecard",
+      "module": "routes/devops.ts",
+      "access": "admin",
+      "middleware": [
+        "requireAuth",
+        "requireAdmin"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/docs",
+      "module": "routes/docs.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/quote",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/checkout",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/webhook/chapa",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/chapa/callback",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/payments",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/payments/:ref/status",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/payments/:id/receipt",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/chapa/sandbox",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/chapa/sandbox/pay",
+      "module": "routes/subscriptionsEtb.ts",
+      "access": "none",
+      "middleware": [
+        "urlencodedParser"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/plans",
+      "module": "routes/subscriptions.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/subscriptions/my",
+      "module": "routes/subscriptions.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/create",
+      "module": "routes/subscriptions.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/cancel",
+      "module": "routes/subscriptions.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "requireIsolatedPaymentEnvironment"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/subscriptions/webhook",
+      "module": "routes/subscriptions.ts",
+      "access": "none",
+      "middleware": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/locations/update",
+      "module": "routes/locations.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/locations/:businessId",
+      "module": "routes/locations.ts",
+      "access": "optional",
+      "middleware": [
+        "optionalAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/business-webhooks",
+      "module": "routes/businessWebhooks.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/business-webhooks",
+      "module": "routes/businessWebhooks.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/api/business-webhooks/:id",
+      "module": "routes/businessWebhooks.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/business-webhooks/:id",
+      "module": "routes/businessWebhooks.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/business-api-keys",
+      "module": "routes/businessApiKeys.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/business-api-keys",
+      "module": "routes/businessApiKeys.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/business-api-keys/:id",
+      "module": "routes/businessApiKeys.ts",
+      "access": "auth",
+      "middleware": [
+        "requireAuth"
+      ]
+    }
+  ]
+}

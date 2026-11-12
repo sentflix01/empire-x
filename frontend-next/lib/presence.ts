@@ -18,6 +18,7 @@
  *   no timestamp              → "last seen a while ago"
  */
 
+import { HEX } from '@/lib/colorTokens';
 import {
   differenceInSeconds,
   differenceInMinutes,
@@ -192,10 +193,10 @@ export function formatLastSeen(data: PresenceData | null): string {
 export function presenceDotClass(category: PresenceCategory): string {
   switch (category) {
     case 'online':
-    case 'recent':    return 'bg-green-500';
-    case 'away':      return 'bg-amber-400';
-    case 'today':     return 'bg-green-300';
-    default:          return 'bg-gray-400';
+    case 'recent':    return 'bg-success';
+    case 'away':      return 'bg-primary';
+    case 'today':     return 'bg-success';
+    default:          return 'bg-muted-foreground/30';
   }
 }
 
@@ -205,10 +206,10 @@ export function presenceDotClass(category: PresenceCategory): string {
 export function presenceDotColor(category: PresenceCategory): string {
   switch (category) {
     case 'online':
-    case 'recent':  return '#22c55e';   // green-500
-    case 'away':    return '#fbbf24';   // amber-400
-    case 'today':   return '#86efac';   // green-300
-    default:        return '#9ca3af';   // gray-400
+    case 'recent':  return HEX.success;
+    case 'away':    return HEX.warning;
+    case 'today':   return HEX.muted;    // seen today, not active now
+    default:        return HEX.border;
   }
 }
 

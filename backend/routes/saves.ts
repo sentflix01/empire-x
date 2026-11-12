@@ -76,6 +76,31 @@ router.post('/toggle', requireAuth, async (req: Request, res: Response) => {
   } catch { res.status(500).json({ error: 'Failed to toggle save' }); }
 });
 
+/**
+ * When each of the signed-in seller's own products was saved, for Business
+ * Analytics ("Saves"). Never says who saved it. Optional ?business_id= narrows
+ * to one business; newest first, at most 1000.
+ */
+router.get('/my-products', requireAuth, async (req: Request, res: Response) => {
+  const businessId = typeof req.query.business_id === 'string' && req.query.business_id ? req.query.business_id : null;
+  if (businessId && !/^[0-9a-f-]{36}$/i.test(businessId)) { res.status(400).json({ error: 'Invalid business_id' }); return; }
+  try {
+    const values: unknown[] = [req.user!.id];
+    let businessFilter = '';
+    if (businessId) { values.push(businessId); businessFilter = ` AND p.business_id = $${values.length}`; }
+    const { rows } = await pool.query(
+      `SELECT s.target_id, s.created_at
+         FROM saves s
+         JOIN products p ON p.id = s.target_id
+        WHERE s.target_type = 'product' AND p.seller_id = $1${businessFilter}
+        ORDER BY s.created_at DESC
+        LIMIT 1000`,
+      values,
+    );
+    res.json(rows);
+  } catch { res.status(500).json({ error: 'Failed to fetch product saves' }); }
+});
+
 router.get('/check/:targetId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { rows } = await pool.query('SELECT id FROM saves WHERE user_id=$1 AND target_id=$2', [req.user!.id, req.params.targetId]);

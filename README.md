@@ -117,7 +117,7 @@ the backend and its `DATABASE_URL` are on this machine (`frontend-next/e2e/targe
 |---|---|
 | Frontend | **Next.js 16** (App Router), TypeScript, TailwindCSS, shadcn/ui |
 | State | TanStack Query, React context |
-| Backend | Node.js, Express 4 |
+| Backend | Node.js, Express 5 |
 | Database | PostgreSQL 14+ (Supabase Postgres) |
 | Cache / Queue | Redis (Upstash) + BullMQ |
 | Real-time | Socket.IO |

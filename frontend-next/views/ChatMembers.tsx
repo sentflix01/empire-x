@@ -18,6 +18,7 @@ import ChoiceDialog, { type Choice } from '@/components/messaging/ChoiceDialog';
 import PeoplePicker, { PersonAvatar, type Person } from '@/components/messaging/PeoplePicker';
 import { MAX_GROUP_MEMBERS } from '@/components/messaging/CreateGroupDialog';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { token } from '@/lib/colorTokens';
 
 interface Member { user_id: string; role?: string | null; display_name?: string | null; avatar_url?: string | string[] | null }
 interface Group { id: string; type: string; name?: string | null; description?: string | null; my_role?: string | null; members?: Member[] }
@@ -130,7 +131,7 @@ function ChatMembers() {
   };
 
   return (
-    <div className="fixed inset-x-0 top-[var(--chat-top,0px)] z-[55] flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-background md:static md:z-auto md:h-full">
+    <div className="fixed inset-x-0 top-[var(--chat-top,0px)] z-chat-panel flex h-[var(--chat-vh,100dvh)] flex-col overflow-hidden bg-background md:static md:z-auto md:h-full">
       <div className="flex shrink-0 items-center gap-2 bg-primary px-1.5 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-white md:pt-2">
         <button type="button" onClick={back} aria-label="Back to chat" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-white/10">
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -151,7 +152,7 @@ function ChatMembers() {
         <div className="min-h-0 flex-1 overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
           <section className="flex flex-col items-center gap-2 border-b border-border px-4 py-6 text-center">
             <span className="flex h-20 w-20 items-center justify-center rounded-full text-white"
-              style={{ background: isChannel ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)' }} aria-hidden="true">
+              style={{ background: isChannel ? token.primary : token.brandSecondary }} aria-hidden="true">
               {isChannel ? <Radio className="h-9 w-9" /> : <Users className="h-9 w-9" />}
             </span>
             {editing ? (
@@ -197,7 +198,7 @@ function ChatMembers() {
                     <PersonAvatar person={m} />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">{m.display_name || 'User'}{m.user_id === me && <span className="text-muted-foreground"> (you)</span>}</span>
                     {m.role === 'admin' && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success-subtle px-2 py-0.5 text-[11px] font-semibold text-success-subtle-foreground">
                         <ShieldCheck className="h-3 w-3" aria-hidden="true" />Admin
                       </span>
                     )}
@@ -221,7 +222,7 @@ function ChatMembers() {
       )}
 
       {adding && group && (
-        <div className="fixed inset-0 z-[65] flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={() => setAdding(false)}>
+        <div className="fixed inset-0 z-chat-dialog flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={() => setAdding(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-people-title" onClick={(e) => e.stopPropagation()}
             className="flex h-full w-full flex-col overflow-hidden bg-card shadow-xl sm:h-auto sm:max-h-[85dvh] sm:max-w-md sm:rounded-2xl">
             <div className="flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-3">

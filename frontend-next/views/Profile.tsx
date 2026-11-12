@@ -1,10 +1,12 @@
 ﻿'use client';
+import { HEX, IDENTITY, token } from '@/lib/colorTokens';
 import React, { useState, useEffect } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
 import { auth } from "@/api/auth";
-import { entities } from "@/api/entities";
+import { entities, type Business, type UserProfile } from "@/api/entities";
+import { resolveMediaUrl } from "@/lib/media";
 import SafeImage from "@/components/ui/SafeImage";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,12 +32,12 @@ function Profile() {
   const pathname = usePathname();
   const viewParam = searchParams.get("view");
   const { user, authChecked } = useAuth();
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewerPhoto, setViewerPhoto] = useState<ViewerPhoto | null>(null);
   const { profileViewMode: view, setProfileViewMode } = useProfileView();
-  const [businesses, setBusinesses] = useState([]);
-  const [selectedBizId, setSelectedBizId] = useState(null);
+  const [businesses, setBusinesses] = useState<ProfileBusiness[]>([]);
+  const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
   const [tickerOn, setTickerOn] = useState(false);
 
   useEffect(() => {
@@ -61,9 +63,10 @@ function Profile() {
   }, [viewParam, id]);
 
   const loadProfile = async () => {
+    const targetUserId = (id as string | undefined) || user?.id;
+    if (!targetUserId) return;
     setLoading(true);
     try {
-      const targetUserId = id || user.id;
 
       // ── Parallel fetches — 2 RTTs instead of 3 ──────────────────────────
       const [profiles, bizList, showroomList] = await Promise.all([
@@ -89,22 +92,23 @@ function Profile() {
         const businessFields = {
           owner_id: targetUserId,
           business_name: showroom.title || "Business",
-          business_category: showroom.category || "other",
+          business_category: String(showroom.category || "other"),
           business_description: showroom.description || "",
-          business_theme_color: showroom.theme_color || "#2563EB",
-          business_logo_url: showroom.logo_url || "",
-          business_cover_url: showroom.cover_image || "",
+          business_theme_color: String(showroom.theme_color || "#2563EB"),
+          business_logo_url: String(showroom.logo_url || ""),
+          business_cover_url: String(showroom.cover_image || ""),
           business_address: contact.location || "",
           business_sections: sections,
           showroom_id: showroom.id,
-          showroom_slug: showroom.slug || "",
+          showroom_slug: String(showroom.slug || ""),
         };
         // A site belongs to the business it is linked to; older sites without a link match by name.
         const existing = bizList.find(business => showroom.business_id && business.id === showroom.business_id)
           ?? bizList.find(business => business.business_name?.trim().toLowerCase() === String(showroom.title || "").trim().toLowerCase());
-        return existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
+        const merged: ProfileBusiness = existing ? { ...existing, ...businessFields, id: existing.id } : { ...businessFields, id: `showroom-${showroom.id}` };
+        return merged;
       });
-      const mergedBusinesses = [...bizList];
+      const mergedBusinesses: ProfileBusiness[] = [...bizList];
       const mergedIds = new Set<string>();
       // Sites arrive most recently updated first, so the newest one wins for each business.
       for (const showroom of showroomBusinesses) {
@@ -125,7 +129,8 @@ function Profile() {
       setBusinesses(mergedBusinesses);
       if (mergedBusinesses.length > 0) setSelectedBizId(mergedBusinesses[0].id);
     } catch (err) {
-      if (err?.message?.includes("Authentication required") || err?.message?.includes("auth")) {
+      const message = err instanceof Error ? err.message : String((err as { error?: unknown })?.error ?? '');
+      if (message.includes("Authentication required") || message.includes("auth")) {
         router.push("/login");
         return;
       }
@@ -168,8 +173,8 @@ function Profile() {
     <div className="max-w-xl mx-auto text-center py-20">
       {!user ? (
         <>
-          <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-            <BrandLogo className="w-7 h-7 text-amber-600" />
+          <div className="w-16 h-16 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-4">
+            <BrandLogo size={28} className="w-7 h-7 text-primary" />
           </div>
           <h2 className="font-display text-xl font-bold">Sign in to view profiles</h2>
           <p className="text-sm text-muted-foreground mt-1 mb-6">Create an account to see profiles, posts, and businesses.</p>
@@ -180,7 +185,7 @@ function Profile() {
         </>
       ) : (
         <>
-          <BrandLogo className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+          <BrandLogo size={48} className="w-12 h-12 text-primary mx-auto mb-3" />
           <h2 className="font-display text-xl font-bold">Profile not found</h2>
           <p className="text-sm text-muted-foreground mt-1">This user hasn't set up their profile yet.</p>
           <Link href="/"><Button variant="outline" className="mt-4 rounded-full">Go Home</Button></Link>
@@ -193,7 +198,7 @@ function Profile() {
     <div className="max-w-2xl mx-auto">
         {/* Demo account notice banner — non-dismissible, shown for seed/AI-generated profiles */}
         {profile.is_seed && (
-          <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-yellow-50 border border-yellow-300/70 rounded-2xl text-yellow-800 text-sm font-medium">
+          <div className="mb-3 flex items-center gap-2 px-4 py-3 bg-primary-subtle border border-primary/30 rounded-2xl text-primary-subtle-foreground text-sm font-medium">
             <DemoBadge />
             <span>This is an AI-generated demo account</span>
           </div>
@@ -212,7 +217,7 @@ function Profile() {
         {/* Profile Header Card */}
         <div data-page-guide="profile-header" className="bg-card rounded-2xl border border-border/50 overflow-hidden mb-4">
           {/* Cover — personal: primary/accent (blue→purple) · business: gold scheme */}
-          <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" : "bg-nodbusiness-gradient"}`}>
+          <div className={`h-28 relative transition-all duration-300 ${view === "business" ? "bg-primary" : "bg-primary"}`}>
             {view === "business" && (
               <SafeImage src={profile.business_cover_url} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover"
                 style={{ objectPosition: profile.business_cover_position || 'center' }} />
@@ -223,7 +228,7 @@ function Profile() {
             )}
             {(view === "business" ? profile.business_cover_url : profile.cover_url) && (
               <button type="button" aria-label="Open cover photo full screen" className="absolute inset-0 cursor-zoom-in"
-                onClick={() => setViewerPhoto({ src: view === "business" ? profile.business_cover_url : profile.cover_url, alt: 'Cover photo' })} />
+                onClick={() => setViewerPhoto({ src: resolveMediaUrl(view === "business" ? profile.business_cover_url : profile.cover_url) ?? '', alt: 'Cover photo' })} />
             )}
           </div>
           <div className="px-5 pb-4">
@@ -235,20 +240,20 @@ function Profile() {
                     <button type="button" aria-label={view === "personal" ? 'Open profile photo full screen' : 'Open logo full screen'}
                       className="absolute inset-0 z-10 cursor-zoom-in rounded-2xl"
                       onClick={() => setViewerPhoto(view === "personal"
-                        ? { src: profile.avatar_url, alt: profile.display_name || 'Profile photo' }
-                        : { src: profile.business_logo_url, alt: profile.business_name || 'Logo' })} />
+                        ? { src: resolveMediaUrl(profile.avatar_url) ?? '', alt: profile.display_name || 'Profile photo' }
+                        : { src: resolveMediaUrl(profile.business_logo_url) ?? '', alt: profile.business_name || 'Logo' })} />
                   )}
                   {view === "personal" ? (
                     <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold"
-                      style={{ background: 'linear-gradient(135deg,#60a5fa,#2563eb)' }}>
+                      style={{ background: token.primary }}>
                       <SafeImage src={profile.avatar_url} alt={profile.display_name || 'User'} className="w-full h-full object-cover rounded-xl"
                         fallback={profile.display_name?.charAt(0) || "U"} />
                     </div>
                   ) : profile.business_logo_url ? (
                     <SafeImage src={profile.business_logo_url} alt={profile.business_name || 'Business'} className="w-full h-full rounded-xl object-cover"
-                      fallback={<div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold">{profile.business_name?.charAt(0) || "B"}</div>} />
+                      fallback={<div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white text-3xl font-bold">{profile.business_name?.charAt(0) || "B"}</div>} />
                   ) : (
-                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+                    <div className="w-full h-full rounded-xl bg-primary flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
                       {profile.business_name?.charAt(0) || "B"}
                     </div>
                   )}
@@ -263,7 +268,7 @@ function Profile() {
                       onClick={() => view !== 'personal' && handleFlip()}
                       aria-pressed={view === 'personal'}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                      style={view === 'personal' ? { background: 'linear-gradient(135deg,#3B82F6,#2563EB)', color: 'white', boxShadow: '0 1px 6px rgba(59,130,246,0.4)' } : { color: 'var(--muted-foreground)' }}
+                      style={view === 'personal' ? { background: IDENTITY.personal.css, color: 'white' } : { color: token.muted }}
                     >
                       <User className="w-3 h-3" /> Personal
                     </button>
@@ -271,7 +276,7 @@ function Profile() {
                       onClick={() => view !== 'business' && handleFlip()}
                       aria-pressed={view === 'business'}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
-                      style={view === 'business' ? { background: 'linear-gradient(135deg,#F59E0B,#D97706)', color: 'white', boxShadow: '0 1px 6px rgba(245,158,11,0.4)' } : { color: 'var(--muted-foreground)' }}
+                      style={view === 'business' ? { background: IDENTITY.business.css, color: 'white' } : { color: token.muted }}
                     >
                       <Store className="w-3 h-3" /> Business
                     </button>
@@ -287,11 +292,11 @@ function Profile() {
                 )}
                 {isOwner && (
                   <div className="flex gap-2 items-center">
-                    <Link data-page-guide="profile-edit-btn" href="/profile/edit">
-                      <Button variant="outline" size="sm" className="rounded-full h-8"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")}>
-                      <LogOut className="w-3 h-3" />
+                    <Button asChild variant="outline" size="sm" className="rounded-full h-8">
+                      <Link data-page-guide="profile-edit-btn" href="/profile/edit"><Edit2 className="w-3 h-3 mr-1" aria-hidden="true" /> Edit</Link>
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" className="rounded-full h-8 text-muted-foreground" onClick={() => auth.logout("/")} aria-label="Sign out" title="Sign out">
+                      <LogOut className="w-3 h-3" aria-hidden="true" />
                     </Button>
                   </div>
                 )}
@@ -335,7 +340,7 @@ function Profile() {
                         {profile.is_verified && (
                           <VerifiedBadge type={profile.verification_type} size="lg" />
                         )}
-                        <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px]">{selectedBusiness?.business_category || profile.business_category}</Badge>
+                        <Badge variant="outline" className="text-primary border-primary/30 text-[10px]">{selectedBusiness?.business_category || profile.business_category}</Badge>
                       </div>
                       {(selectedBusiness?.business_description || profile.business_description) && (
                         <p className="text-sm text-muted-foreground mt-1">{selectedBusiness?.business_description || profile.business_description}</p>
@@ -349,7 +354,7 @@ function Profile() {
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">My Businesses</span>
                             {isOwner && (
-                              <Link href="/business/create" className="text-[10px] text-amber-600 hover:underline flex items-center gap-0.5">
+                              <Link href="/business/create" className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
                                 <Plus className="w-2.5 h-2.5" /> Add
                               </Link>
                             )}
@@ -364,7 +369,7 @@ function Profile() {
                                     ? "text-white shadow-sm"
                                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                                 }`}
-                                style={b.id === selectedBizId ? { backgroundColor: b.business_theme_color || "#D4AF37" } : {}}
+                                style={b.id === selectedBizId ? { backgroundColor: b.business_theme_color || HEX.primary } : {}}
                               >
                                 <span>{b.business_name?.charAt(0) || "B"}</span>
                                 <span>{b.business_name}</span>
@@ -374,7 +379,7 @@ function Profile() {
                         </div>
                       )}
                       {isOwner && businesses.length === 0 && (
-                        <Link data-page-guide="profile-create-showroom" href="/business/create" className="inline-flex items-center gap-1 text-xs text-amber-600 hover:underline mt-3">
+                        <Link data-page-guide="profile-create-showroom" href="/business/create" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-3">
                           <Plus className="w-3 h-3" /> Create a business
                         </Link>
                       )}
@@ -414,6 +419,9 @@ function Profile() {
       </div>
   );
 }
+
+/** A business on the profile: a business record, or one built from a published site. */
+type ProfileBusiness = Business & { showroom_id?: string; showroom_slug?: string };
 
 export default function ProfilePage() {
   return <ErrorBoundary><Profile /></ErrorBoundary>;

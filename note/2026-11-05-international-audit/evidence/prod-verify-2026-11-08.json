@@ -1,0 +1,243 @@
+{
+  "ran_at": "2026-11-08T14:20:38.235Z",
+  "frontend": "https://nodbusiness.vercel.app",
+  "backend": "https://nodbusiness-backend-9psf.onrender.com",
+  "passed": 39,
+  "total": 39,
+  "results": [
+    {
+      "finding": "F-030",
+      "check": "API /health answers 200",
+      "pass": true,
+      "detail": "200 in 707 ms; services {\"database\":\"connected\",\"redis\":\"connected\",\"ai\":\"gemini\",\"email\":\"smtp\",\"storage\":\"supabase\"}"
+    },
+    {
+      "finding": "F-030",
+      "check": "API answers a second request within 2 s",
+      "pass": true,
+      "detail": "178 ms"
+    },
+    {
+      "finding": "F-007",
+      "check": "Unauthenticated request: 401 with code and request_id",
+      "pass": true,
+      "detail": "{\"error\":\"Authentication required\",\"code\":\"UNAUTHORIZED\",\"request_id\":\"6ad07a36-ba14-48eb-89d7-1679edb662d3\"}"
+    },
+    {
+      "finding": "F-034",
+      "check": "Malformed product id: 404, not 500",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "finding": "F-023",
+      "check": "/api/devops/versions requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-006",
+      "check": "/api/devops/errors/stats requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-005",
+      "check": "/api/telegram/status requires sign-in (route exists)",
+      "pass": true,
+      "detail": "401 UNAUTHORIZED"
+    },
+    {
+      "finding": "F-019",
+      "check": "Chapa status needs sign-in",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "finding": "F-016",
+      "check": "Page CSP uses a nonce and strict-dynamic",
+      "pass": true,
+      "detail": "default-src 'self'; script-src 'self' 'nonce-1Jt65s8lR29rJR7kVRDHeA==' 'strict-dynamic' https://accounts.google.com https://browser.sentry-cdn.com; style-src 's"
+    },
+    {
+      "finding": "F-052",
+      "check": "CSP no longer allows Stripe hosts",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "finding": "F-016",
+      "check": "No X-Powered-By header",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "finding": "F-047",
+      "check": "Landing no longer promotes a wallet or \"payments\"",
+      "pass": true,
+      "detail": "checked server HTML"
+    },
+    {
+      "finding": "F-036",
+      "check": "Unknown page: 404 (no sign-in redirect)",
+      "pass": true,
+      "detail": "404 "
+    },
+    {
+      "finding": "F-036",
+      "check": "/orders sends guests to sign-in",
+      "pass": true,
+      "detail": "307 → /login?return=%2Forders"
+    },
+    {
+      "finding": "F-012",
+      "check": "/products/create sends guests to sign-in",
+      "pass": true,
+      "detail": "307 → /login?return=%2Fproducts%2Fcreate"
+    },
+    {
+      "finding": "F-036",
+      "check": "Share image is served to guests/crawlers",
+      "pass": true,
+      "detail": "200 image/png"
+    },
+    {
+      "finding": "F-048",
+      "check": "Service worker v3 is published",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "finding": "F-048",
+      "check": "Offline page is public",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "finding": "F-055",
+      "check": "Legal page has the Accessibility statement",
+      "pass": true,
+      "detail": "tab=accessibility"
+    },
+    {
+      "finding": "F-044",
+      "check": "Show-password target at least 24 × 24 px",
+      "pass": true,
+      "detail": "{\"x\":791,\"y\":526.25,\"width\":40,\"height\":40}"
+    },
+    {
+      "finding": "F-046",
+      "check": "Colour-system tokens are live",
+      "pass": true,
+      "detail": "--brand-secondary: 262 83% 58%"
+    },
+    {
+      "finding": "F-044",
+      "check": "/feed: no sideways scroll at 320 px",
+      "pass": true,
+      "detail": "320 / 320"
+    },
+    {
+      "finding": "F-044",
+      "check": "/marketplace: no sideways scroll at 320 px",
+      "pass": true,
+      "detail": "320 / 320"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /landing",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /login",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /register",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /feed",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /marketplace",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /businesses",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /showrooms",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, light, /service-agreement",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /landing",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /login",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /register",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /feed",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /marketplace",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /businesses",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /showrooms",
+      "pass": true,
+      "detail": "no violations"
+    },
+    {
+      "finding": "F-041/F-043",
+      "check": "axe WCAG 2.2 AA, dark, /service-agreement",
+      "pass": true,
+      "detail": "no violations"
+    }
+  ]
+}

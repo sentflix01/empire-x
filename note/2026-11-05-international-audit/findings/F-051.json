@@ -1,0 +1,32 @@
+{
+  "id": "F-051",
+  "kind": "hardening",
+  "phase": "P10-architecture",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Money-path code lacks tests where CONTRIBUTING.md requires them",
+  "standards": [
+    "CONTRIBUTING.md (money paths require a test)",
+    "ISO/IEC 25010:2023 maintainability (testability)"
+  ],
+  "location": [
+    "backend/lib/directOrderExpiry.ts",
+    "backend/routes/coupons.ts",
+    "backend/routes/commission.ts",
+    "backend/routes/wallet.ts",
+    "backend/routes/orders.ts"
+  ],
+  "steps": [
+    "cd backend; jest --coverage limited to money-path files (unit and test:db configs)."
+  ],
+  "expected": "Every money-path module has tests exercising its main branches.",
+  "actual": "Line coverage, unit / DB tests: directOrderExpiry 0% / 0% (expires unpaid orders and releases reserved stock), coupons 0% / 0%, commission 0% / 0%, wallet 36% / 0% (withdrawal of remaining balances), orders 53% / 0%. Well covered: directOrders 81% (DB), subscriptionPayments 88%, subscriptionBilling 91–100%, subscriptionsEtb 80%.",
+  "evidence": [
+    "evidence/wave5/money-path-coverage.txt"
+  ],
+  "impact": "Stock release on expiry and balance withdrawal — both handling buyers' and sellers' money or goods — can regress unnoticed.",
+  "fix": "Add DB tests for directOrderExpiry (expire, release stock, idempotent re-run), wallet withdrawal (balance check, concurrency, 410 on retired routes), coupons validation; promote this audit's order-journey script to a test.",
+  "effort": "M",
+  "found_on": "2026-11-06",
+  "environment": "repository"
+}

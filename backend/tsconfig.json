@@ -6,10 +6,8 @@
     "outDir": "./dist",
     "rootDir": "./",
 
-    // Type safety — strict enough to catch real bugs, lenient enough to migrate incrementally
-    "strict": false,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
+    // Type safety — full strict mode (audit F-052; turned on 2026-11-08 with 0 errors)
+    "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
 

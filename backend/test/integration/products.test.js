@@ -92,9 +92,10 @@ describe('product visibility and field authorization', () => {
   });
 
   it('creates products using only permitted fields and the authenticated seller id', async () => {
-    createRecord.mockResolvedValueOnce({ id: 'product-new', seller_id: 'seller-1', status: 'draft' });
-    // The seller has no business yet: no business to attach, so buyers cannot pay.
-    pool.query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] });
+    // The seller's only business; later lookups (plan, payment method) find nothing.
+    pool.query.mockResolvedValue({ rows: [] });
+    pool.query.mockResolvedValueOnce({ rows: [{ id: 'business-1' }] });
+    createRecord.mockResolvedValueOnce({ id: 'product-new', seller_id: 'seller-1', status: 'draft', business_id: 'business-1' });
 
     const response = await request(buildApp({ id: 'seller-1', role: 'user' }))
       .post('/api/products')
@@ -105,10 +106,21 @@ describe('product visibility and field authorization', () => {
 
     expect(response.status).toBe(201);
     expect(createRecord).toHaveBeenCalledWith('products', {
-      title: 'New item', price: 12.5, stock: 0, status: 'draft', seller_id: 'seller-1', business_id: null,
+      title: 'New item', price: 12.5, stock: 0, status: 'draft', seller_id: 'seller-1', business_id: 'business-1',
     });
-    expect(response.body.payment_ready).toBe(false);
-    expect(response.body.checkout_blocker).toBe('no_business');
+    expect(response.body.selling_business_id).toBe('business-1');
+    pool.query.mockReset();
+  });
+
+  it('refuses a product with no business instead of hiding it from buyers (F-033)', async () => {
+    // No sole business (twice), then a business count of zero.
+    pool.query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [{ n: 0 }] });
+    const response = await request(buildApp({ id: 'seller-1', role: 'user' }))
+      .post('/api/products')
+      .send({ title: 'New item', price: 10 });
+    expect(response.status).toBe(422);
+    expect(response.body.code).toBe('BUSINESS_REQUIRED');
+    expect(createRecord).not.toHaveBeenCalled();
   });
 
   it('rejects fractional stock instead of truncating it during bulk import', async () => {

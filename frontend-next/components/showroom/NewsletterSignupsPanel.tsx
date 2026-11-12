@@ -27,7 +27,7 @@ export default function NewsletterSignupsPanel({ showroomId }: { showroomId: str
   return (
     <details className="mb-4 rounded-2xl border border-border/50 bg-card p-4">
       <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 text-sm font-semibold">
-        <Mail className="h-4 w-4 text-amber-600" aria-hidden="true" />
+        <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
         Email sign-ups {data ? `(${data.total})` : ''}
         <span className="ml-auto text-xs font-normal text-muted-foreground">Only you see this</span>
         <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden="true" />

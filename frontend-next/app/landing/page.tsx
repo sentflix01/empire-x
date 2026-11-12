@@ -1,6 +1,7 @@
+import { HEX } from '@/lib/colorTokens';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
+import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
 import {
   Bot,
   CheckCircle2,
@@ -17,6 +18,10 @@ import {
 } from 'lucide-react';
 import { LandingPreferences } from '@/components/landing/LandingControls';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import DemoEndedNotice from '@/components/landing/DemoEndedNotice';
+import { BRAND } from '@/lib/brandAssets';
+import Wordmark from '@/components/brand/Wordmark';
+import BrandLogo from '@/components/brand/BrandLogo';
 
 // Force dynamic rendering so Next.js serves this page from the server on
 // every request. This ensures the Content-Security-Policy header set in
@@ -31,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nodbusiness - Local merchant showrooms and orders",
     description: 'Simple online showrooms and order tools for local merchants.',
-    images: ['/brand/nodbusiness-logo.svg'],
+    images: [BRAND.logo],
   },
 };
 
@@ -39,7 +44,7 @@ const modules = [
   { title: 'Social Feed', desc: 'Posts, stories, trends, and community discovery.', Icon: Users },
   { title: 'Marketplace', desc: 'Products, orders, reviews, and local sellers.', Icon: ShoppingBag },
   { title: 'Showrooms', desc: 'Mini websites for every business profile.', Icon: Store },
-  { title: 'Wallet', desc: 'Payments, balances, invoices, and transaction history.', Icon: CreditCard },
+  { title: 'Direct Orders', desc: 'Buyers pay the seller directly. Nodbusiness never holds the money.', Icon: CreditCard },
   { title: 'Messaging', desc: 'Direct chat, groups, channels, and notifications.', Icon: MessageCircle },
   { title: 'AI Assistant', desc: 'Help users write, search, sell, and grow faster.', Icon: Bot },
 ];
@@ -53,23 +58,23 @@ const stats = [
 
 const previewRows = [
   ['Feed', 'Aster shared a showroom launch', 'Live'],
-  ['Order', 'Coffee pack paid with wallet', 'Paid'],
+  ['Order', 'Coffee pack paid to the seller', 'Paid'],
 ];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
+    <main id="main-content" tabIndex={-1} className="outline-none min-h-[100dvh] overflow-x-hidden bg-inverse text-white">
       {/* ── Top navigation bar ── */}
-      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-4 bg-slate-950/80 backdrop-blur-xl border-b border-white/8 sm:px-6">
+      <nav data-page-guide="landing-nav" aria-label="Account and display options" className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 py-3 bg-inverse/80 backdrop-blur-xl border-b border-white/8 sm:px-6 sm:py-4">
         <div className="flex items-center gap-2">
-          <Image src="/brand/nodbusiness-logo-white.svg" alt="Nodbusiness" width={180} height={27} className="h-6 w-auto sm:h-7" priority />
+          <Wordmark tone="dark" className="text-xl sm:text-2xl" />
         </div>
         <div className="flex items-center gap-2">
           <LandingPreferences />
           <Link data-page-guide="landing-register" href="/register" className="hidden sm:inline-flex h-9 items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-xl hover:bg-white/20 transition-all">
             Create Account
           </Link>
-          <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center justify-center rounded-xl bg-white px-4 text-sm font-bold text-blue-700 shadow-lg hover:bg-blue-50 transition-all">
+          <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-8 items-center justify-center rounded-xl bg-white px-3 text-xs font-bold text-primary shadow-lg hover:bg-primary-subtle transition-all sm:h-9 sm:px-4 sm:text-sm whitespace-nowrap">
             Sign In
           </Link>
         </div>
@@ -77,16 +82,16 @@ export default function LandingPage() {
 
       <section className="relative flex min-h-[88svh] flex-col overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16">
         <div className="absolute inset-0 opacity-35 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
-        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-inverse to-transparent" />
 
-        <div className="absolute left-[6%] top-28 hidden w-56 rotate-[-7deg] rounded-2xl border border-white/14 bg-white/12 p-4 shadow-2xl shadow-slate-950/30 backdrop-blur-xl lg:block">
+        <div className="absolute left-[6%] top-28 hidden w-56 rotate-[-7deg] rounded-2xl border border-white/14 bg-white/12 p-4 shadow-2xl shadow-foreground/10 backdrop-blur-xl lg:block">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-400 text-slate-950">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success text-foreground">
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs text-white/60">Wallet</p>
-              <p className="text-sm font-bold">12,480 ETB</p>
+              <p className="text-xs text-white/60">New order</p>
+              <p className="text-sm font-bold">Paid to the seller</p>
             </div>
           </div>
           <div className="space-y-2">
@@ -95,40 +100,50 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="absolute right-[7%] top-24 hidden w-64 rotate-[6deg] rounded-3xl border border-white/14 bg-slate-950/55 p-3 shadow-2xl shadow-slate-950/45 backdrop-blur-xl lg:block">
-          <div className="rounded-2xl bg-white p-3 text-slate-950">
+        <div className="absolute right-[7%] top-24 hidden w-64 rotate-[6deg] rounded-3xl border border-white/14 bg-inverse/55 p-3 shadow-2xl shadow-foreground/10 backdrop-blur-xl lg:block">
+          <div className="rounded-2xl bg-white p-3 text-foreground">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-blue-600" />
+                <div className="h-9 w-9 rounded-xl bg-primary" />
                 <div>
-                  <p className="text-xs text-slate-500">Showroom</p>
+                  <p className="text-xs text-muted-foreground">Showroom</p>
                   <p className="text-sm font-bold">Mini website</p>
                 </div>
               </div>
-              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              <CheckCircle2 className="h-5 w-5 text-success" />
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="h-14 rounded-xl bg-blue-100" />
-              <div className="h-14 rounded-xl bg-purple-100" />
-              <div className="h-14 rounded-xl bg-emerald-100" />
+              <div className="h-14 rounded-xl bg-primary-subtle" />
+              <div className="h-14 rounded-xl bg-brand-secondary-subtle" />
+              <div className="h-14 rounded-xl bg-success-subtle" />
             </div>
           </div>
         </div>
 
-        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-10 pt-16 text-center">
-          <Image
-            src="/brand/nodbusiness-logo-white.svg"
-            alt="Nodbusiness"
-            width={280}
-            height={42}
-            className="mb-6 h-10 w-auto"
-            priority
-          />
-          <p className="mb-4 inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm">
-            <Sparkles className="h-4 w-4 text-emerald-300" />
-            <span>Social, commerce, payments, services, and AI</span>
+        <div data-page-guide="landing-actions" className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-4 pt-8 text-center sm:pb-10 sm:pt-14">
+          {/* ── Brand video circle — responsive: 64px mobile → 96px tablet → 140px desktop ── */}
+          <div
+            className="relative mb-3 mx-auto w-16 h-16 sm:w-24 sm:h-24 lg:w-36 lg:h-36 rounded-full overflow-hidden"
+            style={{
+              backgroundColor: HEX.primary,
+              backgroundImage: `url(${BRAND.icon})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 0 48px rgba(37,99,235,0.55), 0 8px 40px rgba(0,0,0,0.45)',
+            }}
+          >
+            <BrandIntroVideo />
+          </div>
+          {/* Brand name */}
+          <p className="mb-2 text-sm font-black tracking-tight text-white/90 sm:text-xl lg:text-2xl">
+            Nodbusiness
           </p>
-          <h1 className="max-w-5xl text-4xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
+          {/* Badge pill — hidden on smallest screens to save vertical space */}
+          <p className="hidden xs:mb-3 xs:inline-flex sm:mb-3 sm:inline-flex max-w-[22rem] flex-wrap items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-1.5 text-center text-xs font-semibold text-white/85 backdrop-blur-xl sm:max-w-full sm:text-sm sm:py-2">
+            <Sparkles className="h-4 w-4 text-white/80" />
+            <span>Social, commerce, services, and AI</span>
+          </p>
+          <h1 className="max-w-5xl text-2xl font-black leading-tight tracking-normal sm:text-7xl lg:text-8xl">
             Nodbusiness
             <span className="block text-white/78">
               <span className="block sm:inline">Merchant</span>
@@ -136,36 +151,37 @@ export default function LandingPage() {
               <span className="block sm:inline">Commerce</span>
             </span>
           </h1>
-          <p className="mt-6 max-w-[21rem] text-sm font-medium leading-7 text-white/76 sm:max-w-2xl sm:text-xl">
+          {/* Description — hidden on mobile to keep buttons in view */}
+          <p className="hidden sm:block mt-6 max-w-2xl text-sm font-medium leading-7 text-white/76 sm:text-xl">
             One simple platform where local businesses create showrooms, connect with customers, and manage orders.
           </p>
-          <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
-            {/* Primary: create or sign in */}
+          <DemoEndedNotice />
+          {/* CTA buttons — always visible, stack on mobile */}
+          <div className="mt-5 flex w-full flex-col items-center justify-center gap-2 sm:mt-8 sm:w-auto sm:flex-row sm:gap-3">
             <Link
               href="/register"
-              className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-primary shadow-lg hover:bg-primary-subtle transition sm:h-12 sm:w-auto"
             >
               Create Account
             </Link>
             <TryDemoButton />
-            {/* Read-only public browsing, with no account required */}
             <Link
               data-page-guide="landing-guest"
               href="/feed"
-              className="inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:w-auto"
+              className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-white/30 bg-white/10 px-7 text-sm font-extrabold text-white backdrop-blur transition hover:bg-white/20 sm:h-12 sm:w-auto"
             >
               Explore as Guest
             </Link>
           </div>
-          <p className="mt-4 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
+          <p className="mt-3 text-xs font-medium text-white/65">Try the practice workspace without signing in. Demo activity stays separate from Real accounts.</p>
         </div>
 
         <div className="relative z-10 mx-auto hidden w-[min(82vw,860px)] grid-cols-3 gap-3 px-6 pb-16 opacity-95 md:grid">
           {previewRows.map(([type, text, status]) => (
-            <div key={text} className="rounded-2xl border border-white/12 bg-white/10 p-4 shadow-xl shadow-slate-950/25 backdrop-blur-xl">
+            <div key={text} className="rounded-2xl border border-white/12 bg-white/10 p-4 shadow-xl shadow-foreground/10 backdrop-blur-xl">
               <div className="mb-3 flex items-center justify-between text-xs text-white/65">
                 <span>{type}</span>
-                <span className="rounded-full bg-emerald-400/18 px-2 py-1 text-emerald-100">{status}</span>
+                <span className="rounded-full bg-success/18 px-2 py-1 text-white/80">{status}</span>
               </div>
               <p className="text-sm font-semibold leading-snug">{text}</p>
             </div>
@@ -174,7 +190,7 @@ export default function LandingPage() {
       </section>
 
       <section className="-mt-14 px-4 pb-20 sm:px-6">
-        <div data-page-guide="landing-stats" className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 rounded-3xl border border-white/10 bg-slate-900/90 p-3 shadow-2xl shadow-slate-950/35 backdrop-blur-xl md:grid-cols-4">
+        <div data-page-guide="landing-stats" className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 rounded-3xl border border-white/10 bg-inverse/90 p-3 shadow-2xl shadow-foreground/10 backdrop-blur-xl md:grid-cols-4">
           {stats.map(([value, label]) => (
             <div key={label} className="rounded-2xl bg-white/[0.06] px-4 py-5 text-center">
               <p className="text-3xl font-black text-white">{value}</p>
@@ -184,92 +200,92 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-slate-50 px-6 py-20 text-slate-950">
+      <section className="bg-secondary px-6 py-20 text-foreground">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 max-w-3xl">
-            <p className="mb-3 text-sm font-bold uppercase tracking-wide text-blue-600">Everything Connected</p>
+            <p className="mb-3 text-sm font-bold uppercase tracking-wide text-primary">Everything Connected</p>
             <h2 className="text-4xl font-black tracking-normal sm:text-5xl">A full digital economy in one app.</h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600">
+            <p className="mt-4 text-lg leading-8 text-muted-foreground">
               Nodbusiness is designed as a daily operating system for users, creators, merchants, service providers, and local communities.
             </p>
           </div>
 
           <div data-page-guide="landing-modules" className="grid gap-4 md:grid-cols-3">
             {modules.map(({ title, desc, Icon }) => (
-              <article key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <article key={title} className="rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-subtle text-primary">
                   <Icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-extrabold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{desc}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-6 py-20 text-slate-950">
+      <section className="bg-white px-6 py-20 text-foreground">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="mb-3 text-sm font-bold uppercase tracking-wide text-purple-600">Built For Trust</p>
+            <p className="mb-3 text-sm font-bold uppercase tracking-wide text-brand-secondary">Built For Trust</p>
             <h2 className="text-4xl font-black tracking-normal sm:text-5xl">From profile to payment, every action feels connected.</h2>
-            <p className="mt-5 text-lg leading-8 text-slate-600">
-              Users can discover a business, view its showroom, message the seller, pay, track the order, and come back through the social feed.
+            <p className="mt-5 text-lg leading-8 text-muted-foreground">
+              Users can discover a business, view its showroom, message the seller, pay the seller directly, track the order, and come back through the social feed.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              {['Verified profiles', 'Secure wallet', 'Business websites', 'Local discovery'].map(item => (
-                <span key={item} className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700">
-                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              {['Verified profiles', 'Direct payment to sellers', 'Business websites', 'Local discovery'].map(item => (
+                <span key={item} className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-foreground">
+                  <ShieldCheck className="h-4 w-4 text-success" />
                   {item}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="relative min-h-[430px] overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#0f172a,#2563eb_52%,#7c3aed)] p-5 shadow-2xl shadow-blue-950/20">
+          <div className="relative min-h-[430px] overflow-hidden rounded-3xl bg-inverse p-5 shadow-2xl shadow-primary/20">
             <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:36px_36px]" />
-            <div className="relative mx-auto max-w-sm rounded-[2rem] bg-slate-950/68 p-3 shadow-2xl ring-1 ring-white/18">
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 text-slate-950">
+            <div className="relative mx-auto max-w-sm rounded-[2rem] bg-inverse/68 p-3 shadow-2xl ring-1 ring-white/18">
+              <div className="rounded-[1.5rem] bg-secondary p-4 text-foreground">
                 <div className="mb-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Image src="/brand/nodbusiness-icon.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" />
+                    <BrandLogo size={40} className="h-10 w-10 flex-shrink-0" />
                     <div>
                       <p className="text-sm font-black">Nodbusiness</p>
-                      <p className="text-xs text-slate-500">Merchant dashboard</p>
+                      <p className="text-xs text-muted-foreground">Merchant dashboard</p>
                     </div>
                   </div>
-                  <LayoutGrid className="h-5 w-5 text-blue-600" />
+                  <LayoutGrid className="h-5 w-5 text-primary" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-blue-600 p-4 text-white">
+                  <div className="rounded-2xl bg-primary p-4 text-white">
                     <Store className="mb-5 h-5 w-5" />
                     <p className="text-xs text-white/70">Showroom</p>
                     <p className="text-lg font-black">Live</p>
                   </div>
-                  <div className="rounded-2xl bg-emerald-500 p-4 text-white">
+                  <div className="rounded-2xl bg-success p-4 text-white">
                     <Package className="mb-5 h-5 w-5" />
                     <p className="text-xs text-white/75">Orders</p>
                     <p className="text-lg font-black">128</p>
                   </div>
-                  <div className="rounded-2xl bg-purple-600 p-4 text-white">
+                  <div className="rounded-2xl bg-brand-secondary p-4 text-white">
                     <MessageCircle className="mb-5 h-5 w-5" />
                     <p className="text-xs text-white/75">Messages</p>
                     <p className="text-lg font-black">Fast</p>
                   </div>
-                  <div className="rounded-2xl bg-slate-900 p-4 text-white">
+                  <div className="rounded-2xl bg-inverse p-4 text-white">
                     <MapPin className="mb-5 h-5 w-5" />
                     <p className="text-xs text-white/65">Nearby</p>
                     <p className="text-lg font-black">On</p>
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="mt-4 rounded-2xl border border-border bg-white p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-sm font-black">AI growth tip</p>
-                    <Bot className="h-5 w-5 text-purple-600" />
+                    <Bot className="h-5 w-5 text-brand-secondary" />
                   </div>
-                  <p className="text-sm leading-6 text-slate-600">Turn your top product into a showroom offer and share it to the feed.</p>
+                  <p className="text-sm leading-6 text-muted-foreground">Turn your top product into a showroom offer and share it to the feed.</p>
                 </div>
               </div>
             </div>
@@ -277,7 +293,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section data-page-guide="landing-cta-section" className="bg-slate-950 px-6 py-20 text-white">
+      <section data-page-guide="landing-cta-section" className="bg-inverse px-6 py-20 text-white">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-black tracking-normal sm:text-5xl">One account. Endless possibilities.</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/65">
@@ -286,7 +302,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/register"
-              className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-blue-700 shadow-lg hover:bg-blue-50 transition-all"
+              className="inline-flex h-12 items-center justify-center rounded-2xl bg-white px-7 text-sm font-extrabold text-primary shadow-lg hover:bg-primary-subtle transition-all"
             >
               Create Account
             </Link>
@@ -300,7 +316,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/10 bg-slate-950 px-6 py-8 text-sm text-white/55">
+      <footer className="border-t border-white/10 bg-inverse px-6 py-8 text-sm text-white/55">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
           <p>© 2026 Nodbusiness. Showrooms and orders for local merchants.</p>
           <div className="flex gap-5">

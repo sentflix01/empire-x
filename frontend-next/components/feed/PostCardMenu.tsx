@@ -65,7 +65,7 @@ export default function PostCardMenu({ currentView, onSelect, onEdit, onDelete }
         aria-expanded={open}
       >
         <MoreHorizontal className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-        <span className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ${currentView === "personal" ? "bg-blue-400" : "bg-amber-500"}`} />
+        <span className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ${currentView === "personal" ? "bg-primary" : "bg-primary"}`} />
       </button>
 
       {open && (
@@ -88,15 +88,15 @@ export default function PostCardMenu({ currentView, onSelect, onEdit, onDelete }
             aria-checked={currentView === "personal"}
             onClick={() => run(() => onSelect("personal"))}
             className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
-              currentView === "personal" ? "bg-blue-50 text-blue-600 font-medium" : "hover:bg-secondary text-foreground"
+              currentView === "personal" ? "bg-primary-subtle text-primary font-medium" : "hover:bg-secondary text-foreground"
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <User className="w-3.5 h-3.5 text-blue-500" />
+            <div className="w-7 h-7 rounded-full bg-primary-subtle flex items-center justify-center shrink-0">
+              <User className="w-3.5 h-3.5 text-primary" />
             </div>
             <div className="text-left">
               <p>Personal Profile</p>
-              {currentView === "personal" && <span className="text-[10px] text-blue-400">Active</span>}
+              {currentView === "personal" && <span className="text-[10px] text-primary">Active</span>}
             </div>
           </button>
           <div className="border-t border-border/30" />
@@ -105,15 +105,15 @@ export default function PostCardMenu({ currentView, onSelect, onEdit, onDelete }
             aria-checked={currentView === "business"}
             onClick={() => run(() => onSelect("business"))}
             className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
-              currentView === "business" ? "bg-amber-50 text-amber-700 font-medium" : "hover:bg-secondary text-foreground"
+              currentView === "business" ? "bg-primary-subtle text-primary font-medium" : "hover:bg-secondary text-foreground"
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-              <Store className="w-3.5 h-3.5 text-amber-600" />
+            <div className="w-7 h-7 rounded-full bg-primary-subtle flex items-center justify-center shrink-0">
+              <Store className="w-3.5 h-3.5 text-primary" />
             </div>
             <div className="text-left">
               <p>Business Profile</p>
-              {currentView === "business" && <span className="text-[10px] text-amber-500">Active</span>}
+              {currentView === "business" && <span className="text-[10px] text-primary">Active</span>}
             </div>
           </button>
         </div>

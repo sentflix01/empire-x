@@ -108,7 +108,7 @@ export default function PhotoViewer({ photos, startIndex = 0, caption, author, f
   const fade = zoom > 1 ? 1 : Math.max(0.4, 1 - dragY / 400);
 
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Photo viewer" className="fixed inset-0 z-[200] flex flex-col text-white" style={{ backgroundColor: `rgba(0,0,0,${fade})` }}>
+    <div role="dialog" aria-modal="true" aria-label="Photo viewer" className="fixed inset-0 z-fullscreen flex flex-col text-white" style={{ backgroundColor: `rgba(0,0,0,${fade})` }}>
       <div className="flex shrink-0 items-center gap-2 px-3 py-2">
         <p className="min-w-0 flex-1 truncate text-sm font-semibold">{author}</p>
         {photos.length > 1 && <span className="text-xs text-white/70">{index + 1} / {photos.length}</span>}

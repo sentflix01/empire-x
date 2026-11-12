@@ -19,6 +19,7 @@ const PUBLIC_PATHS = new Set([
   '/choose-mode',   // always accessible — handles own auth check via AuthContext
   '/service-agreement',
   '/not-found',
+  '/offline',       // served by the service worker when the network is down
   '/sitemap',
   '/robots',
   '/onboarding',
@@ -45,6 +46,8 @@ const AUTH_ONLY_PREFIXES = [
   '/account', '/wallet', '/orders', '/cart', '/bookmarks',
   '/analytics', '/referral', '/coupons', '/friends',
   '/scorecard',
+  // Product builder pages share the public /products/ prefix (audit F-012).
+  '/products/create', '/products/edit', '/products/scan',
 ];
 
 export function isPublicPath(pathname: string): boolean {
@@ -65,6 +68,24 @@ export function isPublicPath(pathname: string): boolean {
   // Private order links for guest checkout; access is the token itself.
   if (pathname.startsWith('/order/')) return true;
   return false;
+}
+
+/**
+ * Top-level segments of real app pages that need sign-in. The edge proxy
+ * sends guests to sign-in only under these; any other unknown path reaches
+ * the not-found page with a 404 instead (audit F-036). A test checks that
+ * every page in app/ is either public or listed here.
+ */
+export const SIGN_IN_ROOTS: ReadonlySet<string> = new Set([
+  'account', 'admin', 'analytics', 'bookmarks', 'business', 'cart', 'coupons',
+  'friends', 'messages', 'notifications', 'orders', 'privacy', 'products',
+  'profile', 'referral', 'scorecard', 'search', 'settings', 'showroom', 'wallet',
+]);
+
+/** True when a guest asking for this path should be sent to sign-in. */
+export function requiresSignIn(pathname: string): boolean {
+  if (isPublicPath(pathname)) return false;
+  return SIGN_IN_ROOTS.has(pathname.split('/')[1] ?? '');
 }
 
 /** True when path is guest-browsable but write actions require sign-up */

@@ -50,19 +50,19 @@ export default function BusinessSwitcher({ businesses, selectedId, onSelect }: B
         <div className="absolute top-full left-0 right-0 mt-1 bg-card rounded-2xl border border-border/50 shadow-lg z-30 overflow-hidden">
           <button
             onClick={() => { onSelect(null); setOpen(false); }}
-            className={`w-full text-left px-4 py-3 hover:bg-secondary/50 flex items-center gap-3 ${!selectedId ? "bg-amber-50" : ""}`}
+            className={`w-full text-left px-4 py-3 hover:bg-secondary/50 flex items-center gap-3 ${!selectedId ? "bg-primary-subtle" : ""}`}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shrink-0">
               <Store className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium flex-1">All Businesses</span>
-            {!selectedId && <Check className="w-4 h-4 text-amber-600" />}
+            {!selectedId && <Check className="w-4 h-4 text-primary" />}
           </button>
           {businesses.map(b => (
             <button
               key={b.id}
               onClick={() => { onSelect(b.id); setOpen(false); }}
-              className={`w-full text-left px-4 py-3 hover:bg-secondary/50 flex items-center gap-3 border-t border-border/30 ${b.id === selectedId ? "bg-amber-50" : ""}`}
+              className={`w-full text-left px-4 py-3 hover:bg-secondary/50 flex items-center gap-3 border-t border-border/30 ${b.id === selectedId ? "bg-primary-subtle" : ""}`}
             >
               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: b.business_theme_color || "#2563EB" }}>
                 {b.business_name?.charAt(0) || "B"}
@@ -71,11 +71,11 @@ export default function BusinessSwitcher({ businesses, selectedId, onSelect }: B
                 <p className="text-sm font-medium truncate">{b.business_name}</p>
                 <p className="text-xs text-muted-foreground">{b.business_category}</p>
               </div>
-              {b.id === selectedId && <Check className="w-4 h-4 text-amber-600" />}
+              {b.id === selectedId && <Check className="w-4 h-4 text-primary" />}
             </button>
           ))}
-          <Link href="/business/create" className="flex items-center gap-3 px-4 py-3 text-amber-600 hover:bg-amber-50 border-t border-border/30">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+          <Link href="/business/create" className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary-subtle border-t border-border/30">
+            <div className="w-8 h-8 rounded-lg bg-primary-subtle flex items-center justify-center shrink-0">
               <Plus className="w-4 h-4" />
             </div>
             <span className="text-sm font-medium">Add New Business</span>

@@ -1,0 +1,45 @@
+{
+  "id": "F-060",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Signed-in seller pages have unnamed controls, an unlabelled field, low contrast and small targets",
+  "standards": [
+    "WCAG 2.2 SC 4.1.2",
+    "WCAG 2.2 SC 2.4.4",
+    "WCAG 2.2 SC 3.3.2",
+    "WCAG 2.2 SC 1.4.3",
+    "WCAG 2.2 SC 2.5.8",
+    "EN 301 549 V4.1.1 9.4.1.2",
+    "EN 301 549 V4.1.1 9.1.4.3"
+  ],
+  "location": [
+    "frontend-next/views/BusinessAnalytics.tsx:464-468 (icon Button inside Link, no name: 10 button-name + 10 link-name)",
+    "frontend-next/views/Referral.tsx:171,184 (unnamed copy buttons), :179 (unlabelled link input), :158 (text-white/90 on gradient)",
+    "frontend-next/views/BusinessInventory.tsx (unnamed icon button; text-primary/70)",
+    "frontend-next/views/Wallet.tsx (text-white/70 balance label and currency on gradient)",
+    "frontend-next/views/PrivacyAndSecurity.tsx (text-white/75, /85 on gradient)",
+    "frontend-next/components/feed/PostCard.tsx:841 (10 px business link)",
+    "frontend-next/components/product/ReviewsSection.tsx:49 (rating stars under 24 px)",
+    "showroom public header pills (border-white/40 bg-white/10)"
+  ],
+  "steps": [
+    "Local production build, axe-core 4.12.1 (WCAG 2.0-2.2 A/AA) on 50 pages as guest and member, light and dark (scripts/browser/reaudit-a11y-scan.cjs).",
+    "40 of 50 pages clean in light, 41 in dark; failures listed above, identical in both themes except contrast."
+  ],
+  "expected": "Zero axe violations on every page, including signed-in seller pages.",
+  "actual": "Analytics: 10 nested interactive controls without a name; Referral: two unnamed buttons and an unlabelled field; Inventory: one unnamed button; contrast failures on Wallet, Referral, Privacy, Inventory, Analytics and the public showroom header; target-size failures on feed, explore, profile and product pages.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/a11y-light.json",
+    "evidence/reaudit-2026-11-11/a11y-dark.json",
+    "evidence/reaudit-2026-11-11/a11y-dynamic-light.json",
+    "evidence/reaudit-2026-11-11/a11y-dynamic-dark.json"
+  ],
+  "impact": "Screen-reader users cannot tell what the edit and copy buttons do on core seller screens; low-vision users struggle with white-on-gradient text; small targets are hard on phones. The CI axe check covers public pages only, so these slipped through.",
+  "fix": "Give the Analytics edit link an aria-label and render it as a single Link styled as a button (no nested Button); add aria-label to Referral copy buttons and a label to the link field; replace text-white/70-90 on gradients with text-white or a darker gradient; make the post business link and stars at least 24x24 (padding). Extend the CI axe spec to signed-in pages.",
+  "effort": "S",
+  "environment": "local",
+  "regression_test": "Playwright axe spec signed in: /analytics, /referral, /wallet, /business/inventory, /privacy, /feed.",
+  "found_on": "2026-11-11"
+}

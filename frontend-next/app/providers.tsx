@@ -15,14 +15,21 @@ import { AuthProvider } from '@/lib/AuthContext';
 import { CartProvider } from '@/lib/CartContext';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
-import AiAssistant from '@/components/AiAssistant';
-import PageGuide from '@/components/PageGuide';
+import dynamic from 'next/dynamic';
+// Loaded after the page is interactive: neither is needed for the first paint,
+// and together they were about 60 KB of compressed script on every page (F-045).
+const AiAssistant = dynamic(() => import('@/components/AiAssistant'), { ssr: false });
+const PageGuide = dynamic(() => import('@/components/PageGuide'), { ssr: false });
 import GlobalErrorReporter from '@/components/GlobalErrorReporter';
+import SplashScreen from '@/components/brand/SplashScreen';
+import NavigationProgress from '@/components/NavigationProgress';
+import DeferredMount from '@/components/DeferredMount';
+import ServiceWorkerRegistrar from '@/components/pwa/ServiceWorkerRegistrar';
 import { initSentry } from '@/lib/sentry';
 // Initialize i18n — must be imported here so it runs before any component renders
 import i18n from '@/lib/i18n';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children, nonce }: { children: React.ReactNode; nonce?: string }) {
   // useState ensures the QueryClient is created once per component instance
   // and not recreated on every render
   const [queryClient] = useState(() => makeQueryClient());
@@ -32,20 +39,29 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem nonce={nonce}>
         <AuthProvider>
+          {/* SplashScreen reads isLoadingAuth from AuthProvider and dismisses
+              itself once auth resolves and the video finishes playing. */}
+          <SplashScreen />
+          {/* NavigationProgress shows a thin top bar on every route transition */}
+          <React.Suspense fallback={null}>
+            <NavigationProgress />
+          </React.Suspense>
           <CartProvider>
             <QueryClientProvider client={queryClient}>
               {/* Global error reporter — captures window.onerror + unhandledrejection */}
               {/* Reports to DevOps Live Error Feed in real time */}
               <GlobalErrorReporter />
+              <ServiceWorkerRegistrar />
               {children}
-              <AiAssistant />
-              <PageGuide />
+              <DeferredMount>
+                <AiAssistant />
+                <PageGuide />
+              </DeferredMount>
               <Toaster />
               {/* Views call toast() from 'sonner'; without this container none of those messages appear. */}
               <SonnerToaster richColors closeButton />
-
             </QueryClientProvider>
           </CartProvider>
         </AuthProvider>

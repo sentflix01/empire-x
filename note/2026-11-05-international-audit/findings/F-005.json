@@ -1,0 +1,29 @@
+{
+  "steps": [
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "PUT /api/telegram/notifications → 404. Backend exposes status, connect, disconnect, test only."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-005",
+  "title": "Telegram notification toggle calls a missing route",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability"
+  ],
+  "location": [
+    "frontend-next/components/settings/TelegramSettings.tsx:29",
+    "backend/routes/telegram.ts"
+  ],
+  "expected": "The toggle turns Telegram notifications on or off.",
+  "actual": "Every toggle fails with 404.",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt"
+  ],
+  "impact": "A visible setting does nothing for users who connected Telegram.",
+  "fix": "Add PUT /api/telegram/notifications (auth, boolean validation, ownership by req.user) or remove the toggle until it exists.",
+  "effort": "S",
+  "kind": "defect"
+}

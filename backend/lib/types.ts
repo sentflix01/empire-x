@@ -345,6 +345,8 @@ export interface AuthUser {
   is_banned: boolean;
   /** True for the built-in demo accounts and generated seed personas. */
   is_demo: boolean;
+  /** Two-factor sign-in is on (audit F-017). */
+  mfa_enabled?: boolean;
 }
 
 // ── Express namespace augmentation ───────────────────────────────────────────

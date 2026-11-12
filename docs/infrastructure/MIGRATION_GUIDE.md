@@ -31,11 +31,13 @@ backend/db/migrate.js        ← Core schema (initial)
 backend/db/migrate2.js       ← Second migration
 backend/db/migrate3.js       ← Third migration
 ...
-backend/db/migrate28.js      ← Current latest (September 2026)
-backend/db/migrate-all.js    ← Runs all migrations in order
+backend/db/migrate86.js      ← Current latest (November 2026)
+backend/db/migrate-all.js    ← Runs pending migrations in order, once each
 ```
 
 **Rule:** Always increment the number. Never reuse a number. Never edit a migration that has already been run in production.
+
+**Ledger (since 6 Nov 2026, audit F-009):** `migrate-all.js` records each migration that succeeds in `migration_ledger` (name, sha256 checksum, runner, duration, runs, applied_at) and skips recorded ones. A recorded file whose text changed stops the run with an error, so changes go in a new file; `--rerun <file>` re-runs one on purpose. A database lock (`pg_advisory_lock`) makes a second runner wait. A failed migration is not recorded and is tried again on the next run. Migrations must still be idempotent: the first ledger deploy, `--rerun` and `--all` run them again.
 
 **Important for Supabase:** Always use the direct connection URL (port 5432) when running migrations — never the Supavisor pooler (port 6543). The pooler's transaction mode blocks DDL statements like `ALTER TABLE` and `CREATE INDEX CONCURRENTLY`.
 
@@ -97,10 +99,19 @@ Every migration MUST be safe to run more than once.
 ```bash
 cd backend
 
-# Run all migrations in order (fresh database)
+# Run pending migrations in order and record them (fresh or existing database)
 npm run migrate
 # or
 node db/migrate-all.js
+
+# Show applied / pending / changed migrations without running anything
+npm run migrate:status
+
+# Run one recorded migration again on purpose (also accepts a changed file)
+node db/migrate-all.js --rerun migrate86.js
+
+# Run every migration again (idempotency check; used by test/db/migrations.db.test.js)
+node db/migrate-all.js --all
 
 # Run a specific migration only
 node db/migrate30.js

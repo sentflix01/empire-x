@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
+import { BRAND_RENAMES } from "./lib/brandAssets";
 
 const nextConfig: NextConfig = {
+  // No X-Powered-By: Next.js header (audit F-016).
+  poweredByHeader: false,
   // TypeScript errors are now surfaced in CI — do not ignore them
   typescript: {
     ignoreBuildErrors: false,
@@ -63,50 +66,14 @@ const nextConfig: NextConfig = {
   },
 
   // Security headers
+  // Logo files that were renamed (lib/brandAssets.ts) keep working at their old address.
+  async redirects() {
+    return BRAND_RENAMES.map(([source, destination]) => ({ source, destination, permanent: true }));
+  },
+
   async headers() {
-    // TD-013: Content Security Policy for the Next.js frontend
-    // - script-src: self + Next.js HMR inline scripts (dev only) + Stripe + Sentry CDN
-    // - connect-src: self + backend API + Sentry + Stripe APIs
-    // - img-src: self + data URIs + blob + R2 + GitHub raw (used by Leaflet/maps)
-    // - frame-src: Stripe iframe (required for Stripe Elements)
-    // Adjust NEXT_PUBLIC_API_BASE_URL as needed for your deployment.
-    const apiHost = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
-    // https → wss (production), http → ws (local backends on any port).
-    const wsHost = apiHost.replace(/^https:/, 'wss:').replace(/^http:/, 'ws:');
-    const googleScriptSrc = `https://accounts.google.com https://js.stripe.com https://browser.sentry-cdn.com`;
-
-    const csp = [
-      `default-src 'self'`,
-      // Styles: self + unsafe-inline (required for Tailwind/CSS-in-JS) + Google GSI + Leaflet/FontAwesome CDN
-      `style-src 'self' 'unsafe-inline' https://accounts.google.com https://unpkg.com https://cdnjs.cloudflare.com`,
-      // Scripts: Next.js requires 'unsafe-inline' for its inline bootstrap scripts (__NEXT_DATA__ etc.)
-      // and 'unsafe-eval' in dev for HMR. Both dev and prod include 'unsafe-inline'.
-      process.env.NODE_ENV !== 'production'
-        ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleScriptSrc}`
-        : `script-src 'self' 'unsafe-inline' ${googleScriptSrc}`,
-      // Images: allow all HTTPS sources + self + data + blob.
-      // We cannot predict all storage domains (Render, Supabase, R2, CDN, user avatars)
-      // at build time, so we use 'https:' wildcard which allows any HTTPS image source.
-      // This is safe for a pure-API backend (no cross-site form actions, no scripts).
-      `img-src 'self' data: blob: https: http://localhost:3001 http://localhost:3002`,
-      // Fonts: self + Google Fonts (if used)
-      `font-src 'self'`,
-      // API calls, Sentry, Stripe, WebSocket (socket.io), Google auth
-      `connect-src 'self' ${apiHost} ${wsHost} ws://localhost:3001 wss://localhost:3001 https://*.sentry.io https://api.stripe.com https://api.chapa.co https://accounts.google.com https://*.supabase.co https://*.supabase.in`,
-      // Stripe Checkout/Elements + Google Sign-In; website Video (YouTube) and Map / Live location sections
-      `frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com https://maps.google.com https://www.openstreetmap.org`,
-      // No plugins, no base-uri override
-      `object-src 'none'`,
-      `base-uri 'self'`,
-      `form-action 'self'`,
-      `frame-ancestors 'none'`,
-      `manifest-src 'self'`,
-      `worker-src 'self' blob:`,
-      // Upgrade to https only when the API is https. Safari/WebKit also upgrades
-      // http://localhost, which broke every API call on a local http backend.
-      apiHost.startsWith('https:') ? `upgrade-insecure-requests` : '',
-    ].filter(Boolean).join('; ');
-
+    // The Content-Security-Policy for pages is set per request with a nonce in
+    // proxy.ts (lib/csp.ts, audit F-016); these headers apply to every response.
     return [
       {
         // Global security headers for all pages
@@ -117,7 +84,6 @@ const nextConfig: NextConfig = {
           { key: "X-XSS-Protection",             value: "1; mode=block" },
           { key: "Referrer-Policy",              value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy",           value: "camera=(self), microphone=(), geolocation=(self)" },
-          { key: "Content-Security-Policy",      value: csp },
           { key: "Cross-Origin-Opener-Policy",   value: "same-origin-allow-popups" },
         ],
       },

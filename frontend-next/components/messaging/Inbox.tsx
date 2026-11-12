@@ -25,6 +25,7 @@ import MessageSearch from '@/components/messaging/MessageSearch';
 import NewChatMenu from '@/components/messaging/NewChatMenu';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import ChoiceDialog from '@/components/messaging/ChoiceDialog';
+import { token } from '@/lib/colorTokens';
 
 type Box = 'chats' | 'business' | 'requests' | 'archived';
 type Tab = Box | 'groups';
@@ -269,17 +270,17 @@ function ChatRow({ c, me, selected, typing, online, onMenu }: {
       >
         {isDm ? (
           <span className="relative h-12 w-12 shrink-0" aria-hidden="true">
-            <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-base font-bold text-white">
+            <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-primary text-base font-bold text-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {chatAvatar(c) ? <img src={chatAvatar(c)!} alt="" className="h-full w-full object-cover" /> : title.charAt(0).toUpperCase()}
             </span>
             {online && !(c.business_id && !c.is_business_side) && (
-              <span className="absolute bottom-0 end-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-emerald-500" />
+              <span className="absolute bottom-0 end-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-success" />
             )}
           </span>
         ) : (
           <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full text-white"
-            style={{ background: c.type === 'channel' ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)' }} aria-hidden="true">
+            style={{ background: c.type === 'channel' ? token.primary : token.brandSecondary }} aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {chatAvatar(c) ? <img src={chatAvatar(c)!} alt="" className="h-full w-full object-cover" /> : c.type === 'channel' ? <Radio className="h-5 w-5" /> : <Users className="h-5 w-5" />}
           </span>
@@ -289,7 +290,7 @@ function ChatRow({ c, me, selected, typing, online, onMenu }: {
             <span className={cn('flex min-w-0 items-center gap-1.5 truncate text-sm', unread ? 'font-bold' : 'font-semibold')}>
               <span className="truncate">{title}</span>
               {c.is_business_side && c.business_name && (
-                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-px text-[10px] font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-primary-subtle px-1.5 py-px text-[10px] font-semibold text-primary-subtle-foreground">
                   <Store className="h-2.5 w-2.5" aria-hidden="true" />{c.business_name}
                 </span>
               )}

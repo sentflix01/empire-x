@@ -1,0 +1,32 @@
+{
+  "steps": [
+    "node …/scripts/ownership-scan.mjs (150 authenticated routes with IDs; 25 flagged by heuristic, all reviewed manually)",
+    "source ~/.nodbusiness-local/env.sh && node …/scripts/two-account-check.mjs"
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-026",
+  "kind": "positive",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: object-level access checks hold in code review and live two-account tests",
+  "standards": [
+    "OWASP API1:2023",
+    "OWASP A01:2025",
+    "ASVS 5.0 V8.2"
+  ],
+  "location": [
+    "note/2026-11-05-international-audit/scripts/ownership-scan.mjs",
+    "note/2026-11-05-international-audit/scripts/two-account-check.mjs"
+  ],
+  "expected": "Account B cannot read or change account A's private resources.",
+  "actual": "All 25 heuristic candidates enforce ownership or membership via helpers or router-level middleware. Live: B gets 403 updating A's business and product, deleting A's product, listing or adding A's payment accounts, and on admin/devops routes; guests get 401; A's product is unchanged. Orders, direct orders and messages were reviewed in code only — live two-party checks follow in Wave 3.",
+  "evidence": [
+    "evidence/wave2/two-account-check.json",
+    "inventory/ownership-scan.json"
+  ],
+  "impact": "Strong access control; make the two-account script a CI test.",
+  "fix": "None.",
+  "effort": "S"
+}

@@ -27,7 +27,7 @@ export default function WhoReactedDialog({ postId, open, onOpenChange }: { postI
     return () => { cancelled = true; };
   }, [open, postId, tab]);
 
-  const total = Object.values(counts).reduce((s, n) => s + (n ?? 0), 0);
+  const total = Object.values(counts).reduce<number>((s, n) => s + (n ?? 0), 0);
   const tabs = (Object.keys(counts) as Reaction[]).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0));
 
   return (

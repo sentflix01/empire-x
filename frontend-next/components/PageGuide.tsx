@@ -10,6 +10,9 @@ import client from '@/api/client';
 type GuideStep = { target: string; title: string; description: string };
 
 // ── Tour ID mapping ────────────────────────────────────────────────────────────
+/** Pages where the guide never opens by itself: it would cover the form (F-031). */
+const NO_AUTO_OPEN = new Set(['LOGIN', 'REGISTER', 'FORGOT', 'RESET']);
+
 function getTourId(pathname: string): string {
   if (pathname === '/landing' || pathname === '/') return 'LANDING';
   if (pathname === '/login') return 'LOGIN';
@@ -926,7 +929,6 @@ export default function PageGuide() {
   const words = copy[language];
   const [isMobile, setIsMobile] = useState(false);
   const steps = useMemo(() => buildSteps(pathname, language, isMobile), [pathname, language, isMobile]);
-  const [enabled, setEnabled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
@@ -954,8 +956,10 @@ export default function PageGuide() {
     setMounted(true);
     let active = true;
     client.get('/api/flags/page-guided-tours').then(({ data }) => {
+      // The flag only decides whether the guide opens by itself; the launcher
+      // always works (F-031, default off). Never open over a sign-in form.
       if (!active || data?.enabled_for_user !== true) return;
-      setEnabled(true);
+      if (NO_AUTO_OPEN.has(tourId)) return;
       try {
         // Backwards compat: treat legacy key as done for LANDING and FEED
         const legacyDone = (tourId === 'LANDING' || tourId === 'FEED') &&
@@ -964,7 +968,7 @@ export default function PageGuide() {
       } catch { setOpen(true); }
     }).catch(() => {});
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [tourKey, tourId]);
 
   // Listen for open requests dispatched by the floating Page guide launcher button
@@ -1086,9 +1090,10 @@ export default function PageGuide() {
 
   // Broadcast enabled state so the floating launcher button knows whether to render
   useEffect(() => {
-    try { localStorage.setItem('nodbusiness_page_guide_enabled', String(mounted && enabled)); } catch {}
-    window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted && enabled } }));
-  }, [mounted, enabled]);
+    // The launcher shows whenever the guide is mounted, whatever the auto-open flag says.
+    try { localStorage.setItem('nodbusiness_page_guide_enabled', String(mounted)); } catch {}
+    window.dispatchEvent(new CustomEvent('nodbusiness:page-guide-enabled', { detail: { enabled: mounted } }));
+  }, [mounted]);
 
   if (!mounted) return (
     /* Render the accessible launcher even before mount so tests and
@@ -1115,7 +1120,7 @@ export default function PageGuide() {
     />
 
     {open && mounted && createPortal(
-      <div className="fixed inset-0 z-[1000]" aria-label="Page guide">
+      <div className="fixed inset-0 z-guide" aria-label="Page guide">
         <svg className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => event.preventDefault()}>
           <defs>
             <mask id="page-guide-mask">
@@ -1138,7 +1143,7 @@ export default function PageGuide() {
         {rect && (
           <div
             aria-hidden="true"
-            className="pointer-events-none fixed rounded-2xl border-2 border-blue-400 shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
+            className="pointer-events-none fixed rounded-2xl border-2 border-primary shadow-[0_0_0_2px_rgba(255,255,255,0.85)]"
             style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}
           />
         )}
@@ -1149,7 +1154,7 @@ export default function PageGuide() {
           aria-modal="true"
           aria-labelledby="page-guide-title"
           aria-describedby="page-guide-description"
-          className="fixed z-[1002] max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-2rem)] max-w-[22.5rem] overflow-y-auto rounded-2xl border border-border bg-background p-4 text-foreground shadow-2xl sm:p-5"
+          className="fixed z-guide-card max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-2rem)] max-w-[22.5rem] overflow-y-auto rounded-2xl border border-border bg-background p-4 text-foreground shadow-2xl sm:p-5"
           style={{ top: card.top, left: card.left }}
         >
           <div className="mb-3 flex items-start justify-between gap-3">

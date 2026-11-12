@@ -1,7 +1,10 @@
 # Nodbusiness Messaging System — Professional Audit & Specification
 
-**Status:** Engineering Review Document  
+**Status:** Engineering Review Document — **partly superseded** (note added 2026-11-07, audit F-008)  
 **Compiled:** 2026-10  
+
+> **Since this was written:** message reactions (`message_reactions`, migration 70; `POST/DELETE/GET /api/messages/messages/:id/reactions`), message search (`GET /api/messages/search`), server-side pins and saved messages, and product/order cards in chat (`backend/test/db/messageCards.db.test.js`) are built. Sections 1–3 still describe them as missing. Check `backend/routes/messages.ts` before relying on any "missing" item below.
+
 **Scope:** Full audit of the Nodbusiness messaging system against 2025 industry standards, with implementation roadmap and architecture recommendations.  
 **Stack:** Next.js / React / TypeScript (frontend); Node.js / Express / Socket.IO / PostgreSQL (backend); primary market: Ethiopia (mobile-first, variable connectivity); use case: social-commerce (Instagram + WhatsApp + Shopify hybrid).
 
@@ -50,7 +53,9 @@ The recommended investment order is: (1) unblock commerce use by adding search, 
 
 ### 3.1 Message Reactions
 
-**What we have:** Nothing. No `message_reactions` table, no reaction endpoints, no reaction Socket.IO events, no reaction UI in `ChatRoom.tsx` or `Messages.tsx`.
+**Now built (2026-11-07 note):** see the note at the top. The text below describes October 2026.
+
+**What we had:** Nothing. No `message_reactions` table, no reaction endpoints, no reaction Socket.IO events, no reaction UI in `ChatRoom.tsx` or `Messages.tsx`.
 
 **Industry benchmark:** WhatsApp adopted 6 curated reactions in 2022, expanded to full emoji picker in 2023 (source: engineering.fb.com). Telegram allows any emoji including animated premium reactions. Slack supports any Unicode emoji plus custom workspace emoji with per-reaction counts and a "who reacted" popover. The 2025 norm is a fixed short list of 6–8 for tap, plus a `+` button opening a full emoji picker. Reaction counts are displayed inline; tapping counts opens a "who reacted" sheet. (Sources: messaging_research_raw.md §1; api.slack.com/messaging/reactions; signal.org/blog)
 

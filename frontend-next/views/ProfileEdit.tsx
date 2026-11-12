@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { getTemplateById } from '@/lib/businessTemplates';
+import { getTemplateById, type TemplateSection } from '@/lib/businessTemplates';
 import WebsiteSectionsPanel from '@/components/profile/WebsiteSectionsPanel';
 import ImageUpload from '@/components/ui/ImageUpload';
 import CoverPositionEditor, { CoverPositionTrigger } from '@/components/ui/CoverPositionEditor';
@@ -45,8 +45,8 @@ function Section({ icon: Icon, title, children, defaultOpen = true }: {
       <button type="button" aria-expanded={open} onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-secondary/30 transition-colors">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-            <Icon className="w-4 h-4 text-blue-600" />
+          <div className="w-8 h-8 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+            <Icon className="w-4 h-4 text-primary" />
           </div>
           <span className="text-sm font-semibold">{title}</span>
         </div>
@@ -79,9 +79,9 @@ function TagListEditor({ values, onChange, placeholder }: {
       </div>
       <div className="flex flex-wrap gap-1.5">
         {values.map(v => (
-          <span key={v} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium">
+          <span key={v} className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary-subtle text-primary rounded-full text-xs font-medium">
             {v}
-            <button onClick={() => onChange(values.filter(x => x !== v))} className="text-blue-400 hover:text-blue-700">
+            <button onClick={() => onChange(values.filter(x => x !== v))} className="text-primary hover:text-primary">
               <X className="w-3 h-3" />
             </button>
           </span>
@@ -118,7 +118,7 @@ function EntryListEditor({ values, onChange, labels }: {
         </div>
       ))}
       <button onClick={() => onChange([...values, blank()])}
-        className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-border rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-blue-400 transition-all">
+        className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-border rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-primary transition-all">
         <Plus className="w-4 h-4" /> Add {labels.title}
       </button>
     </div>
@@ -155,7 +155,7 @@ function CertListEditor({ values, onChange, type }: {
         </div>
       ))}
       <button onClick={() => onChange([...values, blank()])}
-        className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-border rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-blue-400 transition-all">
+        className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-border rounded-xl text-sm text-muted-foreground hover:text-foreground hover:border-primary transition-all">
         <Plus className="w-4 h-4" /> Add {type === 'cert' ? 'Certificate' : 'Award'}
       </button>
     </div>
@@ -196,7 +196,7 @@ function ProfileEdit() {
 
   // ── Business state ──────────────────────────────────────────────────────
   const [business, setBusiness] = useState({
-    business_name: '', business_category: '', business_template: '' as string | string[],
+    business_name: '', business_category: '', business_template: '',
     business_description: '', business_contact_email: '', business_contact_phone: '',
     business_address: '', business_theme_color: '#2563EB',
     business_logo_url: '' as string | string[],
@@ -303,7 +303,7 @@ function ProfileEdit() {
         ? getTemplateById(business.business_category, business.business_template)?.sections || []
         : [];
       const sections = JSON.stringify(templateSections.map(section => {
-        const personalized = { ...section };
+        const personalized: TemplateSection = { ...section };
         if (personalized.type === 'hero') {
           personalized.title = business.business_name || personalized.title;
           personalized.subtitle = business.business_description || personalized.subtitle;
@@ -352,8 +352,8 @@ function ProfileEdit() {
     <div className="max-w-2xl mx-auto pb-20">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 pt-2">
-        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-secondary transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+        <button type="button" onClick={() => router.back()} aria-label="Go back" className="p-2 rounded-xl hover:bg-secondary transition-colors">
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
         </button>
         <div>
           <h1 className="text-xl font-bold">{isBusinessSetup ? 'Business Profile Setup' : 'Edit Profile'}</h1>
@@ -366,12 +366,12 @@ function ProfileEdit() {
         <div className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-6">
           <button onClick={() => setTab('personal')}
             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2
-              ${tab === 'personal' ? 'bg-blue-600 text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary'}`}>
+              ${tab === 'personal' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary'}`}>
             <User className="w-4 h-4" /> Personal
           </button>
           <button onClick={() => setTab('business')}
             className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2
-              ${tab === 'business' ? 'bg-amber-500 text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary'}`}>
+              ${tab === 'business' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:bg-secondary'}`}>
             <Store className="w-4 h-4" /> Business
           </button>
         </div>
@@ -385,7 +385,7 @@ function ProfileEdit() {
           <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             <div className="relative">
               {/* Cover photo — personal controls use primary/accent colors only */}
-              <div className="h-32 bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 relative">
+              <div className="h-32 bg-primary relative">
                 {editingPersonalCover && typeof p.cover_url === 'string' && p.cover_url ? (
                   <CoverPositionEditor
                     src={p.cover_url}
@@ -420,7 +420,7 @@ function ProfileEdit() {
               {/* Avatar overlapping cover */}
               <div className="px-4 -mt-10 pb-3 flex items-end justify-between">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {p.avatar_url && typeof p.avatar_url === 'string' && p.avatar_url
                       ? <Image src={p.avatar_url} alt="Avatar" width={80} height={80} className="w-full h-full object-cover" unoptimized />
                       : (p.display_name?.charAt(0) || 'U')}
@@ -429,7 +429,7 @@ function ProfileEdit() {
                     <ImageUpload value={p.avatar_url} onChange={url => sp('avatar_url', url)}
                       placeholder="" aspectRatio="aspect-square"
                       className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-600 rounded-tl-lg flex items-center justify-center pointer-events-none">
+                    <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-tl-lg flex items-center justify-center pointer-events-none">
                       <Camera className="w-3 h-3 text-white" />
                     </div>
                   </div>
@@ -520,7 +520,7 @@ function ProfileEdit() {
               <p className="text-xs text-muted-foreground">Scrolls under every post you make</p>
               <button data-page-guide="profile-edit-ticker" type="button" role="switch" aria-checked={p.ticker_type !== 'none'}
                 onClick={() => sp('ticker_type', p.ticker_type === 'none' ? 'auto' : 'none')}
-                className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${p.ticker_type !== 'none' ? 'bg-amber-500' : 'bg-secondary'}`}>
+                className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${p.ticker_type !== 'none' ? 'bg-primary' : 'bg-secondary'}`}>
                 <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${p.ticker_type !== 'none' ? 'translate-x-5' : 'translate-x-0.5'}`} />
               </button>
             </div>
@@ -532,8 +532,8 @@ function ProfileEdit() {
                     const sel = p.ticker_type === tt.value;
                     return (
                       <button key={tt.value} type="button" onClick={() => sp('ticker_type', tt.value)}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all text-xs ${sel ? 'border-amber-400 bg-amber-50 dark:bg-amber-900/20' : 'border-border hover:border-amber-300'}`}>
-                        <TI className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all text-xs ${sel ? 'border-primary bg-primary-subtle' : 'border-border hover:border-primary/30'}`}>
+                        <TI className="w-3.5 h-3.5 shrink-0 text-primary" />
                         <span className="font-medium">{tt.label}</span>
                       </button>
                     );
@@ -549,7 +549,7 @@ function ProfileEdit() {
           <VerificationRequest />
 
           <Button onClick={handleSavePersonal} disabled={saving || !p.display_name}
-            className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base shadow-md shadow-blue-600/20">
+            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-semibold text-base shadow-md shadow-primary/20">
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </div>
@@ -563,7 +563,7 @@ function ProfileEdit() {
           <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
             <div className="relative">
               {/* Business cover — controls use the gold/amber scheme only */}
-              <div className="h-32 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 relative">
+              <div className="h-32 bg-primary relative">
                 {editingBusinessCover && typeof b.business_cover_url === 'string' && b.business_cover_url ? (
                   <CoverPositionEditor
                     src={b.business_cover_url}
@@ -597,7 +597,7 @@ function ProfileEdit() {
               </div>
               <div className="px-4 -mt-10 pb-3">
                 <div className="relative w-20 h-20">
-                  <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {b.business_logo_url && typeof b.business_logo_url === 'string' && b.business_logo_url
                       ? <Image src={b.business_logo_url} alt="Logo" width={80} height={80} className="w-full h-full object-cover" unoptimized />
                       : (b.business_name?.charAt(0) || 'B')}
@@ -606,7 +606,7 @@ function ProfileEdit() {
                     <ImageUpload value={b.business_logo_url} onChange={url => sb('business_logo_url', url)}
                       placeholder="" aspectRatio="aspect-square"
                       className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
-                    <div className="absolute bottom-0 right-0 w-6 h-6 bg-amber-500 rounded-tl-lg flex items-center justify-center pointer-events-none">
+                    <div className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-tl-lg flex items-center justify-center pointer-events-none">
                       <Camera className="w-3 h-3 text-white" />
                     </div>
                   </div>
@@ -630,7 +630,7 @@ function ProfileEdit() {
               <div>
                 <Label htmlFor="business-type">Business Type</Label>
                 <select id="business-type" value={b.business_type} onChange={e => sb('business_type', e.target.value)}
-                  className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-amber-500/30">
+                  className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-primary/30">
                   <option value="">Select type</option>
                   <option>Sole Proprietorship</option>
                   <option>Partnership</option>
@@ -645,7 +645,7 @@ function ProfileEdit() {
               <div>
                 <Label htmlFor="business-team-size">Team Size</Label>
                 <select id="business-team-size" value={b.business_team_size} onChange={e => sb('business_team_size', e.target.value)}
-                  className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-amber-500/30">
+                  className="w-full h-11 px-3 mt-1 bg-secondary/50 border border-border/50 rounded-xl text-sm outline-none focus:ring-1 focus:ring-primary/30">
                   <option value="">Select size</option>
                   <option>1 (Just me)</option>
                   <option>2–10</option>
@@ -750,7 +750,7 @@ function ProfileEdit() {
           </div>
 
           <Button onClick={handleSaveBusiness} disabled={saving || !b.business_name}
-            className="w-full h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-base shadow-md shadow-amber-500/20">
+            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-semibold text-base shadow-md shadow-primary/20">
             {saving ? 'Saving business profile…' : profile?.has_business_profile ? 'Save Business Profile' : 'Create Business Profile'}
           </Button>
         </div>

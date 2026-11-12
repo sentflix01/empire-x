@@ -57,7 +57,7 @@ export default function MessageActions({ message, me, pinned, reducedMotion = fa
       {message && can && (
         <>
           <motion.div
-            className="fixed inset-0 z-[60] bg-black/50"
+            className="fixed inset-0 z-chat-menu bg-black/50"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: reducedMotion ? 0 : 0.15 }}
             onClick={h.onClose}
@@ -68,7 +68,7 @@ export default function MessageActions({ message, me, pinned, reducedMotion = fa
             role="dialog"
             aria-modal="true"
             aria-label="Message actions"
-            className="pointer-events-none fixed inset-x-0 bottom-0 z-[61] mx-auto max-w-lg md:inset-0 md:flex md:items-center md:justify-center md:px-4"
+            className="pointer-events-none fixed inset-x-0 bottom-0 z-chat-menu-content mx-auto max-w-lg md:inset-0 md:flex md:items-center md:justify-center md:px-4"
             initial={reducedMotion ? false : { y: '100%' }}
             animate={{ y: 0 }}
             exit={reducedMotion ? { opacity: 0 } : { y: '100%' }}

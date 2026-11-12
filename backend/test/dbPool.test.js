@@ -5,12 +5,12 @@ const pool = require('../db/pool');
 
 describe('database connection string normalization', () => {
   test('leaves a direct Supabase URL unchanged', () => {
-    const url = 'postgresql://postgres:password@db.tpgzlokgnjxcerexxoda.supabase.co:5432/postgres?sslmode=require';
+    const url = 'postgresql://postgres:password@db.abcdefghijklmnopqrst.supabase.co:5432/postgres?sslmode=require';
     expect(pool.buildConnectionString(url)).toBe(url);
   });
 
   test('marks a Supabase transaction pooler endpoint as transaction pooled', () => {
-    const url = 'postgresql://postgres.tpgzlokgnjxcerexxoda:password@aws-0-eu-west-1.pooler.supabase.com:6543/postgres';
+    const url = 'postgresql://postgres.abcdefghijklmnopqrst:password@aws-0-eu-west-1.pooler.supabase.com:6543/postgres';
     expect(pool.buildConnectionString(url)).toBe(`${url}?pgbouncer=true`);
   });
 

@@ -1,7 +1,10 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { clearToken, ensureFreshToken, getAccessToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken, DEMO_ENDED_EVENT } from '@/api/client';
+
+/** Where a visitor goes when their Demo practice session has ended. */
+export const DEMO_ENDED_REDIRECT = '/landing?demo=ended';
 
 export interface AuthUser {
   id?: string;
@@ -17,6 +20,12 @@ export interface AuthUser {
   demo_workspace_available?: boolean;
   /** Set after first-login mode selection. null = user has not yet chosen. */
   onboarding_mode?: 'demo' | 'real' | null;
+  /** True while an old wallet balance can still be withdrawn (audit F-047). */
+  has_wallet_balance?: boolean;
+  /** Profile photo — included in /api/auth/me to avoid a separate API round-trip. */
+  avatar_url?: string | null;
+  /** Cover photo — included in /api/auth/me to avoid a separate API round-trip. */
+  cover_url?: string | null;
   [key: string]: unknown;
 }
 
@@ -36,7 +45,7 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue>({} as AuthContextValue);
-const AUTH_LOADING_UI_TIMEOUT_MS = 8_000;
+const AUTH_LOADING_UI_TIMEOUT_MS = 4_000;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser]                   = useState<AuthUser | null>(null);
@@ -132,19 +141,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.clearTimeout(loadingTimer);
   }, [checkUserAuth]);
 
+  // The API said this Demo practice session is over (api/client.ts). Leave Demo
+  // completely and explain on the landing page, where "Try Demo" starts afresh.
+  useEffect(() => {
+    const onDemoEnded = () => {
+      clearToken();
+      setUser(null);
+      setIsAuth(false);
+      setAuthChecked(true);
+      window.location.href = DEMO_ENDED_REDIRECT;
+    };
+    window.addEventListener(DEMO_ENDED_EVENT, onDemoEnded);
+    return () => window.removeEventListener(DEMO_ENDED_EVENT, onDemoEnded);
+  }, []);
+
   const logout = (redirectTo?: string) => {
-    // Revoke the active environment's refresh cookie before navigation. Keep
-    // local state cleared immediately so the old account cannot remain visible.
+    // Clear local state immediately so the old account cannot remain visible.
     clearToken();
     setUser(null);
     setIsAuth(false);
     setAuthChecked(false);
     const target = typeof redirectTo === 'string' ? redirectTo : '/';
     if (typeof window !== 'undefined') {
-      // Delay navigation until logout reaches the server so the refresh cookie
-      // is cleared before a new account environment can start.
-      void client.post('/api/auth/logout', {}, { timeout: 5000 })
-        .catch(() => {}).finally(() => { window.location.href = target; });
+      // Fire logout to server in background — don't wait for it. The POST
+      // starts synchronously, then navigation follows immediately. Browsers
+      // keep same-origin requests alive briefly after navigation begins.
+      void client.post('/api/auth/logout', {}, { timeout: 3000 }).catch(() => {});
+      // Navigate immediately (< 100ms after clicking logout)
+      window.location.href = target;
     }
   };
 

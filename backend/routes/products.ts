@@ -23,8 +23,11 @@ import rateLimit from 'express-rate-limit';
 import { parseProductCode } from '../lib/barcode';
 import { gtinVariants, importProductImage, lookupBarcode } from '../lib/productLookup';
 import { checkoutReadiness, resolveProductBusiness, soleBusinessOf } from '../lib/productBusiness';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 const LOW_STOCK_THRESHOLD = 5;
 
 function normalizeProduct(p: Record<string,unknown>): Record<string,unknown> {
@@ -220,6 +223,28 @@ router.post('/import-image', requireAuth, scanLimiter, async (req: Request, res:
 });
 
 /**
+ * A product must belong to a business, or nobody but its seller can see it
+ * (audit F-033). Returns the business id, or answers 422 BUSINESS_REQUIRED
+ * with what to do and returns null. Admins follow the same rule.
+ */
+async function requireSellingBusiness(
+  res: Response,
+  sellerId: string,
+  given: { business_id?: unknown; showroom_id?: unknown },
+): Promise<string | null> {
+  const businessId = await resolveProductBusiness({ ...given, seller_id: sellerId });
+  if (businessId) return businessId;
+  const { rows } = await pool.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM businesses WHERE owner_id=$1', [sellerId]);
+  const several = (rows[0]?.n ?? 0) > 1;
+  res.status(422).json({
+    error: several ? 'Choose which business sells this product.' : 'Create a business first, then add products to it.',
+    code: 'BUSINESS_REQUIRED',
+    reason: several ? 'choose_business' : 'no_business',
+  });
+  return null;
+}
+
+/**
  * Quick scan mode: save the whole list in one transaction. Items are either
  * { product_id, add_stock } (one of mine) or a new product with title + price.
  */
@@ -234,6 +259,12 @@ router.post('/scan-batch', requireAuth, async (req: Request, res: Response) => {
     if (businessId) {
       const { rows } = await client.query('SELECT id FROM businesses WHERE id=$1 AND owner_id=$2', [businessId, sellerId]);
       if (!rows.length) { res.status(403).json({ error: 'You cannot attach products to this business' }); return; }
+    }
+    // New products need a business (audit F-033); stock-only updates do not.
+    let sellingBusiness: string | null = businessId;
+    if (items.some((it) => typeof it.product_id !== 'string')) {
+      sellingBusiness = await requireSellingBusiness(res, sellerId, { business_id: businessId });
+      if (!sellingBusiness) return;
     }
     await client.query('BEGIN');
     const created: string[] = []; const updated: string[] = []; const seen = new Set<string>();
@@ -266,7 +297,7 @@ router.post('/scan-batch', requireAuth, async (req: Request, res: Response) => {
       const { rows: [row] } = await client.query(
         `INSERT INTO products (seller_id, business_id, title, description, price, currency, stock, category, images, barcode, manufacturer, unit, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12, 'pcs'), 'active') RETURNING id`,
-        [sellerId, businessId, title, typeof it.description === 'string' ? it.description.slice(0, 5000) : null, price,
+        [sellerId, sellingBusiness, title, typeof it.description === 'string' ? it.description.slice(0, 5000) : null, price,
           typeof it.currency === 'string' ? it.currency : 'ETB', stock, typeof it.category === 'string' ? it.category.slice(0, 80) : null,
           JSON.stringify(images), barcode, typeof it.manufacturer === 'string' ? it.manufacturer.slice(0, 120) : null,
           typeof it.unit === 'string' && it.unit.trim() ? it.unit.slice(0, 40) : null],
@@ -341,9 +372,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     }
     // A product with no business or showroom belongs to the seller's only
     // business, so checkout can find its payment details (audit FUNC-03).
+    // Without one it would be invisible to everyone else (audit F-033).
     if (data.business_id == null && data.showroom_id == null) {
       data.business_id = await soleBusinessOf(req.user!.id);
     }
+    if (!(await requireSellingBusiness(res, req.user!.id, data))) return;
     const product = await createRecord('products', { ...data, seller_id: req.user!.id }) as Record<string, unknown>;
     await invalidateCache('products:list').catch(()=>undefined);
     // Tells the seller straight away when buyers cannot pay for this product yet.

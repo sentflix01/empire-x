@@ -12,11 +12,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BookmarkButton from "@/components/ui/BookmarkButton";
-import { isGetQuote, sectionItemBuyPayload } from "@/lib/sectionItemPurchase";
+import { isGetQuote, sectionItemBuyPayload, type SectionItem } from "@/lib/sectionItemPurchase";
+
+/** Free-form section entries stored as JSON; only the fields shown here are read. */
+interface StepItem { name?: string; title?: string; desc?: string }
+interface ReviewItem { name?: string; author?: string; role?: string; quote?: string; review?: string; text?: string }
+interface FaqItem { question?: string; title?: string; answer?: string; desc?: string }
 import client from "@/api/client";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import LiveLocationSection from "@/components/showroom/LiveLocationSection";
 import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 /** Sections that list the business's real products (search, categories, Order). */
 export const CATALOGUE_TYPES = ["products", "featured_products", "inventory_catalog"];
@@ -137,12 +144,13 @@ export default function SectionRenderer({
     // legacy templates fall back to the soft theme-color wash.
     const hasCustomBg = Boolean(s.heroBg);
     const bg = hasCustomBg
-      ? `linear-gradient(135deg, ${s.heroBg}, ${s.heroBg2 || s.heroBg})`
+      // White text sits on this gradient, so both stops are kept readable (F-041).
+      ? `linear-gradient(135deg, ${fillForWhiteText(s.heroBg)}, ${fillForWhiteText(s.heroBg2 || s.heroBg)})`
       : `linear-gradient(135deg, ${themeColor}15, ${themeColor}05)`;
     return (
       <div id={`section-${sectionIndex}`} className="relative px-5 py-12 text-center" style={{ background: bg }}>
         <div className="max-w-md mx-auto">
-          <h1 className={`font-display text-2xl font-bold mb-2 ${hasCustomBg ? "text-white" : ""}`} style={hasCustomBg ? undefined : { color: themeColor }}>{s.title || biz.business_name || biz.title || "Welcome"}</h1>
+          <h1 className={`font-display text-2xl font-bold mb-2 ${hasCustomBg ? "text-white" : "biz-text"}`} style={hasCustomBg ? undefined : themeTextStyle(themeColor)}>{s.title || biz.business_name || biz.title || "Welcome"}</h1>
           {(s.subtitle || biz.description || biz.business_description) && (
             <p className={`text-sm mb-4 ${hasCustomBg ? "text-white/85" : "text-muted-foreground"}`}>{s.subtitle || biz.description || biz.business_description}</p>
           )}
@@ -151,7 +159,7 @@ export default function SectionRenderer({
               {hasCustomBg ? (
                 <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
               ) : (
-                <Button className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>{s.cta}</Button>
+                <Button className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{s.cta}</Button>
               )}
             </a>
           )}
@@ -205,7 +213,7 @@ export default function SectionRenderer({
             <p className="text-sm text-muted-foreground">
               {productSearch || productCategory ? 'No matching products. Try a different search or category.' : 'No products available yet'}
             </p>
-            {(isOwner || preview) && <Link href="/products/create" className="text-xs text-amber-600 hover:underline mt-2 inline-block">Add your first product →</Link>}
+            {(isOwner || preview) && <Link href="/products/create" className="text-xs text-primary hover:underline mt-2 inline-block">Add your first product →</Link>}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3" aria-live="polite">
@@ -224,7 +232,7 @@ export default function SectionRenderer({
                     <p className="text-sm font-medium truncate">{p.title}</p>
                     {p.description && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.description}</p>}
                     <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm font-bold" style={{ color: themeColor }}>{p.price?.toLocaleString()} {p.currency || "USD"}</p>
+                      <p className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{formatAmount(p.price)} {p.currency || "USD"}</p>
                       {!isOwner && onBuy && showStock && (
                         <span className="text-xs text-muted-foreground">{Number(p.stock) > 0 ? `${p.stock} left` : 'Check availability'}</span>
                       )}
@@ -239,7 +247,7 @@ export default function SectionRenderer({
                   ) : cardContent}
                   {!isOwner && onBuy && (
                     <div className="px-3 pb-3">
-                      <Button size="sm" className="h-8 w-full rounded-full text-white" style={{ backgroundColor: themeColor }} onClick={() => onBuy(p)}>
+                      <Button size="sm" className="h-8 w-full rounded-full text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }} onClick={() => onBuy(p)}>
                         Order
                       </Button>
                     </div>
@@ -296,7 +304,7 @@ export default function SectionRenderer({
   if (s.type === "services" || s.type === "menu") {
     // Builder shape: servTitle + services[]{name,desc}; legacy: title + items[]{name|title,description,price}.
     const servTitle = s.servTitle || s.title;
-    const servList = s.services || s.items || [];
+    const servList: SectionItem[] = s.services || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {servTitle && <h2 className="font-display text-lg font-bold mb-4">{servTitle}</h2>}
@@ -314,8 +322,8 @@ export default function SectionRenderer({
                       <button
                         type="button"
                         onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
-                        className="text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
-                        style={{ color: themeColor }}
+                        className="biz-text text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ ...themeTextStyle(themeColor) }}
                       >
                         Get Quote
                       </button>
@@ -323,8 +331,8 @@ export default function SectionRenderer({
                       <button
                         type="button"
                         onClick={() => buy && onBuy?.(buy)}
-                        className="text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
-                        style={{ color: themeColor }}
+                        className="biz-text text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ ...themeTextStyle(themeColor) }}
                       >
                         {item.price}
                       </button>
@@ -344,14 +352,14 @@ export default function SectionRenderer({
     // Builder shapes: featTitle/features[]{name,desc} OR processTitle/processSteps[]{title,desc};
     // legacy business templates: title + items[]{title,desc}.
     const headTitle = s.featTitle || s.processTitle || s.title;
-    const steps = s.processSteps || s.features || s.items || [];
+    const steps: StepItem[] = s.processSteps || s.features || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {headTitle && <h2 className="font-display text-lg font-bold mb-4">{headTitle}</h2>}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {steps.map((item, i) => (
             <div key={i} className="text-center">
-              <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: themeColor }}>{i + 1}</div>
+              <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{i + 1}</div>
               <h3 className="text-sm font-semibold">{item.name || item.title}</h3>
               {item.desc && <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>}
             </div>
@@ -364,14 +372,14 @@ export default function SectionRenderer({
   if (s.type === "testimonials") {
     // Builder shape: testTitle + testimonials[]{quote,author,role}; legacy: title + items[]{text|review,name|author}.
     const testTitle = s.testTitle || s.title;
-    const reviews = s.testimonials || s.items || [];
+    const reviews: ReviewItem[] = s.testimonials || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         {testTitle && <h2 className="font-display text-lg font-bold mb-4">{testTitle}</h2>}
         <div className="space-y-3">
           {reviews.map((item, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40" style={{ backgroundColor: themeColor + "08" }}>
-              <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
+              <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 fill-rating text-rating" />)}</div>
               <p className="text-sm italic">"{item.quote || item.text || item.review}"</p>
               <p className="text-xs font-semibold mt-2">— {item.author || item.name}{item.role ? `, ${item.role}` : ""}</p>
             </div>
@@ -384,7 +392,7 @@ export default function SectionRenderer({
   if (s.type === "faq") {
     // Builder shape: faqTitle + faqs[]{question,answer}; legacy: title + items[].
     const faqTitle = s.faqTitle || s.title;
-    const faqs = s.faqs || s.items || [];
+    const faqs: FaqItem[] = s.faqs || s.items || [];
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {faqTitle && <h2 className="font-display text-lg font-bold mb-4">{faqTitle}</h2>}
@@ -423,7 +431,7 @@ export default function SectionRenderer({
         </div>
       );
     }
-    const images = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
+    const images: string[] = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
     const galleryImages = images.length ? images : [
       `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-1/400/400`,
       `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-2/400/400`,
@@ -452,10 +460,10 @@ export default function SectionRenderer({
                 {m.image ? (
                   <SafeImage fill={false} width={800} height={600} loading="lazy" src={m.image} alt={m.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-2" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: themeColor }}>{(m.name || "?").charAt(0)}</div>
+                  <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{(m.name || "?").charAt(0)}</div>
                 )}
                 <h3 className="text-sm font-semibold">{m.name}</h3>
-                {m.role && <p className="text-xs mt-0.5" style={{ color: themeColor }}>{m.role}</p>}
+                {m.role && <p className="biz-text text-xs mt-0.5" style={{ ...themeTextStyle(themeColor) }}>{m.role}</p>}
                 {m.bio && <p className="text-xs text-muted-foreground mt-1 line-clamp-3">{m.bio}</p>}
               </div>
             ))}
@@ -466,7 +474,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 text-center">
         {s.title && <h2 className="font-display text-lg font-bold mb-4">{s.title}</h2>}
-        <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold" style={{ backgroundColor: themeColor }}>
+        <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
           {(biz.display_name || biz.business_name || biz.title)?.charAt(0) || "E"}
         </div>
         <h3 className="font-semibold">{biz.display_name || biz.business_name || biz.title}</h3>
@@ -509,11 +517,11 @@ export default function SectionRenderer({
           {items.map((it, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40 text-center hover:shadow-md transition-all">
               <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: themeColor + "15" }}>
-                <ShoppingBag className="w-5 h-5" style={{ color: themeColor }} />
+                <ShoppingBag className="biz-text w-5 h-5" style={{ ...themeTextStyle(themeColor) }} />
               </div>
               <h3 className="text-sm font-semibold">{it.name}</h3>
               {it.desc && <p className="text-xs text-muted-foreground mt-1">{it.desc}</p>}
-              {it.price && <p className="text-sm font-bold mt-2" style={{ color: themeColor }}>{it.price}</p>}
+              {it.price && <p className="biz-text text-sm font-bold mt-2" style={{ ...themeTextStyle(themeColor) }}>{it.price}</p>}
               {(() => {
                 const buy = sectionItemBuyPayload(it, 'Item');
                 return buy && onBuy ? <div className="mt-2 flex justify-center"><CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} /></div> : null;
@@ -534,7 +542,7 @@ export default function SectionRenderer({
           {plans.map((p, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card text-center">
               <h3 className="text-sm font-semibold">{p.name}</h3>
-              <p className="text-xl font-bold my-2" style={{ color: themeColor }}>
+              <p className="biz-text text-xl font-bold my-2" style={{ ...themeTextStyle(themeColor) }}>
                 {p.price}<span className="text-xs text-muted-foreground font-normal">{p.period}</span>
               </p>
               {p.features && (
@@ -561,7 +569,7 @@ export default function SectionRenderer({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stats.map((st, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card text-center">
-              <p className="text-2xl font-bold" style={{ color: themeColor }}>{st.number}</p>
+              <p className="biz-text text-2xl font-bold" style={{ ...themeTextStyle(themeColor) }}>{st.number}</p>
               <p className="text-xs text-muted-foreground mt-1">{st.label}</p>
             </div>
           ))}
@@ -585,7 +593,7 @@ export default function SectionRenderer({
               )}
               <div className="p-3">
                 <h3 className="text-sm font-semibold">{p.title}</h3>
-                {p.client && <p className="text-xs mt-0.5" style={{ color: themeColor }}>{p.client}</p>}
+                {p.client && <p className="biz-text text-xs mt-0.5" style={{ ...themeTextStyle(themeColor) }}>{p.client}</p>}
                 {p.desc && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.desc}</p>}
               </div>
             </div>
@@ -628,7 +636,7 @@ export default function SectionRenderer({
               <p className="text-sm text-muted-foreground">{s.address || s.location || biz.business_address}</p>
               {(s.address || s.location || biz.business_address) && (
                 <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.address || s.location || biz.business_address)}`} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex min-h-10 items-center gap-1 rounded-full px-4 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                  className="inline-flex min-h-10 items-center gap-1 rounded-full px-4 text-sm font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                   <MapPin className="h-4 w-4" aria-hidden="true" />Directions
                 </a>
               )}
@@ -636,7 +644,7 @@ export default function SectionRenderer({
           </div>
         ) : (
           <div className="rounded-xl bg-card border border-border/40 p-6 text-center">
-            <MapPin className="w-7 h-7 mx-auto mb-2" style={{ color: themeColor }} />
+            <MapPin className="biz-text w-7 h-7 mx-auto mb-2" style={{ ...themeTextStyle(themeColor) }} />
             <p className="text-sm">{s.address || s.location || biz.business_address || "Address will appear here"}</p>
           </div>
         )}
@@ -666,11 +674,11 @@ export default function SectionRenderer({
         <h2 className="font-display text-lg font-bold mb-2">{s.bookingTitle || s.title || "Book an Appointment"}</h2>
         {(s.bookingDesc || s.content) && <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{s.bookingDesc || s.content}</p>}
         {onGetQuote ? (
-          <Button type="button" onClick={() => onGetQuote(requestName, s.bookingDesc || s.content)} className="rounded-full text-white px-6" style={{ backgroundColor: themeColor }}>
+          <Button type="button" onClick={() => onGetQuote(requestName, s.bookingDesc || s.content)} className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
             <CalendarCheck className="w-4 h-4 mr-1" /> {buttonLabel}
           </Button>
         ) : (
-          <a href="#section-contact" className="inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white" style={{ backgroundColor: themeColor }}>
+          <a href="#section-contact" className="inline-flex items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
             <CalendarCheck className="w-4 h-4 mr-1" /> {buttonLabel}
           </a>
         )}
@@ -688,7 +696,7 @@ export default function SectionRenderer({
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card" style={{ borderLeft: `4px solid ${themeColor}` }}>
               <h3 className="text-sm font-semibold">{c.title}</h3>
               {c.summary && <p className="text-xs text-muted-foreground mt-1">{c.summary}</p>}
-              {c.result && <p className="text-xs font-semibold text-green-600 mt-2">✅ {c.result}</p>}
+              {c.result && <p className="text-xs font-semibold text-success mt-2">✅ {c.result}</p>}
             </div>
           ))}
         </div>
@@ -707,7 +715,7 @@ export default function SectionRenderer({
               {p.logo ? (
                 <SafeImage fill={false} width={800} height={600} loading="lazy" src={p.logo} alt={p.name || ""} className="h-10 mx-auto mb-2 object-contain" />
               ) : (
-                <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold" style={{ backgroundColor: themeColor }}>{(p.name || "?").charAt(0)}</div>
+                <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{(p.name || "?").charAt(0)}</div>
               )}
               <h3 className="text-sm font-semibold">{p.name}</h3>
               {p.note && <p className="text-xs text-muted-foreground mt-0.5">{p.note}</p>}
@@ -726,7 +734,7 @@ export default function SectionRenderer({
         <div className="space-y-2">
           {awards.map((a, i) => (
             <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border/40">
-              <Medal className="w-5 h-5 shrink-0 mt-0.5" style={{ color: themeColor }} />
+              <Medal className="biz-text w-5 h-5 shrink-0 mt-0.5" style={{ ...themeTextStyle(themeColor) }} />
               <div>
                 <h3 className="text-sm font-semibold">{a.title}</h3>
                 {a.detail && <p className="text-xs text-muted-foreground mt-0.5">{a.detail}</p>}
@@ -772,7 +780,7 @@ export default function SectionRenderer({
             {socials.map(({ url, label }) => (
               <a key={label} href={url} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/50 text-xs font-medium text-muted-foreground hover:text-foreground hover:shadow-sm transition-all">
-                <Share2 className="w-3 h-3" style={{ color: themeColor }} /> {label}
+                <Share2 className="biz-text w-3 h-3" style={{ ...themeTextStyle(themeColor) }} /> {label}
               </a>
             ))}
           </div>
@@ -809,7 +817,7 @@ export default function SectionRenderer({
 
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 text-center bg-secondary/10 border-t border-border/30">
-        <Bookmark className="w-8 h-8 mx-auto mb-3" style={{ color: themeColor }} />
+        <Bookmark className="biz-text w-8 h-8 mx-auto mb-3" style={{ ...themeTextStyle(themeColor) }} />
         <h2 className="font-display text-lg font-bold mb-1">{title}</h2>
         {desc && <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">{desc}</p>}
         <div className="flex items-center justify-center">
@@ -837,7 +845,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <Truck className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <Truck className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.deliveryTitle || s.title || "Delivery Options"}</h2>
         </div>
         {zones.length > 0 && (
@@ -848,7 +856,7 @@ export default function SectionRenderer({
                   <p className="text-sm font-semibold">{z.zone}</p>
                   {z.time && <p className="text-xs text-muted-foreground">{z.time}</p>}
                 </div>
-                {z.fee && <p className="text-sm font-bold" style={{ color: themeColor }}>{z.fee}</p>}
+                {z.fee && <p className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{z.fee}</p>}
               </div>
             ))}
           </div>
@@ -864,13 +872,13 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <BadgeCheck className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <BadgeCheck className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.certsTitle || s.title || "Our Credentials"}</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {certs.map((c: { name?: string; issuer?: string; year?: string }, i: number) => (
             <div key={i} className="flex items-start gap-3 rounded-xl border border-border/40 bg-card p-4">
-              <BadgeCheck className="w-5 h-5 mt-0.5 shrink-0" style={{ color: themeColor }} />
+              <BadgeCheck className="biz-text w-5 h-5 mt-0.5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
               <div>
                 <p className="text-sm font-semibold">{c.name}</p>
                 {c.issuer && <p className="text-xs text-muted-foreground">{c.issuer}</p>}
@@ -889,7 +897,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <Tag className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <Tag className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.brandsTitle || s.title || "Brands We Carry"}</h2>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -899,7 +907,7 @@ export default function SectionRenderer({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={b.logo} alt={b.name || ""} className="h-8 w-auto object-contain" loading="lazy" />
               ) : (
-                <Tag className="w-6 h-6" style={{ color: themeColor }} />
+                <Tag className="biz-text w-6 h-6" style={{ ...themeTextStyle(themeColor) }} />
               )}
               <p className="text-xs font-semibold text-center">{b.name}</p>
               {b.note && <p className="text-[10px] text-muted-foreground text-center">{b.note}</p>}
@@ -916,7 +924,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <CalendarDays className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <CalendarDays className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.eventsTitle || s.title || "Upcoming Events"}</h2>
         </div>
         <div className="space-y-3">
@@ -927,9 +935,9 @@ export default function SectionRenderer({
                 <p className="text-xs text-muted-foreground">{ev.date}{ev.seats ? ` · ${ev.seats} seats` : ''}</p>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                {ev.price && <p className="text-sm font-bold" style={{ color: themeColor }}>{ev.price}</p>}
+                {ev.price && <p className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{ev.price}</p>}
                 <Button size="sm" className="h-8 rounded-full text-xs text-white px-3"
-                  style={{ backgroundColor: themeColor }}
+                  style={{ backgroundColor: fillForWhiteText(themeColor) }}
                   onClick={() => onBuy?.({ title: ev.title || 'Event', listed_price: ev.price, product_id: ev.product_id })}>
                   Book
                 </Button>
@@ -947,7 +955,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <ArrowLeftRight className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <ArrowLeftRight className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.baTitle || s.title || "Before & After"}</h2>
         </div>
         <div className="space-y-4">
@@ -965,7 +973,7 @@ export default function SectionRenderer({
                   {p.after
                     ? <SafeImage fill={false} width={400} height={400} src={p.after} alt="After" className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">After</div>}
-                  <span className="absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: themeColor }}>After</span>
+                  <span className="absolute bottom-1 right-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>After</span>
                 </div>
               </div>
             </div>
@@ -981,7 +989,7 @@ export default function SectionRenderer({
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10">
         <div className="flex items-center gap-2 mb-4">
-          <UserPlus className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
+          <UserPlus className="biz-text w-5 h-5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
           <h2 className="font-display text-lg font-bold">{s.jobsTitle || s.title || "We're Hiring"}</h2>
         </div>
         <div className="space-y-3">
@@ -993,11 +1001,61 @@ export default function SectionRenderer({
               </div>
               {j.desc && <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{j.desc}</p>}
               <div className="flex items-center justify-between gap-2">
-                {j.salary && <p className="text-xs font-medium" style={{ color: themeColor }}>{j.salary}</p>}
+                {j.salary && <p className="biz-text text-xs font-medium" style={{ ...themeTextStyle(themeColor) }}>{j.salary}</p>}
                 <span className="text-xs text-muted-foreground">Contact us to apply</span>
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Feed announcement ticker ───────────────────────────────────────
+  // This section type does NOT render inside the showroom page itself —
+  // its content is read by BusinessFeedCard and shown as a TickerBar at
+  // the bottom of the business card in the feed.  Inside the Studio
+  // preview we show a small info card so the owner can see what they typed.
+  if (s.type === "feed_ticker") {
+    const text = (s.tickerText as string | undefined) ?? '';
+    const type = (s.tickerType as string | undefined) ?? 'auto';
+    return (
+      <div id={`section-${sectionIndex}`} className="px-5 py-6">
+        <div className="rounded-xl border border-border/40 bg-secondary/30 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-semibold">📢 Feed announcement bar</span>
+            {preview && (
+              <span className="ml-auto rounded-full bg-primary-subtle px-2 py-0.5 text-[10px] font-semibold text-primary">
+                Preview only
+              </span>
+            )}
+          </div>
+          {text ? (
+            /* Show a live preview of the TickerBar so the owner sees exactly
+               how it will look at the bottom of their feed card */
+            <div className="rounded-lg overflow-hidden border border-border/40">
+              {/* Inline mini ticker — same colours as the real TickerBar */}
+              <div className="flex items-center overflow-hidden bg-card">
+                <div className={`shrink-0 flex items-center gap-1 px-3 py-2 text-white text-[10px] font-bold tracking-widest uppercase ${
+                  type === 'promo' ? 'bg-primary' :
+                  type === 'news'  ? 'bg-destructive' :
+                  type === 'contact' ? 'bg-primary' :
+                  type === 'location' ? 'bg-primary' :
+                  'bg-brand-secondary'
+                }`}>
+                  {type === 'promo' ? '🏷 PROMO' : type === 'news' ? '🔴 LIVE' : type === 'contact' ? '📞 CONTACT' : type === 'location' ? '📍 LOCATION' : '📢 INFO'}
+                </div>
+                <p className="flex-1 truncate px-3 text-xs font-medium text-foreground">{text}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Type your message above. It will scroll across the bottom of your business card in the feed.
+            </p>
+          )}
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            This bar appears at the bottom of your business card in the feed — not on this page.
+          </p>
         </div>
       </div>
     );
@@ -1031,13 +1089,13 @@ function NewsletterForm({ showroomId, preview, buttonLabel, themeColor }: { show
       setState("idle");
     }
   };
-  if (state === "done") return <p role="status" className="text-sm font-medium text-emerald-700">Thanks! You're on the list.</p>;
+  if (state === "done") return <p role="status" className="text-sm font-medium text-success">Thanks! You're on the list.</p>;
   return (
     <form onSubmit={submit} className="mx-auto max-w-md">
       <div className="flex items-center justify-center gap-2 flex-wrap">
         <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" aria-label="Email address"
-          className="min-h-11 px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-amber-400" />
-        <Button type="submit" disabled={!live || state === "sending"} className="min-h-11 rounded-full text-white px-5" style={{ backgroundColor: themeColor }}>
+          className="min-h-11 px-4 py-2 rounded-full border border-border/60 bg-card text-sm w-56 outline-none focus:border-primary" />
+        <Button type="submit" disabled={!live || state === "sending"} className="min-h-11 rounded-full text-white px-5" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
           <Send className="w-3.5 h-3.5 mr-1" /> {buttonLabel}
         </Button>
       </div>
@@ -1062,7 +1120,7 @@ function CardBuyButton({ themeColor, onClick }: { themeColor: string; onClick: (
       type="button"
       onClick={onClick}
       className="text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 active:scale-95"
-      style={{ backgroundColor: themeColor }}
+      style={{ backgroundColor: fillForWhiteText(themeColor) }}
     >
       Buy Now
     </button>

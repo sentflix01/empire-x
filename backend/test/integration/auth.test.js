@@ -111,6 +111,13 @@ describe('POST /api/auth/register', () => {
     expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
   });
 
+  it('returns 422 for a common password (audit F-017)', async () => {
+    const res = await request(buildApp()).post('/api/auth/register').send({ email: 'a@b.com', password: 'Password123' });
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatch(/too common/);
+    expect(mockPool.query).not.toHaveBeenCalled();
+  });
+
   it('returns 422 when password is too short', async () => {
     const app = buildApp();
     const res = await request(app).post('/api/auth/register').send({ email: 'a@b.com', password: '123' });
@@ -121,7 +128,7 @@ describe('POST /api/auth/register', () => {
   it('returns 409 when a verified email already exists', async () => {
     mockPool.query.mockResolvedValueOnce({ rows: [{ id: 'existing-id', is_verified: true }] }); // SELECT check
     const app = buildApp();
-    const res = await request(app).post('/api/auth/register').send({ email: 'exists@b.com', password: 'password123' });
+    const res = await request(app).post('/api/auth/register').send({ email: 'exists@b.com', password: 'violet-harbour-tram-91' });
     expect(res.status).toBe(409);
     expect(res.body).toHaveProperty('error');
   });
@@ -131,7 +138,7 @@ describe('POST /api/auth/register', () => {
       .mockResolvedValueOnce({ rows: [{ id: 'pending-id', is_verified: false, is_banned: false }] }) // SELECT check
       .mockResolvedValueOnce({ rows: [] }); // UPDATE OTP
     const app = buildApp();
-    const res = await request(app).post('/api/auth/register').send({ email: ' Pending@b.com ', password: 'password123' });
+    const res = await request(app).post('/api/auth/register').send({ email: ' Pending@b.com ', password: 'violet-harbour-tram-91' });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ pendingVerification: true });
     expect(mockPool.query).toHaveBeenCalledWith(
@@ -145,7 +152,7 @@ describe('POST /api/auth/register', () => {
       .mockResolvedValueOnce({ rows: [] }) // no existing user
       .mockResolvedValueOnce({ rows: [{ id: 'new-user-id', email: 'new@b.com' }] }); // INSERT
     const app = buildApp();
-    const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'password123' });
+    const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'violet-harbour-tram-91' });
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('message');
   });
@@ -156,7 +163,7 @@ describe('POST /api/auth/register', () => {
       .mockResolvedValueOnce({ rows: [{ id: 'new-user-id', email: 'new@b.com' }] });
     sendOtpEmail.mockRejectedValueOnce(new Error('SMTP unavailable'));
     const app = buildApp();
-    const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'password123' });
+    const res = await request(app).post('/api/auth/register').send({ email: 'new@b.com', password: 'violet-harbour-tram-91' });
     expect(res.status).toBe(503);
     expect(res.body).toHaveProperty('code', 'OTP_DELIVERY_FAILED');
   });
@@ -180,7 +187,7 @@ describe('POST /api/auth/login', () => {
   it('returns 200 with access_token on success', async () => {
     mockPool.query.mockResolvedValueOnce({
       rows: [{ id: 'user-id', email: 'u@b.com', password_hash: '$2b$hashed', is_verified: true, role: 'user' }],
-    });
+    }).mockResolvedValueOnce({ rows: [] }); // no two-factor sign-in (user_mfa)
     const app = buildApp();
     const res = await request(app).post('/api/auth/login').send({ email: 'u@b.com', password: 'password123' });
     expect(res.status).toBe(200);
@@ -343,7 +350,8 @@ describe('POST /api/auth/login', () => {
     mockPool.query
       .mockResolvedValueOnce({
         rows: [{ id: 'clear-id', email: 'clear@test.com', password_hash: '$2b$hashed', is_verified: true, role: 'user', is_banned: false }],
-      });
+      })
+      .mockResolvedValueOnce({ rows: [] }); // no two-factor sign-in (user_mfa)
 
     const app = buildApp();
     const res = await request(app).post('/api/auth/login').send({ email: 'clear@test.com', password: 'correct' });

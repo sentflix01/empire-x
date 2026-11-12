@@ -9,12 +9,17 @@ on:
     types: [completed]
     branches: [main]
 
-# Only run one deploy at a time. Never cancel a running deploy: the migrate
-# job has no ledger or wrapping transaction, so cancelling it mid-run can leave
-# the production schema half-applied. A newer push waits in the queue instead.
+# Only run one deploy at a time. Never cancel a running deploy: migrations are
+# recorded in migration_ledger only after each succeeds (db/migrate-all.js),
+# but a migration cancelled mid-run is not wrapped in one transaction and can
+# leave its own changes half-applied. A newer push waits in the queue instead.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
+
+# Least privilege for the workflow token (audit F-022); jobs ask for more only where needed.
+permissions:
+  contents: read
 
 jobs:
   # ── Gate: only proceed when the pinned CI run passed for this exact commit ──
@@ -58,7 +63,7 @@ jobs:
     outputs:
       frontend: ${{ steps.changed.outputs.frontend }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 2
@@ -93,11 +98,11 @@ jobs:
     environment: production
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -191,11 +196,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '20'
           cache: 'npm'

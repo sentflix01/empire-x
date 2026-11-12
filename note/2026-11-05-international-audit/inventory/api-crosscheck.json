@@ -1,0 +1,1446 @@
+{
+  "frontend_calls": 223,
+  "matched": [
+    {
+      "path": "/api",
+      "files": [
+        "frontend-next/app/robots.ts"
+      ]
+    },
+    {
+      "path": "/api/admin/orders",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/posts",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/posts/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/products",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/products/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/reports",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/reports/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/stats",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/stats/revenue",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/users",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/users/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/users/:p/ban",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/users/:p/role",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/users/:p/unban",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/verifications",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/admin/verifications/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/ai/chat",
+      "files": [
+        "frontend-next/components/AiAssistant.tsx"
+      ]
+    },
+    {
+      "path": "/api/ai/generate-description",
+      "files": [
+        "frontend-next/views/ProductCreate.tsx"
+      ]
+    },
+    {
+      "path": "/api/ai/status",
+      "files": [
+        "frontend-next/views/ProductCreate.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/change-password",
+      "files": [
+        "frontend-next/components/profile/AccountSettings.tsx",
+        "frontend-next/views/AccountSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/demo",
+      "files": [
+        "frontend-next/components/landing/TryDemoButton.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "files": [
+        "frontend-next/api/auth.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/google",
+      "files": [
+        "frontend-next/lib/googleAuth.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/login",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/api/client.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/logout",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/api/client.ts",
+        "frontend-next/lib/AuthContext.tsx",
+        "frontend-next/store/authSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/me",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/lib/AuthContext.tsx",
+        "frontend-next/store/authSlice.ts",
+        "frontend-next/views/Businesses.tsx",
+        "frontend-next/views/PrivacyAndSecurity.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/me/export",
+      "files": [
+        "frontend-next/views/PrivacyAndSecurity.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/disable",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/enable",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/recovery-codes",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/setup",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/status",
+      "files": [
+        "frontend-next/components/settings/TwoFactorSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/mfa/verify",
+      "files": [
+        "frontend-next/api/auth.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/refresh",
+      "files": [
+        "frontend-next/api/client.ts"
+      ]
+    },
+    {
+      "path": "/api/auth/register",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/views/Register.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/resend-otp",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/views/Register.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/views/ResetPassword.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/update-name",
+      "files": [
+        "frontend-next/components/profile/AccountSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/auth/verify-otp",
+      "files": [
+        "frontend-next/api/auth.ts",
+        "frontend-next/views/Register.tsx"
+      ]
+    },
+    {
+      "path": "/api/businesses",
+      "files": [
+        "frontend-next/views/BusinessSubscription.tsx",
+        "frontend-next/views/Businesses.tsx"
+      ]
+    },
+    {
+      "path": "/api/businesses/:p/checkout-info",
+      "files": [
+        "frontend-next/components/showroom/NewPieces.tsx"
+      ]
+    },
+    {
+      "path": "/api/businesses/:p/payment-accounts",
+      "files": [
+        "frontend-next/components/business/PaymentAccountsManager.tsx"
+      ]
+    },
+    {
+      "path": "/api/businesses/:p/payment-accounts/:p",
+      "files": [
+        "frontend-next/components/business/PaymentAccountsManager.tsx"
+      ]
+    },
+    {
+      "path": "/api/cart",
+      "files": [
+        "frontend-next/store/cartSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/cart/:p",
+      "files": [
+        "frontend-next/store/cartSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/cart/add",
+      "files": [
+        "frontend-next/store/cartSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/coupons",
+      "files": [
+        "frontend-next/views/CouponsManage.tsx"
+      ]
+    },
+    {
+      "path": "/api/coupons/:p",
+      "files": [
+        "frontend-next/views/CouponsManage.tsx"
+      ]
+    },
+    {
+      "path": "/api/coupons/:p/toggle",
+      "files": [
+        "frontend-next/views/CouponsManage.tsx"
+      ]
+    },
+    {
+      "path": "/api/coupons/mine",
+      "files": [
+        "frontend-next/views/CouponsManage.tsx"
+      ]
+    },
+    {
+      "path": "/api/delivery",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/delivery/order/:p",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/:p",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/copilot",
+      "files": [
+        "frontend-next/components/devops/OpsCopilot.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/:p/resolve",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/:p/to-ticket",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/report",
+      "files": [
+        "frontend-next/components/GlobalErrorReporter.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/resolve-all",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/errors/stats",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/health-summary",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/scorecard",
+      "files": [
+        "frontend-next/views/Scorecard.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/stats",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/telemetry",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/versions",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/devops/versions/:p",
+      "files": [
+        "frontend-next/views/DevOps.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders",
+      "files": [
+        "frontend-next/components/checkout/PurchaseModal.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/:p/decline-request",
+      "files": [
+        "frontend-next/components/orders/RequestPricing.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/:p/receipt",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/:p/set-price",
+      "files": [
+        "frontend-next/components/orders/RequestPricing.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/checkout-info",
+      "files": [
+        "frontend-next/components/checkout/PurchaseModal.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/link/:p",
+      "files": [
+        "frontend-next/views/OrderStatus.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/link/:p/report-payment",
+      "files": [
+        "frontend-next/views/OrderStatus.tsx"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/requests",
+      "files": [
+        "frontend-next/components/checkout/PurchaseModal.tsx"
+      ]
+    },
+    {
+      "path": "/api/flags",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/flags/:p",
+      "files": [
+        "frontend-next/views/Admin.tsx"
+      ]
+    },
+    {
+      "path": "/api/flags/page-guided-tours",
+      "files": [
+        "frontend-next/components/PageGuide.tsx"
+      ]
+    },
+    {
+      "path": "/api/friends/mutual",
+      "files": [
+        "frontend-next/api/friends.ts"
+      ]
+    },
+    {
+      "path": "/api/hashtags/${encodeURIComponent(name",
+      "files": [
+        "frontend-next/views/HashtagFeed.tsx"
+      ]
+    },
+    {
+      "path": "/api/hashtags/trending",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx",
+        "frontend-next/views/Explore.tsx"
+      ]
+    },
+    {
+      "path": "/api/locations/:p",
+      "files": [
+        "frontend-next/components/showroom/LiveLocationSection.tsx"
+      ]
+    },
+    {
+      "path": "/api/locations/update",
+      "files": [
+        "frontend-next/components/showroom/LiveLocationSection.tsx"
+      ]
+    },
+    {
+      "path": "/api/maps/nearby",
+      "files": [
+        "frontend-next/views/NearbyMap.tsx"
+      ]
+    },
+    {
+      "path": "/api/maps/nearby/product-search",
+      "files": [
+        "frontend-next/components/map/HomeMapTab.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/:p",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/:p/for-me",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/:p/forward",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/block/:p",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations",
+      "files": [
+        "frontend-next/api/entities.ts",
+        "frontend-next/components/messaging/CreateGroupDialog.tsx",
+        "frontend-next/components/messaging/ForwardDialog.tsx",
+        "frontend-next/components/messaging/Inbox.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p",
+      "files": [
+        "frontend-next/api/entities.ts",
+        "frontend-next/views/ChatMembers.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/accept",
+      "files": [
+        "frontend-next/components/messaging/Inbox.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/archive",
+      "files": [
+        "frontend-next/components/messaging/Inbox.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/for-me",
+      "files": [
+        "frontend-next/components/messaging/Inbox.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/leave",
+      "files": [
+        "frontend-next/views/ChatMembers.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/members",
+      "files": [
+        "frontend-next/views/ChatMembers.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/members/:p",
+      "files": [
+        "frontend-next/views/ChatMembers.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/messages",
+      "files": [
+        "frontend-next/api/entities.ts",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/mute",
+      "files": [
+        "frontend-next/components/messaging/Inbox.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/pins",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/:p/read",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/business",
+      "files": [
+        "frontend-next/lib/messaging.ts"
+      ]
+    },
+    {
+      "path": "/api/messages/conversations/find-or-create",
+      "files": [
+        "frontend-next/lib/messaging.ts"
+      ]
+    },
+    {
+      "path": "/api/messages/delivered",
+      "files": [
+        "frontend-next/lib/useMessagesBadge.ts"
+      ]
+    },
+    {
+      "path": "/api/messages/inquiry",
+      "files": [
+        "frontend-next/views/ShowroomView.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/messages/:p",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
+      "path": "/api/messages/messages/:p/pin",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/messages/:p/reactions",
+      "files": [
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/presence",
+      "files": [
+        "frontend-next/lib/useChatPresence.ts"
+      ]
+    },
+    {
+      "path": "/api/messages/presence/:p",
+      "files": [
+        "frontend-next/components/messaging/Inbox.tsx",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/quick-replies",
+      "files": [
+        "frontend-next/components/messaging/QuickReplies.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/search",
+      "files": [
+        "frontend-next/components/messaging/MessageSearch.tsx"
+      ]
+    },
+    {
+      "path": "/api/messages/unread-count",
+      "files": [
+        "frontend-next/lib/useMessagesBadge.ts"
+      ]
+    },
+    {
+      "path": "/api/moderation/report",
+      "files": [
+        "frontend-next/lib/socialApi.ts",
+        "frontend-next/views/ChatRoom.tsx"
+      ]
+    },
+    {
+      "path": "/api/notifications",
+      "files": [
+        "frontend-next/lib/notifications.ts",
+        "frontend-next/store/notificationsSlice.ts",
+        "frontend-next/views/Notifications.tsx"
+      ]
+    },
+    {
+      "path": "/api/notifications/:p",
+      "files": [
+        "frontend-next/views/Notifications.tsx"
+      ]
+    },
+    {
+      "path": "/api/notifications/:p/read",
+      "files": [
+        "frontend-next/views/Notifications.tsx"
+      ]
+    },
+    {
+      "path": "/api/notifications/read-all",
+      "files": [
+        "frontend-next/views/Notifications.tsx"
+      ]
+    },
+    {
+      "path": "/api/notifications/unread-count",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx"
+      ]
+    },
+    {
+      "path": "/api/orders",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
+      "path": "/api/orders/session/:p",
+      "files": [
+        "frontend-next/app/(app)/orders/success/page.tsx"
+      ]
+    },
+    {
+      "path": "/api/polls/:p/vote",
+      "files": [
+        "frontend-next/components/feed/PostCard.tsx"
+      ]
+    },
+    {
+      "path": "/api/posts",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx",
+        "frontend-next/store/feedSlice.ts",
+        "frontend-next/views/Home.tsx"
+      ]
+    },
+    {
+      "path": "/api/posts/:p",
+      "files": [
+        "frontend-next/views/Home.tsx"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/comments",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/comments/:p",
+      "files": [
+        "frontend-next/components/feed/PostCard.tsx",
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/comments/:p/reaction",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/hide",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/like",
+      "files": [
+        "frontend-next/api/entities.ts",
+        "frontend-next/components/feed/PostCard.tsx"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/reaction",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/reactions",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/posts/:p/settings",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/products",
+      "files": [
+        "frontend-next/components/feed/BusinessSpotlight.tsx",
+        "frontend-next/views/Marketplace.tsx"
+      ]
+    },
+    {
+      "path": "/api/products/:p",
+      "files": [
+        "frontend-next/components/checkout/PurchaseModal.tsx",
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    },
+    {
+      "path": "/api/products/bulk-import",
+      "files": [
+        "frontend-next/views/BusinessInventory.tsx"
+      ]
+    },
+    {
+      "path": "/api/products/import-image",
+      "files": [
+        "frontend-next/lib/productScan.ts"
+      ]
+    },
+    {
+      "path": "/api/products/lookup/:p",
+      "files": [
+        "frontend-next/lib/productScan.ts"
+      ]
+    },
+    {
+      "path": "/api/products/mine",
+      "files": [
+        "frontend-next/views/BusinessInventory.tsx"
+      ]
+    },
+    {
+      "path": "/api/products/scan-batch",
+      "files": [
+        "frontend-next/lib/productScan.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/:p/accept",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/:p/decline",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/:p/payouts",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/:p/terminate",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/business/:p/products",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/mine",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/my-commissions",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/payouts",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profile-partnerships/profile/:p",
+      "files": [
+        "frontend-next/api/profilePartnerships.ts"
+      ]
+    },
+    {
+      "path": "/api/profiles",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx",
+        "frontend-next/views/ChatRoom.tsx",
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/profiles/by-user/:p",
+      "files": [
+        "frontend-next/views/Businesses.tsx",
+        "frontend-next/views/Friends.tsx"
+      ]
+    },
+    {
+      "path": "/api/profiles/follow/:p",
+      "files": [
+        "frontend-next/components/suggestions/PeopleYouMayKnow.tsx",
+        "frontend-next/lib/socialApi.ts",
+        "frontend-next/views/Friends.tsx"
+      ]
+    },
+    {
+      "path": "/api/profiles/me",
+      "files": [
+        "frontend-next/views/Referral.tsx"
+      ]
+    },
+    {
+      "path": "/api/profiles/me/follows",
+      "files": [
+        "frontend-next/views/Businesses.tsx",
+        "frontend-next/views/Friends.tsx"
+      ]
+    },
+    {
+      "path": "/api/profiles/me/upsert",
+      "files": [
+        "frontend-next/components/profile/AccountSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/proxy/:p/:p",
+      "files": [
+        "frontend-next/components/showroom/FieldMapperPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/push/subscribe",
+      "files": [
+        "frontend-next/lib/push.ts"
+      ]
+    },
+    {
+      "path": "/api/push/vapid-public-key",
+      "files": [
+        "frontend-next/lib/push.ts"
+      ]
+    },
+    {
+      "path": "/api/referral/apply",
+      "files": [
+        "frontend-next/views/Referral.tsx",
+        "frontend-next/views/Register.tsx"
+      ]
+    },
+    {
+      "path": "/api/referral/my-code",
+      "files": [
+        "frontend-next/views/Referral.tsx"
+      ]
+    },
+    {
+      "path": "/api/returns",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/returns/:p",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/reviews",
+      "files": [
+        "frontend-next/components/product/ReviewsSection.tsx"
+      ]
+    },
+    {
+      "path": "/api/reviews/:p",
+      "files": [
+        "frontend-next/components/product/ReviewsSection.tsx"
+      ]
+    },
+    {
+      "path": "/api/reviews/product/:p",
+      "files": [
+        "frontend-next/components/product/ReviewsSection.tsx"
+      ]
+    },
+    {
+      "path": "/api/saves",
+      "files": [
+        "frontend-next/store/bookmarksSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/saves/my-products",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
+      "path": "/api/saves/toggle",
+      "files": [
+        "frontend-next/lib/socialApi.ts",
+        "frontend-next/store/bookmarksSlice.ts"
+      ]
+    },
+    {
+      "path": "/api/search",
+      "files": [
+        "frontend-next/components/map/HomeMapTab.tsx",
+        "frontend-next/components/messaging/NewMessageDialog.tsx",
+        "frontend-next/components/messaging/PeoplePicker.tsx",
+        "frontend-next/views/Search.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p",
+      "files": [
+        "frontend-next/views/ShowroomCreate.tsx",
+        "frontend-next/views/Showrooms.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/doctor",
+      "files": [
+        "frontend-next/components/showroom/ShowroomDoctorPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/external-sources",
+      "files": [
+        "frontend-next/components/showroom/BuilderForm.tsx",
+        "frontend-next/components/showroom/ExternalDataSourcePanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/external-sources/:p/mappings",
+      "files": [
+        "frontend-next/components/showroom/FieldMapperPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/external-sources/:p/mappings/:p",
+      "files": [
+        "frontend-next/components/showroom/FieldMapperPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/external-sources/:p/refresh",
+      "files": [
+        "frontend-next/components/showroom/DataSourceStatusPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/external-sources/health",
+      "files": [
+        "frontend-next/components/showroom/DataSourceStatusPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/newsletter",
+      "files": [
+        "frontend-next/components/showroom/NewsletterSignupsPanel.tsx",
+        "frontend-next/components/showroom/SectionRenderer.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/recheck/:p",
+      "files": [
+        "frontend-next/components/showroom/ShowroomDoctorPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/:p/spotlight",
+      "files": [
+        "frontend-next/components/showroom/studio/FeedSpotlightPanel.tsx"
+      ]
+    },
+    {
+      "path": "/api/showrooms/slug/:p",
+      "files": [
+        "frontend-next/views/ShowroomView.tsx"
+      ]
+    },
+    {
+      "path": "/api/social/block/:p",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/social/mute/:p",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/social/people",
+      "files": [
+        "frontend-next/views/PrivacyAndSecurity.tsx"
+      ]
+    },
+    {
+      "path": "/api/social/privacy",
+      "files": [
+        "frontend-next/views/PrivacyAndSecurity.tsx"
+      ]
+    },
+    {
+      "path": "/api/social/relationship/:p",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/social/restrict/:p",
+      "files": [
+        "frontend-next/lib/socialApi.ts"
+      ]
+    },
+    {
+      "path": "/api/stories/:p/comments",
+      "files": [
+        "frontend-next/views/Stories.tsx"
+      ]
+    },
+    {
+      "path": "/api/stories/:p/reactions",
+      "files": [
+        "frontend-next/views/Stories.tsx"
+      ]
+    },
+    {
+      "path": "/api/stories/:p/view",
+      "files": [
+        "frontend-next/views/Stories.tsx"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/cancel",
+      "files": [
+        "frontend-next/views/BusinessSubscription.tsx"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/checkout",
+      "files": [
+        "frontend-next/lib/etbBilling.ts"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/create",
+      "files": [
+        "frontend-next/views/BusinessSubscription.tsx"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/my",
+      "files": [
+        "frontend-next/components/profile/WebsiteStatusBanner.tsx",
+        "frontend-next/components/subscription/TierGatedSection.tsx",
+        "frontend-next/views/BusinessSubscription.tsx"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/payments",
+      "files": [
+        "frontend-next/lib/etbBilling.ts"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/payments/:p/receipt",
+      "files": [
+        "frontend-next/lib/etbBilling.ts"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/payments/:p/status",
+      "files": [
+        "frontend-next/lib/etbBilling.ts"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/plans",
+      "files": [
+        "frontend-next/lib/etbBilling.ts",
+        "frontend-next/views/BusinessSubscription.tsx"
+      ]
+    },
+    {
+      "path": "/api/subscriptions/quote",
+      "files": [
+        "frontend-next/lib/etbBilling.ts"
+      ]
+    },
+    {
+      "path": "/api/suggestions/dismiss/:p",
+      "files": [
+        "frontend-next/api/suggestions.ts"
+      ]
+    },
+    {
+      "path": "/api/suggestions/people",
+      "files": [
+        "frontend-next/api/suggestions.ts"
+      ]
+    },
+    {
+      "path": "/api/telegram/disconnect",
+      "files": [
+        "frontend-next/components/settings/TelegramSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/telegram/notifications",
+      "files": [
+        "frontend-next/components/settings/TelegramSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/telegram/status",
+      "files": [
+        "frontend-next/components/settings/TelegramSettings.tsx"
+      ]
+    },
+    {
+      "path": "/api/trending",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx",
+        "frontend-next/views/Explore.tsx"
+      ]
+    },
+    {
+      "path": "/api/trending/warm",
+      "files": [
+        "frontend-next/components/layout/AppLayout.tsx"
+      ]
+    },
+    {
+      "path": "/api/upload",
+      "files": [
+        "frontend-next/lib/uploadFile.ts"
+      ]
+    },
+    {
+      "path": "/api/upload/multiple",
+      "files": [
+        "frontend-next/lib/uploadFile.ts"
+      ]
+    },
+    {
+      "path": "/api/verification/documents",
+      "files": [
+        "frontend-next/components/profile/VerificationRequest.tsx"
+      ]
+    },
+    {
+      "path": "/api/verification/request",
+      "files": [
+        "frontend-next/components/profile/VerificationRequest.tsx"
+      ]
+    },
+    {
+      "path": "/api/verification/status",
+      "files": [
+        "frontend-next/components/profile/VerificationRequest.tsx"
+      ]
+    },
+    {
+      "path": "/api/wallet/me",
+      "files": [
+        "frontend-next/views/Wallet.tsx"
+      ]
+    },
+    {
+      "path": "/api/wallet/withdraw",
+      "files": [
+        "frontend-next/views/Wallet.tsx"
+      ]
+    },
+    {
+      "path": "/api/wishlists",
+      "files": [
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    },
+    {
+      "path": "/api/wishlists/:p",
+      "files": [
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    },
+    {
+      "path": "/api/wishlists/check/:p",
+      "files": [
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    },
+    {
+      "path": "/api/wishlists/price-alerts",
+      "files": [
+        "frontend-next/views/Bookmarks.tsx",
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    },
+    {
+      "path": "/api/wishlists/price-alerts/:p",
+      "files": [
+        "frontend-next/views/Bookmarks.tsx",
+        "frontend-next/views/ProductDetail.tsx"
+      ]
+    }
+  ],
+  "unmatched": [
+    {
+      "path": "/api/:p/:p",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    },
+    {
+      "path": "/api/:path*",
+      "files": [
+        "frontend-next/next.config.ts"
+      ]
+    },
+    {
+      "path": "/api/direct-orders/:p/:p",
+      "files": [
+        "frontend-next/views/Orders.tsx"
+      ]
+    },
+    {
+      "path": "/api/social/:p/:p",
+      "files": [
+        "frontend-next/views/PrivacyAndSecurity.tsx"
+      ]
+    }
+  ],
+  "dynamic": [
+    {
+      "path": "/api/:p",
+      "files": [
+        "frontend-next/api/entities.ts"
+      ]
+    }
+  ],
+  "backend_not_called": [
+    "POST /api/auth/demo/exit",
+    "POST /api/auth/demo/reset",
+    "PATCH /api/profiles/me/ticker",
+    "POST /api/orders/checkout/session",
+    "POST /api/orders/checkout/chapa",
+    "GET /api/orders/chapa/sandbox",
+    "GET /api/orders/chapa/status/:tx_ref",
+    "GET /api/orders/chapa/verify/:tx_ref",
+    "DELETE /api/messages/messages/:id/for-me",
+    "DELETE /api/messages/conversations/:id/history",
+    "POST /api/messages/messages/:id/forward",
+    "POST /api/messages/saved/:id",
+    "DELETE /api/messages/saved/:id",
+    "POST /api/internal/jobs/:name",
+    "PUT /api/admin/users/:id/verify",
+    "GET /api/stories/user/:userId",
+    "GET /api/saves/check/:targetId",
+    "PUT /api/moderation/reports/:id",
+    "POST /api/wallet/topup/chapa",
+    "GET /api/wallet/topup/chapa/sandbox",
+    "GET /api/wallet/topup/chapa/verify/:tx_ref",
+    "POST /api/wallet/topup/stripe",
+    "GET /api/verification/:id/documents",
+    "PUT /api/verification/:id/approve",
+    "PUT /api/verification/:id/reject",
+    "GET /api/hashtags/:name/posts",
+    "GET /api/polls/:postId/results",
+    "GET /api/commission/admin/summary",
+    "GET /api/price-alerts/check/:productId",
+    "DELETE /api/price-alerts/price-alerts/:productId",
+    "GET /api/variants/product/:productId",
+    "POST /api/variants/product/:productId",
+    "PUT /api/returns/:id/approve",
+    "PUT /api/returns/:id/reject",
+    "GET /api/share-preview/showroom/:slug",
+    "GET /api/share-preview/product/:id",
+    "GET /api/direct-orders/link/:token/receipt",
+    "POST /api/subscriptions/webhook/chapa",
+    "GET /api/subscriptions/chapa/callback",
+    "GET /api/subscriptions/chapa/sandbox",
+    "POST /api/subscriptions/chapa/sandbox/pay"
+  ]
+}

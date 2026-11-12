@@ -55,7 +55,7 @@ export default function RequestPricing({ order, onUpdated }: Props) {
   };
 
   return (
-    <div className="w-full space-y-2 rounded-xl border border-amber-300/50 bg-amber-50/60 p-3 text-sm dark:border-amber-500/30 dark:bg-amber-500/10">
+    <div className="w-full space-y-2 rounded-xl border border-primary/30 bg-primary-subtle/60 p-3 text-sm">
       <p className="text-foreground">
         Set the price to confirm this request{order.listed_price_text ? <> (your website lists <strong>{order.listed_price_text}</strong>)</> : null}.
       </p>

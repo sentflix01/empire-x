@@ -15,6 +15,7 @@
  */
 import multer from 'multer';
 import type { FileFilterCallback } from 'multer';
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import type { Request } from 'express';
@@ -202,7 +203,9 @@ function assertValidDemoSessionId(sessionId: string): void {
   }
 }
 
-export function createStorageKey(originalName: string, demoSessionId?: string, unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`): string {
+// Object names must not be guessable: public URLs are the only access control
+// for public media (audit F-013). crypto.randomUUID() gives 122 random bits.
+export function createStorageKey(originalName: string, demoSessionId?: string, unique: string = crypto.randomUUID()): string {
   const ext = path.extname(originalName).toLowerCase();
   if (demoSessionId) {
     assertValidDemoSessionId(demoSessionId);
@@ -370,7 +373,7 @@ const diskStorage = multer.diskStorage({
     }
   },
   filename: (_req: Request, file: Express.Multer.File, cb: (err: Error | null, name: string) => void) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const unique = crypto.randomUUID();
     // Files on disk are served by extension, so give extensionless photos one from their type.
     cb(null, `${unique}${path.extname(file.originalname) || EXT_BY_MIME[(file.mimetype ?? '').toLowerCase()] || ''}`);
   },
@@ -384,9 +387,58 @@ const upload = multer({
   limits: { fileSize: maxSizeMB * 1024 * 1024 },
 });
 
+// ── Deleting public uploads ───────────────────────────────────────────────────
+
+/**
+ * Deletes a file this app stored publicly, given its URL (local /uploads,
+ * the public Supabase bucket, or R2). URLs pointing anywhere else are ignored.
+ * Returns true when the URL belonged to this app's storage.
+ */
+export async function deletePublicUpload(url: string): Promise<boolean> {
+  if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return false;
+  const withoutQuery = url.split(/[?#]/)[0];
+
+  const apiBase = (process.env.API_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+  if (withoutQuery.startsWith(`${apiBase}/uploads/`)) {
+    const relative = withoutQuery.slice(`${apiBase}/uploads/`.length).split('/').map(decodeURIComponent);
+    if (relative.some((part) => part === '..' || part.includes(path.sep))) return false;
+    const target = path.join(uploadDir, ...relative);
+    if (!target.startsWith(uploadDir + path.sep)) return false;
+    await fs.promises.rm(target, { force: true });
+    return true;
+  }
+
+  const projectUrl = getSupabaseProjectUrl('real');
+  const bucket = process.env.SUPABASE_BUCKET?.trim();
+  const supabasePrefix = projectUrl && bucket ? `${projectUrl}/storage/v1/object/public/${bucket}/` : null;
+  if (supabasePrefix && withoutQuery.startsWith(supabasePrefix)) {
+    const key = decodeURIComponent(withoutQuery.slice(supabasePrefix.length));
+    const response = await fetch(`${projectUrl}/storage/v1/object/${encodeURIComponent(bucket as string)}`, {
+      method: 'DELETE',
+      headers: { ...getSupabaseStorageAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefixes: [key] }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok && response.status !== 404) throw new Error(`Supabase delete failed [${response.status}]`);
+    return true;
+  }
+
+  const r2Public = (process.env.R2_PUBLIC_URL ?? '').replace(/\/$/, '');
+  if (isR2Configured() && r2Public && withoutQuery.startsWith(`${r2Public}/`)) {
+    const { DeleteObjectCommand } = require('@aws-sdk/client-s3') as typeof import('@aws-sdk/client-s3');
+    await getR2Client().send(new DeleteObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME as string,
+      Key: decodeURIComponent(withoutQuery.slice(r2Public.length + 1)),
+    }));
+    return true;
+  }
+  return false;
+}
+
 export default upload;
 
 module.exports = upload;
+module.exports.deletePublicUpload       = deletePublicUpload;
 module.exports.uploadFile               = uploadFile;
 module.exports.uploadToR2               = uploadToR2;
 module.exports.uploadToSupabase         = uploadToSupabase;

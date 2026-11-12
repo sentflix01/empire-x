@@ -1,7 +1,9 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities } from "@/api/entities";
+import { entities, type UserProfile } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
+import type { ProfileBusinessRecord } from "@/components/profile/BusinessProfile";
 
 import { Briefcase, GraduationCap, Plus, Store, ShoppingBag, Users, Pencil } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
@@ -10,9 +12,18 @@ import { Button } from "@/components/ui/button";
 import PostCard from "@/components/feed/PostCard";
 import ProfilePartnerships from '@/components/profile/ProfilePartnerships';
 
-export default function PersonalProfile({ profile, user, isOwner, businesses }) {
+type ProfilePost = React.ComponentProps<typeof PostCard>['post'];
+
+interface PersonalProfileProps {
+  profile: UserProfile;
+  user: AuthUser | null;
+  isOwner: boolean;
+  businesses: ProfileBusinessRecord[];
+}
+
+export default function PersonalProfile({ profile, user, isOwner, businesses }: PersonalProfileProps) {
   const { profileViewTokens: accentTokens } = useProfileView();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<ProfilePost[]>([]);
   const [tab, setTab] = useState("posts");
   const [loading, setLoading] = useState(true);
 
@@ -22,9 +33,11 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
       .catch(() => setLoading(false));
   }, [profile.user_id]);
 
-  const skills = (() => { try { return JSON.parse(profile.skills || "[]"); } catch { return []; } })();
-  const experience = (() => { try { return JSON.parse(profile.experience || "[]"); } catch { return []; } })();
-  const education = (() => { try { return JSON.parse(profile.education || "[]"); } catch { return []; } })();
+  // Stored as JSON text; anything else (null, bad JSON, not a list) shows nothing.
+  const jsonList = (raw: unknown): any[] => { try { const v = JSON.parse(String(raw || "[]")); return Array.isArray(v) ? v : []; } catch { return []; } };
+  const skills = jsonList(profile.skills);
+  const experience = jsonList(profile.experience);
+  const education = jsonList(profile.education);
 
   return (
     <div data-page-guide="profile-personal-tab" className="space-y-4">
@@ -32,19 +45,19 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
       {isOwner && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Link href="/business/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <Store className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+            <Store className="w-5 h-5 mx-auto text-primary mb-1" />
             <p className="text-[10px] font-medium">Add Business</p>
           </Link>
           <Link href="/products/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <ShoppingBag className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+            <ShoppingBag className="w-5 h-5 mx-auto text-primary mb-1" />
             <p className="text-[10px] font-medium">Sell Product</p>
           </Link>
           <Link href="/showroom/create" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <BrandLogo className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+            <BrandLogo className="w-5 h-5 mx-auto text-primary mb-1" />
             <p className="text-[10px] font-medium">Showroom</p>
           </Link>
           <Link href="/profile/edit" className="bg-card rounded-xl border border-border/50 p-3 text-center hover:shadow-sm transition-shadow">
-            <Users className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+            <Users className="w-5 h-5 mx-auto text-primary mb-1" />
             <p className="text-[10px] font-medium">Network</p>
           </Link>
         </div>
@@ -64,7 +77,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
       {tab === "posts" && (
         <div className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
           ) : posts.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
               {isOwner ? "You haven't posted yet" : "No posts yet"}
@@ -141,7 +154,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
             <div className="bg-card rounded-2xl border border-border/50 p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-sm flex items-center gap-2"><Store className="w-4 h-4" /> My Businesses</h3>
-                <Link href="/business/create" className="text-xs text-amber-600 hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add</Link>
+                <Link href="/business/create" className="text-xs text-primary hover:underline flex items-center gap-1"><Plus className="w-3 h-3" /> Add</Link>
               </div>
               <div className="space-y-2">
                 {businesses.map(b => (
@@ -160,11 +173,11 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }) 
             </div>
           )}
           {isOwner && (!businesses || businesses.length === 0) && (
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 p-5 text-center">
-              <Store className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <div className="bg-primary-subtle rounded-2xl border border-primary/30 p-5 text-center">
+              <Store className="w-8 h-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold text-sm">Have a business?</h3>
               <p className="text-xs text-muted-foreground mt-1 mb-3">Create a business profile with a mini-website to sell products and services directly on Nodbusiness.</p>
-              <Link href="/business/create"><Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"><Plus className="w-3 h-3 mr-1" /> Create Business Profile</Button></Link>
+              <Link href="/business/create"><Button size="sm" className="rounded-full bg-primary hover:bg-primary/90"><Plus className="w-3 h-3 mr-1" /> Create Business Profile</Button></Link>
             </div>
           )}
         </div>

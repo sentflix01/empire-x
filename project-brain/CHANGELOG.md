@@ -1,5 +1,10 @@
 # Project Brain Changelog
 
+## 2026-11-05 — Registered agent tooling and the international audit
+
+- Registered the shared Claude Code setup (`.claude/settings.json`, `.claude/skills/`) and recorded the decision.
+- Registered the 2026-11 audit work note and its finding format. No existing document was moved or rewritten.
+
 ## 2026-10-19 — Added AI guide source reference
 
 - Registered the maintained AI assistant guidance document and its runtime prompt source.

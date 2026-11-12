@@ -18,7 +18,7 @@ const avatarOf = (p: Person) => (Array.isArray(p.avatar_url) ? p.avatar_url[0] :
 export function PersonAvatar({ person, size = 40 }: { person: Pick<Person, 'display_name' | 'avatar_url'>; size?: number }) {
   const src = avatarOf(person as Person);
   return (
-    <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-500 to-violet-600 text-sm font-bold text-white"
+    <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-sm font-bold text-white"
       style={{ width: size, height: size }} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : String(person.display_name || '?').charAt(0).toUpperCase()}

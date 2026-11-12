@@ -1,0 +1,35 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-019",
+  "kind": "vulnerability",
+  "phase": "P5-security",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Public Chapa verify route changes order state from a guessable reference",
+  "standards": [
+    "OWASP A01:2025",
+    "OWASP A06:2025",
+    "ASVS 5.0 V2.3 (business logic)",
+    "OWASP API5:2023"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
+    "score": 6.3
+  },
+  "location": [
+    "backend/routes/orders.ts:757-765",
+    "backend/routes/orders.ts:768-795",
+    "backend/routes/orders.ts:704"
+  ],
+  "expected": "Payment status is readable only by the order's parties; state changes come only from the verified provider callback.",
+  "actual": "GET /api/orders/chapa/status/:tx_ref and GET /chapa/verify/:tx_ref need no authentication. tx_ref is ndb-<first 8 chars of user id>-<ms timestamp>. Verify asks Chapa and, if Chapa does not report success, moves pending orders to payment_failed.",
+  "evidence": [
+    "backend/routes/orders.ts:704",
+    "services/orderInventory.ts:102-104"
+  ],
+  "impact": "Someone who can derive a reference can read a pending order's status or mark a buyer's in-progress Chapa payment as failed. Rated Low because new Chapa order checkout returns 410 (platform no longer collects funds), so only legacy in-flight orders are exposed; CVSS base 6.3 does not account for that.",
+  "fix": "Use crypto.randomUUID() for tx_ref; require auth (buyer or seller) for status; make verify idempotent and non-destructive (only transition to paid on verified success; leave failures to the webhook/expiry job). Retire the routes once legacy orders settle.",
+  "effort": "S"
+}

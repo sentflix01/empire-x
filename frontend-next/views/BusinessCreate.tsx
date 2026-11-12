@@ -1,5 +1,6 @@
 ﻿'use client';
 import React, { useState, useEffect } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
@@ -9,12 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BUSINESS_CATEGORIES, getTemplateById } from "@/lib/businessTemplates";
+import { BUSINESS_CATEGORIES, getTemplateById, type TemplateSection } from "@/lib/businessTemplates";
 
 /** Fill template sections with the user's real business data */
-function personalizeSections(sections, biz) {
-  return sections.map(s => {
-    const copy = { ...s, items: s.items ? s.items.map(i => ({ ...i })) : undefined };
+interface SectionBusinessFields {
+  business_name?: string;
+  business_description?: string;
+  business_contact_email?: string;
+  business_contact_phone?: string;
+  business_address?: string;
+}
+
+function personalizeSections(sections: TemplateSection[], biz: SectionBusinessFields): TemplateSection[] {
+  return sections.map((s) => {
+    const copy: TemplateSection = { ...s, items: s.items ? s.items.map(i => ({ ...i })) : undefined };
     if (copy.type === "hero") {
       copy.title = biz.business_name || copy.title;
       copy.subtitle = biz.business_description?.slice(0, 120) || copy.subtitle;
@@ -51,7 +60,7 @@ function BusinessCreate() {
   type BizState = {
     business_name: string;
     business_category: string;
-    business_template: string | string[];
+    business_template: string;
     business_description: string;
     business_contact_email: string;
     business_contact_phone: string;
@@ -66,7 +75,7 @@ function BusinessCreate() {
   const [business, setBusiness] = useState<BizState>({
     business_name: "", business_category: "", business_template: "",
     business_description: "", business_contact_email: "", business_contact_phone: "",
-    business_address: "", business_theme_color: "#D4AF37",
+    business_address: "", business_theme_color: "#2563EB",
       business_logo_url: "", business_cover_url: "",
     pickup_address: "",
     // Phone and email public by default; the address only if the owner chooses (decision §2.3).
@@ -86,12 +95,13 @@ function BusinessCreate() {
       setBusiness({
         business_name: b.business_name || "",
         business_category: b.business_category || "",
-        business_template: b.business_template || "",
+        // Older records stored the template as a list; keep its first value.
+        business_template: Array.isArray(b.business_template) ? String(b.business_template[0] ?? "") : (b.business_template || ""),
         business_description: b.business_description || "",
         business_contact_email: b.business_contact_email || "",
         business_contact_phone: b.business_contact_phone || "",
         business_address: b.business_address || "",
-        business_theme_color: b.business_theme_color || "#D4AF37",
+        business_theme_color: b.business_theme_color || "#2563EB",
         business_logo_url: b.business_logo_url || "",
         business_cover_url: b.business_cover_url || "",
         pickup_address: typeof b.pickup_address === "string" ? b.pickup_address : "",
@@ -135,7 +145,7 @@ function BusinessCreate() {
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="flex items-center gap-2 mb-6">
-          <Store className="w-6 h-6 text-amber-500" />
+          <Store className="w-6 h-6 text-primary" />
           <h1 className="font-display text-2xl font-bold">{isEdit ? "Edit Business" : "New Business"}</h1>
         </div>
 
@@ -166,7 +176,7 @@ function BusinessCreate() {
           </div>
           <div>
             <Label htmlFor="business-name">Business Name</Label>
-            <Input id="business-name" value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
+            <Input id="business-name" maxLength={TEXT_LIMITS.business_name} value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
           </div>
           <div>
             <Label htmlFor="business-description">Business Description</Label>
@@ -178,7 +188,7 @@ function BusinessCreate() {
               {BUSINESS_CATEGORIES.map(cat => {
                 const Icon = cat.icon;
                 return (
-                  <button key={cat.value} type="button" aria-pressed={business.business_category === cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-amber-400 bg-amber-50" : "border-border hover:border-amber-300"}`}>
+                  <button key={cat.value} type="button" aria-pressed={business.business_category === cat.value} onClick={() => setBusiness({...business, business_category: cat.value, business_template: String(cat.templates[0].id)})} className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${business.business_category === cat.value ? "border-primary bg-primary-subtle" : "border-border hover:border-primary/30"}`}>
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: cat.color + "20" }}>
                       <Icon className="w-3.5 h-3.5" style={{ color: cat.color }} />
                     </div>
@@ -240,7 +250,7 @@ function BusinessCreate() {
               ))}
             </div>
           </div>
-          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-primary hover:bg-primary/90">
             {saving ? "Saving..." : isEdit ? "Update Business" : "Create Business"}
           </Button>
           {isEdit && <PaymentAccountsManager businessId={id} />}

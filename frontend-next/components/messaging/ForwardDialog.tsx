@@ -35,7 +35,7 @@ export default function ForwardDialog({ message, currentChatId, me, onForward, o
     .filter((c) => !q || chatTitle(c, me).toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 z-[65] flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-chat-dialog flex items-stretch justify-center bg-black/50 sm:items-center sm:p-4" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label="Forward message" onClick={(e) => e.stopPropagation()}
         className="flex h-full w-full flex-col overflow-hidden bg-card shadow-xl sm:h-auto sm:max-h-[85dvh] sm:max-w-sm sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-border/30 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-3">

@@ -572,6 +572,29 @@ export const SECTION_TYPES: SectionType[] = [
       { key: "saveDesc",  label: "A few words", type: "text", placeholder: "Save us and find us again easily" },
     ],
   },
+  {
+    key: "feed_ticker",
+    label: "Feed announcement bar",
+    icon: "Megaphone",
+    tier: "freemium",
+    purpose: "A scrolling announcement bar shown at the bottom of your business card in the feed. Use it for promotions, news, contact info, or any message you want people to see.",
+    fields: [
+      {
+        key: "tickerText",
+        label: "Your message",
+        type: "textarea",
+        placeholder: "20% OFF all orders this weekend only! Order now before it ends.",
+        hint: "Scrolls continuously on your business card in the feed.",
+      },
+      {
+        key: "tickerType",
+        label: "Message type",
+        type: "text",
+        placeholder: "promo",
+        hint: "Sets the colour and badge: promo (orange), news (red), contact (blue), location (cyan), custom (purple). Leave blank to auto-detect.",
+      },
+    ],
+  },
 ];
 
 // Default sections per category

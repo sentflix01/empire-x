@@ -21,7 +21,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
-Required for production on Cloudflare Pages:
+Required for production on Vercel:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://your-backend-hostname.example.com
@@ -40,7 +40,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://xxx@sentry.io/xxx
 
 ## Free beta / local development
 
-For a free pilot or local testing, keep the frontend and backend on localhost and do not configure Cloudflare R2.
+For a free pilot or local testing, keep the frontend and backend on localhost and do not configure R2 storage.
 
 - Frontend env:
   - `NEXT_PUBLIC_API_BASE_URL=http://localhost:3001`

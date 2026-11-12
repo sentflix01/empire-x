@@ -9,15 +9,25 @@ import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
+/** GET /api/referral/my-code (backend routes/referral.ts). */
+interface ReferralData {
+  code: string;
+  referral_link: string;
+  referrals: number;
+  total_referred: number;
+  /** Points actually earned from referrals (point_transactions). */
+  earned: number;
+}
+
 function Referral() {
   const { t } = useTranslation();
-  const [referralData, setReferralData] = useState(null);
+  const [referralData, setReferralData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [codeCopied, setCodeCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [applyCode, setApplyCode] = useState("");
   const [applying, setApplying] = useState(false);
-  const [points, setPoints] = useState(null);
+  const [points, setPoints] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -89,7 +99,7 @@ function Referral() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -98,7 +108,7 @@ function Referral() {
     <div data-page-guide="referral-code" className="max-w-lg mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3 pt-1">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shrink-0">
           <Gift className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -110,22 +120,22 @@ function Referral() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center">
-          <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-2">
-            <Users className="w-4 h-4 text-amber-600" />
+          <div className="w-8 h-8 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-2">
+            <Users className="w-4 h-4 text-primary" />
           </div>
           <p className="text-2xl font-bold">{referralData?.total_referred ?? 0}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Friends Referred</p>
         </div>
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center">
-          <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-2">
-            <Star className="w-4 h-4 text-amber-600" />
+          <div className="w-8 h-8 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-2">
+            <Star className="w-4 h-4 text-rating" />
           </div>
-          <p className="text-2xl font-bold">{(referralData?.total_referred ?? 0) * 50}</p>
+          <p className="text-2xl font-bold">{referralData?.earned ?? 0}</p>
           <p className="text-xs text-muted-foreground mt-0.5">Points Earned</p>
         </div>
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center">
-          <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-2">
-            <Gift className="w-4 h-4 text-amber-600" />
+          <div className="w-8 h-8 rounded-full bg-primary-subtle flex items-center justify-center mx-auto mb-2">
+            <Gift className="w-4 h-4 text-primary" />
           </div>
           <p className="text-2xl font-bold">{points ?? "—"}</p>
           <p className="text-xs text-muted-foreground mt-0.5">My Total Points</p>
@@ -133,7 +143,7 @@ function Referral() {
       </div>
 
       {/* How it works */}
-      <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white">
+      <div className="bg-primary rounded-2xl p-5 text-white">
         <h2 className="font-bold text-base mb-3">How it works</h2>
         <div className="space-y-2.5">
           {[
@@ -155,11 +165,11 @@ function Referral() {
       <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-4">
         <h2 className="font-semibold text-sm">Your Referral Code</h2>
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-secondary/50 rounded-xl px-4 py-3 font-mono text-lg font-bold tracking-widest text-amber-600 text-center select-all">
+          <div className="flex-1 bg-secondary/50 rounded-xl px-4 py-3 font-mono text-lg font-bold tracking-widest text-primary text-center select-all">
             {referralData?.code ?? "—"}
           </div>
           <Button variant="outline" size="icon" onClick={copyCode} className="h-12 w-12 rounded-xl shrink-0">
-            {codeCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            {codeCopied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
           </Button>
         </div>
 
@@ -172,14 +182,14 @@ function Referral() {
               className="text-xs rounded-xl bg-secondary/30 border-border/50 h-9"
             />
             <Button variant="outline" size="icon" onClick={copyLink} className="h-9 w-9 rounded-xl shrink-0">
-              {linkCopied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {linkCopied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
             </Button>
           </div>
         </div>
 
         <Button
           onClick={shareLink}
-          className="w-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 font-semibold"
+          className="w-full rounded-full bg-primary hover:bg-primary/90 font-semibold"
         >
           <Share2 className="w-4 h-4 mr-2" />
           Share with Friends
@@ -204,7 +214,7 @@ function Referral() {
           <Button
             onClick={handleApply}
             disabled={applying || !applyCode.trim()}
-            className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shrink-0"
+            className="rounded-xl bg-primary hover:bg-primary/90 shrink-0"
           >
             {applying ? "Applying…" : t('common.apply')}
           </Button>

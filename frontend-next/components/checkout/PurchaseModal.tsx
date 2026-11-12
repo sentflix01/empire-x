@@ -31,9 +31,10 @@ interface PurchaseModalProps {
     id?: string;
     title: string;
     description?: string;
-    price?: number;
+    /** Number or decimal string ("100.00") as the API sends it. */
+    price?: number | string | null;
     currency?: string;
-    images?: string;
+    images?: string | null;
     product_type?: string;
     /** The price as written on the website, e.g. "From $16" (website items only). */
     listed_price?: string | null;
@@ -211,14 +212,14 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
   if (!mounted) return null;
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
+      className="fixed inset-0 z-modal flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
       role="dialog" aria-modal="true" aria-labelledby="purchase-title"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-card text-card-foreground p-5 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <h2 id="purchase-title" className="font-semibold flex items-center gap-2">
-            {step === 'done' ? <Check className="w-5 h-5 text-green-600" /> : <ShoppingBag className="w-5 h-5 text-amber-500" />}
+            {step === 'done' ? <Check className="w-5 h-5 text-success" /> : <ShoppingBag className="w-5 h-5 text-primary" />}
             {step === 'done' ? (isRequest ? 'Request sent' : 'Order placed') : isRequest ? 'Request to order' : 'Buy'}
           </h2>
           <button type="button" onClick={onClose} className="rounded-full p-1.5 hover:bg-secondary" aria-label="Close"><X className="w-5 h-5" /></button>

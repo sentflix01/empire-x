@@ -1,5 +1,7 @@
 # Demo workspace deployment with a dedicated Supabase project
 
+> Last reviewed: 2026-11-09
+
 Use separate Supabase projects for Real and Demo. The production Real project
 remains the source of Real accounts and content. The dedicated Demo project
 stores only practice data and Demo uploads. Do not point both database URLs or
@@ -128,3 +130,20 @@ Deploy only after the Demo migrations have completed and the private bucket is
 available. Check Render startup logs for successful database and Storage
 isolation checks. Then verify Try Demo, Demo uploads, and Real sign-in from a
 fresh browser. Demo users and assets must not appear in the Real workspace.
+
+## 5. When a Demo session ends
+
+A Demo session lasts seven days. Once it has ended or its cookie no longer
+verifies (for example after `DEMO_SESSION_SECRET` changes), the API answers
+every request with `401 DEMO_SESSION_EXPIRED` or `401 DEMO_SESSION_INVALID`,
+and with `503 DEMO_DISABLED` when Demo is switched off. The web app treats
+these codes as the end of Demo (`isDemoEndedResponse` in
+`frontend-next/api/client.ts`). It signs the browser out of the Demo session
+and opens `/landing?demo=ended`, which explains what happened; Try Demo starts
+a fresh session. `503 DEMO_UNAVAILABLE` (the Demo database briefly
+unreachable) is not the end of Demo: pages show a "try again in a moment"
+message instead.
+
+Changing `DEMO_SESSION_SECRET` ends every open Demo session at once. Do it only
+when needed (for example after a leak), and expect visitors to start again.
+

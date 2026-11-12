@@ -8,10 +8,10 @@ export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: 
   const [open, setOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState(false);
   const [channelOpen, setChannelOpen] = useState(false);
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
@@ -30,7 +30,7 @@ export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: 
         </button>
 
         {open && (
-          <div className="absolute top-full end-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-[200] w-60 overflow-hidden">
+          <div className="absolute top-full end-0 mt-2 bg-card dark:bg-card rounded-2xl shadow-xl border border-border/50 z-fullscreen w-60 overflow-hidden">
             <button
               onClick={() => { setOpen(false); setGroupOpen(true); }}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary transition-colors text-sm font-medium w-full text-left text-foreground"
@@ -45,8 +45,8 @@ export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: 
               onClick={() => { setOpen(false); setChannelOpen(true); }}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary transition-colors text-sm font-medium w-full text-left text-foreground"
             >
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Radio className="w-4 h-4 text-purple-500" />
+              <div className="w-8 h-8 rounded-xl bg-brand-secondary/10 flex items-center justify-center">
+                <Radio className="w-4 h-4 text-brand-secondary" />
               </div>
               New Channel
             </button>
@@ -54,8 +54,8 @@ export default function NewChatMenu({ onCreated }: { user?: unknown; contacts?: 
             {/* Last seen, read receipts and who can message you live in one place. */}
             <Link href="/privacy" onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3.5 hover:bg-secondary transition-colors text-sm font-medium w-full text-left text-foreground">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-success" />
               </div>
               Message privacy
             </Link>

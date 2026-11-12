@@ -12,6 +12,8 @@ export interface SavedItem {
 export interface BookmarksSlice {
   savedIds: Record<string, SavedItem>;
   isHydrating: boolean;
+  /** True once a load from the server has succeeded (even with zero items). */
+  hasHydrated: boolean;
   error: string | null;
 
   // Selector
@@ -49,6 +51,7 @@ function withoutKey(obj: Record<string, SavedItem>, key: string): Record<string,
 export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], BookmarksSlice> = (set, get) => ({
   savedIds: {},
   isHydrating: false,
+  hasHydrated: false,
   error: null,
 
   isSaved: (targetId) => Object.prototype.hasOwnProperty.call(get().savedIds, targetId),
@@ -70,7 +73,7 @@ export const createBookmarksSlice: StateCreator<BookmarksSlice, [], [], Bookmark
           thumbnailUrl: record.thumbnail_url ?? undefined,
         });
       }
-      set({ savedIds, isHydrating: false });
+      set({ savedIds, isHydrating: false, hasHydrated: true });
     } catch (err: any) {
       // Leave savedIds unchanged on failure
       set({

@@ -42,7 +42,7 @@ export default function ReportDialog({ open, onOpenChange, targetType, targetId,
             <legend className="sr-only">Reason</legend>
             {REPORT_REASONS.map((r) => (
               <label key={r.value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-2 hover:bg-secondary">
-                <input type="radio" name="report-reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="h-4 w-4 accent-red-600" />
+                <input type="radio" name="report-reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="h-4 w-4 accent-destructive" />
                 <span className="text-sm">{r.label}</span>
               </label>
             ))}
@@ -50,7 +50,7 @@ export default function ReportDialog({ open, onOpenChange, targetType, targetId,
           <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={2} maxLength={500} placeholder="Anything else we should know? (optional)"
             aria-label="More details" className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm" />
           <button type="submit" disabled={!reason || busy}
-            className="min-h-11 w-full rounded-full bg-red-600 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+            className="min-h-11 w-full rounded-full bg-destructive text-sm font-semibold text-white hover:bg-destructive/90 disabled:opacity-50">
             {busy ? 'Sending…' : 'Send report'}
           </button>
         </form>

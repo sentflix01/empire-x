@@ -51,7 +51,7 @@ function SubscriptionReceipt() {
       <article className="overflow-hidden rounded-2xl border border-border bg-card">
         <header className="flex items-center justify-between gap-3 bg-primary px-5 py-4 text-primary-foreground">
           <div className="flex items-center gap-3">
-            <BrandLogo className="h-9 w-9" />
+            <BrandLogo size={36} className="h-9 w-9" />
             <div>
               <p className="font-display text-lg font-bold">Nodbusiness</p>
               <p className="text-xs opacity-90">Plan payment receipt</p>

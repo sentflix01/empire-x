@@ -44,6 +44,11 @@ function Register() {
           setError('This legacy Demo login needs to be linked to a Real account before it can be used here.');
           return;
         }
+        if (result.mfa_required) {
+          // An existing account with two-factor sign-in on finishes on the sign-in page (F-017).
+          router.replace('/login?mfa=1');
+          return;
+        }
         if (result?.access_token) storeToken(result.access_token);
         // Registration always creates the user's canonical Real identity.
         void completeLogin().then(() => router.replace('/feed')).catch(() => {
@@ -83,7 +88,7 @@ function Register() {
       setShowOtp(true);
     } catch (err: unknown) {
       const e = err as { status?: number; response?: { status?: number }; error?: string; message?: string };
-      if (e?.status === 404 || e?.response?.status === 404) { window.location.href = '/404'; return; }
+      if (e?.status === 404 || e?.response?.status === 404) { router.push('/not-found'); return; }
       setError(e?.error || e?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
@@ -149,7 +154,7 @@ function Register() {
           <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{error}</div>
         )}
         <div data-page-guide="register-otp" className="flex flex-col items-center gap-4 mb-6">
-          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code">
+          <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode} autoComplete="one-time-code" inputMode="numeric" aria-label="Verification code">
             <InputOTPGroup>
               {[0,1,2,3,4,5].map(i => <InputOTPSlot key={i} index={i} />)}
             </InputOTPGroup>
@@ -189,7 +194,7 @@ function Register() {
       }
     >
       {refCode && (
-        <div className="mb-5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+        <div className="mb-5 rounded-lg bg-primary-subtle border border-primary/30 px-3 py-2.5 text-sm text-primary">
           🎁 Referral code <strong>{refCode}</strong> will be applied automatically.
         </div>
       )}
@@ -207,7 +212,7 @@ function Register() {
             Google Sign-Up unavailable
           </div>
         )}
-        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" aria-label="Sign up with Google" />
+        <div ref={googleRef} data-page-guide="register-google" className="flex min-h-10 w-full justify-center" role="group" aria-label="Sign up with Google" />
       </div>
 
       {/* Divider */}
@@ -260,7 +265,7 @@ function Register() {
             <button
               type="button"
               onClick={() => setShowPassword(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -291,9 +296,9 @@ function Register() {
               type="checkbox"
               checked={agreed}
               onChange={e => setAgreed(e.target.checked)}
-              className="sr-only"
+              className="sr-only peer"
             />
-            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-1 ${
               agreed ? 'bg-primary border-primary' : 'border-input bg-background'
             }`}>
               {agreed && (

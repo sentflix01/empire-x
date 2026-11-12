@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { entities } from "@/api/entities";
+import { entities, type Order } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 import client from "@/api/client";
 import {
@@ -20,23 +20,23 @@ import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import RequestPricing from '@/components/orders/RequestPricing';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, type LucideIcon } from 'lucide-react';
 import { useStartChat } from '@/lib/messaging';
 
-const STATUS_CONFIG = {
-  pending:    { label: "Pending",    icon: Clock,        color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-  paid:       { label: "Paid",       icon: CheckCircle,  color: "text-green-600 bg-green-50 border-green-200" },
-  processing: { label: "Processing", icon: Package,      color: "text-blue-600 bg-blue-50 border-blue-200" },
-  completed:  { label: "Completed",  icon: CheckCircle,  color: "text-gray-600 bg-gray-50 border-gray-200" },
-  cancelled:  { label: "Cancelled",  icon: XCircle,      color: "text-red-600 bg-red-50 border-red-200" },
+const STATUS_CONFIG: Record<string, { label: string; icon: LucideIcon; color: string }> = {
+  pending:    { label: "Pending",    icon: Clock,        color: "text-warning bg-warning-subtle border-warning/30" },
+  paid:       { label: "Paid",       icon: CheckCircle,  color: "text-success bg-success-subtle border-success/30" },
+  processing: { label: "Processing", icon: Package,      color: "text-primary bg-primary-subtle border-primary/30" },
+  completed:  { label: "Completed",  icon: CheckCircle,  color: "text-muted-foreground bg-secondary border-border" },
+  cancelled:  { label: "Cancelled",  icon: XCircle,      color: "text-destructive bg-destructive-subtle border-destructive/30" },
   // Direct payment (buyer pays the seller; only the seller confirms)
-  requested:        { label: "Request: price to confirm", icon: Clock, color: "text-amber-700 bg-amber-50 border-amber-200" },
-  awaiting_payment: { label: "Awaiting payment", icon: Clock,       color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-  payment_reported: { label: "Payment reported", icon: Clock,       color: "text-amber-700 bg-amber-50 border-amber-200" },
-  expired:          { label: "Expired",          icon: XCircle,     color: "text-gray-600 bg-gray-50 border-gray-200" },
-  confirmed:        { label: "Confirmed",        icon: CheckCircle, color: "text-green-600 bg-green-50 border-green-200" },
-  shipped:          { label: "Shipped",          icon: Package,     color: "text-blue-600 bg-blue-50 border-blue-200" },
-  delivered:        { label: "Delivered",        icon: CheckCircle, color: "text-green-600 bg-green-50 border-green-200" },
+  requested:        { label: "Request: price to confirm", icon: Clock, color: "text-primary bg-primary-subtle border-primary/30" },
+  awaiting_payment: { label: "Awaiting payment", icon: Clock,       color: "text-warning bg-warning-subtle border-warning/30" },
+  payment_reported: { label: "Payment reported", icon: Clock,       color: "text-primary bg-primary-subtle border-primary/30" },
+  expired:          { label: "Expired",          icon: XCircle,     color: "text-muted-foreground bg-secondary border-border" },
+  confirmed:        { label: "Confirmed",        icon: CheckCircle, color: "text-success bg-success-subtle border-success/30" },
+  shipped:          { label: "Shipped",          icon: Package,     color: "text-primary bg-primary-subtle border-primary/30" },
+  delivered:        { label: "Delivered",        icon: CheckCircle, color: "text-success bg-success-subtle border-success/30" },
 };
 
 // Seller next steps, matching the backend SELLER_TRANSITIONS.
@@ -64,29 +64,40 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
   const [note, setNote]           = useState("");
   const [location, setLocation]   = useState("");
   const [saving, setSaving]       = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  useEffect(() => {
-    client.get(`/api/delivery/${orderId}`)
-      .then(r => setUpdates(r.data || []))
-      .catch(() => {})
+  // Backend contract (audit F-003): GET /api/delivery/order/:orderId, POST /api/delivery.
+  const load = React.useCallback(() => {
+    setLoading(true);
+    setLoadFailed(false);
+    client.get(`/api/delivery/order/${orderId}`)
+      .then(r => setUpdates(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false));
   }, [orderId]);
+
+  useEffect(() => { load(); }, [load]);
 
   const addUpdate = async () => {
     setSaving(true);
     try {
-      const { data } = await client.post(`/api/delivery/${orderId}`, { status, note, location });
+      const { data } = await client.post("/api/delivery", {
+        order_id: orderId,
+        status,
+        ...(note.trim() ? { note: note.trim() } : {}),
+        ...(location.trim() ? { location: location.trim() } : {}),
+      });
       setUpdates(prev => [...prev, data]);
       setNote(""); setLocation(""); setAdding(false);
-    } catch {
-      toast.error("Failed to add delivery update");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to add delivery update"));
     }
     setSaving(false);
   };
 
   if (loading) return (
     <div className="flex justify-center py-4">
-      <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+      <Loader2 className="w-4 h-4 animate-spin text-primary" />
     </div>
   );
 
@@ -103,14 +114,14 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
       <div className="relative flex items-center justify-between mb-4">
         <div className="absolute left-0 right-0 top-3 h-0.5 bg-border/40" />
         <div
-          className="absolute left-0 top-3 h-0.5 bg-amber-500 transition-all"
+          className="absolute left-0 top-3 h-0.5 bg-primary transition-all"
           style={{ width: latestIdx >= 0 ? `${(latestIdx / (DELIVERY_STEPS.length - 1)) * 100}%` : "0%" }}
         />
         {DELIVERY_STEPS.map((step, i) => {
           const done = i <= latestIdx;
           return (
             <div key={step} className="relative flex flex-col items-center gap-1 z-10">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${done ? "bg-amber-500 text-white" : "bg-border/40 text-muted-foreground"}`}>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${done ? "bg-primary text-white" : "bg-border/40 text-muted-foreground"}`}>
                 {done ? "✓" : i + 1}
               </div>
               <span className="text-[9px] text-muted-foreground whitespace-nowrap hidden sm:block">{step}</span>
@@ -124,7 +135,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
         <div className="space-y-2 mb-3">
           {updates.map((u, i) => (
             <div key={u.id} className="flex gap-2.5 items-start">
-              <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${i === updates.length - 1 ? "bg-amber-500" : "bg-border"}`} />
+              <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${i === updates.length - 1 ? "bg-primary" : "bg-border"}`} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold">{u.status}</span>
@@ -142,17 +153,24 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
         </div>
       )}
 
-      {updates.length === 0 && (
+      {loadFailed && (
+        <p role="alert" className="text-xs text-destructive mb-3">
+          Delivery updates could not be loaded.{" "}
+          <button type="button" onClick={load} className="underline font-medium">Try again</button>
+        </p>
+      )}
+
+      {!loadFailed && updates.length === 0 && (
         <p className="text-xs text-muted-foreground mb-3">No delivery updates yet.</p>
       )}
 
       {/* Seller: add update */}
-      {isSeller && latestStatus !== "Delivered" && (
+      {isSeller && !loadFailed && latestStatus !== "Delivered" && (
         <>
           {!adding ? (
             <button
               onClick={() => setAdding(true)}
-              className="flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 font-medium"
+              className="flex items-center gap-1.5 text-xs text-primary hover:text-primary font-medium"
             >
               <Plus className="w-3.5 h-3.5" /> Add update
             </button>
@@ -161,7 +179,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
-                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40"
+                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40"
               >
                 {DELIVERY_STEPS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -169,17 +187,17 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
                 placeholder="Note (optional)"
                 value={note}
                 onChange={e => setNote(e.target.value)}
-                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40"
+                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40"
               />
               <input
                 placeholder="Location (optional)"
                 value={location}
                 onChange={e => setLocation(e.target.value)}
-                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40"
+                className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40"
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={addUpdate} disabled={saving}
-                  className="h-7 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white">
+                  className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white">
                   {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.save')}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setAdding(false)}
@@ -221,7 +239,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       <select
         value={reason}
         onChange={e => setReason(e.target.value)}
-        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40"
+        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40"
       >
         {RETURN_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
       </select>
@@ -230,16 +248,16 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
         value={details}
         onChange={e => setDetails(e.target.value)}
         rows={2}
-        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40 resize-none"
+        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40 resize-none"
       />
       {error && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
+        <p className="text-xs text-destructive flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />{error}
         </p>
       )}
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} disabled={saving}
-          className="h-7 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white">
+          className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white">
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.submitRequest')}
         </Button>
       </div>
@@ -269,10 +287,10 @@ function ReturnBadge({ orderId, isSeller }: { orderId: string; isSeller: boolean
   const latest = returns[0];
 
   const returnStatusColors: Record<string, string> = {
-    pending:  "text-yellow-700 bg-yellow-50 border-yellow-200",
-    approved: "text-green-700 bg-green-50 border-green-200",
-    refunded: "text-green-700 bg-green-50 border-green-200",
-    rejected: "text-red-700 bg-red-50 border-red-200",
+    pending:  "text-warning bg-warning-subtle border-warning/30",
+    approved: "text-success bg-success-subtle border-success/30",
+    refunded: "text-success bg-success-subtle border-success/30",
+    rejected: "text-destructive bg-destructive-subtle border-destructive/30",
   };
 
   return (
@@ -319,7 +337,7 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
 
   return (
     <div className="mt-3 pt-3 border-t border-border/40">
-      <p className="text-xs font-semibold text-amber-700 flex items-center gap-1.5 mb-2">
+      <p className="text-xs font-semibold text-primary flex items-center gap-1.5 mb-2">
         <AlertCircle className="w-3.5 h-3.5" /> Pending Return Request
       </p>
       <p className="text-xs text-muted-foreground mb-1">Reason: <span className="font-medium text-foreground">{rr.reason}</span></p>
@@ -329,11 +347,11 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
         placeholder={`Agreed refund to arrange manually (max ${rr.total_price} ${rr.currency || "USD"})`}
         value={refundAmount}
         onChange={e => setRefundAmount(e.target.value)}
-        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-amber-400/40 mb-2"
+        className="w-full text-xs border border-border/50 rounded-lg px-2.5 py-1.5 bg-card outline-none focus:ring-1 focus:ring-primary/40 mb-2"
       />
       <div className="flex gap-2">
         <Button size="sm" onClick={() => act("approved")} disabled={saving}
-          className="h-7 text-xs rounded-full bg-green-600 hover:bg-green-700 text-white">
+          className="h-7 text-xs rounded-full bg-success hover:bg-success/90 text-white">
           Approve Return
         </Button>
         <Button size="sm" onClick={() => act("rejected")} disabled={saving}
@@ -350,10 +368,10 @@ function SellerReturnActions({ orderId, onActioned }: { orderId: string; onActio
 function Orders() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [orders, setOrders]   = useState([]);
+  const [orders, setOrders]   = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [tab, setTab]         = useState("selling");
+  const [tab, setTab]         = useState<OrderTab>("selling");
   const userId = user?.id;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showReturn, setShowReturn] = useState<Record<string, boolean>>({});
@@ -370,11 +388,11 @@ function Orders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusOrder, orders]);
   /** Buyer: the business (with this order's card). Seller: the customer about this order. */
-  const messageAbout = (order) => {
+  const messageAbout = (order: Order) => {
     const counterpart = isSelling ? order.buyer_id : order.seller_id;
     if (!counterpart) return;
     void chat.start(order.business_id
-      ? { businessId: order.business_id, context: { kind: 'order', id: order.id }, customerId: isSelling ? order.buyer_id : undefined }
+      ? { businessId: order.business_id, context: { kind: 'order', id: order.id }, customerId: isSelling ? order.buyer_id ?? undefined : undefined }
       : { userId: counterpart });
   };
 
@@ -382,16 +400,17 @@ function Orders() {
     if (userId) loadOrders({ id: userId }, "selling");
   }, [userId]);
 
-  const loadOrders = async (u, mode) => {
+  const loadOrders = async (u: { id?: string } | null, mode: OrderTab) => {
+    if (!u?.id) return;
     setLoading(true);
     setLoadError('');
     try {
       const filter = mode === "selling" ? { seller_id: u.id } : { buyer_id: u.id };
       const data = await entities.Order.filter(filter, "-created_at", 100);
-      setOrders(Array.isArray(data) ? data : (data as any)?.orders ?? []);
+      setOrders(data);
       // Resolve counterparty names (seller names for buying tab, buyer names already in order)
       if (data.length > 0) {
-        const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter(Boolean))];
+        const ids = [...new Set(data.map(o => mode === "selling" ? o.buyer_id : o.seller_id).filter((id): id is string => Boolean(id)))];
         if (ids.length) {
           try {
             const res = await Promise.all(ids.map(uid =>
@@ -401,7 +420,7 @@ function Orders() {
               })).catch(() => ({ id: uid, name: '' }))
             ));
             const map: Record<string, string> = {};
-            res.forEach(r => { if (r.name) map[r.id as string] = r.name; });
+            res.forEach(r => { if (r.name) map[r.id] = r.name; });
             setNameMap(map);
           } catch { /* silenced */ }
         }
@@ -412,12 +431,12 @@ function Orders() {
     setLoading(false);
   };
 
-  const switchTab = (mode) => {
+  const switchTab = (mode: OrderTab) => {
     setTab(mode);
     if (user) loadOrders(user, mode);
   };
 
-  const updateStatus = async (orderId, status) => {
+  const updateStatus = async (orderId: string, status: string) => {
     try {
       await entities.Order.update(orderId, { status });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
@@ -446,23 +465,23 @@ function Orders() {
     }
   };
 
-  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
-  const toggleReturn = (id) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleReturn = (id: string) => setShowReturn(prev => ({ ...prev, [id]: !prev[id] }));
 
   const isSelling = tab === "selling";
 
   return (
     <div className="max-w-2xl mx-auto">
       <div data-page-guide="orders-header" className="flex items-center gap-3 mb-6">
-        <ShoppingBag className="w-6 h-6 text-amber-500" />
+        <ShoppingBag className="w-6 h-6 text-primary" />
         <h1 className="font-display text-2xl font-bold">Orders</h1>
       </div>
 
       <div data-page-guide="orders-tabs" className="flex gap-1 bg-card rounded-xl border border-border/50 p-1 mb-5">
         {/* Loop var is `mode` — `t` would shadow the translation function */}
-        {["selling", "buying"].map(mode => (
+        {(["selling", "buying"] as const).map(mode => (
           <button key={mode} onClick={() => switchTab(mode)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-blue-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}>
+            className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab === mode ? "bg-primary text-white" : "text-muted-foreground hover:bg-secondary"}`}>
             {mode === "selling" ? t('orders.mySales') : t('orders.myPurchases')}
           </button>
         ))}
@@ -470,12 +489,12 @@ function Orders() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
       ) : loadError ? (
         <div className="text-center py-12 rounded-2xl border border-destructive/20 bg-destructive/5">
           <p className="text-sm text-destructive font-medium">{loadError}</p>
-          <button onClick={() => user && loadOrders(user, tab)} className="mt-3 text-xs text-amber-600 hover:underline font-medium">Retry</button>
+          <button onClick={() => user && loadOrders(user, tab)} className="mt-3 text-xs text-primary hover:underline font-medium">Retry</button>
         </div>
       ) : orders.length === 0 ? (
         <div className="text-center py-16">
@@ -493,14 +512,14 @@ function Orders() {
             const canReturn  = !isSelling && ["completed", "paid"].includes(order.status);
 
             return (
-              <div key={order.id} id={`order-${order.id}`} className={`bg-card rounded-2xl border overflow-hidden ${focusOrder === order.id ? "border-blue-400 ring-2 ring-blue-200" : "border-border/50"}`}>
+              <div key={order.id} id={`order-${order.id}`} className={`bg-card rounded-2xl border overflow-hidden ${focusOrder === order.id ? "border-primary ring-2 ring-primary/30" : "border-border/50"}`}>
                 {/* Order header — always visible */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       {/* Product thumbnail */}
                       {order.product_id && (
-                        <Link href={`/products/${order.product_id}`} className="shrink-0">
+                        <Link href={`/products/${order.product_id}`} className="shrink-0" aria-label={`View ${order.product_title || "product"}`}>
                           <div className="w-14 h-14 rounded-xl bg-secondary/30 overflow-hidden relative">
                             {order.product_images ? (
                               <Image
@@ -522,16 +541,16 @@ function Orders() {
                         <p className="font-semibold text-sm truncate">{order.product_title}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {isSelling
-                            ? `Buyer: ${order.buyer_name || nameMap[order.buyer_id] || "Unknown"}`
-                            : `Seller: ${nameMap[order.seller_id] || order.seller_name || order.seller_id?.slice(0, 8) + '…'}`}
+                            ? `Buyer: ${order.buyer_name || (order.buyer_id && nameMap[order.buyer_id]) || "Unknown"}`
+                            : `Seller: ${nameMap[order.seller_id] || order.seller_id.slice(0, 8) + '…'}`}
                         </p>
                         <p className="text-xs text-muted-foreground">{fromNow(order.created_at)}</p>
                       </div>
                     </div>
                     <div className="text-right ml-2 shrink-0">
                       {order.status === "requested"
-                        ? <p className="text-sm font-semibold text-amber-600">{order.listed_price_text ? `Listed: ${order.listed_price_text}` : "Price to confirm"}</p>
-                        : <p className="font-bold text-amber-600">{order.total_price?.toLocaleString()} {order.currency}</p>}
+                        ? <p className="text-sm font-semibold text-primary">{order.listed_price_text ? `Listed: ${order.listed_price_text}` : "Price to confirm"}</p>
+                        : <p className="font-bold text-primary">{order.total_price?.toLocaleString()} {order.currency}</p>}
                       <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
                     </div>
                   </div>
@@ -547,7 +566,7 @@ function Orders() {
                     <div className="ml-auto flex items-center gap-2 flex-wrap">
                       {(isSelling ? order.buyer_id : order.seller_id) && (
                         <button type="button" onClick={() => messageAbout(order)} disabled={chat.busy}
-                          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded-full hover:bg-blue-50 transition-colors">
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary font-medium px-2 py-1 rounded-full hover:bg-primary-subtle transition-colors">
                           <MessageCircle className="w-3 h-3" aria-hidden="true" /> {isSelling ? 'Message buyer' : 'Message seller'}
                         </button>
                       )}
@@ -555,7 +574,7 @@ function Orders() {
                       {order.status === "completed" && (
                         <button
                           onClick={() => { void generateInvoice(order); }}
-                          className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 font-medium px-2 py-1 rounded-full hover:bg-amber-50 transition-colors"
+                          className="flex items-center gap-1 text-xs text-primary hover:text-primary font-medium px-2 py-1 rounded-full hover:bg-primary-subtle transition-colors"
                           data-page-guide="orders-invoice-btn"                        >
                           <FileDown className="w-3 h-3" /> Invoice
                         </button>
@@ -620,11 +639,14 @@ function Orders() {
 
                       {/* Expand tracking / details */}
                       <button
+                        type="button"
                         onClick={() => toggleExpand(order.id)}
                         data-page-guide="orders-detail-expand"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Hide order details" : "Show order details"}
                         className="p-1 rounded-full hover:bg-secondary transition-colors text-muted-foreground"
                       >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isExpanded ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
                       </button>
                     </div>
                   </div>
@@ -697,6 +719,8 @@ function Orders() {
 }
 
 export { DeliveryTimeline };
+
+type OrderTab = 'selling' | 'buying';
 
 export default function OrdersPage() {
   return <ErrorBoundary><Orders /></ErrorBoundary>;

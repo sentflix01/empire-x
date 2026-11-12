@@ -1,0 +1,22 @@
+== backend typecheck
+exit=0
+== backend jest
+Test Suites: 84 passed, 84 total
+Tests:       661 passed, 661 total
+== frontend lint
+  109:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+✖ 3 problems (0 errors, 3 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+exit=0
+== frontend tsc
+exit=0
+== frontend vitest
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  test/feed/PhotoViewer.test.tsx > PostCard photos and profile links > in the personal feed, the author opens the personal profile; business names open the business profile
+ FAIL  test/feed/PhotoViewer.test.tsx > PostCard photos and profile links > tapping the photo opens it full screen with Like and Comments
+ Test Files  1 failed | 67 passed (68)
+      Tests  2 failed | 476 passed (478)
+ Test Files  68 passed (68)
+      Tests  478 passed (478)
+Test Suites: 24 passed, 24 total
+Tests:       212 passed, 212 total

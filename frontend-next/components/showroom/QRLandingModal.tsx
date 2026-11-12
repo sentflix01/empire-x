@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { Store, UserCheck, UserPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import TryDemoButton from '@/components/landing/TryDemoButton';
+import { fillForWhiteText } from '@/lib/contrast';
 
 interface QRLandingModalProps {
   businessName: string;
@@ -31,7 +32,7 @@ export default function QRLandingModal({
   businessCategory,
   logoUrl,
   currentPath,
-  themeColor = '#D4AF37',
+  themeColor = '#2563EB',
 }: QRLandingModalProps) {
   const [visible, setVisible] = useState(false);
   const returnParam = encodeURIComponent(currentPath);
@@ -63,7 +64,7 @@ export default function QRLandingModal({
           {/* Business logo or icon */}
           <div
             className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-md overflow-hidden"
-            style={{ backgroundColor: themeColor }}
+            style={{ backgroundColor: fillForWhiteText(themeColor) }}
           >
             {logoUrl
               ? <SafeImage fill={false} width={800} height={600} src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
@@ -91,11 +92,11 @@ export default function QRLandingModal({
           <TryDemoButton />
           <Link
             href={`/login?return=${returnParam}`}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-primary hover:bg-primary-subtle/50 transition-all"
             onClick={dismiss}
           >
-            <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-              <UserCheck className="w-5 h-5 text-amber-600" />
+            <div className="w-9 h-9 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+              <UserCheck className="w-5 h-5 text-primary" />
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold">I have an account</p>
@@ -106,7 +107,7 @@ export default function QRLandingModal({
           <Link
             href={`/register?return=${returnParam}`}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-white transition-all hover:opacity-90"
-            style={{ backgroundColor: themeColor }}
+            style={{ backgroundColor: fillForWhiteText(themeColor) }}
             onClick={dismiss}
           >
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">

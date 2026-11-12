@@ -15,3 +15,24 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'db-test-secret-do-not-use-in
 process.env.NODE_ENV = 'test';
 delete process.env.DEMO_DATABASE_URL;
 delete process.env.REDIS_URL;
+
+// Jest gives every test file its own module registry, so each suite builds its
+// own pools (db/pool.ts and db/poolJsShim.cjs, up to 5 connections each, 60 s
+// idle timeout). Left open, they pile up across suites under --runInBand until
+// Postgres refuses new clients ("too many clients already") and a late suite
+// fails at random. test/db/environment.js calls this once the suite's own
+// afterAll hooks have run; an afterAll here would run before them.
+//
+// By then Jest only resolves modules the suite already loaded; a pool module it
+// never loaded has no connections, so a refused require means nothing to close.
+function loadedModule(path) {
+  try { return require(path); } catch { return null; }
+}
+globalThis.__closeDbTestPools = async () => {
+  const pool = loadedModule('../../db/pool');
+  const shim = loadedModule('../../db/poolJsShim.cjs');
+  await Promise.allSettled([
+    pool ? pool.closeAllPools() : null,
+    shim && !shim.ended ? shim.end() : null,
+  ]);
+};

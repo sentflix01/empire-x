@@ -31,9 +31,14 @@ import {
   InventoryUnavailableError, reserveOrderInventory, commitOrderInventory,
   releaseOrderInventory, transitionPaymentOrders, cancelOrderAndReleaseInventory,
 } from '../services/orderInventory';
+import { uuidParams } from '../lib/uuidParams';
+import crypto from 'crypto';
+import { safeFrontendReturn, scriptString } from '../lib/sandboxPage';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 // Card and Chapa checkout charged buyers into NodBusiness's own accounts.
 // Retired until a provider settles directly to the seller (decision §1).
 const platformCheckoutRetired = platformCollectionRetired('Paying through NodBusiness is not available. Pay the seller directly using the payment details on the order.');
@@ -109,7 +114,9 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     if (status) { params.push(status); conditions.push(`o.status=$${params.length}`); }
     const orderBy = sort==='created_at' ? 'o.created_at ASC' : 'o.created_at DESC';
     params.push(lim);
-    const { rows } = await pool.query(`SELECT o.* FROM orders o WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
+    // The product's photos for the order card (the product may since be deleted).
+    const { rows } = await pool.query(`SELECT o.*, p.images AS product_images FROM orders o LEFT JOIN products p ON p.id = o.product_id
+      WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT $${params.length}`, params);
     res.json({ orders: rows.map(clientOrder), next_cursor: rows.length===lim ? rows[rows.length-1].created_at : null });
   } catch { apiError.serverError(res, 'Failed to fetch orders'); }
 });
@@ -701,7 +708,7 @@ router.post('/checkout/chapa', platformCheckoutRetired, requireAuth, requireIsol
     if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(total) || total <= 0 || total > 10_000_000) {
       apiError.validationError(res, 'Product price is invalid'); return;
     }
-    txRef = `ndb-${req.user!.id.slice(0,8)}-${Date.now()}`;
+    txRef = `ndb-${crypto.randomUUID()}`; // not guessable (audit F-019)
     const frontendUrl = getPrimaryFrontendUrl();
     const apiUrl = process.env.API_URL??'http://localhost:3001';
     const order = await createRecord('orders', {
@@ -746,21 +753,25 @@ router.get('/chapa/sandbox', (req: Request, res: Response) => {
   if (!CHAPA_SANDBOX || process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Not found' }); return; }
   const { tx_ref, return_url } = req.query as Record<string,string>;
   const safe = (s: string) => String(s||'').replace(/[<>"'&]/g,c=>`&#${c.charCodeAt(0)};`);
-  const safeReturn = return_url ? decodeURIComponent(return_url) : getPrimaryFrontendUrl();
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Chapa Sandbox</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem"><h1>🇪🇹 Chapa Sandbox</h1><p>ref: ${safe(tx_ref)}</p><button onclick="pay()" style="background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:1rem">✅ Confirm Payment</button><script>async function pay(){window.location.href='${safeReturn}';}</script></body></html>`);
+  // Only our frontend, and passed as a JSON string literal (audit F-020).
+  const safeReturn = safeFrontendReturn(return_url);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Chapa Sandbox</title></head><body style="font-family:sans-serif;text-align:center;padding:2rem"><h1>🇪🇹 Chapa Sandbox</h1><p>ref: ${safe(tx_ref)}</p><button onclick="pay()" style="background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:8px;cursor:pointer;font-size:1rem">✅ Confirm Payment</button><script>async function pay(){window.location.href=${scriptString(safeReturn)};}</script></body></html>`);
 });
 
 // Chapa payment status (read-only, DB-only)
 // Frontend polls this while the Chapa window is open. Confirmation still
 // arrives server-side via GET /chapa/verify/:tx_ref (Chapa callback_url) —
 // polling here never triggers upstream Chapa verification calls.
-router.get('/chapa/status/:tx_ref', async (req: Request, res: Response) => {
+// Only the buyer, the seller or an admin may read it (audit F-019).
+router.get('/chapa/status/:tx_ref', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { rows } = await pool.query<{ status: string }>(
-      'SELECT status FROM orders WHERE chapa_tx_ref=$1 ORDER BY created_at DESC LIMIT 1',
+    const { rows } = await pool.query<{ status: string; buyer_id: string | null; seller_id: string }>(
+      'SELECT status, buyer_id, seller_id FROM orders WHERE chapa_tx_ref=$1 ORDER BY created_at DESC LIMIT 1',
       [req.params.tx_ref],
     );
-    res.json({ status: rows[0]?.status ?? null });
+    const order = rows[0];
+    const party = order && (order.buyer_id === req.user!.id || order.seller_id === req.user!.id || req.user!.role === 'admin');
+    res.json({ status: party ? order.status : null });
   } catch { apiError.serverError(res, 'Failed to fetch payment status'); }
 });
 
@@ -769,14 +780,17 @@ router.get('/chapa/verify/:tx_ref', async (req: Request, res: Response) => {
   if (!CHAPA_SECRET) { res.status(503).json({ error:'Chapa not configured' }); return; }
   if (CHAPA_SANDBOX && process.env.NODE_ENV === 'production') { res.status(404).json({ error: 'Not found' }); return; }
   const { tx_ref } = req.params;
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(tx_ref)) { res.status(404).json({ error: 'Not found' }); return; }
   const frontendUrl = process.env.FRONTEND_URL??'http://localhost:3002';
   try {
-    const chapaRes = await chapaGet(`/transaction/verify/${tx_ref}`);
+    const chapaRes = await chapaGet(`/transaction/verify/${encodeURIComponent(tx_ref)}`);
     const ok = chapaRes.status==='success' && (chapaRes.data as Record<string,string>)?.status==='success';
+    // Anyone can call this public callback, so it never marks an order as
+    // failed: a payment that is not confirmed yet stays pending, and the
+    // webhook or the expiry job settles it (audit F-019).
     if (!ok && !CHAPA_SANDBOX) {
-      await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'payment_failed');
       if (req.headers.accept?.includes('text/html')) { res.redirect(`${frontendUrl}/orders/cancel?provider=chapa`); return; }
-      apiError.validationError(res,'Payment not successful'); return;
+      apiError.validationError(res,'Payment not confirmed yet'); return;
     }
     const rows = await transitionPaymentOrders(pool, 'chapa_tx_ref', tx_ref, 'paid');
     for (const order of rows) {

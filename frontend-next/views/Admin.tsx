@@ -1,4 +1,5 @@
 'use client';
+import { HEX } from '@/lib/colorTokens';
 import SafeImage from '@/components/ui/SafeImage';
 /**
  * Admin.tsx — Nodbusiness Platform Operations Hub
@@ -21,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
 import client from '@/api/client';
+import { apiErrorBody } from '@/lib/apiErrorMessage';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import {
@@ -41,34 +43,34 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 
 // ── Tab definition ────────────────────────────────────────────────────────────
 const TABS = [
-  { key: 'overview',   label: 'Overview',      icon: BarChart3,    color: 'text-amber-500'   },
-  { key: 'users',      label: 'Users',         icon: Users,        color: 'text-blue-500'    },
-  { key: 'content',    label: 'Content',       icon: FileText,     color: 'text-violet-500'  },
-  { key: 'orders',     label: 'Orders',        icon: Package,      color: 'text-emerald-500' },
-  { key: 'reports',    label: 'Reports',       icon: AlertTriangle,color: 'text-red-500'     },
-  { key: 'verify',     label: 'Verification',  icon: BadgeCheck,   color: 'text-blue-500'    },
-  { key: 'flags',      label: 'Feature Flags', icon: Flag,         color: 'text-orange-500'  },
-  { key: 'platform',   label: 'Platform',      icon: Server,       color: 'text-teal-500'    },
+  { key: 'overview',   label: 'Overview',      icon: BarChart3,    color: 'text-primary'   },
+  { key: 'users',      label: 'Users',         icon: Users,        color: 'text-primary'    },
+  { key: 'content',    label: 'Content',       icon: FileText,     color: 'text-brand-secondary'  },
+  { key: 'orders',     label: 'Orders',        icon: Package,      color: 'text-success' },
+  { key: 'reports',    label: 'Reports',       icon: AlertTriangle,color: 'text-destructive'     },
+  { key: 'verify',     label: 'Verification',  icon: BadgeCheck,   color: 'text-primary'    },
+  { key: 'flags',      label: 'Feature Flags', icon: Flag,         color: 'text-primary'  },
+  { key: 'platform',   label: 'Platform',      icon: Server,       color: 'text-success'    },
 ] as const;
 type TabKey = typeof TABS[number]['key'];
 
 // ── Verification badge types ───────────────────────────────────────────────────
 const VERIFY_TYPES = [
-  { value: 'personal', label: 'Personal', color: '#3B82F6', desc: 'Public figure / notable person' },
-  { value: 'business', label: 'Business', color: '#F97316', desc: 'Verified business or brand'    },
-  { value: 'creator',  label: 'Creator',  color: '#8B5CF6', desc: 'Content creator / influencer'  },
-  { value: 'official', label: 'Official', color: '#D4AF37', desc: 'Nodbusiness official account'     },
+  { value: 'personal', label: 'Personal', color: HEX.primary, desc: 'Public figure / notable person' },
+  { value: 'business', label: 'Business', color: HEX.brandSecondary, desc: 'Verified business or brand'    },
+  { value: 'creator',  label: 'Creator',  color: HEX.primary, desc: 'Content creator / influencer'  },
+  { value: 'official', label: 'Official', color: HEX.primary, desc: 'Nodbusiness official account'     },
 ];
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 function StatusDot({ status }: { status: string }) {
   const map: Record<string, string> = {
-    connected: 'bg-emerald-500', ok: 'bg-emerald-500',
-    error: 'bg-red-500',         disconnected: 'bg-red-500',
-    'not configured': 'bg-gray-400', misconfigured: 'bg-orange-500',
-    local: 'bg-yellow-400',       console: 'bg-gray-400',
+    connected: 'bg-success', ok: 'bg-success',
+    error: 'bg-destructive',         disconnected: 'bg-destructive',
+    'not configured': 'bg-muted-foreground/30', misconfigured: 'bg-primary',
+    local: 'bg-primary',       console: 'bg-muted-foreground/30',
   };
-  return <span className={`inline-block w-2 h-2 rounded-full ${map[status] ?? 'bg-gray-400'}`} />;
+  return <span className={`inline-block w-2 h-2 rounded-full ${map[status] ?? 'bg-muted-foreground/30'}`} />;
 }
 
 // ── Metric card ───────────────────────────────────────────────────────────────
@@ -84,7 +86,7 @@ function MetricCard({ label, value, icon: Icon, color, bg, trend }: {
       <p className="text-2xl font-bold tabular-nums">{typeof value === 'number' ? value.toLocaleString() : value}</p>
       <p className="text-sm text-muted-foreground">{label}</p>
       {trend !== undefined && (
-        <p className={`text-[10px] font-mono mt-1 ${trend.up ? 'text-emerald-500' : 'text-red-500'}`}>
+        <p className={`text-[10px] font-mono mt-1 ${trend.up ? 'text-success' : 'text-destructive'}`}>
           {trend.up ? '↑' : '↓'} {Math.abs(trend.value)}% vs last month
         </p>
       )}
@@ -95,11 +97,11 @@ function MetricCard({ label, value, icon: Icon, color, bg, trend }: {
 // ── Quick links to DevOps ─────────────────────────────────────────────────────
 function DevOpsQuickLinks() {
   return (
-    <div className="bg-gradient-to-br from-blue-600/10 to-violet-600/10 border border-blue-500/20 rounded-2xl p-4 mb-4">
+    <div className="bg-primary border border-primary/20 rounded-2xl p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
-        <KanbanSquare className="w-4 h-4 text-blue-500" />
+        <KanbanSquare className="w-4 h-4 text-primary" />
         <p className="text-sm font-semibold">Developer Operations</p>
-        <Link href="/admin/devops" className="ml-auto text-xs text-blue-500 hover:underline flex items-center gap-1">
+        <Link href="/admin/devops" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
           Open DevOps Board <Code2 className="w-3 h-3" />
         </Link>
       </div>
@@ -111,8 +113,8 @@ function DevOpsQuickLinks() {
           { label: 'Changelog',       href: '/admin/devops',           icon: Activity,     desc: 'Release history'  },
         ].map(({ label, href, icon: Icon, desc }) => (
           <Link key={label} href={href}
-            className="flex flex-col gap-1 p-3 rounded-xl bg-card/60 border border-border/40 hover:border-blue-400/40 hover:bg-secondary/30 transition-all group">
-            <Icon className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" />
+            className="flex flex-col gap-1 p-3 rounded-xl bg-card/60 border border-border/40 hover:border-primary/40 hover:bg-secondary/30 transition-all group">
+            <Icon className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
             <p className="text-xs font-semibold">{label}</p>
             <p className="text-[10px] text-muted-foreground">{desc}</p>
           </Link>
@@ -161,7 +163,7 @@ function PlatformPanel() {
       {loading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : !health ? (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-sm text-red-500 flex items-center gap-2">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 text-sm text-destructive flex items-center gap-2">
           <XCircle className="w-4 h-4" /> Cannot reach backend. Check Render deployment.
         </div>
       ) : (
@@ -194,15 +196,15 @@ function PlatformPanel() {
           {/* Overall status */}
           <div className={`rounded-2xl border p-4 flex items-center gap-3 ${
             health.status === 'ok'
-              ? 'border-emerald-500/30 bg-emerald-500/10'
-              : 'border-red-500/30 bg-red-500/10'
+              ? 'border-success/30 bg-success/10'
+              : 'border-destructive/30 bg-destructive/10'
           }`}>
             {health.status === 'ok'
-              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              : <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+              ? <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+              : <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
             }
             <div>
-              <p className={`text-sm font-semibold ${health.status === 'ok' ? 'text-emerald-600' : 'text-red-600'}`}>
+              <p className={`text-sm font-semibold ${health.status === 'ok' ? 'text-success' : 'text-destructive'}`}>
                 Platform {health.status === 'ok' ? 'Operational' : 'Degraded'}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -215,7 +217,7 @@ function PlatformPanel() {
           {metrics?.db && (
             <div className="bg-card border border-border/50 rounded-2xl p-4">
               <p className="text-xs font-semibold mb-3 flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-blue-500" /> Database Connection Pool
+                <Database className="w-3.5 h-3.5 text-primary" /> Database Connection Pool
               </p>
               <div className="grid grid-cols-3 gap-3">
                 {[
@@ -237,18 +239,18 @@ function PlatformPanel() {
             <div className="bg-card border border-border/50 rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold flex items-center gap-2">
-                  <KanbanSquare className="w-3.5 h-3.5 text-violet-500" /> DevOps Board
+                  <KanbanSquare className="w-3.5 h-3.5 text-brand-secondary" /> DevOps Board
                 </p>
-                <Link href="/admin/devops" className="text-xs text-blue-500 hover:underline">Open board →</Link>
+                <Link href="/admin/devops" className="text-xs text-primary hover:underline">Open board →</Link>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {[
-                  { label: 'Open',        value: devops.open        ?? 0, color: 'text-sky-500'     },
-                  { label: 'In Progress', value: devops.in_progress ?? 0, color: 'text-amber-500'   },
-                  { label: 'Blocked',     value: devops.blocked     ?? 0, color: 'text-red-500'     },
-                  { label: 'Planned',     value: devops.planned     ?? 0, color: 'text-violet-500'  },
-                  { label: 'Done',        value: devops.done        ?? 0, color: 'text-emerald-500' },
-                  { label: 'Open Bugs',   value: devops.open_bugs   ?? 0, color: 'text-red-500'     },
+                  { label: 'Open',        value: devops.open        ?? 0, color: 'text-primary'     },
+                  { label: 'In Progress', value: devops.in_progress ?? 0, color: 'text-primary'   },
+                  { label: 'Blocked',     value: devops.blocked     ?? 0, color: 'text-destructive'     },
+                  { label: 'Planned',     value: devops.planned     ?? 0, color: 'text-brand-secondary'  },
+                  { label: 'Done',        value: devops.done        ?? 0, color: 'text-success' },
+                  { label: 'Open Bugs',   value: devops.open_bugs   ?? 0, color: 'text-destructive'     },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="text-center p-2 bg-secondary/20 rounded-xl">
                     <p className={`text-xl font-bold tabular-nums ${color}`}>{value}</p>
@@ -257,7 +259,7 @@ function PlatformPanel() {
                 ))}
               </div>
               {devops.urgent > 0 && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl p-2.5">
+                <div className="mt-3 flex items-center gap-2 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-xl p-2.5">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                   <span>{devops.urgent} urgent item{devops.urgent > 1 ? 's' : ''} need immediate attention</span>
                   <Link href="/admin/devops" className="ml-auto font-semibold hover:underline">View →</Link>
@@ -300,10 +302,10 @@ function FeatureFlagsPanel() {
   };
 
   const FLAG_COLORS: Record<string, string> = {
-    chapa_payments: 'text-emerald-500', stripe_payments: 'text-blue-500',
-    ai_description_gen: 'text-violet-500', ai_chat: 'text-violet-500',
-    personalized_feed: 'text-amber-500', video_posts: 'text-orange-500',
-    live_streaming: 'text-red-500', two_factor_auth: 'text-cyan-500',
+    chapa_payments: 'text-success', stripe_payments: 'text-primary',
+    ai_description_gen: 'text-brand-secondary', ai_chat: 'text-brand-secondary',
+    personalized_feed: 'text-primary', video_posts: 'text-primary',
+    live_streaming: 'text-destructive', two_factor_auth: 'text-primary',
   };
 
   return (
@@ -334,7 +336,7 @@ function FeatureFlagsPanel() {
                     <div className="flex items-center gap-2">
                       <p className={`text-sm font-medium font-mono ${FLAG_COLORS[name] ?? 'text-foreground'}`}>{name}</p>
                       {flag.env_override !== null && (
-                        <span className="text-[9px] font-mono bg-amber-500/15 text-amber-600 border border-amber-500/30 px-1.5 py-0.5 rounded-full">ENV OVERRIDE</span>
+                        <span className="text-[9px] font-mono bg-primary/15 text-primary border border-primary/30 px-1.5 py-0.5 rounded-full">ENV OVERRIDE</span>
                       )}
                     </div>
                     <p className="text-[11px] text-muted-foreground">{flag.description}</p>
@@ -346,7 +348,7 @@ function FeatureFlagsPanel() {
                     onClick={() => toggle(name, enabled)}
                     disabled={isSaving || flag.env_override !== null}
                     className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ml-4 ${
-                      enabled ? 'bg-emerald-500' : 'bg-secondary border border-border'
+                      enabled ? 'bg-success' : 'bg-secondary border border-border'
                     } ${flag.env_override !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {isSaving
@@ -395,9 +397,16 @@ function Admin() {
   const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
   const [banTarget,     setBanTarget]     = useState<string | null>(null);
   const [banReason,     setBanReason]     = useState('');
+  const [needsMfa,      setNeedsMfa]      = useState(false);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
+    // Admin tools need two-factor sign-in (F-017); the other calls would all fail the same way.
+    try {
+      await client.get('/api/admin/stats');
+    } catch (err) {
+      if (apiErrorBody(err)?.code === 'MFA_SETUP_REQUIRED') { setNeedsMfa(true); setLoading(false); return; }
+    }
     try {
       const [s, u, v, po, pr, o, r, rc] = await Promise.all([
         client.get('/api/admin/stats').then(r => r.data).catch(() => ({})),
@@ -514,15 +523,23 @@ function Admin() {
   );
 
   // ── Donut data for order status ────────────────────────────────────────────
-  const ORDER_COLORS = { paid: '#10b981', processing: '#f59e0b', completed: '#3b82f6', cancelled: '#ef4444', pending: '#6b7280' };
+  const ORDER_COLORS = { paid: HEX.success, processing: HEX.warning, completed: HEX.primary, cancelled: HEX.destructive, pending: HEX.muted };
   const orderDonut = Object.entries(
     orders.reduce((acc: any, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {})
   ).map(([name, value]) => ({ name, value }));
 
+  if (needsMfa) return (
+    <div className="mx-auto max-w-md py-24 text-center">
+      <h1 className="text-xl font-bold">Turn on two-factor sign-in</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Admin tools need two-factor sign-in with an authenticator app. Turn it on in your account settings, then come back.</p>
+      <Link href="/account" className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open account settings</Link>
+    </div>
+  );
+
   if (loading) return (
     <div className="flex justify-center items-center py-32">
       <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-3" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
         <p className="text-sm text-muted-foreground">Loading platform data...</p>
       </div>
     </div>
@@ -534,7 +551,7 @@ function Admin() {
 
         {/* ══ Header ═══════════════════════════════════════════════════════ */}
         <div className="flex flex-wrap items-center gap-3 mb-5 pt-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
             <ShieldAlert className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -547,7 +564,7 @@ function Admin() {
           <button onClick={loadAll} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border/50 rounded-full px-3 py-1.5 transition-all hover:bg-secondary/30">
             <RefreshCw className="w-3 h-3" /> Refresh
           </button>
-          <a href="/admin/devops" className="flex items-center gap-1.5 text-xs font-semibold text-blue-500 border border-blue-500/30 bg-blue-500/10 rounded-full px-3 py-1.5 hover:bg-blue-500/20 transition-all">
+          <a href="/admin/devops" className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/30 bg-primary/10 rounded-full px-3 py-1.5 hover:bg-primary/20 transition-all">
             <Terminal className="w-3 h-3" /> DevOps
           </a>
         </div>
@@ -566,7 +583,7 @@ function Admin() {
                 <Icon className={`w-3.5 h-3.5 ${tab === key ? '' : color}`} />
                 {label}
                 {badge > 0 && (
-                  <span className="bg-red-500 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                  <span className="bg-destructive text-white text-[9px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
                     {badge}
                   </span>
                 )}
@@ -582,19 +599,19 @@ function Admin() {
 
             {/* Stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              <MetricCard label="Total Users"    value={stats.users          ?? 0} icon={Users}       color="text-blue-600"    bg="bg-blue-50 dark:bg-blue-500/10" />
-              <MetricCard label="New Today"      value={stats.new_users_today ?? 0} icon={BadgeCheck}  color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-500/10" />
-              <MetricCard label="Posts"          value={stats.posts          ?? 0} icon={FileText}    color="text-amber-600"   bg="bg-amber-50 dark:bg-amber-500/10" />
-              <MetricCard label="Products"       value={stats.products       ?? 0} icon={ShoppingBag} color="text-violet-600"  bg="bg-violet-50 dark:bg-violet-500/10" />
-              <MetricCard label="Orders (Paid)"  value={stats.orders_paid    ?? 0} icon={CheckCircle2} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-500/10" />
-              <MetricCard label="Orders Pending" value={stats.orders_pending ?? 0} icon={Clock}       color="text-orange-600"  bg="bg-orange-50 dark:bg-orange-500/10" />
-              <MetricCard label="Open Reports"   value={reports.length}            icon={AlertTriangle} color="text-red-600"   bg="bg-red-50 dark:bg-red-500/10" />
-              <MetricCard label="Banned Users"   value={stats.banned_users   ?? 0} icon={ShieldAlert} color="text-red-600"    bg="bg-red-50 dark:bg-red-500/10" />
+              <MetricCard label="Total Users"    value={stats.users          ?? 0} icon={Users}       color="text-primary"    bg="bg-primary-subtle" />
+              <MetricCard label="New Today"      value={stats.new_users_today ?? 0} icon={BadgeCheck}  color="text-success" bg="bg-success-subtle" />
+              <MetricCard label="Posts"          value={stats.posts          ?? 0} icon={FileText}    color="text-primary"   bg="bg-primary-subtle" />
+              <MetricCard label="Products"       value={stats.products       ?? 0} icon={ShoppingBag} color="text-brand-secondary"  bg="bg-brand-secondary-subtle" />
+              <MetricCard label="Orders (Paid)"  value={stats.orders_paid    ?? 0} icon={CheckCircle2} color="text-success" bg="bg-success-subtle" />
+              <MetricCard label="Orders Pending" value={stats.orders_pending ?? 0} icon={Clock}       color="text-warning"  bg="bg-warning-subtle" />
+              <MetricCard label="Open Reports"   value={reports.length}            icon={AlertTriangle} color="text-destructive"   bg="bg-destructive-subtle" />
+              <MetricCard label="Banned Users"   value={stats.banned_users   ?? 0} icon={ShieldAlert} color="text-destructive"    bg="bg-destructive-subtle" />
             </div>
 
             {/* Revenue cards */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white">
+              <div className="bg-primary rounded-2xl p-5 text-white">
                 <p className="text-xs text-white/70 font-medium mb-1">Total Revenue</p>
                 <p className="text-3xl font-bold tabular-nums">{(stats.revenue_total ?? 0).toLocaleString()}</p>
                 <p className="text-xs text-white/70 mt-1">All paid orders</p>
@@ -610,21 +627,21 @@ function Admin() {
             {revenueChart.length > 0 && (
               <div className="bg-card border border-border/50 rounded-2xl p-5">
                 <p className="text-sm font-semibold mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-amber-500" /> Revenue — Last 30 Days
+                  <TrendingUp className="w-4 h-4 text-primary" /> Revenue — Last 30 Days
                 </p>
                 <ResponsiveContainer width="100%" height={200}>
                   <AreaChart data={revenueChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}   />
+                        <stop offset="5%"  stopColor={HEX.primary} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={HEX.primary} stopOpacity={0}   />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={HEX.border} />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d?.slice(5)} />
                     <YAxis tick={{ fontSize: 10 }} width={48} tickFormatter={v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v} />
-                    <Tooltip formatter={(v: any, n: string) => [Number(v).toLocaleString(), n === 'revenue' ? 'Revenue' : 'Orders']} />
-                    <Area type="monotone" dataKey="revenue" stroke="#f59e0b" fill="url(#revGrad)" strokeWidth={2} dot={false} />
+                    <Tooltip formatter={(v, n) => [Number(v).toLocaleString(), n === 'revenue' ? 'Revenue' : 'Orders']} />
+                    <Area type="monotone" dataKey="revenue" stroke={HEX.primary} fill="url(#revGrad)" strokeWidth={2} dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -635,13 +652,13 @@ function Admin() {
               {orderDonut.length > 0 && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5">
                   <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <Package className="w-4 h-4 text-emerald-500" /> Orders by Status
+                    <Package className="w-4 h-4 text-success" /> Orders by Status
                   </p>
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
-                      <Pie data={orderDonut} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                      <Pie data={orderDonut} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
                         {orderDonut.map((entry: any) => (
-                          <Cell key={entry.name} fill={(ORDER_COLORS as any)[entry.name] ?? '#6b7280'} />
+                          <Cell key={entry.name} fill={(ORDER_COLORS as any)[entry.name] ?? HEX.muted} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -652,17 +669,17 @@ function Admin() {
               {topSellers.length > 0 && (
                 <div className="bg-card border border-border/50 rounded-2xl p-5">
                   <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    <ShoppingBag className="w-4 h-4 text-violet-500" /> Top Sellers — 30 Days
+                    <ShoppingBag className="w-4 h-4 text-brand-secondary" /> Top Sellers — 30 Days
                   </p>
                   <div className="space-y-2.5">
                     {topSellers.slice(0, 5).map((s: any, i: number) => (
                       <div key={s.id} className="flex items-center gap-3">
-                        <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold flex items-center justify-center shrink-0">{i+1}</span>
+                        <span className="w-5 h-5 rounded-full bg-primary-subtle text-primary text-[10px] font-bold flex items-center justify-center shrink-0">{i+1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{s.full_name || s.email}</p>
                           <p className="text-[10px] text-muted-foreground">{s.order_count} orders</p>
                         </div>
-                        <p className="text-xs font-bold text-amber-600">{Number(s.revenue).toLocaleString()}</p>
+                        <p className="text-xs font-bold text-primary">{Number(s.revenue).toLocaleString()}</p>
                       </div>
                     ))}
                   </div>
@@ -686,12 +703,12 @@ function Admin() {
                 <p className="text-center text-sm text-muted-foreground py-10">No users found</p>
               )}
               {filteredUsers.map((u: any) => (
-                <div key={u.id} className={`flex items-center justify-between p-4 border-b border-border/20 last:border-0 ${u.is_banned ? 'opacity-60 bg-red-500/5' : ''}`}>
+                <div key={u.id} className={`flex items-center justify-between p-4 border-b border-border/20 last:border-0 ${u.is_banned ? 'opacity-60 bg-destructive/5' : ''}`}>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium truncate">{u.full_name || 'No name'}</p>
-                      {u.is_banned && <span className="text-[10px] bg-red-500/15 text-red-500 border border-red-500/30 px-1.5 py-0.5 rounded-full font-mono">BANNED</span>}
-                      {u.is_verified && <span className="text-[10px] bg-blue-500/15 text-blue-500 border border-blue-500/30 px-1.5 py-0.5 rounded-full">✓</span>}
+                      {u.is_banned && <span className="text-[10px] bg-destructive/15 text-destructive border border-destructive/30 px-1.5 py-0.5 rounded-full font-mono">BANNED</span>}
+                      {u.is_verified && <span className="text-[10px] bg-primary/15 text-primary border border-primary/30 px-1.5 py-0.5 rounded-full">✓</span>}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                     <div className="flex gap-2 mt-1">
@@ -704,12 +721,12 @@ function Admin() {
                       {u.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
                     </Button>
                     <Button size="sm" variant="ghost"
-                      className={`h-7 text-xs rounded-full px-2 ${u.is_banned ? 'text-emerald-600 hover:bg-emerald-50' : 'text-amber-600 hover:bg-amber-50'}`}
+                      className={`h-7 text-xs rounded-full px-2 ${u.is_banned ? 'text-success hover:bg-success-subtle' : 'text-primary hover:bg-primary-subtle'}`}
                       onClick={() => banUser(u.id, u.is_banned)}>
                       {u.is_banned ? 'Unban' : 'Ban'}
                     </Button>
                     <Button size="sm" variant="ghost"
-                      className={`h-7 text-xs rounded-full px-2 ${confirmDelete === u.id ? 'bg-red-600 text-white hover:bg-red-700' : 'text-destructive hover:bg-red-50'}`}
+                      className={`h-7 text-xs rounded-full px-2 ${confirmDelete === u.id ? 'bg-destructive text-white hover:bg-destructive/90' : 'text-destructive hover:bg-destructive-subtle'}`}
                       onClick={() => deleteUser(u.id)} title="Delete user">
                       {confirmDelete === u.id ? 'Confirm?' : <Trash2 className="w-3 h-3" />}
                     </Button>
@@ -719,11 +736,11 @@ function Admin() {
             </div>
             {/* Inline ban reason panel */}
             {banTarget && (
-              <div className="bg-card border border-amber-500/30 rounded-2xl p-4 space-y-3">
-                <p className="text-sm font-semibold text-amber-600">Ban user: {users.find(u => u.id === banTarget)?.email}</p>
+              <div className="bg-card border border-primary/30 rounded-2xl p-4 space-y-3">
+                <p className="text-sm font-semibold text-primary">Ban user: {users.find(u => u.id === banTarget)?.email}</p>
                 <Input value={banReason} onChange={e => setBanReason(e.target.value)} placeholder="Reason for ban (optional)..." className="h-9" />
                 <div className="flex gap-2">
-                  <Button onClick={confirmBan} className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-full h-9 text-sm">Confirm Ban</Button>
+                  <Button onClick={confirmBan} className="flex-1 bg-destructive hover:bg-destructive/90 text-white rounded-full h-9 text-sm">Confirm Ban</Button>
                   <Button onClick={() => { setBanTarget(null); setBanReason(''); }} variant="outline" className="flex-1 rounded-full h-9 text-sm">Cancel</Button>
                 </div>
               </div>
@@ -736,7 +753,7 @@ function Admin() {
           <div className="space-y-4">
             {/* Posts */}
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><FileText className="w-4 h-4 text-amber-500" /> Recent Posts ({posts.length})</p>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Recent Posts ({posts.length})</p>
               <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
                 {posts.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No posts</p>}
                 {posts.slice(0, 30).map((p: any) => (
@@ -756,14 +773,14 @@ function Admin() {
             </div>
             {/* Products */}
             <div>
-              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-violet-500" /> Products ({products.length})</p>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-brand-secondary" /> Products ({products.length})</p>
               <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
                 {products.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No products</p>}
                 {products.slice(0, 30).map((p: any) => (
                   <div key={p.id} className="flex items-center justify-between p-4 border-b border-border/20 last:border-0 gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{p.title}</p>
-                      <p className="text-[11px] text-muted-foreground">{p.price?.toLocaleString()} {p.currency} · <span className={p.status === 'active' ? 'text-emerald-500' : 'text-muted-foreground'}>{p.status}</span></p>
+                      <p className="text-[11px] text-muted-foreground">{p.price?.toLocaleString()} {p.currency} · <span className={p.status === 'active' ? 'text-success' : 'text-muted-foreground'}>{p.status}</span></p>
                     </div>
                     <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive shrink-0" onClick={() => deleteProduct(p.id)}>
                       <Trash2 className="w-3 h-3" />
@@ -797,10 +814,10 @@ function Admin() {
                     <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(o.created_at), { addSuffix: true })}</p>
                   </div>
                   <span className={`text-[10px] font-semibold font-mono px-2 py-1 rounded-full border shrink-0 ${
-                    o.status === 'completed' ? 'text-emerald-600 bg-emerald-500/10 border-emerald-500/30' :
-                    o.status === 'paid'       ? 'text-blue-600 bg-blue-500/10 border-blue-500/30'       :
-                    o.status === 'processing' ? 'text-amber-600 bg-amber-500/10 border-amber-500/30'   :
-                    o.status === 'cancelled'  ? 'text-red-600 bg-red-500/10 border-red-500/30'          :
+                    o.status === 'completed' ? 'text-success bg-success/10 border-success/30' :
+                    o.status === 'paid'       ? 'text-primary bg-primary/10 border-primary/30'       :
+                    o.status === 'processing' ? 'text-primary bg-primary/10 border-primary/30'   :
+                    o.status === 'cancelled'  ? 'text-destructive bg-destructive/10 border-destructive/30'          :
                     'text-muted-foreground bg-secondary border-border/30'
                   }`}>{o.status}</span>
                 </div>
@@ -814,7 +831,7 @@ function Admin() {
           <div className="space-y-3">
             {reports.length === 0 ? (
               <div className="text-center py-16">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
+                <CheckCircle2 className="w-10 h-10 text-success mx-auto mb-3" />
                 <p className="text-sm font-medium">All clear!</p>
                 <p className="text-xs text-muted-foreground">No pending reports.</p>
               </div>
@@ -824,7 +841,7 @@ function Admin() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold">Report: {r.target_type}</p>
-                      <span className="text-[10px] bg-red-500/10 text-red-500 border border-red-500/30 px-2 py-0.5 rounded-full">{r.status}</span>
+                      <span className="text-[10px] bg-destructive/10 text-destructive border border-destructive/30 px-2 py-0.5 rounded-full">{r.status}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">Reason: <span className="font-medium text-foreground">{r.reason}</span></p>
                     {r.details && <p className="text-xs text-muted-foreground mt-0.5">{r.details}</p>}
@@ -832,7 +849,7 @@ function Admin() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" className="h-8 text-xs rounded-full bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => resolveReport(r.id, 'resolved')}>
+                  <Button size="sm" className="h-8 text-xs rounded-full bg-success hover:bg-success/90 text-white" onClick={() => resolveReport(r.id, 'resolved')}>
                     <CheckCircle2 className="w-3 h-3 mr-1" /> Resolve
                   </Button>
                   <Button size="sm" variant="outline" className="h-8 text-xs rounded-full" onClick={() => resolveReport(r.id, 'dismissed')}>
@@ -855,7 +872,7 @@ function Admin() {
               {['all','verified','unverified'].map(f => (
                 <button key={f} onClick={() => setVFilter(f)}
                   className={`px-3 py-2 rounded-full text-xs font-medium capitalize transition-all ${
-                    vFilter === f ? 'bg-amber-500 text-white' : 'bg-card border border-border/50 text-muted-foreground'
+                    vFilter === f ? 'bg-primary text-white' : 'bg-card border border-border/50 text-muted-foreground'
                   }`}>{f}
                 </button>
               ))}
@@ -864,7 +881,7 @@ function Admin() {
               {filteredVer.length === 0 && <p className="text-center py-10 text-sm text-muted-foreground">No users found</p>}
               {filteredVer.map((u: any) => (
                 <div key={u.id} className="flex items-center gap-3 p-4 border-b border-border/20 last:border-0">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden">
                     {u.avatar_url ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : (u.display_name?.[0] ?? u.full_name?.[0] ?? '?')}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -878,12 +895,12 @@ function Admin() {
                   <div className="shrink-0">
                     {u.is_verified ? (
                       <Button size="sm" variant="outline"
-                        className={`h-7 text-xs rounded-full ${confirmRevoke === u.id ? 'bg-red-600 text-white border-red-600' : 'text-red-600 border-red-200 hover:bg-red-50'}`}
+                        className={`h-7 text-xs rounded-full ${confirmRevoke === u.id ? 'bg-destructive text-white border-destructive' : 'text-destructive border-destructive/30 hover:bg-destructive-subtle'}`}
                         onClick={() => revokeVerification(u.id)}>
                         <X className="w-3 h-3 mr-1" /> {confirmRevoke === u.id ? 'Confirm?' : 'Revoke'}
                       </Button>
                     ) : (
-                      <Button size="sm" className="h-7 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+                      <Button size="sm" className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white"
                         onClick={() => { setVerifyModal(u); setVerifyType('personal'); setVerifyNote(''); }}>
                         <BadgeCheck className="w-3 h-3 mr-1" /> Verify
                       </Button>
@@ -904,14 +921,14 @@ function Admin() {
 
       {/* ══ Verify Modal ═════════════════════════════════════════════════ */}
       {verifyModal && (
-        <div className="fixed inset-0 z-[300] bg-black/60 flex items-center justify-center p-4" onClick={() => setVerifyModal(null)}>
+        <div className="fixed inset-0 z-modal bg-black/60 flex items-center justify-center p-4" onClick={() => setVerifyModal(null)}>
           <div className="bg-card rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display text-lg font-bold">Grant Verification</h3>
               <button onClick={() => setVerifyModal(null)} className="p-1.5 rounded-full hover:bg-secondary" aria-label="Close verification modal"><X className="w-4 h-4" /></button>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
                 {verifyModal.display_name?.[0] ?? verifyModal.full_name?.[0] ?? '?'}
               </div>
               <div>
@@ -941,7 +958,7 @@ function Admin() {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Internal Note (optional)</p>
             <Input value={verifyNote} onChange={e => setVerifyNote(e.target.value)} placeholder="e.g. Verified business with 10k+ customers" className="mb-4 h-10" />
             <Button onClick={grantVerification} disabled={saving} className="w-full h-11 rounded-full text-white font-semibold"
-              style={{ backgroundColor: VERIFY_TYPES.find(v => v.value === verifyType)?.color ?? '#3b82f6' }}>
+              style={{ backgroundColor: VERIFY_TYPES.find(v => v.value === verifyType)?.color ?? HEX.primary }}>
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : `Grant ${VERIFY_TYPES.find(v => v.value === verifyType)?.label} Badge`}
             </Button>
           </div>

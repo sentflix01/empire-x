@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import {
   Activity, AlertTriangle, BarChart3, Ban, BookOpen, Bug, CheckCircle2, ChevronDown,
-  ChevronUp, CircleDot, ClipboardList, Clock, Database, Eye, FileText, Flag,
+  ChevronUp, CircleDot, ClipboardList, Clock, Database, Eye, Flag,
   Bot, GitBranch, Globe, KanbanSquare, ListChecks, Loader2, Map, Pencil,
   Plus, RefreshCw, Rocket, Search, Server, ShieldAlert, Sparkles, Tag, Terminal,
   Trash2, User, Users, WifiOff, X, Zap,
@@ -61,27 +61,27 @@ interface FormState {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const SEVERITY_META: Record<Severity, { label: string; dot: string; text: string; chip: string; bar: string }> = {
-  urgent:      { label: 'Urgent',      dot: 'bg-red-500',    text: 'text-red-500',    chip: 'bg-red-500/10 text-red-500 border-red-500/30',        bar: 'bg-red-500'    },
-  warning:     { label: 'Warning',     dot: 'bg-orange-500', text: 'text-orange-500', chip: 'bg-orange-500/10 text-orange-500 border-orange-500/30', bar: 'bg-orange-500' },
-  attention:   { label: 'Attention',   dot: 'bg-yellow-400', text: 'text-yellow-500', chip: 'bg-yellow-400/10 text-yellow-500 border-yellow-400/40', bar: 'bg-yellow-400' },
-  cross_check: { label: 'Cross-check', dot: 'bg-blue-500',   text: 'text-blue-500',   chip: 'bg-blue-500/10 text-blue-500 border-blue-500/30',      bar: 'bg-blue-500'   },
+  urgent:      { label: 'Urgent',      dot: 'bg-destructive',    text: 'text-destructive',    chip: 'bg-destructive/10 text-destructive border-destructive/30',        bar: 'bg-destructive'    },
+  warning:     { label: 'Warning',     dot: 'bg-warning', text: 'text-warning', chip: 'bg-warning/10 text-warning border-warning/30', bar: 'bg-warning' },
+  attention:   { label: 'Attention',   dot: 'bg-warning', text: 'text-warning', chip: 'bg-warning/10 text-warning border-warning/40', bar: 'bg-warning' },
+  cross_check: { label: 'Cross-check', dot: 'bg-primary',   text: 'text-primary',   chip: 'bg-primary/10 text-primary border-primary/30',      bar: 'bg-primary'   },
 };
 const SEVERITY_ORDER: Severity[] = ['urgent', 'warning', 'attention', 'cross_check'];
 
 const STATUS_META: Record<Status, { label: string; icon: React.ComponentType<{ className?: string }>; accent: string; headBg: string }> = {
-  open:        { label: 'Open',        icon: CircleDot,    accent: 'text-sky-400',     headBg: 'bg-sky-500/10'     },
-  in_progress: { label: 'In Progress', icon: Activity,     accent: 'text-amber-500',   headBg: 'bg-amber-500/10'   },
-  blocked:     { label: 'Blocked',     icon: Ban,          accent: 'text-red-500',     headBg: 'bg-red-500/10'     },
-  planned:     { label: 'Planned',     icon: ListChecks,   accent: 'text-violet-500',  headBg: 'bg-violet-500/10'  },
-  done:        { label: 'Done',        icon: CheckCircle2, accent: 'text-emerald-500', headBg: 'bg-emerald-500/10' },
-  implemented: { label: 'Implemented', icon: Rocket,       accent: 'text-teal-400',    headBg: 'bg-teal-500/10'    },
+  open:        { label: 'Open',        icon: CircleDot,    accent: 'text-primary',     headBg: 'bg-primary/10'     },
+  in_progress: { label: 'In Progress', icon: Activity,     accent: 'text-primary',   headBg: 'bg-primary/10'   },
+  blocked:     { label: 'Blocked',     icon: Ban,          accent: 'text-destructive',     headBg: 'bg-destructive/10'     },
+  planned:     { label: 'Planned',     icon: ListChecks,   accent: 'text-brand-secondary',  headBg: 'bg-brand-secondary/10'  },
+  done:        { label: 'Done',        icon: CheckCircle2, accent: 'text-success', headBg: 'bg-success/10' },
+  implemented: { label: 'Implemented', icon: Rocket,       accent: 'text-success',    headBg: 'bg-success/10'    },
 };
 const COLUMN_ORDER: Status[] = ['open', 'in_progress', 'blocked', 'planned', 'done', 'implemented'];
 
 const KIND_META: Record<Kind, { label: string; icon: React.ComponentType<{ className?: string }>; tint: string }> = {
-  bug:     { label: 'Bug',     icon: Bug,          tint: 'text-red-400 bg-red-500/10'      },
-  feature: { label: 'Feature', icon: Sparkles,     tint: 'text-violet-400 bg-violet-500/10' },
-  task:    { label: 'Task',    icon: ClipboardList, tint: 'text-sky-400 bg-sky-500/10'      },
+  bug:     { label: 'Bug',     icon: Bug,          tint: 'text-destructive bg-destructive/10'      },
+  feature: { label: 'Feature', icon: Sparkles,     tint: 'text-brand-secondary bg-brand-secondary/10' },
+  task:    { label: 'Task',    icon: ClipboardList, tint: 'text-primary bg-primary/10'      },
 };
 const STATUSES_FOR_KIND: Record<Kind, Status[]> = {
   bug:     ['open', 'in_progress', 'blocked', 'done'],
@@ -115,9 +115,9 @@ const STRATEGY_VERSIONS: StrategyVersion[] = [
 
 const VERSION_STATUS_META: Record<VersionStatus, { label: string; color: string; dot: string }> = {
   not_started: { label: 'Not Started', color: 'text-muted-foreground border-border/50 bg-transparent', dot: 'bg-muted-foreground' },
-  in_progress: { label: 'In Progress', color: 'text-amber-500 border-amber-500/30 bg-amber-500/10',   dot: 'bg-amber-500 animate-pulse' },
-  completed:   { label: 'Completed',   color: 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10', dot: 'bg-emerald-500' },
-  paused:      { label: 'Paused',      color: 'text-slate-400 border-slate-400/30 bg-slate-400/10',   dot: 'bg-slate-400' },
+  in_progress: { label: 'In Progress', color: 'text-primary border-primary/30 bg-primary/10',   dot: 'bg-primary animate-pulse' },
+  completed:   { label: 'Completed',   color: 'text-success border-success/30 bg-success/10', dot: 'bg-success' },
+  paused:      { label: 'Paused',      color: 'text-muted-foreground border-border/30 bg-muted-foreground/30',   dot: 'bg-muted-foreground/30' },
 };
 
 // ── Changelog data ────────────────────────────────────────────────────────────
@@ -218,12 +218,12 @@ function SeverityChip({ severity }: { severity?: Severity | null }) {
 
 function ServiceDot({ status }: { status: string }) {
   const map: Record<string, string> = {
-    connected: 'bg-emerald-500', ok: 'bg-emerald-500',
-    error: 'bg-red-500', disconnected: 'bg-red-500',
-    'not configured': 'bg-gray-400', misconfigured: 'bg-orange-500',
-    local: 'bg-yellow-400', console: 'bg-gray-400',
+    connected: 'bg-success', ok: 'bg-success',
+    error: 'bg-destructive', disconnected: 'bg-destructive',
+    'not configured': 'bg-muted-foreground/30', misconfigured: 'bg-primary',
+    local: 'bg-primary', console: 'bg-muted-foreground/30',
   };
-  const color = map[status] ?? 'bg-gray-400';
+  const color = map[status] ?? 'bg-muted-foreground/30';
   return <span className={`inline-block w-2 h-2 rounded-full ${color}`} />;
 }
 
@@ -263,15 +263,15 @@ function SystemHealth() {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer"
       >
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isOk ? 'bg-emerald-500/15' : 'bg-red-500/15'}`}>
-          <Server className={`w-4 h-4 ${isOk ? 'text-emerald-500' : 'text-red-500'}`} />
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isOk ? 'bg-success/15' : 'bg-destructive/15'}`}>
+          <Server className={`w-4 h-4 ${isOk ? 'text-success' : 'text-destructive'}`} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold">System Health</p>
             {!loading && health && (
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase ${isOk ? 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10' : 'text-red-500 border-red-500/30 bg-red-500/10'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isOk ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase ${isOk ? 'text-success border-success/30 bg-success/10' : 'text-destructive border-destructive/30 bg-destructive/10'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isOk ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
                 {health.status}
               </span>
             )}
@@ -298,7 +298,7 @@ function SystemHealth() {
           {loading && !health ? (
             <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : !health ? (
-            <div className="flex items-center gap-2 text-sm text-red-500 py-2">
+            <div className="flex items-center gap-2 text-sm text-destructive py-2">
               <WifiOff className="w-4 h-4" /> Cannot reach backend — check Render deployment
             </div>
           ) : (
@@ -332,545 +332,6 @@ function SystemHealth() {
   );
 }
 
-// ── Section 6: Knowledge Base ─────────────────────────────────────────────────
-// Reads docs/strategy, implementation plan, and notes via /api/docs endpoints
-// and renders them as an interactive, searchable knowledge hub.
-
-interface StrategyVersionDoc {
-  version: string; label: string; theme: string; goal: string;
-  sections: { key: string; label: string; progress: { total: number; done: number; pct: number }; hasTasks: boolean; hasAudit: boolean }[];
-  progress: { total: number; done: number; pct: number };
-  readmePath: string;
-}
-
-interface ImplSpec {
-  key: string; label: string; files: string[];
-  progress: { total: number; done: number; pct: number };
-  hasRequirements: boolean; hasDesign: boolean; hasTasks: boolean; hasBugfix: boolean;
-  path: string;
-}
-
-interface NoteDoc {
-  file: string; title: string; sections: string[]; path: string;
-}
-
-interface OverallProgress {
-  total: number; done: number; remaining: number; pct: number;
-  byVersion: Record<string, { total: number; done: number; pct: number }>;
-}
-
-// ── Docs Library types (full docs/ folder browser) ───────────────────────────
-interface DocFile {
-  name: string; path: string; title: string; summary: string;
-}
-
-interface DocLibraryFolder {
-  folder: string; label: string; icon: string; color: string;
-  fileCount: number; files: DocFile[];
-}
-
-interface DocSearchResult {
-  path: string; title: string; excerpt: string; folder: string;
-}
-
-// Maps a folder color name to Tailwind classes (header bg + text)
-const FOLDER_COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
-  blue:    { bg: 'bg-blue-500/10',    text: 'text-blue-500',    border: 'border-blue-500/20'    },
-  violet:  { bg: 'bg-violet-500/10',  text: 'text-violet-500',  border: 'border-violet-500/20'  },
-  sky:     { bg: 'bg-sky-500/10',     text: 'text-sky-500',     border: 'border-sky-500/20'     },
-  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
-  pink:    { bg: 'bg-pink-500/10',    text: 'text-pink-500',    border: 'border-pink-500/20'    },
-  amber:   { bg: 'bg-amber-500/10',   text: 'text-amber-500',   border: 'border-amber-500/20'   },
-  green:   { bg: 'bg-green-500/10',   text: 'text-green-500',   border: 'border-green-500/20'   },
-  red:     { bg: 'bg-red-500/10',     text: 'text-red-500',     border: 'border-red-500/20'     },
-  cyan:    { bg: 'bg-cyan-500/10',    text: 'text-cyan-500',    border: 'border-cyan-500/20'    },
-  slate:   { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/20'   },
-  yellow:  { bg: 'bg-yellow-500/10',  text: 'text-yellow-500',  border: 'border-yellow-500/20'  },
-  orange:  { bg: 'bg-orange-500/10',  text: 'text-orange-500',  border: 'border-orange-500/20'  },
-  teal:    { bg: 'bg-teal-500/10',    text: 'text-teal-500',    border: 'border-teal-500/20'    },
-};
-
-function ProgressBar({ pct, color = 'bg-primary' }: { pct: number; color?: string }) {
-  return (
-    <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-      <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
-
-// ── Docs Library Sub-component ────────────────────────────────────────────────
-// Full browseable library of every docs/ folder — finance, compliance,
-// trust-safety, support, people, brand, legal, architecture, backend, etc.
-// Engineers can read any document without leaving the DevOps panel.
-function DocsLibrary({ onOpenFile, externalSearch }: { onOpenFile: (path: string) => void; externalSearch: string }) {
-  const [folders,       setFolders]       = useState<DocLibraryFolder[]>([]);
-  const [loading,       setLoading]       = useState(true);
-  const [searchResults, setSearchResults] = useState<DocSearchResult[] | null>(null);
-  const [searching,     setSearching]     = useState(false);
-  const [expandedFolder, setExpandedFolder] = useState<string | null>(null);
-
-  useEffect(() => {
-    client.get('/api/docs/library')
-      .then(r => setFolders(r.data))
-      .catch(() => toast.error('Could not load docs library'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Full-text search with debounce — driven by externalSearch prop
-  useEffect(() => {
-    if (!externalSearch || externalSearch.length < 2) {
-      setSearchResults(null);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const { data } = await client.get(`/api/docs/search?q=${encodeURIComponent(externalSearch)}`);
-        setSearchResults(data);
-      } catch {
-        setSearchResults([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [externalSearch]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-10">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // ── Search results view ──────────────────────────────────────────────────────
-  if (externalSearch.length >= 2) {
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 px-1 pb-1">
-          {searching
-            ? <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-            : <Search className="w-3.5 h-3.5 text-muted-foreground" />}
-          <span className="text-xs text-muted-foreground">
-            {searching ? 'Searching all docs…' : searchResults
-              ? `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''} for "${externalSearch}"`
-              : ''}
-          </span>
-        </div>
-        {searchResults?.length === 0 && !searching && (
-          <p className="text-center text-sm text-muted-foreground py-6">No documents match "{externalSearch}"</p>
-        )}
-        {searchResults?.map(r => (
-          <div key={r.path}
-            onClick={() => onOpenFile(r.path)}
-            className="group flex items-start gap-3 p-3 rounded-xl border border-border/40 cursor-pointer hover:bg-secondary/20 transition-colors">
-            <FileText className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-semibold group-hover:text-primary transition-colors">{r.title}</p>
-                <span className="text-[10px] font-mono text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded-full border border-border/30">
-                  docs/{r.folder}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.excerpt}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // ── Folder grid view ─────────────────────────────────────────────────────────
-  return (
-    <div className="space-y-2">
-      {/* Folder tiles */}
-      {folders.map(f => {
-        const isExp = expandedFolder === f.folder;
-        const colors = FOLDER_COLOR_MAP[f.color] ?? FOLDER_COLOR_MAP['slate'];
-        return (
-          <div key={f.folder} className="rounded-xl border border-border/40 overflow-hidden">
-            {/* Folder header */}
-            <button
-              onClick={() => setExpandedFolder(isExp ? null : f.folder)}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/20 transition-colors text-left">
-              <span className={`w-8 h-8 rounded-lg ${colors.bg} border ${colors.border} flex items-center justify-center shrink-0 text-base`}>
-                {f.icon}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">{f.label}</p>
-                <p className="text-[10px] text-muted-foreground font-mono">
-                  {f.fileCount} document{f.fileCount !== 1 ? 's' : ''} · docs/{f.folder === '_root' ? '' : f.folder}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
-                  {f.fileCount}
-                </span>
-                {isExp
-                  ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
-                  : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
-              </div>
-            </button>
-
-            {/* File list */}
-            {isExp && (
-              <div className="border-t border-border/30 bg-secondary/10 divide-y divide-border/20">
-                {f.files.map(file => (
-                  <button
-                    key={file.path}
-                    onClick={() => onOpenFile(file.path)}
-                    className="w-full flex items-start gap-3 px-5 py-2.5 hover:bg-secondary/30 transition-colors text-left group">
-                    <FileText className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold group-hover:text-primary transition-colors truncate">{file.title}</p>
-                      {file.summary && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{file.summary}</p>
-                      )}
-                    </div>
-                    <span className="text-[9px] font-mono text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Read →
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function KnowledgeBase() {
-  const [tab,         setTab]         = useState<'strategy' | 'impl' | 'notes' | 'library'>('strategy');
-  const [open,        setOpen]        = useState(true);
-  const [versions,    setVersions]    = useState<StrategyVersionDoc[]>([]);
-  const [impls,       setImpls]       = useState<ImplSpec[]>([]);
-  const [notes,       setNotes]       = useState<NoteDoc[]>([]);
-  const [progress,    setProgress]    = useState<OverallProgress | null>(null);
-  const [loading,     setLoading]     = useState(true);
-  // Library-tab search lives at KnowledgeBase level so the search bar is always visible
-  const [libSearch,   setLibSearch]   = useState('');
-  const [search,      setSearch]      = useState('');
-  const [expanded,    setExpanded]    = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState<{ path: string; content: string } | null>(null);
-  const [fileLoading, setFileLoading] = useState(false);
-
-  useEffect(() => {
-    Promise.all([
-      client.get('/api/docs/strategy/versions').then(r => r.data).catch(() => []),
-      client.get('/api/docs/implementation').then(r => r.data).catch(() => []),
-      client.get('/api/docs/notes').then(r => r.data).catch(() => []),
-      client.get('/api/docs/progress').then(r => r.data).catch(() => null),
-    ]).then(([v, i, n, p]) => {
-      setVersions(v); setImpls(i); setNotes(n); setProgress(p);
-    }).finally(() => setLoading(false));
-  }, []);
-
-  async function openFile(filePath: string) {
-    setFileLoading(true);
-    setFileContent(null);
-    try {
-      const { data } = await client.get(`/api/docs/file?path=${encodeURIComponent(filePath)}`);
-      setFileContent(data);
-    } catch { toast.error('Could not read file'); }
-    setFileLoading(false);
-  }
-
-  const filteredVersions = versions.filter(v =>
-    !search || v.label.toLowerCase().includes(search.toLowerCase()) ||
-    v.theme.toLowerCase().includes(search.toLowerCase()) ||
-    v.sections.some(s => s.label.toLowerCase().includes(search.toLowerCase()))
-  );
-  const filteredImpls = impls.filter(i =>
-    !search || i.label.toLowerCase().includes(search.toLowerCase())
-  );
-  const filteredNotes = notes.filter(n =>
-    !search || n.title.toLowerCase().includes(search.toLowerCase()) ||
-    n.sections.some(s => s.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  const PROGRESS_COLOR = (pct: number) =>
-    pct === 0 ? 'bg-muted-foreground/30' : pct < 25 ? 'bg-red-500' : pct < 75 ? 'bg-amber-500' : 'bg-emerald-500';
-
-  return (
-    <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setOpen(v => !v)}
-        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center shrink-0">
-          <BookOpen className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold">Knowledge Base</p>
-            <span className="text-[10px] font-mono text-muted-foreground">
-              {versions.length} strategy versions · {impls.length} specs · {notes.length} notes
-            </span>
-            {progress && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-500">
-                {progress.done}/{progress.total} tasks · {progress.pct}% complete
-              </span>
-            )}
-          </div>
-          {progress && (
-            <div className="mt-1.5 h-1 rounded-full bg-secondary overflow-hidden w-full max-w-xs">
-              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all" style={{ width: `${progress.pct}%` }} />
-            </div>
-          )}
-        </div>
-        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
-      </div>
-
-      {open && (
-        <div className="border-t border-border/50">
-          {/* Search + tab bar */}
-          <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/30">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search docs, specs, notes..."
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-secondary/30 border border-border/40 rounded-full outline-none focus:ring-1 focus:ring-primary" />
-              {search && <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"><X className="w-3 h-3" /></button>}
-            </div>
-            {(['strategy','impl','notes','library'] as const).map(t => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  tab === t ? 'bg-foreground text-background' : 'bg-secondary/30 text-muted-foreground hover:text-foreground border border-border/40'
-                }`}>
-                {t === 'strategy' ? `📋 Strategy (${versions.length})`
-                  : t === 'impl'    ? `⚙️ Specs (${impls.length})`
-                  : t === 'notes'   ? `📝 Notes (${notes.length})`
-                  :                   `🗂️ Docs Library`}
-              </button>
-            ))}
-            {/* Library tab: show inline search bar when active */}
-            {tab === 'library' && (
-              <div className="relative flex-1 min-w-[180px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <input
-                  value={libSearch}
-                  onChange={e => setLibSearch(e.target.value)}
-                  placeholder="Search all docs (finance, compliance, legal…)"
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-secondary/30 border border-border/40 rounded-full outline-none focus:ring-1 focus:ring-primary"
-                />
-                {libSearch && (
-                  <button onClick={() => setLibSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {loading && tab !== 'library' ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
-          ) : (
-            <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto">
-
-              {/* ── Strategy Versions ───────────────────────────────────── */}
-              {tab === 'strategy' && filteredVersions.map(v => {
-                const isExp = expanded === v.version;
-                return (
-                  <div key={v.version} className="rounded-xl border border-border/40 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/20 transition-colors"
-                      onClick={() => setExpanded(isExp ? null : v.version)}>
-                      <span className="shrink-0 w-14 text-center font-mono text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-lg py-1">{v.version}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold">{v.label}</p>
-                          <span className="text-[10px] text-muted-foreground font-mono">{v.theme}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <ProgressBar pct={v.progress.pct} color={PROGRESS_COLOR(v.progress.pct)} />
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                            {v.progress.done}/{v.progress.total} tasks · {v.progress.pct}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={e => { e.stopPropagation(); openFile(v.readmePath); }}
-                          className="text-[10px] text-blue-500 hover:underline px-2 py-1 rounded-lg hover:bg-blue-500/10 transition-colors">
-                          README
-                        </button>
-                        {isExp ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
-                      </div>
-                    </div>
-
-                    {isExp && (
-                      <div className="border-t border-border/30 bg-secondary/10 px-4 pb-4 pt-3">
-                        {v.goal && <p className="text-xs text-muted-foreground mb-3 italic">"{v.goal}"</p>}
-                        <div className="space-y-1.5">
-                          {v.sections.map(sec => (
-                            <div key={sec.key} className="flex items-center gap-3 p-2.5 rounded-xl bg-card/50 border border-border/30">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium">{sec.label}</p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <ProgressBar pct={sec.progress.pct} color={PROGRESS_COLOR(sec.progress.pct)} />
-                                  <span className="text-[10px] font-mono text-muted-foreground shrink-0">{sec.progress.done}/{sec.progress.total}</span>
-                                </div>
-                              </div>
-                              <div className="flex gap-1 shrink-0">
-                                {sec.hasAudit && (
-                                  <button onClick={() => openFile(`docs/strategy/${v.version}/${sec.key}/audit.md`)}
-                                    className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors">audit</button>
-                                )}
-                                {sec.hasTasks && (
-                                  <button onClick={() => openFile(`docs/strategy/${v.version}/${sec.key}/tasks.md`)}
-                                    className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors">tasks</button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                          {v.sections.length === 0 && (
-                            <p className="text-[11px] text-muted-foreground italic">No detailed sections yet — only README available.</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* ── Implementation Specs ────────────────────────────────── */}
-              {tab === 'impl' && filteredImpls.map(spec => {
-                const isExp = expanded === spec.key;
-                return (
-                  <div key={spec.key} className="rounded-xl border border-border/40 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/20 transition-colors"
-                      onClick={() => setExpanded(isExp ? null : spec.key)}>
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                        <ClipboardList className="w-4 h-4 text-violet-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">{spec.label}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <ProgressBar pct={spec.progress.pct} color={PROGRESS_COLOR(spec.progress.pct)} />
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{spec.progress.done}/{spec.progress.total} · {spec.progress.pct}%</span>
-                        </div>
-                      </div>
-                      {isExp ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
-                    </div>
-                    {isExp && (
-                      <div className="border-t border-border/30 bg-secondary/10 px-4 pb-3 pt-2">
-                        <div className="flex gap-2 flex-wrap">
-                          {spec.hasRequirements && (
-                            <button onClick={() => openFile(`${spec.path}/requirements.md`)}
-                              className="text-[11px] px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20 transition-colors flex items-center gap-1">
-                              <FileText className="w-3 h-3" /> Requirements
-                            </button>
-                          )}
-                          {spec.hasDesign && (
-                            <button onClick={() => openFile(`${spec.path}/design.md`)}
-                              className="text-[11px] px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-600 border border-violet-500/20 hover:bg-violet-500/20 transition-colors flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" /> Design
-                            </button>
-                          )}
-                          {spec.hasTasks && (
-                            <button onClick={() => openFile(`${spec.path}/tasks.md`)}
-                              className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Tasks
-                            </button>
-                          )}
-                          {spec.hasBugfix && (
-                            <button onClick={() => openFile(`${spec.path}/bugfix.md`)}
-                              className="text-[11px] px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-colors flex items-center gap-1">
-                              <Bug className="w-3 h-3" /> Bugfix
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* ── Notes ──────────────────────────────────────────────── */}
-              {tab === 'notes' && filteredNotes.map(note => {
-                const isExp = expanded === note.file;
-                return (
-                  <div key={note.file} className="rounded-xl border border-border/40 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/20 transition-colors"
-                      onClick={() => setExpanded(isExp ? null : note.file)}>
-                      <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                        <FileText className="w-4 h-4 text-amber-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">{note.title}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{note.path}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button onClick={e => { e.stopPropagation(); openFile(note.path); }}
-                          className="text-[10px] text-blue-500 hover:underline px-2 py-1 rounded-lg hover:bg-blue-500/10">
-                          Read
-                        </button>
-                        {isExp ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
-                      </div>
-                    </div>
-                    {isExp && note.sections.length > 0 && (
-                      <div className="border-t border-border/30 bg-secondary/10 px-4 py-3">
-                        <div className="flex flex-wrap gap-1.5">
-                          {note.sections.map(sec => (
-                            <span key={sec} className="text-[10px] px-2 py-1 bg-secondary rounded-full text-muted-foreground border border-border/30">{sec}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Empty state */}
-              {((tab === 'strategy' && filteredVersions.length === 0) ||
-                (tab === 'impl'     && filteredImpls.length === 0)    ||
-                (tab === 'notes'    && filteredNotes.length === 0)) && (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  {search ? `No results for "${search}"` : 'No items found'}
-                </p>
-              )}
-
-              {/* ── Docs Library ─────────────────────────────────────────── */}
-              {tab === 'library' && (
-                <DocsLibrary onOpenFile={openFile} externalSearch={libSearch} />
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* File viewer modal */}
-      {(fileContent || fileLoading) && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4"
-          onClick={() => setFileContent(null)}>
-          <div className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
-            onClick={e => e.stopPropagation()}>
-            {/* Modal header */}
-            <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border/50 shrink-0">
-              <FileText className="w-4 h-4 text-blue-500" />
-              <p className="text-sm font-mono text-muted-foreground flex-1 truncate">{fileContent?.path ?? '...'}</p>
-              <button onClick={() => setFileContent(null)} className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            {/* Modal body — rendered markdown as pre */}
-            <div className="flex-1 overflow-y-auto p-5">
-              {fileLoading ? (
-                <div className="flex justify-center py-10"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
-              ) : (
-                <pre className="text-xs text-foreground/80 whitespace-pre-wrap font-mono leading-relaxed">{fileContent?.content}</pre>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Live Error Feed ───────────────────────────────────────────────────────────
 // Shows every error captured by errorCollector.js in real time.
@@ -909,17 +370,17 @@ interface ErrorStats {
 }
 
 const ERROR_LEVEL_META = {
-  critical: { label: 'Critical', dot: 'bg-red-600',    text: 'text-red-500',    chip: 'bg-red-500/15 text-red-500 border-red-500/30',         pulse: true  },
-  error:    { label: 'Error',    dot: 'bg-red-500',    text: 'text-red-400',    chip: 'bg-red-400/10 text-red-400 border-red-400/20',          pulse: false },
-  warn:     { label: 'Warning',  dot: 'bg-amber-400',  text: 'text-amber-500',  chip: 'bg-amber-400/10 text-amber-500 border-amber-400/20',    pulse: false },
-  info:     { label: 'Info',     dot: 'bg-blue-400',   text: 'text-blue-400',   chip: 'bg-blue-400/10 text-blue-400 border-blue-400/20',       pulse: false },
+  critical: { label: 'Critical', dot: 'bg-destructive',    text: 'text-destructive',    chip: 'bg-destructive/15 text-destructive border-destructive/30',         pulse: true  },
+  error:    { label: 'Error',    dot: 'bg-destructive',    text: 'text-destructive',    chip: 'bg-destructive/10 text-destructive border-destructive/20',          pulse: false },
+  warn:     { label: 'Warning',  dot: 'bg-warning',  text: 'text-warning',  chip: 'bg-warning/10 text-warning border-warning/20',    pulse: false },
+  info:     { label: 'Info',     dot: 'bg-primary',   text: 'text-primary',   chip: 'bg-primary/10 text-primary border-primary/20',       pulse: false },
 };
 
 const ERROR_SOURCE_META = {
-  server: { label: 'Server crash', icon: '💥', chip: 'bg-red-500/10 text-red-400 border-red-400/20' },
-  route:  { label: 'API route',    icon: '⚙️',  chip: 'bg-violet-500/10 text-violet-400 border-violet-400/20' },
-  client: { label: 'Frontend',     icon: '🖥️',  chip: 'bg-cyan-500/10 text-cyan-400 border-cyan-400/20' },
-  manual: { label: 'Manual',       icon: '🔧',  chip: 'bg-slate-500/10 text-slate-400 border-slate-400/20' },
+  server: { label: 'Server crash', icon: '💥', chip: 'bg-destructive/10 text-destructive border-destructive/20' },
+  route:  { label: 'API route',    icon: '⚙️',  chip: 'bg-brand-secondary/10 text-brand-secondary border-brand-secondary/20' },
+  client: { label: 'Frontend',     icon: '🖥️',  chip: 'bg-primary/10 text-primary border-primary/20' },
+  manual: { label: 'Manual',       icon: '🔧',  chip: 'bg-muted-foreground/10 text-muted-foreground border-border/20' },
 };
 
 // ── Section 1b: Ops Alerts & Telemetry (admin health-summary) ──────────────
@@ -949,13 +410,13 @@ function OpsAlerts() {
 
   if (!ops) return null; // non-admin / not configured — render nothing
   const sevColor: Record<string, string> = {
-    SEV1: 'bg-red-500/10 text-red-500 border-red-500/30',
-    SEV2: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
-    SEV3: 'bg-sky-500/10 text-sky-500 border-sky-500/30',
+    SEV1: 'bg-destructive/10 text-destructive border-destructive/30',
+    SEV2: 'bg-primary/10 text-primary border-primary/30',
+    SEV3: 'bg-primary/10 text-primary border-primary/30',
   };
-  const statusColor = ops.status === 'critical' ? 'text-red-500 border-red-500/30 bg-red-500/10'
-    : ops.status === 'degraded' ? 'text-amber-500 border-amber-500/30 bg-amber-500/10'
-    : 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10';
+  const statusColor = ops.status === 'critical' ? 'text-destructive border-destructive/30 bg-destructive/10'
+    : ops.status === 'degraded' ? 'text-primary border-primary/30 bg-primary/10'
+    : 'text-success border-success/30 bg-success/10';
 
   return (
     <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
@@ -965,8 +426,8 @@ function OpsAlerts() {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer"
       >
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${ops.status === 'healthy' ? 'bg-emerald-500/15' : 'bg-amber-500/15'}`}>
-          <Activity className={`w-4 h-4 ${ops.status === 'healthy' ? 'text-emerald-500' : 'text-amber-500'}`} />
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${ops.status === 'healthy' ? 'bg-success/15' : 'bg-primary/15'}`}>
+          <Activity className={`w-4 h-4 ${ops.status === 'healthy' ? 'text-success' : 'text-primary'}`} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -997,7 +458,7 @@ function OpsAlerts() {
             </div>
           )}
           {(ops.alerts || []).length === 0 && (
-            <p className="text-xs text-emerald-500 flex items-center gap-1.5">✓ No alerts — all thresholds within targets</p>
+            <p className="text-xs text-success flex items-center gap-1.5">✓ No alerts — all thresholds within targets</p>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1033,59 +494,6 @@ function OpsAlerts() {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-// ── Task Log (implementation reports) ───────────────────────────────────────
-function TaskLogPanel() {
-  const [data, setData]       = useState<{ available: boolean; reports: Array<{file:string;date:string;short:string;title:string}>; index: string | null } | null>(null);
-  const [openFile, setOpenFile] = useState<{ file: string; content: string } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { const { data } = await client.get('/api/devops/log-report'); setData(data); }
-    catch { setData({ available: false, reports: [], index: null }); }
-    setLoading(false);
-  }, []);
-  useEffect(() => { load(); }, [load]);
-
-  const openReport = async (file: string) => {
-    try { const { data } = await client.get(`/api/devops/log-report/${file}`); setOpenFile(data); }
-    catch { /* non-fatal */ }
-  };
-
-  return (
-    <div className="mb-4 bg-card border border-border/50 rounded-2xl overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/30 bg-secondary/10">
-        <FileText className="w-4 h-4 text-violet-500" />
-        <p className="text-sm font-semibold">Implementation Log</p>
-        <span className="text-[10px] font-mono text-muted-foreground">{data?.reports.length ?? 0} task reports · auto-generated per merge</span>
-      </div>
-      <div className="p-4 space-y-2">
-        {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
-        {data && !data.available && (
-          <p className="text-xs text-muted-foreground">Implementation log not present in this deployment (docs/ folder not bundled). Available in the repository and local runs.</p>
-        )}
-        {data?.available && data.reports.map((r) => (
-          <button key={r.file} onClick={() => openReport(r.file)}
-            className="w-full text-left flex items-center gap-3 rounded-xl bg-secondary/30 hover:bg-secondary/60 px-3 py-2 transition-colors">
-            <span className="text-[10px] font-mono text-muted-foreground shrink-0">{r.date}</span>
-            <span className="text-xs flex-1 truncate capitalize">{r.title || r.file}</span>
-            <span className="text-[10px] font-mono text-violet-400 shrink-0">{r.short}</span>
-          </button>
-        ))}
-        {openFile && (
-          <div className="rounded-xl border border-border/50 bg-background p-3">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-mono text-muted-foreground">{openFile.file}</p>
-              <button onClick={() => setOpenFile(null)} className="text-[10px] text-muted-foreground hover:text-foreground">close</button>
-            </div>
-            <pre className="text-[10px] font-mono whitespace-pre-wrap max-h-80 overflow-auto">{openFile.content}</pre>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -1210,7 +618,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
   const hasUrgent  = (stats?.critical ?? 0) > 0;
 
   return (
-    <div className={`mb-4 bg-card border rounded-2xl overflow-hidden ${hasUrgent ? 'border-red-500/40' : 'border-border/50'}`}>
+    <div className={`mb-4 bg-card border rounded-2xl overflow-hidden ${hasUrgent ? 'border-destructive/40' : 'border-border/50'}`}>
       {/* Header */}
       <div
         role="button"
@@ -1218,24 +626,24 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
         onClick={() => setOpen(v => !v)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(v => !v); } }}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors cursor-pointer">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${hasUrgent ? 'bg-red-500/20' : 'bg-gradient-to-br from-red-600 to-orange-600'}`}>
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${hasUrgent ? 'bg-destructive/20' : 'bg-destructive'}`}>
           {hasUrgent
-            ? <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" /></span>
+            ? <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" /><span className="relative inline-flex rounded-full h-3 w-3 bg-destructive" /></span>
             : <AlertTriangle className="w-4 h-4 text-white" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-semibold">Live Error Feed</p>
             {unresolved > 0 && (
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono font-bold ${hasUrgent ? 'bg-red-500/15 text-red-500 border-red-500/30' : 'bg-amber-500/10 text-amber-500 border-amber-500/30'}`}>
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-mono font-bold ${hasUrgent ? 'bg-destructive/15 text-destructive border-destructive/30' : 'bg-primary/10 text-primary border-primary/30'}`}>
                 {unresolved} unresolved
               </span>
             )}
             {stats && (
               <>
-                {(stats.critical > 0) && <span className="text-[10px] font-mono bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded-full">💥 {stats.critical} critical</span>}
-                {(stats.last_hour > 0) && <span className="text-[10px] font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded-full">⚡ {stats.last_hour} last hour</span>}
-                {unresolved === 0 && <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">✅ All clear</span>}
+                {(stats.critical > 0) && <span className="text-[10px] font-mono bg-destructive/10 text-destructive border border-destructive/20 px-1.5 py-0.5 rounded-full">💥 {stats.critical} critical</span>}
+                {(stats.last_hour > 0) && <span className="text-[10px] font-mono bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-full">⚡ {stats.last_hour} last hour</span>}
+                {unresolved === 0 && <span className="text-[10px] font-mono bg-success/10 text-success border border-success/20 px-1.5 py-0.5 rounded-full">✅ All clear</span>}
               </>
             )}
           </div>
@@ -1257,13 +665,13 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
             <div className="flex flex-wrap gap-2 px-4 py-2.5 bg-secondary/10 border-b border-border/30">
               {[
                 { label: 'Total',    val: stats.unresolved, color: 'text-foreground' },
-                { label: 'Critical', val: stats.critical,   color: 'text-red-500'    },
-                { label: 'Errors',   val: stats.errors,     color: 'text-red-400'    },
-                { label: 'Warnings', val: stats.warnings,   color: 'text-amber-500'  },
+                { label: 'Critical', val: stats.critical,   color: 'text-destructive'    },
+                { label: 'Errors',   val: stats.errors,     color: 'text-destructive'    },
+                { label: 'Warnings', val: stats.warnings,   color: 'text-warning'  },
                 { label: '24h',      val: stats.last_24h,   color: 'text-muted-foreground' },
-                { label: 'Server',   val: stats.server,     color: 'text-violet-400' },
-                { label: 'API',      val: stats.route,      color: 'text-violet-400' },
-                { label: 'Frontend', val: stats.client,     color: 'text-cyan-400'   },
+                { label: 'Server',   val: stats.server,     color: 'text-brand-secondary' },
+                { label: 'API',      val: stats.route,      color: 'text-brand-secondary' },
+                { label: 'Frontend', val: stats.client,     color: 'text-primary'   },
               ].map(({ label, val, color }) => (
                 <div key={label} className="flex items-center gap-1.5 text-[10px] font-mono">
                   <span className="text-muted-foreground">{label}</span>
@@ -1297,7 +705,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
             {/* Toggle resolved */}
             <button onClick={() => setShowResolved(v => !v)}
               className={`px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                showResolved ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-secondary/30 text-muted-foreground border-border/40 hover:text-foreground'
+                showResolved ? 'bg-success/10 text-success border-success/20' : 'bg-secondary/30 text-muted-foreground border-border/40 hover:text-foreground'
               }`}>
               {showResolved ? '✅ Resolved' : 'Show resolved'}
             </button>
@@ -1305,7 +713,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
             {/* Resolve all (admin) */}
             {isAdmin && filtered.filter(e => !e.resolved).length > 0 && (
               <button onClick={resolveAll}
-                className="ml-auto px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                className="ml-auto px-2.5 py-1.5 rounded-full text-[11px] font-semibold bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors">
                 Resolve all
               </button>
             )}
@@ -1316,7 +724,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
             <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <CheckCircle2 className="w-8 h-8 text-success" />
               <p className="text-sm font-medium">No errors found</p>
               <p className="text-xs">{search ? `No match for "${search}"` : showResolved ? 'No resolved errors' : 'All systems running clean'}</p>
             </div>
@@ -1328,7 +736,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
                 const sMeta  = ERROR_SOURCE_META[evt.source] || ERROR_SOURCE_META.route;
 
                 return (
-                  <div key={evt.id} className={`${evt.level === 'critical' ? 'bg-red-500/5' : ''}`}>
+                  <div key={evt.id} className={`${evt.level === 'critical' ? 'bg-destructive/5' : ''}`}>
                     {/* Row */}
                     <div className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-secondary/10 transition-colors"
                       onClick={() => setExpanded(isExp ? null : evt.id)}>
@@ -1362,7 +770,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
                           )}
                           {/* Linked ticket */}
                           {evt.devops_item_id && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-400/20">
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20">
                               🎫 Ticket
                             </span>
                           )}
@@ -1391,7 +799,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
                           <button
                             onClick={() => convertToTicket(evt.id)}
                             disabled={converting === evt.id}
-                            className="text-[10px] px-2 py-1 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-400/20 hover:bg-violet-500/20 transition-colors flex items-center gap-1"
+                            className="text-[10px] px-2 py-1 rounded-lg bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20 hover:bg-brand-secondary/20 transition-colors flex items-center gap-1"
                             title="Convert to bug ticket">
                             {converting === evt.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Bug className="w-3 h-3" />}
                             Ticket
@@ -1401,7 +809,7 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
                           <button
                             onClick={() => resolve(evt.id)}
                             disabled={resolving === evt.id}
-                            className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
+                            className="text-[10px] px-2 py-1 rounded-lg bg-success/10 text-success border border-success/20 hover:bg-success/20 transition-colors flex items-center gap-1"
                             title="Mark resolved">
                             {resolving === evt.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
                             Resolve
@@ -1455,13 +863,13 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
 
                         {/* Linked ticket info */}
                         {evt.devops_item_title && (
-                          <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/20">
-                            <Bug className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-brand-secondary/5 border border-brand-secondary/20">
+                            <Bug className="w-3.5 h-3.5 text-brand-secondary shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-[10px] text-muted-foreground">Linked ticket</p>
-                              <p className="text-xs font-medium text-violet-400 truncate">{evt.devops_item_title}</p>
+                              <p className="text-xs font-medium text-brand-secondary truncate">{evt.devops_item_title}</p>
                             </div>
-                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-400/20 shrink-0">
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20 shrink-0">
                               {evt.devops_item_status}
                             </span>
                           </div>
@@ -1469,9 +877,9 @@ function LiveErrors({ isAdmin }: { isAdmin: boolean }) {
 
                         {/* Resolved info */}
                         {evt.resolved && (
-                          <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                            <p className="text-xs text-emerald-500">
+                          <div className="flex items-center gap-2 p-2 rounded-lg bg-success/5 border border-success/20">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+                            <p className="text-xs text-success">
                               Resolved {evt.resolved_at ? formatDistanceToNow(new Date(evt.resolved_at), { addSuffix: true }) : ''} by {evt.resolved_by_name || 'admin'}
                               {evt.resolution_note ? ` — ${evt.resolution_note}` : ''}
                             </p>
@@ -1529,7 +937,7 @@ function StrategyBoard() {
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors"
       >
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-brand-secondary flex items-center justify-center shrink-0">
           <Map className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -1537,14 +945,14 @@ function StrategyBoard() {
             <p className="text-sm font-semibold">Development Strategy</p>
             <span className="text-[10px] font-mono text-muted-foreground">{completed}/{STRATEGY_VERSIONS.length} versions · {pct}% complete</span>
             {inProgress > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono text-amber-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />{inProgress} active
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-mono text-primary">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />{inProgress} active
               </span>
             )}
           </div>
           {/* Overall progress bar */}
           <div className="mt-1.5 h-1.5 rounded-full bg-secondary overflow-hidden w-full max-w-xs">
-            <div className="h-full bg-gradient-to-r from-blue-600 to-violet-600 transition-all" style={{ width: `${pct}%` }} />
+            <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
           </div>
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
@@ -1619,15 +1027,15 @@ function StrategyBoard() {
 function Changelog() {
   const [open, setOpen] = useState(false);
   const colorMap: Record<string, string> = {
-    emerald: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
-    blue:    'bg-blue-500/15 text-blue-500 border-blue-500/30',
-    violet:  'bg-violet-500/15 text-violet-500 border-violet-500/30',
-    amber:   'bg-amber-500/15 text-amber-500 border-amber-500/30',
-    rose:    'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    emerald: 'bg-success/15 text-success border-success/30',
+    blue:    'bg-primary/15 text-primary border-primary/30',
+    violet:  'bg-brand-secondary/15 text-brand-secondary border-brand-secondary/30',
+    amber:   'bg-primary/15 text-primary border-primary/30',
+    rose:    'bg-destructive/15 text-destructive border-destructive/30',
   };
   const dotMap: Record<string, string> = {
-    emerald: 'bg-emerald-500', blue: 'bg-blue-500', violet: 'bg-violet-500',
-    amber: 'bg-amber-500', rose: 'bg-rose-500',
+    emerald: 'bg-success', blue: 'bg-primary', violet: 'bg-brand-secondary',
+    amber: 'bg-primary', rose: 'bg-destructive',
   };
 
   return (
@@ -1636,7 +1044,7 @@ function Changelog() {
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors"
       >
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-success flex items-center justify-center shrink-0">
           <GitBranch className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -1669,7 +1077,7 @@ function Changelog() {
                     <ul className="space-y-1">
                       {entry.items.map((item, j) => (
                         <li key={j} className="flex items-start gap-2 text-[11px] text-muted-foreground">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500 mt-0.5 shrink-0" />
+                          <CheckCircle2 className="w-3 h-3 text-success mt-0.5 shrink-0" />
                           {item}
                         </li>
                       ))}
@@ -1703,7 +1111,7 @@ function ProjectSummaryTable() {
         onClick={() => setOpen(v => !v)}
         className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/30 transition-colors"
       >
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
           <ListChecks className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -1769,8 +1177,8 @@ function ProjectSummaryTable() {
                     <td className="py-1.5">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-semibold border ${
                         row.priority === 'High'
-                          ? 'bg-red-500/10 text-red-500 border-red-500/30'
-                          : 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                          ? 'bg-destructive/10 text-destructive border-destructive/30'
+                          : 'bg-primary/10 text-primary border-primary/30'
                       }`}>
                         {row.priority}
                       </span>
@@ -1860,7 +1268,7 @@ function OpsCard({ item, isAdmin, busy, onEdit, onDelete, onMove }: {
                 </button>
               );
             })}
-            <button onClick={onDelete} className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium text-red-500 hover:bg-red-500/10 transition-colors ml-auto">
+            <button onClick={onDelete} className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium text-destructive hover:bg-destructive/10 transition-colors ml-auto">
               <Trash2 className="w-3 h-3" />
             </button>
           </div>
@@ -1893,7 +1301,7 @@ function DevOps() {
   const [busyId,     setBusyId]     = useState<string | null>(null);
 
   // Active section tab
-  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'copilot' | 'log' | 'summary' | 'kb'>('kanban');
+  const [activeSection, setActiveSection] = useState<'kanban' | 'errors' | 'strategy' | 'health' | 'changelog' | 'copilot' | 'summary'>('kanban');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1992,10 +1400,8 @@ function DevOps() {
   const SECTION_TABS = [
     { key: 'kanban'   as const, label: 'Kanban Board',    icon: KanbanSquare },
   { key: 'copilot'  as const, label: 'AI Copilot',      icon: Bot },
-  { key: 'log'      as const, label: 'Task Log',       icon: FileText },
     { key: 'errors'   as const, label: 'Live Errors',     icon: AlertTriangle },
     { key: 'strategy' as const, label: 'Strategy',        icon: Map          },
-    { key: 'kb'       as const, label: 'Knowledge Base',  icon: BookOpen     },
     { key: 'health'   as const, label: 'System Health',   icon: Server       },
     { key: 'changelog'as const, label: 'Changelog',       icon: GitBranch    },
     { key: 'summary'  as const, label: 'Project Summary', icon: ListChecks   },
@@ -2006,21 +1412,21 @@ function DevOps() {
 
       {/* ══ Header ══════════════════════════════════════════════════════════ */}
       <div className="flex flex-wrap items-center gap-3 pt-5 pb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
           <Terminal className="w-5 h-5 text-white" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="font-display text-xl md:text-2xl font-bold tracking-tight">Developer Ops</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-emerald-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-success">
               <span className="relative flex w-1.5 h-1.5">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 animate-ping" />
-                <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 animate-ping" />
+                <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-success" />
               </span>
               live
             </span>
             {urgentCnt > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-mono text-red-500">
+              <span className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[10px] font-mono text-destructive">
                 🚨 {urgentCnt} urgent
               </span>
             )}
@@ -2032,7 +1438,7 @@ function DevOps() {
         <div className="flex-1" />
         {!isAdmin && <Badge variant="outline" className="gap-1.5 text-muted-foreground border-border/60"><Eye className="w-3.5 h-3.5" /> Read-only</Badge>}
         {isAdmin && (
-          <Button onClick={openCreate} className="rounded-full h-9 px-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white shadow-lg shadow-blue-600/20 font-semibold text-sm">
+          <Button onClick={openCreate} className="rounded-full h-9 px-4 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-semibold text-sm">
             <Plus className="w-4 h-4 mr-1.5" /> New Item
           </Button>
         )}
@@ -2040,9 +1446,9 @@ function DevOps() {
 
       {/* ══ Admin quick-links bar ══════════════════════════════════════════ */}
       {isAdmin && (
-        <div className="flex items-center gap-2 mb-4 p-3 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-          <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
-          <p className="text-xs font-semibold text-amber-600">Admin Panel</p>
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-2xl border border-primary/20 bg-primary/5">
+          <ShieldAlert className="w-4 h-4 text-warning shrink-0" />
+          <p className="text-xs font-semibold text-primary">Admin Panel</p>
           <div className="flex gap-2 ml-2 overflow-x-auto scrollbar-hide">
             {[
               { label: 'Overview',    href: '/admin',           icon: BarChart3    },
@@ -2052,7 +1458,7 @@ function DevOps() {
               { label: 'Platform',    href: '/admin?tab=platform',icon: Server     },
             ].map(({ label, href, icon: Icon }) => (
               <Link key={label} href={href}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-amber-400/40 transition-all">
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all">
                 <Icon className="w-3 h-3" />{label}
               </Link>
             ))}
@@ -2063,10 +1469,10 @@ function DevOps() {
       {/* ══ Quick-stats row ══════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
         {[
-          { label: 'Total Items',   value: items.length,                                 icon: ClipboardList, color: 'text-blue-500',    bg: 'bg-blue-500/10'    },
-          { label: 'Open Bugs',     value: openBugs,                                     icon: Bug,           color: 'text-red-500',     bg: 'bg-red-500/10'     },
-          { label: 'In Progress',   value: statusCounts['in_progress'] ?? 0,             icon: Activity,      color: 'text-amber-500',   bg: 'bg-amber-500/10'   },
-          { label: 'Resolved',      value: (statusCounts['done'] ?? 0) + (statusCounts['implemented'] ?? 0), icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Total Items',   value: items.length,                                 icon: ClipboardList, color: 'text-primary',    bg: 'bg-primary/10'    },
+          { label: 'Open Bugs',     value: openBugs,                                     icon: Bug,           color: 'text-destructive',     bg: 'bg-destructive/10'     },
+          { label: 'In Progress',   value: statusCounts['in_progress'] ?? 0,             icon: Activity,      color: 'text-primary',   bg: 'bg-primary/10'   },
+          { label: 'Resolved',      value: (statusCounts['done'] ?? 0) + (statusCounts['implemented'] ?? 0), icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="flex items-center gap-3 rounded-2xl border border-border/50 bg-card p-4">
             <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
@@ -2098,7 +1504,6 @@ function DevOps() {
 
       {/* ══ Section: Kanban ══════════════════════════════════════════════════ */}
       {activeSection === 'copilot'  && <OpsCopilot />}
-        {activeSection === 'log'     && <TaskLogPanel />}
         {activeSection === 'kanban' && (
         <>
           {/* Severity telemetry rail */}
@@ -2236,7 +1641,6 @@ function DevOps() {
       {/* ══ Other sections ══════════════════════════════════════════════════ */}
       {activeSection === 'errors'    && <LiveErrors isAdmin={isAdmin} />}
       {activeSection === 'strategy'  && <StrategyBoard />}
-      {activeSection === 'kb'        && <KnowledgeBase />}
       {activeSection === 'health'    && <><SystemHealth /><OpsAlerts /></>}
       {activeSection === 'changelog' && <Changelog     />}
       {activeSection === 'summary'   && <ProjectSummaryTable />}
@@ -2295,7 +1699,7 @@ function DevOps() {
             <div><Label text="Assigned to" /><Input value={form.assigned_to} onChange={e => set('assigned_to', e.target.value)} placeholder="Username or name…" /></div>
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={() => setEditorOpen(false)} disabled={saving} className="flex-1">Cancel</Button>
-              <Button onClick={saveItem} disabled={saving} className="flex-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white">
+              <Button onClick={saveItem} disabled={saving} className="flex-1 bg-primary text-white">
                 {saving ? <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" />Saving…</> : (editing ? 'Save Changes' : 'Create Item')}
               </Button>
             </div>
@@ -2306,11 +1710,11 @@ function DevOps() {
       {/* ══ Delete confirm dialog ════════════════════════════════════════════ */}
       <Dialog open={!!deleting} onOpenChange={o => !o && setDeleting(null)}>
         <DialogContent className="sm:max-w-sm bg-card border border-border shadow-2xl" style={{ backgroundColor: 'hsl(var(--card))' }}>
-          <DialogHeader className=""><DialogTitle className="flex items-center gap-2 text-red-500"><Trash2 className="w-4 h-4" /> Delete Item</DialogTitle></DialogHeader>
+          <DialogHeader className=""><DialogTitle className="flex items-center gap-2 text-destructive"><Trash2 className="w-4 h-4" /> Delete Item</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground mt-1">Delete <span className="font-semibold text-foreground">"{deleting?.title}"</span>? This cannot be undone.</p>
           <div className="flex gap-2 mt-4">
             <Button variant="outline" onClick={() => setDeleting(null)} className="flex-1">Cancel</Button>
-            <Button onClick={confirmDelete} className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+            <Button onClick={confirmDelete} className="flex-1 bg-destructive hover:bg-destructive/90 text-white">
               {busyId ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
             </Button>
           </div>

@@ -52,7 +52,7 @@ export default function ProductPicker({ id, value, onChange }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={products === null}
-        className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card text-foreground dark:bg-background focus:outline-none focus:ring-1 focus:ring-amber-400"
+        className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border/60 bg-card text-foreground dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
       >
         <option value="">Not linked: buyers send a request</option>
         {missing && <option value={value}>Linked product (no longer available)</option>}

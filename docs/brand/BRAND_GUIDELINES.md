@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Last Updated:** August 2026
+> **Last Updated:** 2026-11-09
 
 ---
 
@@ -54,62 +54,37 @@
 
 ### 2.1 Logo
 
-| Variant | Usage | File |
+| Variant | Usage | File (`frontend-next/public/brand/`) |
 |---------|-------|------|
-| **Primary (Full)** | Website header, marketing, signage | `logo-full.svg` |
-| **Icon (Mark only)** | App icon, favicon, social avatar | `logo-icon.svg` |
-| **Wordmark** | Horizontal spaces, co-branding | `logo-wordmark.svg` |
-| **Monochrome** | Single-color printing, watermarks | `logo-mono.svg` |
+| **Icon** | App icon, avatar, light or dark backgrounds | `nodbusiness-icon-v3.svg` (vector: network over the globe, white on blue) |
+| **Icon on blue** | Any blue background (buttons, blue cards, share image) | `nodbusiness-icon-on-blue-v3.svg` (white ring around the disc) |
+| **Small icon** | 24 px and below, favicon | `nodbusiness-icon-small-v3.svg` (bolder lines; `-on-blue-small` on blue) |
+| **Wordmark** | Marketing files | `nodbusiness-logo-v3.svg` / `nodbusiness-logo-white-v3.svg` (the icon is the "o") |
+| **Animated** | Landing hero, sign-in | `nodbusiness-intro-288-v2.mp4`, plays once and ends on the vector icon |
+
+In the app, use `BrandLogo` (pass `size` for logos above 24 px, and `variant="onBlue"` on blue) and `Wordmark` (the name with the icon as the "o", in the heavy sans). Never put the plain icon on blue; a unit test checks this. Code uses files only through `frontend-next/lib/brandAssets.ts`. A changed logo file gets a new name (bump `-vN`), so no browser keeps the old copy; old names redirect.
 
 **Clear Space:** Minimum `1x` icon height on all sides  
 **Minimum Size:** 24px height (digital), 15mm (print)  
-**Background:** Works on light, dark, and brand-color backgrounds
+**Background:** The icon carries its own blue background; use the wordmark on light backgrounds and the white wordmark on dark ones. Colours: `COLOR_SYSTEM.md`.
 
 ### 2.2 Color Palette
 
-#### Primary (Brand)
+> **Colour is defined in [`COLOR_SYSTEM.md`](COLOR_SYSTEM.md)** (decided 2026-11-07, audit F-046).
+> This section used to disagree with the other brand document (blue vs amber as primary).
 
-| Name | HEX | RGB | CMYK | Usage |
-|------|-----|-----|------|-------|
-| **Nodbusiness Amber** | `#F59E0B` | 245, 158, 11 | 0, 35, 95, 4 | Primary CTAs, brand accent, key metrics |
-| **Nodbusiness Dark** | `#1F2937` | 31, 41, 55 | 85, 70, 40, 80 | Headlines, primary text, dark mode bg |
-| **Nodbusiness Light** | `#F9FAFB` | 249, 250, 251 | 2, 1, 0, 0 | Light mode background, cards |
+| Role | Colour | Use |
+|---|---|---|
+| Primary | Blue `#2563eb` | Main action, links, selected state, personal identity |
+| Secondary | Violet `#7c3aed` | Business identity, AI assistant |
+| Status | Success `#157a3a` · Warning `#b45309` · Error `#c81e1e` | States only, never decoration |
+| Neutrals | Slate greys | Most of every screen |
 
-#### Secondary (Semantic)
-
-| Name | HEX | RGB | Usage |
-|------|-----|-----|-------|
-| **Success Green** | `#10B981` | 16, 185, 129 | Success states, positive metrics, COD |
-| **Warning Amber** | `#F59E0B` | 245, 158, 11 | Warnings, pending states |
-| **Error Red** | `#EF4444` | 239, 68, 68 | Errors, destructive actions |
-| **Info Blue** | `#3B82F6` | 59, 130, 246 | Info, links, Stripe integration |
-
-#### Neutrals (Gray Scale)
-
-| Name | HEX | Light Mode | Dark Mode |
-|------|-----|------------|-----------|
-| **Gray 50** | `#F9FAFB` | Page bg | — |
-| **Gray 100** | `#F3F4F6` | Card bg | — |
-| **Gray 200** | `#E5E7EB` | Borders | — |
-| **Gray 300** | `#D1D5DB` | Dividers | — |
-| **Gray 400** | `#9CA3AF` | Placeholder | — |
-| **Gray 500** | `#6B7280` | Secondary text | — |
-| **Gray 600** | `#4B5563` | Body text | — |
-| **Gray 700** | `#374151` | Headings | — |
-| **Gray 800** | `#1F2937` | Primary text | Card bg |
-| **Gray 900** | `#111827` | — | Primary text |
-| **Gray 950** | `#030712` | — | Page bg |
-
-**Accessibility:** All text/background combinations meet WCAG 2.1 AA (4.5:1)
+No decorative accent colour and no gradients in the app; gold is no longer a brand colour.
 
 ### 2.3 Gradients
 
-| Name | Stops | Usage |
-|------|-------|-------|
-| **Brand Primary** | `#F59E0B` → `#D97706` | Primary buttons, hero accents |
-| **Success** | `#10B981` → `#059669` | Success buttons, COD |
-| **Sunset** | `#F59E0B` → `#EF4444` | Hero gradients, marketing |
-| **Ocean** | `#3B82F6` → `#06B6D4` | Stripe integration, tech |
+None in the app: solid fills only (`COLOR_SYSTEM.md`, rule 4).
 
 ---
 
@@ -257,12 +232,12 @@
 
 | Variant | Style | Usage |
 |---------|-------|-------|
-| **Primary** | Amber bg, white text, `radius-md`, `shadow-sm` → `shadow-glow` hover | Primary CTAs |
+| **Primary** | Blue (`bg-primary`), white text, `radius-md` | The one main action per screen |
 | **Secondary** | Gray-100 bg, Dark text, `radius-md`, border | Secondary actions |
-| **Outline** | Transparent bg, Amber border, Amber text | Tertiary |
+| **Outline** | Transparent bg, border, foreground text | Other actions |
 | **Ghost** | Transparent, Dark text, no border | Subtle |
 | **Destructive** | Red bg, white text | Delete, cancel subscription |
-| **Success** | Green bg, white text | COD, confirmations |
+| **Success** | Green (`bg-success`), white text | Confirmations |
 
 ### 4.2 Cards
 
@@ -278,7 +253,7 @@
 | Element | Style |
 |---------|-------|
 | **Label** | `body-sm`, Dark text, `space-1` above input |
-| **Input** | `radius-md`, Gray-200 border, `focus:border-amber-500 focus:ring-2 focus:ring-amber-200` |
+| **Input** | `radius-md`, Gray-200 border, `focus:border-primary focus:ring-2 focus:ring-ring` |
 | **Error** | Red border, Red text `body-xs`, `space-1` below |
 | **Helper** | Gray-500, `body-xs` |
 | **Disabled** | Gray-100 bg, Gray-400 text, `cursor-not-allowed` |
@@ -311,7 +286,7 @@
 
 | Do | Don't |
 |----|-------|
-| Use Amber for primary actions only | Use Amber for text, borders, backgrounds |
+| Use blue (`primary`) for the one main action | Use status colours (amber, green, red) for decoration |
 | Respect clear space around logo | Place logo on busy backgrounds |
 | Use Inter for all body text | Use custom fonts for body copy |
 | Respect reduced motion | Animate everything |

@@ -63,14 +63,14 @@ beforeEach(() => {
 describe('route ownership and mass assignment boundaries', () => {
   it('does not let a post author replace author identity or engagement counters', async () => {
     crud.getRecord.mockResolvedValue({ author_id: 'user-1' });
-    crud.updateRecord.mockResolvedValue({ id: 'post-1', content: 'Updated' });
+    crud.updateRecord.mockResolvedValue({ id: '114b54f4-c76e-4f72-80e1-88e76ce10e56', content: 'Updated' });
 
-    const response = await request(buildApp(posts, '/api/posts')).put('/api/posts/post-1').send({
+    const response = await request(buildApp(posts, '/api/posts')).put('/api/posts/114b54f4-c76e-4f72-80e1-88e76ce10e56').send({
       content: 'Updated', author_id: 'victim', like_count: 999, created_at: '2000-01-01',
     });
 
     expect(response.status).toBe(200);
-    expect(crud.updateRecord).toHaveBeenCalledWith('posts', 'post-1', { content: 'Updated', edited_at: expect.any(String) });
+    expect(crud.updateRecord).toHaveBeenCalledWith('posts', '114b54f4-c76e-4f72-80e1-88e76ce10e56', { content: 'Updated', edited_at: expect.any(String) });
   });
 
 
@@ -120,9 +120,9 @@ describe('route ownership and mass assignment boundaries', () => {
 
 
   it('does not let profile owners self-verify or change counters and identity', async () => {
-    crud.getRecord.mockResolvedValue({ id: 'profile-1', user_id: 'user-1' });
+    crud.getRecord.mockResolvedValue({ id: '259a1c56-43a1-43c3-80c3-ca7962bcd7fd', user_id: 'user-1' });
 
-    const response = await request(buildApp(profiles, '/api/profiles')).put('/api/profiles/profile-1').send({
+    const response = await request(buildApp(profiles, '/api/profiles')).put('/api/profiles/259a1c56-43a1-43c3-80c3-ca7962bcd7fd').send({
       user_id: 'victim', is_verified: true, follower_count: 10000, points: 999999,
     });
 
@@ -131,9 +131,9 @@ describe('route ownership and mass assignment boundaries', () => {
   });
 
   it('returns a public profile projection without personal phone, coordinates, or private JSON buckets', async () => {
-    pool.query.mockResolvedValue({ rows: [{ id: 'profile-2', user_id: 'other-user', display_name: 'Public name' }] });
+    pool.query.mockResolvedValue({ rows: [{ id: 'profile-2', user_id: 'cdea1179-dc24-420e-8d60-3e195283eb44', display_name: 'Public name' }] });
 
-    const response = await request(buildApp(profiles, '/api/profiles')).get('/api/profiles/by-user/other-user');
+    const response = await request(buildApp(profiles, '/api/profiles')).get('/api/profiles/by-user/cdea1179-dc24-420e-8d60-3e195283eb44');
 
     expect(response.status).toBe(200);
     expect(pool.query.mock.calls[0][0]).not.toContain('up.*');

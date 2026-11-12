@@ -44,7 +44,7 @@ ADRs document the *why* behind key architectural choices. Each record captures t
 
 ## ADR-004: JWT in localStorage with cookie sync
 
-**Status:** Accepted (temporary) | **Date:** July 2026
+**Status:** Superseded by TD-001 (HttpOnly refresh-token cookie) and TD-014 (access token kept in memory only, never in localStorage) — noted 2026-11-07, audit F-008 | **Date:** July 2026
 
 **Context:** HttpOnly cookies are more secure against XSS. Next.js middleware needs the JWT server-side for route protection.
 

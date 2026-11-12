@@ -28,9 +28,18 @@ export const auth = {
 
   async loginViaEmailPassword(email: string, password: string): Promise<Record<string, unknown>> {
     const res = await client.post('/api/auth/login', { email, password }, realIdentityRequest);
-    const { access_token } = res.data as { access_token: string };
-    storeToken(access_token); // stores in memory, localStorage, and cookie
+    const { access_token } = res.data as { access_token?: string };
+    // With two-factor sign-in on, the answer is { mfa_required, mfa_token } and no session yet (F-017).
+    if (access_token) storeToken(access_token); // stores in memory and the hint cookie
     return res.data as Record<string, unknown>;
+  },
+
+  /** Second sign-in step: an authenticator code or a recovery code (F-017). */
+  async verifyMfa(mfaToken: string, code: string): Promise<Record<string, unknown>> {
+    const res = await client.post('/api/auth/mfa/verify', { mfa_token: mfaToken, code }, realIdentityRequest);
+    const data = res.data as { access_token?: string };
+    if (data.access_token) storeToken(data.access_token);
+    return data as Record<string, unknown>;
   },
 
   loginWithProvider(provider: string, redirectPath?: string): void {

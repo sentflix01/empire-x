@@ -1,0 +1,38 @@
+{
+  "steps": [
+    "Start the local stack (local-stack skill).",
+    "Run bash note/2026-11-05-international-audit/scripts/probe-missing-routes.sh.",
+    "Observe POST /api/upload/multiple → 404 NOT_FOUND while POST /api/upload → 401 (route exists).",
+    "Browser: sign in as the seeded user, open /products/create, attach two images → POST /api/upload/multiple 404 and the form shows 'Upload failed. Try again.' (node scripts/browser/product-photo-upload.cjs <dir with two PNGs> <screenshot path>)."
+  ],
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "id": "F-001",
+  "title": "Product photos cannot be uploaded: frontend calls a missing /api/upload/multiple route",
+  "phase": "P2-functional",
+  "severity": "High",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 functional suitability (functional correctness)",
+    "OWASP A10:2025 (silent failure path)"
+  ],
+  "location": [
+    "frontend-next/lib/uploadFile.ts:29",
+    "frontend-next/components/ui/ImageUpload.tsx:67",
+    "frontend-next/views/ProductCreate.tsx:253",
+    "backend/routes/upload.ts:10"
+  ],
+  "expected": "Adding photos on /products/create uploads each selected image and shows previews.",
+  "actual": "ProductCreate renders <ImageUpload multiple max={6}>, which always calls uploadFiles() → POST /api/upload/multiple. The backend only registers POST /api/upload (single file). Every product-photo upload fails with 'Upload failed. Try again.'",
+  "evidence": [
+    "evidence/wave1/missing-routes.txt",
+    "frontend-next/views/ProductCreate.tsx:253",
+    "backend/routes/upload.ts:10",
+    "evidence/wave3/F-001-product-photo-upload.png"
+  ],
+  "impact": "Sellers cannot attach photos when creating or editing a product — a core seller journey. Products go live without images or sellers abandon the flow. Confirmed in the browser on 2026-11-05.",
+  "fix": "Either add POST /api/upload/multiple (upload.array('files', 10), same signature validation as the single route, returns { files: [{ url }] }), or change uploadFiles() to call POST /api/upload once per file with bounded concurrency. Add a Vitest test for uploadFiles and a Playwright step that uploads two photos on /products/create.",
+  "effort": "S",
+  "regression_test": "Contract test: every literal /api path in frontend source resolves to a registered backend route (scripts/inventory-frontend.mjs in CI).",
+  "kind": "defect"
+}

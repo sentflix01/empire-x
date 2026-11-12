@@ -13,6 +13,7 @@
  * The two states are completely independent — changing one never touches the other.
  */
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { IDENTITY } from '@/lib/colorTokens';
 
 const STORAGE_KEY_HOME    = 'nodbusiness_home_feed_mode';
 const STORAGE_KEY_PROFILE = 'nodbusiness_profile_view_mode';
@@ -30,13 +31,13 @@ export interface AccentTokens {
   gradientEnd: string;
   /** Full CSS linear-gradient() value for use in style={{ background }} */
   gradientCss: string;
-  /** Tailwind background class, e.g. "bg-blue-50" */
+  /** Tailwind background class, e.g. "bg-primary-subtle" */
   bgClass: string;
-  /** Tailwind text class, e.g. "text-blue-700" */
+  /** Tailwind text class, e.g. "text-primary" */
   textClass: string;
-  /** Tailwind dark-mode background class, e.g. "dark:bg-blue-900/20" */
+  /** Tailwind dark-mode background class, e.g. "" */
   darkBgClass: string;
-  /** Tailwind dark-mode text class, e.g. "dark:text-blue-300" */
+  /** Tailwind dark-mode text class, e.g. "" */
   darkTextClass: string;
   /** Full composed Tailwind string for an active NavLink */
   activeNavClass: string;
@@ -78,31 +79,33 @@ export interface ProfileViewContextValue {
 export function getAccentTokens(view: ActiveView): AccentTokens {
   if (view === 'personal') {
     return {
-      primary: '#2563EB',
-      gradientStart: '#3B82F6',
-      gradientEnd: '#2563EB',
-      gradientCss: 'linear-gradient(135deg, #3B82F6, #2563EB)',
-      bgClass: 'bg-blue-50',
-      textClass: 'text-blue-700',
-      darkBgClass: 'dark:bg-blue-900/20',
-      darkTextClass: 'dark:text-blue-300',
-      activeNavClass: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
-      activeTabClass: 'bg-blue-500 text-white',
+      // Personal identity: primary blue (colour system, F-046). Solid, not a gradient.
+      primary: IDENTITY.personal.hex,
+      gradientStart: IDENTITY.personal.hex,
+      gradientEnd: IDENTITY.personal.hex,
+      gradientCss: IDENTITY.personal.css,
+      bgClass: 'bg-primary-subtle',
+      textClass: 'text-primary',
+      darkBgClass: '',
+      darkTextClass: '',
+      activeNavClass: 'bg-primary-subtle text-primary',
+      activeTabClass: 'bg-primary text-white',
     };
   }
 
   // 'business'
   return {
-    primary: '#D97706',
-    gradientStart: '#F59E0B',
-    gradientEnd: '#D97706',
-    gradientCss: 'linear-gradient(135deg, #F59E0B, #D97706)',
-    bgClass: 'bg-amber-50',
-    textClass: 'text-amber-700',
-    darkBgClass: 'dark:bg-amber-900/20',
-    darkTextClass: 'dark:text-amber-700',
-    activeNavClass: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-700',
-    activeTabClass: 'bg-amber-500 text-white',
+    // Business identity: the secondary brand colour, violet (F-046).
+    primary: IDENTITY.business.hex,
+    gradientStart: IDENTITY.business.hex,
+    gradientEnd: IDENTITY.business.hex,
+    gradientCss: IDENTITY.business.css,
+    bgClass: 'bg-brand-secondary-subtle',
+    textClass: 'text-brand-secondary',
+    darkBgClass: '',
+    darkTextClass: '',
+    activeNavClass: 'bg-brand-secondary-subtle text-brand-secondary',
+    activeTabClass: 'bg-brand-secondary text-white',
   };
 }
 

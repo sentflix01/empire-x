@@ -35,7 +35,7 @@ function Marketplace() {
     t('marketplace.categories.beauty'), t('marketplace.categories.home'),
     t('marketplace.categories.other'),
   ];
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<MarketProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -52,7 +52,7 @@ function Marketplace() {
       const { data } = await client.get('/api/products', {
         params: { status: 'active', sort: '-created_at', limit: PAGE_SIZE, ...(reset || !cursorRef.current ? {} : { cursor: cursorRef.current }) }
       });
-      const rows = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
+      const rows: MarketProduct[] = Array.isArray(data) ? data : Array.isArray(data?.products) ? data.products : [];
       cursorRef.current = typeof data?.next_cursor === 'string' ? data.next_cursor : null;
       setProducts(reset ? rows : prev => {
         const seen = new Set(prev.map(p => p.id));
@@ -106,7 +106,6 @@ function Marketplace() {
     );
     obs.observe(el);
     obsRef.current = obs;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // stable — observer recreated only when element mounts/unmounts
 
   const filtered = products.filter(p => {
@@ -115,7 +114,7 @@ function Marketplace() {
     return matchSearch && matchCat;
   });
 
-  const parseImages = (img) => {
+  const parseImages = (img: string | null | undefined): string[] => {
     if (!img) return [];
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
     const normalise = (url: string) =>
@@ -133,33 +132,33 @@ function Marketplace() {
 
         {/* Payment return banner (Chapa / Stripe — provider-neutral) */}
         {paymentBanner === "success" && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800">
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-success-subtle border border-success/30 text-success-subtle-foreground">
+            <CheckCircle2 className="w-5 h-5 shrink-0 text-success" />
             <div>
               <p className="font-semibold text-sm">Payment Successful!</p>
-              <p className="text-xs text-green-700">Your payment was confirmed. The seller will contact you shortly.</p>
+              <p className="text-xs text-success">Your payment was confirmed. The seller will contact you shortly.</p>
             </div>
-            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-success hover:text-success">✕</button>
           </div>
         )}
         {paymentBanner === "cancelled" && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800">
-            <XCircle className="w-5 h-5 shrink-0 text-amber-500" />
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-primary-subtle border border-primary/30 text-primary-subtle-foreground">
+            <XCircle className="w-5 h-5 shrink-0 text-primary" />
             <div>
               <p className="font-semibold text-sm">Checkout Cancelled</p>
-              <p className="text-xs text-amber-700">You left before completing payment — you were not charged. Try again whenever you're ready.</p>
+              <p className="text-xs text-primary">You left before completing payment — you were not charged. Try again whenever you're ready.</p>
             </div>
-            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-amber-500 hover:text-amber-700">✕</button>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-primary hover:text-primary">✕</button>
           </div>
         )}
         {paymentBanner === "failed" && (
-          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800">
-            <XCircle className="w-5 h-5 shrink-0 text-red-500" />
+          <div className="mb-4 flex items-center gap-3 p-4 rounded-2xl bg-destructive-subtle border border-destructive/30 text-destructive-subtle-foreground">
+            <XCircle className="w-5 h-5 shrink-0 text-destructive" />
             <div>
               <p className="font-semibold text-sm">Payment Not Completed</p>
-              <p className="text-xs text-red-700">Your payment was not processed. You can try again or place a COD order.</p>
+              <p className="text-xs text-destructive">Your payment was not processed. You can try again or place a COD order.</p>
             </div>
-            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+            <button onClick={() => setPaymentBanner(null)} className="ml-auto text-destructive hover:text-destructive">✕</button>
           </div>
         )}
 
@@ -169,7 +168,7 @@ function Marketplace() {
             <p className="text-sm text-muted-foreground">{t('marketplace.subtitle')}</p>
           </div>
           <Link href="/products/create" className="shrink-0">
-            <Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+            <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4 mr-1" /> {t('marketplace.listProduct')}
             </Button>
           </Link>
@@ -190,7 +189,7 @@ function Marketplace() {
               onClick={() => setCategory(c)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 category === c
-                  ? "bg-amber-500 text-white"
+                  ? "bg-primary text-white"
                   : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
               }`}
             >
@@ -226,7 +225,7 @@ function Marketplace() {
               <div ref={sentinelCallbackRef} className="h-4" />
               {loadingMore && (
                 <div className="flex justify-center py-4">
-                  <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               )}
               {!hasMore && products.length > 0 && (
@@ -239,6 +238,9 @@ function Marketplace() {
       </div>
   );
 }
+
+/** A product as the marketplace lists it (/api/products). */
+type MarketProduct = React.ComponentProps<typeof ProductCard>['product'] & { category?: string | null };
 
 export default function MarketplacePage() {
   return <ErrorBoundary><Marketplace /></ErrorBoundary>;

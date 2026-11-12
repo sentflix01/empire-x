@@ -1,0 +1,67 @@
+=== GET https://nodbusiness.vercel.app/robots.txt
+User-Agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /settings
+Disallow: /wallet
+
+Sitemap: https://nodbusiness.vercel.app/sitemap.xml
+
+[HTTP 200, 147 bytes]
+=== GET https://nodbusiness.vercel.app/sitemap.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>https://nodbusiness.vercel.app</loc>
+<lastmod>2026-11-03T16:03:13.829Z</lastmod>
+<changefreq>daily</changefreq>
+<priority>1</priority>
+</url>
+<url>
+<loc>https://nodbusiness.vercel.app/landing</loc>
+<lastmod>2026-11-03T16:03:13.829Z</lastmod>
+<changefreq>weekly</changefreq>
+<priority>0.9</priority>
+</url>
+<url>
+<loc>https://nodbusiness.vercel.app/showrooms</loc>
+<lastmod>2026-11-03T16:03:13.829Z</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.8</priority>
+</url>
+<url>
+<loc>https://nodbusiness.vercel.app/login</loc>
+<changefreq>yearly</changefreq>
+<priority>0.3</priority>
+</url>
+=== GET https://nodbusiness.vercel.app/.well-known/security.txt
+Contact: mailto:nodbusinesses@gmail.com
+Preferred-Languages: en
+Expires: 2027-11-02T00:00:00.000Z
+
+[HTTP 200, 98 bytes]
+=== GET https://nodbusiness.vercel.app/manifest.json
+{
+  "name": "Nodbusiness",
+  "short_name": "Nodbusiness",
+  "description": "Build a guided online showroom for your local business and connect with customers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563EB",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["social", "shopping", "productivity"],
+  "lang": "en"
+}
+
+[HTTP 200, 600 bytes]
+=== TLS
+-tls1: 4077C194557F0000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:../ssl/statem/statem_lib.c:104: New, (NONE), Cipher is (NONE) 
+-tls1_1: 4087E119FE7E0000:error:0A0000BF:SSL routines:tls_setup_handshake:no protocols available:../ssl/statem/statem_lib.c:104: New, (NONE), Cipher is (NONE) 
+-tls1_2: New, TLSv1.2, Cipher is ECDHE-RSA-AES128-GCM-SHA256     Protocol  : TLSv1.2 
+-tls1_3: New, TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256     Protocol  : TLSv1.3 

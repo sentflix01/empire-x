@@ -53,7 +53,7 @@ Changing an `FF_*` env var in Render triggers a redeploy — it is *not* the fas
 |------|---------|-------------|
 | `ai_description_gen` | ✅ on (100%) | AI product description generator |
 | `ai_chat` | ✅ on (100%) | AI chat assistant |
-| `page_guided_tours` | ❌ off | Responsive in-page walkthroughs for platform controls |
+| `page_guided_tours` | ❌ off | Opens the page guide by itself on a first visit (never on sign-in, register or password pages). The **Page guide** button works either way. Default off: owner decision 6 Nov 2026 (audit F-031) |
 
 The public page guide checks only `GET /api/flags/page-guided-tours`; its completion state is stored in the user's browser. See [Page Guided Tours](PAGE_GUIDED_TOURS.md) for behavior and rollout details.
 

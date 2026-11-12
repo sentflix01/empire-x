@@ -11,22 +11,22 @@ import client from '@/api/client';
  * @param {File} file - Browser File object
  * @returns {Promise<string>} Public URL of the uploaded file
  */
-export async function uploadFile(file) {
+export async function uploadFile(file: Blob): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
   // Let the browser provide the multipart boundary required by multer.
   const res = await client.post('/api/upload', formData);
-  return res.data.url;
+  return (res.data as { url: string }).url;
 }
 
 /**
  * @param {File[]} files - Array of File objects (max 10)
  * @returns {Promise<string[]>} Array of public URLs
  */
-export async function uploadFiles(files) {
+export async function uploadFiles(files: File[]): Promise<string[]> {
   const formData = new FormData();
   files.forEach(f => formData.append('files', f));
   const res = await client.post('/api/upload/multiple', formData);
-  return res.data.files.map(f => f.url);
+  return (res.data as { files: Array<{ url: string }> }).files.map((f) => f.url);
 }
 

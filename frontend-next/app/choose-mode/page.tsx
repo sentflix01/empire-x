@@ -15,9 +15,9 @@ function LegacyAccountChooserRedirect() {
     window.location.replace(destination.toString());
   }, [params]);
 
-  return <main className="flex min-h-screen items-center justify-center bg-background text-foreground" aria-live="polite">Taking you to sign in…</main>;
+  return <main id="main-content" className="flex min-h-screen items-center justify-center bg-background text-foreground" aria-live="polite">Taking you to sign in…</main>;
 }
 
 export default function ChooseModePage() {
-  return <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-background text-foreground">Loading…</main>}><LegacyAccountChooserRedirect /></Suspense>;
+  return <Suspense fallback={<main id="main-content" className="flex min-h-screen items-center justify-center bg-background text-foreground">Loading…</main>}><LegacyAccountChooserRedirect /></Suspense>;
 }

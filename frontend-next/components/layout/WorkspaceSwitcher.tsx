@@ -23,7 +23,7 @@ export default function WorkspaceSwitcher() {
       ? 'Practice data is separate from Real accounts; payments are unavailable.'
       : 'Legacy Demo account. Log out, then sign in to your Real account.';
   return (
-    <div role="status" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300/50 bg-amber-50 px-4 py-3 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
+    <div role="status" className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-subtle px-4 py-3 text-primary-subtle-foreground">
       <div className="flex min-w-0 items-center gap-2 text-sm">
         <FlaskConical className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span><strong>Demo practice</strong> · {demoMessage}</span>

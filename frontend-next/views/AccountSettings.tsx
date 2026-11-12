@@ -17,6 +17,7 @@ import { BellOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import TwoFactorSettings from '@/components/settings/TwoFactorSettings';
 
 function ChangePasswordForm() {
   const [current, setCurrent] = useState('');
@@ -29,7 +30,7 @@ function ChangePasswordForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (next.length < 6) { toast.error('New password must be at least 6 characters'); return; }
+    if (next.length < 8) { toast.error('New password must be at least 8 characters'); return; }
     if (next !== confirm) { toast.error('Passwords do not match'); return; }
     setSaving(true);
     try {
@@ -48,8 +49,8 @@ function ChangePasswordForm() {
         onClick={() => setExpanded(v => !v)}
         className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors"
       >
-        <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-          <Lock className="w-4 h-4 text-blue-600" />
+        <div className="w-9 h-9 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+          <Lock className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1 text-left">
           <p className="text-sm font-semibold">Change Password</p>
@@ -64,7 +65,7 @@ function ChangePasswordForm() {
             <div className="relative mt-1">
               <input type={showCurrent ? 'text' : 'password'} value={current} onChange={e => setCurrent(e.target.value)}
                 placeholder="Enter current password"
-                className="w-full h-11 px-3 pr-10 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-amber-500/30" />
+                className="w-full h-11 px-3 pr-10 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-primary/30" />
               <button type="button" onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -74,8 +75,8 @@ function ChangePasswordForm() {
             <label className="text-xs font-medium text-muted-foreground">New password</label>
             <div className="relative mt-1">
               <input type={showNext ? 'text' : 'password'} value={next} onChange={e => setNext(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full h-11 px-3 pr-10 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-amber-500/30" />
+                placeholder="At least 8 characters"
+                className="w-full h-11 px-3 pr-10 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-primary/30" />
               <button type="button" onClick={() => setShowNext(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 {showNext ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -85,10 +86,10 @@ function ChangePasswordForm() {
             <label className="text-xs font-medium text-muted-foreground">Confirm new password</label>
             <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
               placeholder="Repeat new password"
-              className="w-full h-11 px-3 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-amber-500/30 mt-1" />
+              className="w-full h-11 px-3 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-primary/30 mt-1" />
           </div>
           <button type="submit" disabled={saving || !current || !next || !confirm}
-            className="w-full h-11 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+            className="w-full h-11 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
             {saving ? 'Saving...' : 'Change Password'}
           </button>
         </form>
@@ -135,19 +136,19 @@ function AccountSettingsView() {
       {/* ── Profile card at top ── */}
       <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
         {/* Cover gradient */}
-        <div className="h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600" />
+        <div className="h-20 bg-primary" />
         {/* Avatar + name */}
         <div className="px-5 pb-4">
           <div className="flex items-end justify-between -mt-10 mb-3">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+              <div className="w-20 h-20 rounded-2xl ring-4 ring-card overflow-hidden bg-primary flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                 {avatarUrl
                   ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                   : initial}
               </div>
-              <Link href="/profile/edit"
-                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-500 hover:bg-amber-600 flex items-center justify-center shadow transition-colors">
-                <Camera className="w-3 h-3 text-white" />
+              <Link href="/profile/edit" aria-label="Change profile photo"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center shadow transition-colors">
+                <Camera className="w-3 h-3 text-white" aria-hidden="true" />
               </Link>
             </div>
             <Link href="/profile/edit"
@@ -186,6 +187,7 @@ function AccountSettingsView() {
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">Security</p>
         <ChangePasswordForm />
+        <TwoFactorSettings />
       </div>
 
       {/* ── Notifications ── */}
@@ -193,8 +195,8 @@ function AccountSettingsView() {
         <div>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-2">Notifications</p>
           <div className="bg-card rounded-2xl border border-border/50 px-4 py-3.5 flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${pushPerm === 'granted' ? 'bg-amber-50 dark:bg-amber-900/30' : 'bg-secondary/50'}`}>
-              {pushPerm === 'granted' ? <Bell className="w-4 h-4 text-amber-600" /> : <BellOff className="w-4 h-4 text-muted-foreground" />}
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${pushPerm === 'granted' ? 'bg-primary-subtle' : 'bg-secondary/50'}`}>
+              {pushPerm === 'granted' ? <Bell className="w-4 h-4 text-primary" /> : <BellOff className="w-4 h-4 text-muted-foreground" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">Push Notifications</p>
@@ -210,7 +212,7 @@ function AccountSettingsView() {
                 onCheckedChange={() => { void handlePushToggle(); }}
                 disabled={pushLoading}
                 aria-label="Toggle push"
-                className="shrink-0 duration-200 data-[state=checked]:bg-amber-500 data-[state=unchecked]:bg-secondary"
+                className="shrink-0 duration-200 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary"
               />
             )}
             {pushPerm === 'denied' && <span className="text-[10px] text-muted-foreground shrink-0">Blocked</span>}

@@ -102,9 +102,9 @@ Traffic flows through Cloudflare's proxy for DDoS protection and WAF.
 
 ### JWT Security
 ```javascript
-// Current: JWT in localStorage + cookie + memory (fixed in deployment-readiness-fix)
-// Planned fix: HttpOnly cookie (not accessible to JS) — Month 2–3
-// Migration plan in ADR-004
+// Current (TD-001, TD-014): access token in memory only; refresh token in an
+// HttpOnly cookie; a non-secret "nb_auth=1" hint cookie for edge routing.
+// ADR-004 (JWT in localStorage) is superseded.
 
 // JWT revocation already built:
 // Per-token (logout): redis SET revoked:{jti} 1 EX 604800
@@ -301,8 +301,12 @@ X-Content-Type-Options: nosniff            ✅
 X-Frame-Options: DENY                      ✅
 Referrer-Policy: strict-origin-when-cross-origin ✅
 Permissions-Policy: camera=(self), geolocation=(self) ✅  (camera: barcode scanning, verification selfie)
-Content-Security-Policy: [configured]      ✅
+Content-Security-Policy: per request in frontend-next/proxy.ts (lib/csp.ts) ✅
+  script-src 'self' 'nonce-<fresh per request>' 'strict-dynamic' (no 'unsafe-inline'; 'unsafe-eval' in dev only)
+X-Powered-By: not sent (poweredByHeader: false) ✅
 ```
+
+Pages render per request so each response gets its own nonce (audit F-016, 6 Nov 2026). New inline scripts must use `next/script` (Next.js adds the nonce) or read `x-nonce` from `headers()`; an inline script without the nonce is blocked. Check with `frontend-next/e2e/csp.spec.ts`.
 
 ---
 

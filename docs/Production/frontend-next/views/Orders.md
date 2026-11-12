@@ -21,7 +21,8 @@ sonner toasts, and auth failures are handled globally by interceptors.
 **API endpoints:**
 - `/api/entities`
 - `/api/client`
-- `/api/delivery/${orderId}`
+- `/api/delivery/order/${orderId}` (GET)
+- `/api/delivery` (POST)
 - `/api/returns`
 - `/api/returns/${rr.id}`
 - `/api/profiles`

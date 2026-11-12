@@ -18,7 +18,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_NAME, POLICIES_UPDATED, mailto } from '@/lib/legalIdentity';
 
 /* ── Section wrapper ── */
-function Section({ title, icon: Icon, iconColor = 'text-blue-600', iconBg = 'bg-blue-50 dark:bg-blue-900/20', children }: {
+function Section({ title, icon: Icon, iconColor = 'text-primary', iconBg = 'bg-primary-subtle', children }: {
   title: string; icon: any; iconColor?: string; iconBg?: string; children: React.ReactNode;
 }) {
   return (
@@ -47,7 +47,7 @@ function ToggleRow({ label, description, checked, onChange, disabled }: {
         <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
       </div>
       <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label}
-        className="shrink-0 data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-secondary" />
+        className="shrink-0 data-[state=checked]:bg-primary data-[state=unchecked]:bg-secondary" />
     </div>
   );
 }
@@ -78,9 +78,9 @@ function LinkRow({ label, description, href, danger }: {
 }) {
   return (
     <Link href={href}
-      className={`flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors ${danger ? 'text-red-500' : ''}`}>
+      className={`flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors ${danger ? 'text-destructive' : ''}`}>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold ${danger ? 'text-red-500' : ''}`}>{label}</p>
+        <p className={`text-sm font-semibold ${danger ? 'text-destructive' : ''}`}>{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -94,14 +94,14 @@ function ButtonRow({ label, description, onClick, danger, loading }: {
 }) {
   return (
     <button onClick={onClick} disabled={loading}
-      className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors text-left ${danger ? 'hover:bg-red-50 dark:hover:bg-red-950/20' : ''}`}>
+      className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-secondary/40 transition-colors text-left ${danger ? 'hover:bg-destructive-subtle' : ''}`}>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold ${danger ? 'text-red-500' : ''}`}>{label}</p>
+        <p className={`text-sm font-semibold ${danger ? 'text-destructive' : ''}`}>{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       {loading
         ? <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin shrink-0" />
-        : <ChevronRight className={`w-4 h-4 shrink-0 ${danger ? 'text-red-400' : 'text-muted-foreground'}`} />}
+        : <ChevronRight className={`w-4 h-4 shrink-0 ${danger ? 'text-destructive' : 'text-muted-foreground'}`} />}
     </button>
   );
 }
@@ -210,7 +210,7 @@ function PrivacyAndSecurityView() {
     <div data-page-guide="privacy-header" className="max-w-lg mx-auto space-y-5 pb-10">
 
       {/* ── Hero header ── */}
-      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 p-5 text-white">
+      <div className="rounded-2xl overflow-hidden bg-primary p-5 text-white">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5 text-white" />
@@ -221,13 +221,13 @@ function PrivacyAndSecurityView() {
           </div>
         </div>
         <div className="flex items-center gap-1.5 mt-3 bg-white/10 rounded-xl px-3 py-2">
-          <CheckCircle className="w-3.5 h-3.5 text-green-300 shrink-0" />
+          <CheckCircle className="w-3.5 h-3.5 text-white/80 shrink-0" />
           <p className="text-xs text-white/85">Your account is protected. Data encrypted at rest and in transit.</p>
         </div>
       </div>
 
       {/* ── Messaging Privacy ── */}
-      <Section title="Messaging Privacy" icon={Eye} iconColor="text-blue-600" iconBg="bg-blue-50 dark:bg-blue-900/20">
+      <Section title="Messaging Privacy" icon={Eye} iconColor="text-primary" iconBg="bg-primary-subtle">
         <SelectRow
           label="Last Seen & Online"
           description="Who can see when you were last active"
@@ -258,7 +258,7 @@ function PrivacyAndSecurityView() {
       </Section>
 
       {/* ── Posts & Profile ── */}
-      <Section title="Posts & Profile" icon={Eye} iconColor="text-emerald-600" iconBg="bg-emerald-50 dark:bg-emerald-900/20">
+      <Section title="Posts & Profile" icon={Eye} iconColor="text-success" iconBg="bg-success-subtle">
         <SelectRow
           label="Who can see my posts"
           description="Your name and photo stay visible so people can find you"
@@ -296,14 +296,14 @@ function PrivacyAndSecurityView() {
       </Section>
 
       {/* ── People you blocked, muted or restricted ── */}
-      <Section title="Blocked, Muted & Restricted" icon={Lock} iconColor="text-red-600" iconBg="bg-red-50 dark:bg-red-900/20">
+      <Section title="Blocked, Muted & Restricted" icon={Lock} iconColor="text-destructive" iconBg="bg-destructive-subtle">
         <PeopleList kind="blocked" title="Blocked" undo="Unblock" empty="You haven’t blocked anyone." />
         <PeopleList kind="muted" title="Muted" undo="Unmute" empty="You haven’t muted anyone." />
         <PeopleList kind="restricted" title="Restricted" undo="Unrestrict" empty="You haven’t restricted anyone." />
       </Section>
 
       {/* ── Account Security ── */}
-      <Section title="Account Security" icon={Lock} iconColor="text-violet-600" iconBg="bg-violet-50 dark:bg-violet-900/20">
+      <Section title="Account Security" icon={Lock} iconColor="text-brand-secondary" iconBg="bg-brand-secondary-subtle">
         <LinkRow
           label="Change Password"
           description="Update your account password regularly"
@@ -316,7 +316,7 @@ function PrivacyAndSecurityView() {
           onChange={() => toast.info('2FA is coming in the next update')}
         />
         <div className="px-4 py-3.5 flex items-start gap-3">
-          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground leading-relaxed">
             We recommend enabling Two-Factor Authentication to protect your wallet and business data.
           </p>
@@ -324,7 +324,7 @@ function PrivacyAndSecurityView() {
       </Section>
 
       {/* ── Data & Analytics ── */}
-      <Section title="Data & Analytics" icon={Database} iconColor="text-emerald-600" iconBg="bg-emerald-50 dark:bg-emerald-900/20">
+      <Section title="Data & Analytics" icon={Database} iconColor="text-success" iconBg="bg-success-subtle">
         <ToggleRow
           label="Usage Analytics"
           description="Help improve Nodbusiness by sharing anonymous usage data"
@@ -346,7 +346,7 @@ function PrivacyAndSecurityView() {
       </Section>
 
       {/* ── Legal ── */}
-      <Section title="Legal" icon={FileText} iconColor="text-slate-600" iconBg="bg-slate-100 dark:bg-slate-800/40">
+      <Section title="Legal" icon={FileText} iconColor="text-muted-foreground" iconBg="bg-secondary">
         <LinkRow label="Privacy Policy" description="How we collect, use and protect your data" href="/service-agreement?tab=privacy" />
         <LinkRow label="Terms of Service" description="Rules and conditions for using Nodbusiness" href="/service-agreement?tab=terms" />
         <LinkRow label="Cookie Policy" description="How we use cookies and tracking" href="/service-agreement?tab=cookies" />
@@ -354,13 +354,13 @@ function PrivacyAndSecurityView() {
           <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground">
             Privacy questions? Contact us at{' '}
-            <a href={mailto("Privacy request")} className="text-blue-600 underline">{CONTACT_EMAIL}</a>
+            <a href={mailto("Privacy request")} className="text-primary underline">{CONTACT_EMAIL}</a>
           </p>
         </div>
       </Section>
 
       {/* ── Danger Zone ── */}
-      <Section title="Danger Zone" icon={UserX} iconColor="text-red-500" iconBg="bg-red-50 dark:bg-red-900/20">
+      <Section title="Danger Zone" icon={UserX} iconColor="text-destructive" iconBg="bg-destructive-subtle">
         <ButtonRow
           label="Deactivate Account"
           description="Temporarily hide your profile and content"
@@ -369,7 +369,7 @@ function PrivacyAndSecurityView() {
         />
         <ButtonRow
           label="Delete Account"
-          description="Permanently delete your account and all data. This cannot be undone."
+          description="Remove your personal data. Orders and payment records are kept for accounting with your identity removed."
           onClick={() => { setDeletePassword(''); setDeleteConfirm(''); setDeleteOpen(true); }}
           danger
           loading={loadingDelete}

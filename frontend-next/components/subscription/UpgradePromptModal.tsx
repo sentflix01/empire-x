@@ -32,8 +32,8 @@ const TIER_LABELS: Record<string, string> = {
 
 const TIER_COLOR: Record<string, string> = {
   freemium: 'text-muted-foreground',
-  premium:  'text-amber-600',
-  pro:      'text-violet-600',
+  premium:  'text-primary',
+  pro:      'text-brand-secondary',
 };
 
 interface UpgradePromptModalProps {
@@ -72,8 +72,8 @@ export default function UpgradePromptModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
             </div>
             <DialogTitle className="text-lg">{featureLabel}</DialogTitle>
           </div>
@@ -102,7 +102,7 @@ export default function UpgradePromptModal({
               </p>
               {tierFeatures.map((f) => (
                 <div key={f} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
                   <span>{f}</span>
                 </div>
               ))}
@@ -113,7 +113,7 @@ export default function UpgradePromptModal({
           <div className="flex gap-2 pt-1">
             <Button
               onClick={handleUpgrade}
-              className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-2"
+              className="flex-1 bg-primary hover:bg-primary/90 text-white gap-2"
             >
               Upgrade to {requiredLabel}
               <ArrowRight className="w-4 h-4" />

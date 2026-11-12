@@ -1,0 +1,31 @@
+{
+  "id": "F-037",
+  "kind": "positive",
+  "phase": "P2-functional",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: order journey is correct and safe end to end (24/24 checks)",
+  "standards": [
+    "OWASP A06:2025",
+    "OWASP API1:2023",
+    "ASVS 5.0 V2.3"
+  ],
+  "location": [
+    "note/2026-11-05-international-audit/scripts/order-journey.mjs",
+    "backend/routes/directOrders.ts:310-421"
+  ],
+  "steps": [
+    "source ~/.nodbusiness-local/env.sh && node note/2026-11-05-international-audit/scripts/order-journey.mjs"
+  ],
+  "expected": "Server-side pricing, stock and state; only the right party acts.",
+  "actual": "Invalid quantities (0, -1, 1.5, over stock, 10001, injected text) and phones rejected; client price ignored; stock reserved in the order transaction; two concurrent orders for the last unit → exactly one succeeds, stock 0; only the seller confirms, once (409 on repeat); unrelated users and guests refused; guest order link is a 43-char token, altered tokens 404, no internal fields exposed; Amharic and emoji names round-trip; a browser double-click on 'Place order' creates one order.",
+  "evidence": [
+    "evidence/wave3/order-journey.json",
+    "evidence/wave3/double-click-order.png"
+  ],
+  "impact": "Keep; promote the script to a CI test.",
+  "fix": "None.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local"
+}

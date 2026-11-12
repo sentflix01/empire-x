@@ -1,0 +1,1052 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/profiles/by-user/:userId",
+    "access": "optional",
+    "at": "routes/profiles.ts:138",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/profiles/:id",
+    "access": "optional",
+    "at": "routes/profiles.ts:166",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/profiles/:id",
+    "access": "auth",
+    "at": "routes/profiles.ts:265",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/profiles/follow/:targetUserId",
+    "access": "auth",
+    "at": "routes/profiles.ts:309",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/posts/:id",
+    "access": "optional",
+    "at": "routes/posts.ts:145",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/posts/:id",
+    "access": "auth",
+    "at": "routes/posts.ts:223",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/posts/:id",
+    "access": "auth",
+    "at": "routes/posts.ts:257",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/posts/:id/like",
+    "access": "optional",
+    "at": "routes/posts.ts:278",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/posts/:id/like",
+    "access": "auth",
+    "at": "routes/posts.ts:286",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/posts/:id/reaction",
+    "access": "auth",
+    "at": "routes/posts.ts:333",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/posts/:id/reaction",
+    "access": "auth",
+    "at": "routes/posts.ts:363",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/posts/:id/reactions",
+    "access": "auth",
+    "at": "routes/posts.ts:373",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/posts/:id/hide",
+    "access": "auth",
+    "at": "routes/posts.ts:393",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/posts/:id/hide",
+    "access": "auth",
+    "at": "routes/posts.ts:400",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/posts/:id/settings",
+    "access": "auth",
+    "at": "routes/posts.ts:409",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/posts/:id/comments",
+    "access": "optional",
+    "at": "routes/posts.ts:448",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/posts/:id/comments",
+    "access": "auth",
+    "at": "routes/posts.ts:473",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/posts/:postId/comments/:commentId",
+    "access": "auth",
+    "at": "routes/posts.ts:528",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/posts/:postId/comments/:commentId",
+    "access": "auth",
+    "at": "routes/posts.ts:543",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/posts/:postId/comments/:commentId/reaction",
+    "access": "auth",
+    "at": "routes/posts.ts:556",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/posts/:postId/comments/:commentId/reaction",
+    "access": "auth",
+    "at": "routes/posts.ts:574",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/products/lookup/:code",
+    "access": "auth",
+    "at": "routes/products.ts:196",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/products/:id",
+    "access": "optional",
+    "at": "routes/products.ts:288",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/products/:id",
+    "access": "auth",
+    "at": "routes/products.ts:364",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/products/:id",
+    "access": "auth",
+    "at": "routes/products.ts:447",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/orders/session/:sessionId",
+    "access": "auth",
+    "at": "routes/orders.ts:118",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/orders/:id",
+    "access": "auth",
+    "at": "routes/orders.ts:126",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/orders/:id",
+    "access": "auth",
+    "at": "routes/orders.ts:259",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/profile-partnerships/business/:businessId/products",
+    "access": "auth",
+    "at": "routes/profilePartnerships.ts:74",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/profile-partnerships/profile/:userId",
+    "access": "optional",
+    "at": "routes/profilePartnerships.ts:91",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/profile-partnerships/:id/accept",
+    "access": "auth",
+    "at": "routes/profilePartnerships.ts:165",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/profile-partnerships/:id/decline",
+    "access": "auth",
+    "at": "routes/profilePartnerships.ts:175",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/profile-partnerships/:id/terminate",
+    "access": "auth",
+    "at": "routes/profilePartnerships.ts:185",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/profile-partnerships/:id/payouts",
+    "access": "auth",
+    "at": "routes/profilePartnerships.ts:247",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/conversations/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:242",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/conversations/:id/read",
+    "access": "auth",
+    "at": "routes/messages.ts:263",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/conversations/:id/mute",
+    "access": "auth",
+    "at": "routes/messages.ts:319",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/conversations/:id/archive",
+    "access": "auth",
+    "at": "routes/messages.ts:336",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/conversations/:id/accept",
+    "access": "auth",
+    "at": "routes/messages.ts:349",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/conversations/:id/for-me",
+    "access": "auth",
+    "at": "routes/messages.ts:373",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/conversations/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:561",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/conversations/:convId/messages",
+    "access": "auth",
+    "at": "routes/messages.ts:586",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/conversations/:convId/messages",
+    "access": "auth",
+    "at": "routes/messages.ts:607",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/messages/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:698",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/messages/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:699",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/messages/:id/for-me",
+    "access": "auth",
+    "at": "routes/messages.ts:700",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/conversations/:id/history",
+    "access": "auth",
+    "at": "routes/messages.ts:703",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/conversations/:id/leave",
+    "access": "auth",
+    "at": "routes/messages.ts:705",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/conversations/:id/members",
+    "access": "auth",
+    "at": "routes/messages.ts:734",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/conversations/:id/members/:userId",
+    "access": "auth",
+    "at": "routes/messages.ts:752",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/conversations/:id/members/:userId",
+    "access": "auth",
+    "at": "routes/messages.ts:766",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/conversations/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:792",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/presence/:userId",
+    "access": "auth",
+    "at": "routes/messages.ts:823",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/block/:targetId",
+    "access": "auth",
+    "at": "routes/messages.ts:885",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/block/:targetId",
+    "access": "auth",
+    "at": "routes/messages.ts:886",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/block/:targetId",
+    "access": "auth",
+    "at": "routes/messages.ts:891",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/messages/:id/forward",
+    "access": "auth",
+    "at": "routes/messages.ts:924",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/messages/:id/reactions",
+    "access": "auth",
+    "at": "routes/messages.ts:998",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/messages/:id/reactions",
+    "access": "auth",
+    "at": "routes/messages.ts:1023",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/messages/:id/reactions",
+    "access": "auth",
+    "at": "routes/messages.ts:1050",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/messages/:id/pin",
+    "access": "auth",
+    "at": "routes/messages.ts:1230",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/messages/:id/pin",
+    "access": "auth",
+    "at": "routes/messages.ts:1256",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/messages/conversations/:convId/pins",
+    "access": "auth",
+    "at": "routes/messages.ts:1278",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/saved/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:1299",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/saved/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:1316",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/messages/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:1402",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/:id",
+    "access": "auth",
+    "at": "routes/messages.ts:1403",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/messages/:id/for-me",
+    "access": "auth",
+    "at": "routes/messages.ts:1404",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/messages/:id/forward",
+    "access": "auth",
+    "at": "routes/messages.ts:1405",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notifications/:id/read",
+    "access": "auth",
+    "at": "routes/notifications.ts:140",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/notifications/:id",
+    "access": "auth",
+    "at": "routes/notifications.ts:151",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/businesses/:id",
+    "access": "optional",
+    "at": "routes/businesses.ts:50",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/businesses/:id",
+    "access": "auth",
+    "at": "routes/businesses.ts:83",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/businesses/:id",
+    "access": "auth",
+    "at": "routes/businesses.ts:96",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/businesses/:id/payment-accounts",
+    "access": "auth",
+    "at": "routes/businesses.ts:153",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/businesses/:id/payment-accounts",
+    "access": "auth",
+    "at": "routes/businesses.ts:161",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/businesses/:id/payment-accounts/:accountId",
+    "access": "auth",
+    "at": "routes/businesses.ts:178",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/businesses/:id/payment-accounts/:accountId",
+    "access": "auth",
+    "at": "routes/businesses.ts:196",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/businesses/:id/checkout-info",
+    "access": "optional",
+    "at": "routes/businesses.ts:209",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/slug/:slug",
+    "access": "optional",
+    "at": "routes/showrooms.ts:46",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/showrooms/:id/recheck/:sectionKey",
+    "access": "auth",
+    "at": "routes/showrooms.ts:64",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:id/doctor",
+    "access": "auth",
+    "at": "routes/showrooms.ts:89",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/showrooms/:id/newsletter",
+    "access": "optional",
+    "at": "routes/showrooms.ts:166",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:id/newsletter",
+    "access": "auth",
+    "at": "routes/showrooms.ts:184",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/showrooms/:id/spotlight",
+    "access": "auth",
+    "at": "routes/showrooms.ts:197",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:id",
+    "access": "optional",
+    "at": "routes/showrooms.ts:235",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/showrooms/:id",
+    "access": "auth",
+    "at": "routes/showrooms.ts:314",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/showrooms/:id",
+    "access": "auth",
+    "at": "routes/showrooms.ts:375",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/stories/user/:userId",
+    "access": "optional",
+    "at": "routes/stories.ts:31",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/stories/:id/view",
+    "access": "auth",
+    "at": "routes/stories.ts:56",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/stories/:id/reactions",
+    "access": "auth",
+    "at": "routes/stories.ts:64",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/stories/:id/comments",
+    "access": "auth",
+    "at": "routes/stories.ts:79",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/stories/:id/comments",
+    "access": "auth",
+    "at": "routes/stories.ts:86",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/stories/:id",
+    "access": "auth",
+    "at": "routes/stories.ts:104",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/reviews/product/:productId",
+    "access": "optional",
+    "at": "routes/reviews.ts:37",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/reviews/:id",
+    "access": "auth",
+    "at": "routes/reviews.ts:87",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/saves/check/:targetId",
+    "access": "auth",
+    "at": "routes/saves.ts:79",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/social/relationship/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:35",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/social/mute/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:74",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/social/mute/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:75",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/social/restrict/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:78",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/social/restrict/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:79",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/social/block/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:82",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/social/block/:userId",
+    "access": "auth",
+    "at": "routes/social.ts:107",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/suggestions/dismiss/:targetUserId",
+    "access": "auth",
+    "at": "routes/suggestions.ts:75",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hashtags/:name",
+    "access": "optional",
+    "at": "routes/hashtags.ts:68",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "GET",
+    "path": "/api/hashtags/:name/posts",
+    "access": "optional",
+    "at": "routes/hashtags.ts:92",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/polls/:postId/vote",
+    "access": "auth",
+    "at": "routes/polls.ts:9",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/polls/:postId/results",
+    "access": "optional",
+    "at": "routes/polls.ts:44",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/coupons/:id/toggle",
+    "access": "auth",
+    "at": "routes/coupons.ts:67",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/coupons/:id",
+    "access": "auth",
+    "at": "routes/coupons.ts:77",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/cart/:itemId",
+    "access": "auth",
+    "at": "routes/cart.ts:42",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/cart/:itemId",
+    "access": "auth",
+    "at": "routes/cart.ts:55",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/wishlists/check/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:19",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/wishlists/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:35",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/wishlists/price-alerts/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:67",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/price-alerts/check/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:19",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/price-alerts/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:35",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/price-alerts/price-alerts/:productId",
+    "access": "auth",
+    "at": "routes/wishlists.ts:67",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/variants/product/:productId",
+    "access": "optional",
+    "at": "routes/variants.ts:21",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/variants/product/:productId",
+    "access": "auth",
+    "at": "routes/variants.ts:39",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/variants/:id",
+    "access": "auth",
+    "at": "routes/variants.ts:54",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/variants/:id",
+    "access": "auth",
+    "at": "routes/variants.ts:69",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/returns/:id/approve",
+    "access": "auth",
+    "at": "routes/returns.ts:188",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/returns/:id/reject",
+    "access": "auth",
+    "at": "routes/returns.ts:189",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/returns/:id",
+    "access": "auth",
+    "at": "routes/returns.ts:190",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/delivery/order/:orderId",
+    "access": "auth",
+    "at": "routes/delivery.ts:9",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/flags/:name",
+    "access": "auth",
+    "at": "routes/flags.ts:30",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:showroomId/external-sources/health",
+    "access": "auth",
+    "at": "routes/externalSources.ts:103",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:showroomId/external-sources",
+    "access": "auth",
+    "at": "routes/externalSources.ts:127",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/showrooms/:showroomId/external-sources",
+    "access": "auth",
+    "at": "routes/externalSources.ts:139",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+    "access": "auth",
+    "at": "routes/externalSources.ts:162",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId",
+    "access": "auth",
+    "at": "routes/externalSources.ts:187",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "GET",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+    "access": "auth",
+    "at": "routes/externalSources.ts:202",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings",
+    "access": "auth",
+    "at": "routes/externalSources.ts:212",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId/mappings/:mappingId",
+    "access": "auth",
+    "at": "routes/externalSources.ts:228",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/showrooms/:showroomId/external-sources/:sourceId/refresh",
+    "access": "auth",
+    "at": "routes/externalSources.ts:240",
+    "verdict": "NO-CALLER-REFERENCE"
+  },
+  {
+    "method": "GET",
+    "path": "/api/proxy/:showroomId/:sectionKey",
+    "access": "optional",
+    "at": "routes/proxy.ts:17",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/direct-orders/:id/report-payment",
+    "access": "auth",
+    "at": "routes/directOrders.ts:465",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/direct-orders/:id/confirm-payment",
+    "access": "auth",
+    "at": "routes/directOrders.ts:475",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/direct-orders/:id/reject-payment",
+    "access": "auth",
+    "at": "routes/directOrders.ts:492",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/direct-orders/:id/set-price",
+    "access": "auth",
+    "at": "routes/directOrders.ts:511",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "POST",
+    "path": "/api/direct-orders/:id/decline-request",
+    "access": "auth",
+    "at": "routes/directOrders.ts:540",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/direct-orders/:id/receipt",
+    "access": "auth",
+    "at": "routes/directOrders.ts:572",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/subscriptions/payments/:ref/status",
+    "access": "auth",
+    "at": "routes/subscriptionsEtb.ts:137",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/subscriptions/payments/:id/receipt",
+    "access": "auth",
+    "at": "routes/subscriptionsEtb.ts:154",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "GET",
+    "path": "/api/locations/:businessId",
+    "access": "optional",
+    "at": "routes/locations.ts:105",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/business-webhooks/:id",
+    "access": "auth",
+    "at": "routes/businessWebhooks.ts:141",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/business-webhooks/:id",
+    "access": "auth",
+    "at": "routes/businessWebhooks.ts:236",
+    "verdict": "references-caller"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/business-api-keys/:id",
+    "access": "auth",
+    "at": "routes/businessApiKeys.ts:107",
+    "verdict": "references-caller"
+  }
+]

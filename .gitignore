@@ -23,6 +23,9 @@ frontend-next/build/
 frontend-next/*.tsbuildinfo
 
 # Uploaded files (store on cloud storage in production)
+# Private files (identity documents) in local development — never commit
+backend/private-uploads/
+backend/uploads-test-*/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
@@ -52,6 +55,7 @@ backend/api-catalog.json
 
 # Playwright artifacts
 test-results/
+frontend-next/e2e-report.json
 playwright-report/
 
 # QA screenshots — local test evidence, not source code
@@ -94,3 +98,6 @@ overview.json
 overview_architecture.puml
 
 backend/db/dev-credentials.json
+
+# Claude Code personal overrides (project settings in .claude/settings.json are shared)
+.claude/settings.local.json

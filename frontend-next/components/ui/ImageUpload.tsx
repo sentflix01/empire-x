@@ -40,7 +40,7 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [failedUrls, setFailedUrls] = useState<string[]>([]);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const urls = multiple
     ? (Array.isArray(value) ? value : value ? [value] : [])
@@ -80,7 +80,7 @@ export default function ImageUpload({
     }
   };
 
-  const removeUrl = (idx) => {
+  const removeUrl = (idx: number) => {
     const removed = multiple ? urls[idx] : singleValue;
     if (removed) setFailedUrls(current => current.filter(url => url !== removed));
     if (multiple) {
@@ -110,7 +110,7 @@ export default function ImageUpload({
           ) : (
             <div className="flex flex-col items-center gap-2 text-muted-foreground p-4">
               {uploading
-                ? <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                ? <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 : <Upload className="w-6 h-6" />
               }
               <span className="text-xs text-center">
@@ -182,7 +182,7 @@ export default function ImageUpload({
         {urls.length < max && (
           <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/30 transition-colors shrink-0">
             {uploading
-              ? <Loader2 className="w-5 h-5 text-amber-500 animate-spin" />
+              ? <Loader2 className="w-5 h-5 text-primary animate-spin" />
               : (
                 <>
                   <Upload className="w-5 h-5 text-muted-foreground" />

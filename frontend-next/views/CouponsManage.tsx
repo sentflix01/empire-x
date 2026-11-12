@@ -12,14 +12,28 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { formatAmount } from "@/lib/money";
+
+/** A coupon as /api/coupons/mine returns it. Money columns arrive as decimal strings. */
+interface Coupon {
+  id: string;
+  code: string;
+  discount_type: "percentage" | "fixed" | string;
+  discount_value: number | string;
+  min_order: number | string | null;
+  usage_limit: number | null;
+  usage_count: number;
+  expires_at: string | null;
+  is_active: boolean;
+}
 
 function CouponsManage() {
   const { t } = useTranslation();
-  const [coupons, setCoupons] = useState([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [form, setForm] = useState({
     code: "", discount_type: "percentage", discount_value: "",
     min_order: "", usage_limit: "", expires_at: ""
@@ -63,7 +77,7 @@ function CouponsManage() {
     setSaving(false);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       await client.delete(`/api/coupons/${id}`);
       setCoupons(prev => prev.filter(c => c.id !== id));
@@ -71,7 +85,7 @@ function CouponsManage() {
     } catch { toast.error("Failed to delete coupon"); }
   };
 
-  const handleToggle = async (id) => {
+  const handleToggle = async (id: string) => {
     try {
       const { data } = await client.patch(`/api/coupons/${id}/toggle`);
       setCoupons(prev => prev.map(c => c.id === id ? data : c));
@@ -79,7 +93,7 @@ function CouponsManage() {
     } catch { toast.error("Failed to update coupon"); }
   };
 
-  const handleCopy = (code) => {
+  const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code).then(() => {
       setCopied(code);
       toast.success("Code copied!");
@@ -98,7 +112,7 @@ function CouponsManage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Tag className="w-6 h-6 text-amber-500" />
+            <Tag className="w-6 h-6 text-primary" />
             <div>
               <h1 className="font-display text-2xl font-bold">Coupon Codes</h1>
               <p className="text-sm text-muted-foreground">Create discount codes for your customers</p>
@@ -107,7 +121,7 @@ function CouponsManage() {
           <Button
             onClick={() => setShowForm(!showForm)}
             size="sm"
-            className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+            className="rounded-full bg-primary hover:bg-primary/90"
           >
             <Plus className="w-4 h-4 mr-1" /> New Coupon
           </Button>
@@ -176,7 +190,7 @@ function CouponsManage() {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleCreate} disabled={saving} className="flex-1 h-10 rounded-full bg-gradient-to-r from-amber-500 to-amber-600">
+              <Button onClick={handleCreate} disabled={saving} className="flex-1 h-10 rounded-full bg-primary">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.create')}
               </Button>
               <Button variant="outline" onClick={() => setShowForm(false)} className="h-10 rounded-full">
@@ -189,7 +203,7 @@ function CouponsManage() {
         {/* Coupon List */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : coupons.length === 0 ? (
           <div className="text-center py-16 bg-card rounded-2xl border border-border/50">
@@ -201,7 +215,7 @@ function CouponsManage() {
           <div className="space-y-3">
             {coupons.map(c => {
               const isExpired = c.expires_at && new Date() > new Date(c.expires_at);
-              const isExhausted = c.usage_limit && c.usage_count >= c.usage_limit;
+              const isExhausted = !!c.usage_limit && c.usage_count >= c.usage_limit;
               const isInactive = !c.is_active || isExpired || isExhausted;
 
               return (
@@ -209,26 +223,26 @@ function CouponsManage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-mono font-bold text-lg tracking-widest text-amber-600">{c.code}</span>
+                        <span className="font-mono font-bold text-lg tracking-widest text-primary">{c.code}</span>
                         <button onClick={() => handleCopy(c.code)} className="p-1 rounded hover:bg-secondary transition-colors">
-                          {copied === c.code ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                          {copied === c.code ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
                         </button>
-                        {isInactive && <Badge variant="outline" className="text-xs text-red-500 border-red-200">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
+                        {isInactive && <Badge variant="outline" className="text-xs text-destructive border-destructive/30">{isExpired ? t('coupons.expired') : isExhausted ? "Used up" : t('common.inactive')}</Badge>}
                       </div>
                       <p className="text-sm font-semibold">
-                        {c.discount_type === "percentage" ? `${c.discount_value}% off` : `${c.discount_value} ETB off`}
-                        {c.min_order > 0 && <span className="text-muted-foreground font-normal"> on orders over {c.min_order} ETB</span>}
+                        {c.discount_type === "percentage" ? `${formatAmount(c.discount_value)}% off` : `${formatAmount(c.discount_value)} ETB off`}
+                        {Number(c.min_order) > 0 && <span className="text-muted-foreground font-normal"> on orders over {formatAmount(c.min_order)} ETB</span>}
                       </p>
                       <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
                         <span>Used: {c.usage_count}{c.usage_limit ? `/${c.usage_limit}` : ""}</span>
                         {c.expires_at && <span>Expires: {fromNow(c.expires_at)}</span>}
                       </div>
                     </div>
-                    <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-red-50 hover:text-red-500 text-muted-foreground transition-colors ml-2">
+                    <button onClick={() => handleDelete(c.id)} className="p-2 rounded-full hover:bg-destructive-subtle hover:text-destructive text-muted-foreground transition-colors ml-2">
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleToggle(c.id)}
-                      className={`p-2 rounded-full transition-colors ml-1 ${c.is_active ? 'text-green-600 hover:bg-green-50' : 'text-muted-foreground hover:bg-secondary'}`}
+                      className={`p-2 rounded-full transition-colors ml-1 ${c.is_active ? 'text-success hover:bg-success-subtle' : 'text-muted-foreground hover:bg-secondary'}`}
                       title={c.is_active ? 'Pause coupon' : 'Activate coupon'}>
                       {c.is_active
                         ? <ToggleRight className="w-5 h-5" />

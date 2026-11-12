@@ -14,7 +14,7 @@ import React from 'react';
 const MapLoadingFallback = () => (
   <div className="w-full h-full flex items-center justify-center bg-secondary/20 rounded-2xl">
     <div className="flex flex-col items-center gap-3">
-      <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
       <p className="text-sm text-muted-foreground">Loading map…</p>
     </div>
   </div>

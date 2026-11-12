@@ -1,0 +1,29 @@
+{
+  "id": "F-055",
+  "kind": "documentation",
+  "phase": "P12-docs",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "No accessibility statement, licence file or OpenAPI spec; most docs undated",
+  "standards": [
+    "European Accessibility Act / EN 301 549 (accessibility statement)",
+    "OpenAPI 3.1",
+    "ISO/IEC/IEEE 26514"
+  ],
+  "location": [
+    "repository root (no LICENSE)",
+    "docs/ (1,429 Markdown files; 70 with 'Last updated')",
+    "frontend-next/views/ServiceAgreement.tsx (tabs: terms, privacy, cookies, seller)"
+  ],
+  "expected": "Public accessibility statement with known issues and contact; a licence; a machine-readable API spec; dated, current docs.",
+  "actual": "No accessibility statement or conformance report. No LICENSE file. No OpenAPI document (the generated Markdown reference is accurate, F-011). Of 1,429 docs files only 70 show 'Last updated', mostly August–September 2026 — before the 16 October platform-model change (no funds held), so wallet and commission pages are likely stale. The in-app legal page offers Terms, Privacy, Cookies and Seller Agreement but not the existing Refund Policy.",
+  "evidence": [
+    "evidence/wave5/docs-inventory.txt"
+  ],
+  "impact": "Missing statements are expected by EU/UK accessibility law for services offered there; contributors cannot tell current docs from historical ones.",
+  "fix": "Publish an accessibility statement (WCAG 2.2 AA target, known issues from this audit, contact); add a LICENSE (owner decision); generate openapi.json alongside API_REFERENCE.md; add a docs freshness check (owner + date front-matter) and archive superseded pages; add the Refund Policy tab.",
+  "effort": "M",
+  "found_on": "2026-11-06",
+  "steps": [],
+  "environment": "repository"
+}

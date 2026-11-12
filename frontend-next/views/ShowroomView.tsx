@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { entities } from "@/api/entities";
+import { entities, type Product, type Showroom } from "@/api/entities";
+import { sectionList } from "@/lib/showroomSectionsCodec";
 import client from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -18,12 +19,15 @@ import NewsletterSignupsPanel from "@/components/showroom/NewsletterSignupsPanel
 import WhatsAppFloat from "@/components/showroom/WhatsAppFloat";
 import { siteFontFamily } from "@/lib/siteFonts";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
+
+type PurchaseItem = React.ComponentProps<typeof PurchaseModal>['item'];
 import QRLandingModal from "@/components/showroom/QRLandingModal";
 import TryDemoButton from '@/components/landing/TryDemoButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import SignInRequired, { isSignInRequired } from '@/components/auth/SignInRequired';
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
+import { fillForWhiteText } from '@/lib/contrast';
 
 /* ── Lightweight inquiry / "Get Quote" modal ─────────────────────────────── */
 function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, businessId, isAuthenticated, onClose }: {
@@ -67,7 +71,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, busine
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-modal flex items-end sm:items-center justify-center bg-black/60" onClick={onClose}>
       <div
         className="rounded-t-3xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"
         style={{ backgroundColor: 'hsl(var(--card))' }}
@@ -122,7 +126,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, busine
           <Button
             onClick={handleSend}
             disabled={sending || !name.trim() || !phone.trim()}
-            className="w-full h-11 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold"
+            className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold"
           >
             {sending
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
@@ -140,8 +144,8 @@ function ShowroomView() {
   const router = useRouter();
   const id = params.id;
   const slugParam = params.slug;
-  const [showroom, setShowroom] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [showroom, setShowroom] = useState<Showroom | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [productSearch, setProductSearch] = useState('');
   const [productCategory, setProductCategory] = useState('');
   const [productCategories, setProductCategories] = useState<string[]>([]);
@@ -155,7 +159,7 @@ function ShowroomView() {
   const [showQr, setShowQr] = useState(false);
   const { user } = useAuth();
   const [authResolved] = useState(true); // auth state from useAuth is synchronous
-  const [purchaseItem, setPurchaseItem] = useState(null);
+  const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
   const [quoteItem, setQuoteItem] = useState<{ name: string; desc?: string } | null>(null);
 
   const loadShowroom = useCallback(async () => {
@@ -248,11 +252,11 @@ function ShowroomView() {
     }
   }, [showroom?.owner_id, nextProductCursor, productsLoadingMore, productSearch, productCategory]);
 
-  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
   if (!showroom && signInRequired) return <SignInRequired />;
   if (!showroom) return <UnavailableNotice title="Showroom not found" message="This mini-website doesn't exist or has been removed." />;
 
-  const sections = (() => { try { return JSON.parse(showroom.sections); } catch { return []; } })();
+  const sections = sectionList(showroom.sections);
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const isOwner = user?.id === showroom.owner_id;
@@ -263,7 +267,7 @@ function ShowroomView() {
   const showWhatsappFloat = hero.whatsappButton !== false && Boolean(whatsappNumber);
 
   if (showroom.status !== "published" && !(authResolved && isOwner)) {
-    if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+    if (!authResolved) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
     return <UnavailableNotice title="Showroom unavailable" message="This mini-website is not publicly available." />;
   }
 
@@ -272,7 +276,7 @@ function ShowroomView() {
       ? `${window.location.origin}/showroom/${showroom.slug}`
       : `${window.location.origin}/showrooms/${showroom.id}`
     : '';
-  const themeColor = showroom.theme_color || "#D4AF37";
+  const themeColor = showroom.theme_color || "#2563EB";
   const profile = {
     ...showroom,
     business_name: showroom.title,
@@ -281,9 +285,9 @@ function ShowroomView() {
   };
 
   // Handler called by SectionRenderer when a priced service or product is clicked
-  const handleBuy = (item) => {
+  const handleBuy = (item: Record<string, any>) => {
     // Guests can buy — they'll enter name/phone at checkout
-    setPurchaseItem(item);
+    setPurchaseItem({ ...item, title: String(item.title ?? item.name ?? '') });
   };
 
   // Handler for "Get Quote" service items
@@ -307,11 +311,13 @@ function ShowroomView() {
         <QRLandingModal
           businessName={showroom.title}
           businessCategory={showroom.category}
-          logoUrl={showroom.logo_url}
+          logoUrl={showroom.logo_url ?? undefined}
           currentPath={typeof window !== 'undefined' ? window.location.pathname : ''}
           themeColor={themeColor}
         />
       )}
+        {/* Hero and banner sections render the page's <h1>; without one, name the page for screen readers (audit F-042). */}
+        {!sections.some(sec => sec?.type === "hero" || sec?.type === "banner") && <h1 className="sr-only">{showroom.title}</h1>}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={handleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Go back
@@ -319,7 +325,7 @@ function ShowroomView() {
           <div className="flex items-center gap-2">
             {!user && <TryDemoButton />}
             {showroom.status !== "published" && isOwner && (
-              <Badge variant="outline" className="text-amber-600 border-amber-400/50">Draft preview</Badge>
+              <Badge variant="outline" className="text-primary border-primary/50">Draft preview</Badge>
             )}
             {isOwner && (
               <>
@@ -329,7 +335,7 @@ function ShowroomView() {
                 </Button>
                 {showroom.status === "published" && (
                   <Link href={`/profile/${showroom.owner_id}?view=business`}>
-                    <Button size="sm" className="rounded-full h-8 bg-amber-500 text-white hover:bg-amber-600">
+                    <Button size="sm" className="rounded-full h-8 bg-primary text-white hover:bg-primary/90">
                       <Check className="w-3 h-3 mr-1" /> Finish
                     </Button>
                   </Link>
@@ -429,7 +435,7 @@ function ShowroomView() {
                 <Link
                   href="/register"
                   className="h-8 px-3 rounded-xl text-white text-xs font-semibold flex items-center transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: themeColor }}
+                  style={{ backgroundColor: fillForWhiteText(themeColor) }}
                 >
                   Join Free
                 </Link>
@@ -445,8 +451,8 @@ function ShowroomView() {
 function UnavailableNotice({ title, message }: { title: string; message: string }) {
   return (
     <div className="max-w-2xl mx-auto text-center py-20">
-      <BrandLogo className="w-12 h-12 text-amber-400/40 mx-auto mb-3" />
-      <h2 className="font-display text-xl font-bold">{title}</h2>
+      <BrandLogo size={48} className="w-12 h-12 text-primary/40 mx-auto mb-3" />
+      <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="text-sm text-muted-foreground mt-1">{message}</p>
       <Link href="/" className="inline-block mt-4">
         <Button variant="outline" className="rounded-full">Go Home</Button>

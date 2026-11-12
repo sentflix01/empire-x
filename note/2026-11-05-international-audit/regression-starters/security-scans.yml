@@ -1,0 +1,36 @@
+# Copy to .github/workflows/security-scans.yml. Pin every action to a commit SHA when adopting.
+# Guards F-024 (no secret scanning) and adds a passive OWASP ZAP baseline against a CI-started app.
+name: Security scans
+on:
+  pull_request: { branches: [main] }
+  schedule: [{ cron: '23 3 * * 1' }]
+permissions:
+  contents: read
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7          # pin to SHA
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2  # pin to SHA
+        env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+  zap-baseline:
+    # Passive scan only, against the app started inside the job — never against production.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7          # pin to SHA
+      - uses: actions/setup-node@v7        # pin to SHA
+        with: { node-version: '20' }
+      - name: Start frontend (production build)
+        working-directory: frontend-next
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+        run: |
+          npm ci --legacy-peer-deps
+          npm run build
+          (npx next start -p 3002 &) && npx wait-on http://localhost:3002/landing
+      - uses: zaproxy/action-baseline@v0.14.0   # pin to SHA
+        with:
+          target: http://localhost:3002/landing
+          fail_action: false

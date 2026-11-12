@@ -1,0 +1,31 @@
+{
+  "id": "F-064",
+  "kind": "defect",
+  "phase": "P8-legal",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Public landing footer has no links to Terms, Privacy, Cookies, Accessibility or contact",
+  "standards": [
+    "European Accessibility Act / EN 301 549 (accessibility statement findability)",
+    "EU e-commerce information requirements (counsel to confirm)",
+    "Nielsen heuristic 10 (help and documentation)"
+  ],
+  "location": [
+    "frontend-next/app/landing/page.tsx:319-329"
+  ],
+  "steps": [
+    "Open /landing; the footer links are Sign In, Register, Marketplace, Showrooms.",
+    "Legal pages are linked only from /login, /register (Terms, Privacy) and the signed-in Privacy settings screen."
+  ],
+  "expected": "Every public page footer links to Terms, Privacy, Cookies, Accessibility statement and a contact/imprint, as expected of an international platform.",
+  "actual": "A first-time visitor cannot find the policies or the accessibility statement without starting sign-up.",
+  "evidence": [
+    "frontend-next/app/landing/page.tsx:319-329"
+  ],
+  "impact": "Trust and compliance: visitors and regulators expect policies one click away from every public page.",
+  "fix": "Add a shared PublicFooter with Terms, Privacy, Cookies, Accessibility (/service-agreement?tab=...), contact (mailto from lib/legalIdentity.ts) and the legal identity line; use it on landing, marketplace, showroom and auth pages.",
+  "effort": "S",
+  "environment": "repository",
+  "regression_test": "Playwright: /landing footer has links to each policy tab and they return 200.",
+  "found_on": "2026-11-11"
+}

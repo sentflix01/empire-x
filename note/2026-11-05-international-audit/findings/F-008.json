@@ -1,0 +1,34 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-008",
+  "title": "Engineering docs describe controls that no longer match the code",
+  "phase": "P12-docs",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 maintainability",
+    "ISO/IEC/IEEE 26514 (information currency)"
+  ],
+  "location": [
+    "docs/operations/TECHNICAL_DEBT.md (TD-003, TD-004)",
+    "docs/architecture/ADR.md (ADR-004)",
+    "frontend-next/api/auth.ts:32",
+    "project-brain/MESSAGING_AUDIT.md §3.1",
+    "docs/PRODUCTION_READINESS_SCORECARD.md (255 endpoints)"
+  ],
+  "expected": "Docs match implementation (CONTRIBUTING.md: docs must not drift).",
+  "actual": "TD-004 says the backend is JavaScript (it is TypeScript, typechecked in CI). TD-003 says no browser E2E exists (11 Playwright specs in frontend-next/e2e). ADR-004 and an auth.ts comment say the JWT is kept in localStorage (memory only per api/client.ts). MESSAGING_AUDIT lists reactions as missing (backend/db/migrate70.js, routes/messages.ts:998). Scorecard cites 255 endpoints; live routers expose 354.",
+  "evidence": [
+    "backend/tsconfig.json",
+    "frontend-next/e2e/",
+    "frontend-next/api/client.ts:13",
+    "backend/routes/messages.ts:998",
+    "inventory/endpoints.json"
+  ],
+  "impact": "New contributors and reviewers act on wrong assumptions (e.g. re-doing completed work or misjudging XSS exposure).",
+  "fix": "Mark TD-003/TD-004 done or re-scope; amend ADR-004 status to Superseded by TD-001/TD-014; fix the auth.ts comment; add a dated 'superseded' note to MESSAGING_AUDIT; regenerate scorecard figures from scripts.",
+  "effort": "S",
+  "kind": "documentation"
+}

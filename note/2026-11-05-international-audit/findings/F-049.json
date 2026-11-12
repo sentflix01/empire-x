@@ -1,0 +1,31 @@
+{
+  "id": "F-049",
+  "kind": "positive",
+  "phase": "P4-a11y",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: keyboard operation, motion preferences and page structure basics are sound",
+  "standards": [
+    "WCAG 2.2 SC 2.1.1, 2.4.3, 2.4.7, 2.3.3, 3.1.1, 2.4.2"
+  ],
+  "location": [
+    "frontend-next/components/PageGuide.tsx",
+    "frontend-next/components/checkout/PurchaseModal.tsx",
+    "frontend-next/app/layout.tsx"
+  ],
+  "steps": [
+    "keyboard and reduced-motion checks (evidence files)."
+  ],
+  "expected": "Logical focus order, visible focus, operable controls, motion preferences honoured.",
+  "actual": "Tab order on login, register and landing follows the visual order with a visible focus indicator at every stop; the visually hidden terms checkbox toggles with Space; tour and checkout dialogs use dialog roles with focus management; infinite animations stop under prefers-reduced-motion; every page sets lang=\"en\" and a title; layout shift is low (CLS ≤ 0.051); Lighthouse best-practices 96–100 and SEO 91–100; the checkout form has labels and autocomplete on every field.",
+  "evidence": [
+    "evidence/wave4/keyboard.json",
+    "evidence/wave4/themes-motion.json",
+    "evidence/wave4/lighthouse/login.json"
+  ],
+  "impact": "Keep.",
+  "fix": "None.",
+  "effort": "S",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

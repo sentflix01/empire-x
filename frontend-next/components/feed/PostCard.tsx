@@ -1,4 +1,5 @@
 'use client';
+import { CHART_SERIES, token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { entities } from '@/api/entities';
@@ -33,10 +34,10 @@ import SafeImage from '@/components/ui/SafeImage';
 interface Post {
   id: string;
   author_id: string;
-  author_name?: string;
-  author_avatar?: string;
-  content?: string;
-  image_url?: string;
+  author_name?: string | null;
+  author_avatar?: string | null;
+  content?: string | null;
+  image_url?: string | null;
   poll_options?: string;
   poll_ends_at?: string;
   /** In-app destination, e.g. /showroom/<slug> for a site announcement. */
@@ -68,6 +69,7 @@ import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { editComment, postLink, react, reactToComment, REACTIONS, setMuted, unhidePost, unreact, type CommentPolicy, type Reaction } from '@/lib/socialApi';
 import { loadOwnerFeedBusinesses } from '@/lib/feedBusiness';
 import EmojiInsertButton from '@/components/ui/EmojiInsertButton';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
 interface Profile extends UserProfile {
 }
@@ -124,13 +126,13 @@ function detectVariant(post: Post): Variant {
 }
 
 /* ── Hashtag renderer ───────────────────────────────── */
-function RenderText({ text }: { text?: string }) {
+function RenderText({ text }: { text?: string | null }) {
   if (!text) return null;
   return (
     <>
       {text.split(/(#[\w\u1200-\u137F]+)/g).map((part, i) =>
         part.startsWith('#') ? (
-          <Link key={i} href={`/hashtag/${part.slice(1)}`} className="text-amber-600 font-medium hover:underline">
+          <Link key={i} href={`/hashtag/${part.slice(1)}`} className="text-primary font-medium hover:underline">
             {part}
           </Link>
         ) : (
@@ -157,7 +159,7 @@ function CommentEditor({ initial, onSave, onCancel }: { initial: string; onSave:
         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void save(); } if (e.key === 'Escape') onCancel(); }}
         className="w-full resize-none rounded-lg border border-border bg-background px-2 py-1 text-sm" />
       <div className="flex gap-2">
-        <button type="button" onClick={() => void save()} disabled={busy || !text.trim()} className="min-h-8 rounded-full bg-amber-500 px-3 text-xs font-semibold text-white disabled:opacity-50">Save</button>
+        <button type="button" onClick={() => void save()} disabled={busy || !text.trim()} className="min-h-8 rounded-full bg-primary px-3 text-xs font-semibold text-white disabled:opacity-50">Save</button>
         <button type="button" onClick={onCancel} className="min-h-8 rounded-full px-3 text-xs">Cancel</button>
       </div>
     </div>
@@ -220,7 +222,7 @@ function PromoPost({ post, themeColor, primaryBiz, onOpen }: { post: Post; theme
           />
           <div className="absolute inset-0 bg-black/25" />
           <div className="absolute top-3 left-3">
-            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow">
+            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-destructive text-white shadow">
               <Tag className="w-3 h-3" /> SPECIAL OFFER
             </span>
           </div>
@@ -228,7 +230,7 @@ function PromoPost({ post, themeColor, primaryBiz, onOpen }: { post: Post; theme
       )}
       <div className="px-4 py-3" style={{ borderLeft: `4px solid ${themeColor}` }}>
         {primaryBiz?.business_name && (
-          <p className="text-xs font-bold mb-1" style={{ color: themeColor }}>{primaryBiz.business_name}</p>
+          <p className="biz-text text-xs font-bold mb-1" style={{ ...themeTextStyle(themeColor) }}>{primaryBiz.business_name}</p>
         )}
         <p className="text-sm leading-relaxed font-medium"><RenderText text={post.content} /></p>
       </div>
@@ -254,7 +256,7 @@ function EventPost({ post, onOpen }: { post: Post; onOpen: () => void }) {
             onError={() => setErr(true)}
           />
           <div className="absolute top-3 right-3">
-            <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white">
+            <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-success text-white">
               <CalendarDays className="w-3 h-3" /> Event
             </span>
           </div>
@@ -262,8 +264,8 @@ function EventPost({ post, onOpen }: { post: Post; onOpen: () => void }) {
         </div>
       )}
       <div className="px-4 pb-3">
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200/60">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0">
+        <div className="flex items-start gap-3 p-3 rounded-xl bg-success-subtle border border-success/30">
+          <div className="w-10 h-10 rounded-xl bg-success flex items-center justify-center shrink-0">
             <CalendarDays className="w-5 h-5 text-white" />
           </div>
           <p className="text-sm leading-relaxed"><RenderText text={post.content} /></p>
@@ -276,13 +278,13 @@ function EventPost({ post, onOpen }: { post: Post; onOpen: () => void }) {
 function LocationPost({ post }: { post: Post }) {
   return (
     <div className="px-4 pb-3">
-      <div className="rounded-xl overflow-hidden border border-blue-200/60">
-        <div className="bg-gradient-to-br from-blue-100 to-sky-100 h-20 flex items-center justify-center relative">
+      <div className="rounded-xl overflow-hidden border border-primary/30">
+        <div className="bg-primary-subtle h-20 flex items-center justify-center relative">
           <div
             className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: 'radial-gradient(circle,#3b82f6 1px,transparent 1px)', backgroundSize: '18px 18px' }}
+            style={{ backgroundImage: `radial-gradient(circle,${token.primary} 1px,transparent 1px)`, backgroundSize: '18px 18px' }}
           />
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center shadow-lg z-10">
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg z-10">
             <MapPin className="w-5 h-5 text-white" />
           </div>
         </div>
@@ -302,8 +304,8 @@ function TextPost({ post, isPromo, themeColor, primaryBiz }: { post: Post; isPro
           className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg"
           style={{ backgroundColor: themeColor + '15', borderLeft: `3px solid ${themeColor}` }}
         >
-          <Sparkles className="w-3.5 h-3.5 shrink-0" style={{ color: themeColor }} />
-          <span className="text-xs font-semibold" style={{ color: themeColor }}>
+          <Sparkles className="biz-text w-3.5 h-3.5 shrink-0" style={{ ...themeTextStyle(themeColor) }} />
+          <span className="biz-text text-xs font-semibold" style={{ ...themeTextStyle(themeColor) }}>
             {primaryBiz.business_name} · Special Offer
           </span>
         </div>
@@ -321,7 +323,7 @@ function PollPost({ post }: { post: Post }) {
   const [voting, setVoting] = useState(false);
   const isEnded = !!(post.poll_ends_at && new Date() > new Date(post.poll_ends_at));
   const total = options.reduce((s, o) => s + (o.vote_count ?? 0), 0);
-  const COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981'];
+  const COLORS = CHART_SERIES;
 
   const vote = async (id: string) => {
     if (voted || isEnded || voting) return;
@@ -365,7 +367,7 @@ function PollPost({ post }: { post: Post }) {
                   {opt.text}
                 </span>
                 {(voted || isEnded) && (
-                  <span className="text-xs font-bold ml-2" style={{ color }}>{pct}%</span>
+                  <span className="biz-text text-xs font-bold ml-2" style={{ ...themeTextStyle(color) }}>{pct}%</span>
                 )}
               </span>
             </button>
@@ -699,35 +701,58 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
   const variant = detectVariant(post);
   const isPromo = variant === 'promo';
 
-  // Ticker is fully opt-in:
-  // - 'none' (or no profile yet) → never show ticker
-  // - 'auto' → show ticker_text if set; if blank, auto-generate from business contact info
-  // - any other type → show ticker_text directly (no auto-generation)
-  const rawTickerType = (authorProfile?.ticker_type as string | undefined) ?? 'none';
-  const tickerType = rawTickerType;
+  // Ticker display logic:
+  // - ticker_type 'none' with empty ticker_text = never touched, skip auto-gen
+  // - ticker_type 'none' with ticker_text set = user explicitly turned off, hide
+  // - ticker_type null/undefined = not configured, auto-generate from business contact info
+  // - ticker_type 'auto' = auto-generate from ticker_text or business contact info
+  // - any other type = show ticker_text directly
+  const rawTickerType = (authorProfile?.ticker_type as string | undefined);
+  const profileTickerText = (authorProfile?.ticker_text as string | undefined)?.trim();
+
+  // Resolve effective type: null means "not configured" → auto-generate
+  const tickerType = rawTickerType === 'none'
+    ? 'none'
+    : rawTickerType || 'auto';   // null/undefined → treat as 'auto'
 
   const tickerText = (() => {
-    if (rawTickerType === 'none') return undefined;
-    const profileText = authorProfile?.ticker_text as string | undefined;
-    if (profileText?.trim()) return profileText;
-    // Only auto-generate from business info when the user chose 'auto'
-    if (rawTickerType === 'auto') {
-      return (
-        (primaryBiz?.business_contact_phone ? `Call: ${primaryBiz.business_contact_phone}  |  ${primaryBiz.business_name ?? ''}` : undefined) ??
-        (primaryBiz?.business_contact_email ? `Email: ${primaryBiz.business_contact_email}` : undefined) ??
-        (primaryBiz?.business_address ? `Visit: ${primaryBiz.business_address}` : undefined)
-      );
-    }
+    if (tickerType === 'none') return undefined;
+    // Use explicitly set text first
+    if (profileTickerText) return profileTickerText;
+    // Auto-generate from business contact info — check direct columns first
+    const phone   = (primaryBiz?.business_contact_phone as string | undefined)?.trim();
+    const email   = (primaryBiz?.business_contact_email as string | undefined)?.trim();
+    const address = (primaryBiz?.business_address       as string | undefined)?.trim();
+    const bizName = (primaryBiz?.business_name          as string | undefined)?.trim();
+    if (phone)   return `📞 ${phone}  ·  ${bizName ?? ''}`;
+    if (email)   return `✉️ ${email}`;
+    if (address) return `📍 ${address}`;
+    // Fallback: read from the contact section inside business_sections JSON
+    try {
+      const sectionsRaw = primaryBiz?.business_sections as string | undefined;
+      if (sectionsRaw) {
+        const parsed: Array<Record<string, unknown>> = JSON.parse(sectionsRaw);
+        const contact = parsed.find(s => s.type === 'contact');
+        if (contact) {
+          const p = (contact.phone    as string | undefined)?.trim();
+          const e = (contact.email    as string | undefined)?.trim();
+          const a = (contact.location as string | undefined)?.trim();
+          if (p) return `📞 ${p}  ·  ${bizName ?? ''}`;
+          if (e) return `✉️ ${e}`;
+          if (a) return `📍 ${a}`;
+        }
+      }
+    } catch { /* ignore JSON parse errors */ }
     return undefined;
   })();
 
   type BadgeEntry = { Icon: React.ComponentType<{ className?: string }> ; label: string; cls: string };
   const VBADGE: Partial<Record<Variant, BadgeEntry>> = {
-    promo:    { Icon: Tag as React.ComponentType<{ className?: string }>,          label: 'Promo',    cls: 'bg-red-100 text-red-600' },
-    event:    { Icon: CalendarDays as React.ComponentType<{ className?: string }>, label: 'Event',    cls: 'bg-emerald-100 text-emerald-700' },
-    location: { Icon: MapPin as React.ComponentType<{ className?: string }>,       label: 'Location', cls: 'bg-blue-100 text-blue-700' },
-    poll:     { Icon: BarChart2 as React.ComponentType<{ className?: string }>,    label: 'Poll',     cls: 'bg-purple-100 text-purple-700' },
-    image:    { Icon: Newspaper as React.ComponentType<{ className?: string }>,    label: 'Photo',    cls: 'bg-slate-100 text-slate-600' },
+    promo:    { Icon: Tag as React.ComponentType<{ className?: string }>,          label: 'Promo',    cls: 'bg-destructive-subtle text-destructive' },
+    event:    { Icon: CalendarDays as React.ComponentType<{ className?: string }>, label: 'Event',    cls: 'bg-success-subtle text-success' },
+    location: { Icon: MapPin as React.ComponentType<{ className?: string }>,       label: 'Location', cls: 'bg-primary-subtle text-primary' },
+    poll:     { Icon: BarChart2 as React.ComponentType<{ className?: string }>,    label: 'Poll',     cls: 'bg-brand-secondary-subtle text-brand-secondary' },
+    image:    { Icon: Newspaper as React.ComponentType<{ className?: string }>,    label: 'Photo',    cls: 'bg-secondary text-muted-foreground' },
   };
   const vb = VBADGE[variant] ?? null;
 
@@ -753,7 +778,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
           footer={
             <div className="flex items-center gap-2">
               <button type="button" onClick={handleLike} aria-pressed={liked} aria-label={`${liked ? 'Unlike' : 'Like'} photo`}
-                className={`flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${liked ? 'bg-red-500 text-white' : 'bg-white/15 text-white'}`}>
+                className={`flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-semibold ${liked ? 'bg-destructive text-white' : 'bg-white/15 text-white'}`}>
                 <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} aria-hidden="true" /> {likeCount}
               </button>
               {viewMode === 'personal' && (
@@ -770,7 +795,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Link
           href={`/profile/${post.author_id}?view=${viewMode === 'business' ? 'business' : 'personal'}`}
-          className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 'bg-primary'}`}
+          className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden ${viewMode === 'business' ? 'bg-primary' : 'bg-primary'}`}
           aria-label={`View ${post.author_name ?? 'user'}'s profile`}
         >
           <SafeAvatar
@@ -788,8 +813,8 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             {authorProfile?.is_verified && (
               <VerifiedBadge type={authorProfile.verification_type as VerificationType} size="sm" />
             )}
-            {viewMode === 'personal' && <UserIcon className="w-3 h-3 text-blue-400 shrink-0" />}
-            {viewMode === 'business' && <Store className="w-3 h-3 text-amber-500 shrink-0" />}
+            {viewMode === 'personal' && <UserIcon className="w-3 h-3 text-primary shrink-0" />}
+            {viewMode === 'business' && <Store className="w-3 h-3 text-primary shrink-0" />}
             {vb && viewMode === 'personal' && (() => {
               const Icon = vb.Icon;
               return (
@@ -854,7 +879,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             {variant === 'text'     && <TextPost     post={post} isPromo={isPromo} themeColor={themeColor} primaryBiz={primaryBiz} />}
             {post.link_url?.startsWith('/') && !post.link_url.startsWith('//') && (
               <div className="px-4 pb-3">
-                <Link href={post.link_url} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: themeColor }}>
+                <Link href={post.link_url} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                   <Store className="w-4 h-4" /> Visit site
                 </Link>
               </div>
@@ -897,7 +922,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                 aria-label={`${liked ? 'Unlike' : 'Like'} post by ${post.author_name ?? 'user'}`}
                 aria-pressed={liked}
                 title="Hold for more reactions"
-                className={`post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all select-none ${liked ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-muted-foreground hover:bg-secondary'}`}
+                className={`post-action-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all select-none ${liked ? 'text-destructive bg-destructive-subtle' : 'text-muted-foreground hover:bg-secondary'}`}
               >
                 {myReaction && myReaction !== '❤️'
                   ? <span aria-hidden="true" className="text-base leading-none">{myReaction}</span>
@@ -976,7 +1001,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
             <p className="mb-3 rounded-xl bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">Comments are turned off for this post.</p>
           ) : (
           <div className="flex gap-2 mb-3 items-center">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-semibold shrink-0" aria-hidden="true">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold shrink-0" aria-hidden="true">
               {currentUser?.full_name?.charAt(0) ?? '?'}
             </div>
             <input
@@ -988,13 +1013,13 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               placeholder={t('feed.postComment')}
               aria-label={t('feed.postComment')}
               maxLength={500}
-              className="flex-1 min-w-0 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-amber-500/30"
+              className="flex-1 min-w-0 text-sm bg-secondary/50 rounded-full px-4 py-2 outline-none focus:ring-1 focus:ring-primary/30"
             />
             <EmojiInsertButton value={commentText} inputRef={commentInputRef} placement="above"
               onChange={(next) => setCommentText(next.slice(0, 500))} />
             {commentText.length > 0 && (
               <span
-                className={`text-[11px] shrink-0 tabular-nums ${commentText.length > 200 ? 'text-amber-500' : 'text-muted-foreground'}`}
+                className={`text-[11px] shrink-0 tabular-nums ${commentText.length > 200 ? 'text-primary' : 'text-muted-foreground'}`}
                 aria-live="polite"
                 aria-label={`${commentText.length} of 500 characters`}
               >
@@ -1005,7 +1030,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
               onClick={handleAddComment}
               disabled={!commentText.trim()}
               aria-label="Post comment"
-              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-amber-500 text-white disabled:opacity-40 transition-opacity"
+              className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white disabled:opacity-40 transition-opacity"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
@@ -1014,7 +1039,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
 
           {loadingComments ? (
             <div className="flex justify-center py-2">
-              <div className="w-5 h-5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             </div>
           ) : (
             <>
@@ -1100,7 +1125,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                               const result = await reactToComment(post.id, c.id, next).catch(() => null);
                               if (result) setComments(prev => prev.map(x => x.id === c.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
                             }}
-                            className={`flex items-center gap-0.5 transition-colors ${c.my_reaction ? 'text-red-500' : 'hover:text-red-500'}`}
+                            className={`flex items-center gap-0.5 transition-colors ${c.my_reaction ? 'text-destructive' : 'hover:text-destructive'}`}
                             aria-label={c.my_reaction ? 'Unlike comment' : 'Like comment'}
                             aria-pressed={Boolean(c.my_reaction)}
                           >
@@ -1109,7 +1134,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                           </button>
                           {/* Reply */}
                           <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                            className="hover:text-amber-600 flex items-center gap-0.5 transition-colors">
+                            className="hover:text-primary flex items-center gap-0.5 transition-colors">
                             <Reply className="w-3 h-3" />
                             {t('common.reply')}
                           </button>
@@ -1143,7 +1168,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                               placeholder={t('feed.replyTo', { name: c.author_name })}
                               aria-label={t('feed.replyTo', { name: c.author_name })}
                               maxLength={500}
-                              className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-amber-500/30"
+                              className="flex-1 text-xs bg-secondary/50 rounded-full px-3 py-1.5 outline-none focus:ring-1 focus:ring-primary/30"
                               onKeyDown={async e => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                   const val = replyTexts[c.id]?.trim();
@@ -1156,7 +1181,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                             />
                             {(replyTexts[c.id]?.length ?? 0) > 0 && (
                               <span
-                                className={`text-[11px] shrink-0 self-center tabular-nums ${(replyTexts[c.id]?.length ?? 0) > 200 ? 'text-amber-500' : 'text-muted-foreground'}`}
+                                className={`text-[11px] shrink-0 self-center tabular-nums ${(replyTexts[c.id]?.length ?? 0) > 200 ? 'text-primary' : 'text-muted-foreground'}`}
                                 aria-live="polite"
                                 aria-label={`${replyTexts[c.id]?.length ?? 0} of 500 characters`}
                               >
@@ -1170,7 +1195,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                 const ok = await handleAddReply(c, val);
                                 if (ok) setReplyTexts(prev => ({ ...prev, [c.id]: '' }));
                               }}
-                              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-amber-500 text-white text-xs"
+                              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-primary text-white text-xs"
                               aria-label="Send reply"
                             >↑</button>
                           </div>
@@ -1182,7 +1207,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                       <div className="ml-9 pt-0.5">
                         <button
                           onClick={() => setExpandedReplies(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
-                          className="text-[11px] font-medium text-amber-600 hover:text-amber-700 flex items-center gap-0.5"
+                          className="text-[11px] font-medium text-primary hover:text-primary flex items-center gap-0.5"
                         >
                           {expandedReplies[c.id]
                             ? <><ChevronUp className="w-3 h-3" /> Hide replies</>
@@ -1193,7 +1218,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                           className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
                           style={{ maxHeight: expandedReplies[c.id] ? '2000px' : '0px' }}
                         >
-                          <div className="mt-2 space-y-2 border-l-2 border-amber-200 pl-3">
+                          <div className="mt-2 space-y-2 border-l-2 border-primary/30 pl-3">
                             {(repliesByParent[c.id] ?? []).map(reply => (
                                 <div key={reply.id} className="flex gap-2 group">
                                   {reply.author_id ? (
@@ -1210,7 +1235,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                     </span>
                                   )}
                                   <div className="flex-1 min-w-0">
-                                    <div className="rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 px-3 py-2">
+                                    <div className="rounded-2xl bg-primary-subtle/70 px-3 py-2">
                                       <div className="flex items-center gap-1 flex-wrap">
                                         {reply.author_id ? (
                                           <Link
@@ -1259,7 +1284,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                           const result = await reactToComment(post.id, reply.id, next).catch(() => null);
                                           if (result) setComments(prev => prev.map(x => x.id === reply.id ? { ...x, my_reaction: result.my_reaction, reaction_count: result.reaction_count, top_reactions: result.my_reaction ? Array.from(new Set([result.my_reaction, ...(x.top_reactions ?? [])])).slice(0, 3) as typeof REACTIONS[number][] : x.top_reactions } : x));
                                         }}
-                                        className={`flex items-center gap-0.5 transition-colors ${reply.my_reaction ? 'text-red-500' : 'hover:text-red-500'}`}
+                                        className={`flex items-center gap-0.5 transition-colors ${reply.my_reaction ? 'text-destructive' : 'hover:text-destructive'}`}
                                         aria-label={reply.my_reaction ? 'Unlike reply' : 'Like reply'}
                                         aria-pressed={Boolean(reply.my_reaction)}
                                       >
@@ -1268,7 +1293,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
                                       </button>
                                       {/* Reply */}
                                       <button onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}
-                                        className="hover:text-amber-600 flex items-center gap-0.5 transition-colors">
+                                        className="hover:text-primary flex items-center gap-0.5 transition-colors">
                                         <Reply className="w-3 h-3" />
                                         {t('common.reply')}
                                       </button>
@@ -1304,7 +1329,7 @@ export default function PostCard({ post: postProp, currentUserId, currentUser, f
 
               {rootComments.length > 3 && (
                 <button onClick={() => setShowAllComments(v => !v)}
-                  className="mt-2 text-xs text-amber-600 hover:underline flex items-center gap-1 font-medium">
+                  className="mt-2 text-xs text-primary hover:underline flex items-center gap-1 font-medium">
                   {showAllComments
                     ? <><ChevronUp className="w-3 h-3" /> {t('feed.hideComments')}</>
                     : <><ChevronDown className="w-3 h-3" /> {t('feed.viewMoreComments', { count: rootComments.length - 3 })}</>

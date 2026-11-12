@@ -21,15 +21,15 @@ export const SECTION_GROUPS = [
       'live_location_tracking',
     ],
   },
-  { title: 'Bottom of the page', desc: 'How people reach, pay and follow you', keys: ['payment_info', 'hours', 'map', 'contact', 'social', 'newsletter', 'save_showroom'] },
+  { title: 'Bottom of the page', desc: 'How people reach, pay and follow you', keys: ['payment_info', 'hours', 'map', 'contact', 'social', 'newsletter', 'save_showroom', 'feed_ticker'] },
 ];
 
 function TierBadge({ tier }: { tier: SectionType['tier'] }) {
   if (tier !== 'premium' && tier !== 'pro') return null;
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${tier === 'pro'
-      ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200'
-      : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200'}`}>
+      ? 'bg-brand-secondary-subtle text-brand-secondary'
+      : 'bg-primary-subtle text-primary'}`}>
       {tier === 'pro' ? 'Pro' : 'Premium'}
     </span>
   );
@@ -38,7 +38,7 @@ function TierBadge({ tier }: { tier: SectionType['tier'] }) {
 function SectionIcon({ icon, active }: { icon: string; active?: boolean }) {
   const Icon = ICONS[icon] ?? Circle;
   return (
-    <span aria-hidden="true" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? "bg-blue-600 text-white" : "bg-secondary text-muted-foreground"}`}>
+    <span aria-hidden="true" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? "bg-primary text-white" : "bg-secondary text-muted-foreground"}`}>
       <Icon className="h-4 w-4" />
     </span>
   );
@@ -62,8 +62,8 @@ export interface SectionsPanelProps {
 export default function SectionsPanel({ activeSections, onToggle, onMove, completion, plan, dark = false }: SectionsPanelProps) {
   const sectionsByKey = new Map(SECTION_TYPES.map((s) => [s.key, s]));
   const onPage = activeSections.map((k) => sectionsByKey.get(k)).filter((s): s is SectionType => Boolean(s));
-  const surface = dark ? 'bg-slate-800 text-slate-100' : 'bg-card text-foreground';
-  const line = dark ? 'border-slate-700' : 'border-border/60';
+  const surface = dark ? 'bg-inverse text-inverse-foreground/70' : 'bg-card text-foreground';
+  const line = dark ? 'border-foreground/20' : 'border-border/60';
 
   return (
     <div className={`flex h-full min-h-0 flex-col ${surface}`}>
@@ -72,7 +72,7 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
         <span className="text-xs text-muted-foreground">{onPage.length} sections · {completion}% filled</span>
         <Popover>
           <PopoverTrigger asChild>
-            <button type="button" className="ml-auto inline-flex min-h-8 items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 text-[11px] font-semibold text-blue-800 dark:border-blue-400/30 dark:bg-blue-500/10 dark:text-blue-100">
+            <button type="button" className="ml-auto inline-flex min-h-8 items-center rounded-full border border-primary/30 bg-primary-subtle px-2.5 text-[11px] font-semibold text-primary-subtle-foreground">
               Needs {plan.label} · {plan.price.toLocaleString()} ETB
             </button>
           </PopoverTrigger>
@@ -89,7 +89,7 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
           {onPage.length === 0 && <p className="px-3 pb-3 text-sm text-muted-foreground">Nothing yet. Add a section below.</p>}
           <ol>
             {onPage.map((sec, i) => (
-              <li key={sec.key} className={`flex min-h-12 items-center gap-2 px-3 py-1 ${dark ? 'hover:bg-slate-700/40' : 'hover:bg-secondary/50'}`}>
+              <li key={sec.key} className={`flex min-h-12 items-center gap-2 px-3 py-1 ${dark ? 'hover:bg-muted-foreground/40' : 'hover:bg-secondary/50'}`}>
                 <span className="w-4 shrink-0 text-center text-xs font-semibold text-muted-foreground">{i + 1}</span>
                 <SectionIcon icon={sec.icon} active />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">{sec.label}</span>
@@ -103,7 +103,7 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
                   <ArrowDown className="h-4 w-4" />
                 </button>
                 <button type="button" onClick={() => onToggle(sec.key)} aria-label={`Remove ${sec.label}`}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10">
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive-subtle hover:text-destructive">
                   <X className="h-4 w-4" />
                 </button>
               </li>
@@ -124,11 +124,11 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
                 {available.map((sec) => (
                   <li key={sec.key}>
                     <button type="button" onClick={() => onToggle(sec.key)} aria-label={`Add ${sec.label}`}
-                      className={`flex min-h-12 w-full items-center gap-2 px-3 py-1 text-left ${dark ? 'hover:bg-slate-700/40' : 'hover:bg-secondary/50'}`}>
+                      className={`flex min-h-12 w-full items-center gap-2 px-3 py-1 text-left ${dark ? 'hover:bg-muted-foreground/40' : 'hover:bg-secondary/50'}`}>
                       <SectionIcon icon={sec.icon} />
                       <span className="min-w-0 flex-1 truncate text-sm">{sec.label}</span>
                       <TierBadge tier={sec.tier} />
-                      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 text-blue-700 dark:border-blue-400/40 dark:text-blue-200">
+                      <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary/30 text-primary">
                         <Plus className="h-4 w-4" />
                       </span>
                     </button>

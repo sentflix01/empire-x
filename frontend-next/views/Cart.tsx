@@ -26,7 +26,7 @@ function Cart() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <ShoppingCart className="w-6 h-6 text-amber-500" />
+            <ShoppingCart className="w-6 h-6 text-primary" />
             <div>
               <h1 className="font-display text-2xl font-bold">{t('cart.title')}</h1>
               <p className="text-sm text-muted-foreground">{t('cart.itemCount', { count: items.length })}</p>
@@ -45,7 +45,7 @@ function Cart() {
             <h3 className="font-display text-xl font-bold mb-2">{t('cart.empty')}</h3>
             <p className="text-sm text-muted-foreground mb-6">{t('cart.emptySubtitle')}</p>
             <Link href="/marketplace">
-              <Button className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+              <Button className="rounded-full bg-primary hover:bg-primary/90">
                 {t('cart.browseMarketplace')} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
@@ -96,7 +96,7 @@ function Cart() {
                   {/* Line total */}
                   <div className="text-right shrink-0 flex flex-col items-end gap-2">
                     <div>
-                      <p className="font-bold text-amber-600">{lineTotal.toLocaleString()}</p>
+                      <p className="font-bold text-primary">{lineTotal.toLocaleString()}</p>
                       <p className="text-xs text-muted-foreground">{item.currency || "ETB"}</p>
                     </div>
                     <Button size="sm" className="h-8 rounded-full" onClick={() => setBuying(item)}>Buy</Button>
@@ -115,11 +115,11 @@ function Cart() {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>{t('cart.delivery')}</span>
-                  <span className="text-green-600">{t('cart.deliveryNote')}</span>
+                  <span className="text-success">{t('cart.deliveryNote')}</span>
                 </div>
                 <div className="border-t border-border/50 pt-2 mt-2 flex justify-between font-bold text-base">
                   <span>{t('cart.total')}</span>
-                  <span className="text-amber-600">{total.toLocaleString()} ETB</span>
+                  <span className="text-primary">{total.toLocaleString()} ETB</span>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-4">{t('cart.payNote')}</p>

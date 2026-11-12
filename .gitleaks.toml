@@ -1,0 +1,9 @@
+# gitleaks configuration (audit F-024). Uses the default rules plus one narrow
+# allowlist. Add an entry only for a verified false positive, with a reason.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "SQL upsert of a bcrypt column: 'password_hash=EXCLUDED.password_hash' names columns, it is not a secret"
+regexTarget = "line"
+regexes = ['''password_hash\s*=\s*EXCLUDED\.password_hash''']

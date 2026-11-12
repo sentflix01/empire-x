@@ -1,0 +1,37 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-015",
+  "kind": "vulnerability",
+  "phase": "P6-privacy",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Guest order access tokens are written to logs and error tracking",
+  "standards": [
+    "OWASP A09:2025",
+    "ASVS 5.0 V16.2 (log content)",
+    "OWASP API3:2023 (excessive data exposure)",
+    "GDPR Art. 32"
+  ],
+  "cvss_v4": {
+    "vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:H/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N",
+    "score": 5.9
+  },
+  "location": [
+    "backend/middleware/httpLogger.ts:16",
+    "backend/lib/logger.ts:28-35",
+    "backend/routes/directOrders.ts:422",
+    "backend/lib/sentry.ts:33",
+    "frontend-next/lib/sentry.ts:33"
+  ],
+  "expected": "Capability tokens never appear in logs or third-party telemetry; redaction covers tokens, cookies and contact fields.",
+  "actual": "The guest order link token is part of the URL path (/api/direct-orders/link/:token, page /order/:token). The HTTP logger logs req.url for every request; logger redaction covers only the Authorization header and three password/card body fields (not Cookie, refresh tokens, OTP codes or email/phone). Sentry traces (20% sample) and frontend error events carry the URL with no beforeSend scrubbing.",
+  "evidence": [
+    "backend/middleware/httpLogger.ts:8-16",
+    "backend/lib/logger.ts:28-35"
+  ],
+  "impact": "Anyone with log or Sentry access (staff, the log host, Sentry as processor) can open a guest's order: name, phone, email, address, payment receipts, and report payment on their behalf.",
+  "fix": "Log a route template instead of the raw URL (req.route?.path or a regex that replaces /link/<token> with /link/:token); extend pino redact paths to req.headers.cookie, res.headers['set-cookie'], *.token, *.otpCode, *.access_token, *.email, *.phone; add Sentry beforeSend/beforeSendTransaction that strips tokens from URLs and breadcrumbs. Consider moving the token to a fragment or POST body for API calls.",
+  "effort": "S"
+}

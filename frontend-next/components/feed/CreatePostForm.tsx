@@ -1,20 +1,27 @@
 'use client'
 import React, { useState } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import NextImage from 'next/image';
-import { entities } from "@/api/entities";
+import { entities, type Post } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";
 import { useTranslation } from 'react-i18next';
 
-export default function CreatePostForm({ user, onPostCreated }) {
+interface CreatePostFormProps {
+  user: AuthUser | null;
+  onPostCreated: (post: Post) => void;
+}
+
+export default function CreatePostForm({ user, onPostCreated }: CreatePostFormProps) {
   const [content, setContent] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const { t } = useTranslation();
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
@@ -71,7 +78,7 @@ export default function CreatePostForm({ user, onPostCreated }) {
       {/* Single row: avatar + input with icons inside */}
       <div className="flex items-center gap-2">
         {/* User avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
             ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized />
             : (user?.full_name?.charAt(0) || "E")}
@@ -81,13 +88,14 @@ export default function CreatePostForm({ user, onPostCreated }) {
         <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-primary/30 transition-colors">
           <input
             value={content}
+            maxLength={TEXT_LIMITS.content}
             onChange={e => setContent(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
             placeholder={t ? t('feed.whatsHappening') : "What's happening?"}
             className="flex-1 min-w-0 text-sm bg-transparent outline-none placeholder:text-muted-foreground/60"
           />
           {/* Photo icon */}
-          <label className="shrink-0 cursor-pointer text-muted-foreground hover:text-amber-500 transition-colors">
+          <label className="shrink-0 cursor-pointer text-muted-foreground hover:text-primary transition-colors">
             <Image className="w-4 h-4" />
             <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
           </label>
@@ -96,10 +104,10 @@ export default function CreatePostForm({ user, onPostCreated }) {
             onClick={handleSubmit}
             disabled={!content.trim() || posting}
             aria-label="Post"
-            className="shrink-0 text-amber-500 disabled:opacity-30 hover:text-amber-600 transition-colors"
+            className="shrink-0 text-primary disabled:opacity-30 hover:text-primary transition-colors"
           >
             {posting
-              ? <div className="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              ? <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
               : <Send className="w-4 h-4" />}
           </button>
         </div>

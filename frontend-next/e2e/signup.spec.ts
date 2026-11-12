@@ -75,8 +75,8 @@ test.describe('Signup flow', () => {
     await expect(page.locator(`text=${testEmail}`)).toBeVisible();
     await expect(page.locator('text=Verify email')).toBeVisible();
 
-    // Verify OTP input area is present (InputOTP component)
-    await expect(page.locator('.flex.items-center.gap-2')).toBeVisible();
+    // The code field (InputOTP) — found by purpose, not by layout classes (F-032).
+    await expect(page.locator('input[autocomplete="one-time-code"]')).toBeAttached();
   });
 
   test('register rejects duplicate email', async ({ page }) => {

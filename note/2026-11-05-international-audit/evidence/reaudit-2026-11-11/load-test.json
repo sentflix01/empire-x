@@ -1,0 +1,248 @@
+GET /health                        c= 10 rps= 2508 p50=4ms p95=7ms p99=10ms err=0.0%
+GET /health                        c= 50 rps= 2922 p50=16ms p95=25ms p99=32ms err=0.0%
+GET /health                        c=100 rps= 2881 p50=33ms p95=52ms p99=63ms err=0.0%
+GET /health                        c=200 rps= 2713 p50=71ms p95=96ms p99=115ms err=0.0%
+GET /api/products (public list)    c= 10 rps=   45 p50=219ms p95=291ms p99=342ms err=0.0%
+GET /api/products (public list)    c= 50 rps=   49 p50=1073ms p95=1202ms p99=1266ms err=0.0%
+GET /api/products (public list)    c=100 rps=   53 p50=2138ms p95=2338ms p99=2453ms err=0.0%
+GET /api/products (public list)    c=200 rps=   58 p50=4409ms p95=4571ms p99=4649ms err=0.0%
+GET /api/businesses (public list)  c= 10 rps= 1062 p50=9ms p95=14ms p99=18ms err=0.0%
+GET /api/businesses (public list)  c= 50 rps= 1158 p50=42ms p95=56ms p99=64ms err=0.0%
+GET /api/businesses (public list)  c=100 rps= 1159 p50=85ms p95=104ms p99=113ms err=0.0%
+GET /api/businesses (public list)  c=200 rps= 1100 p50=182ms p95=219ms p99=231ms err=0.0%
+GET /api/trending                  c= 10 rps=  707 p50=14ms p95=21ms p99=26ms err=0.0%
+GET /api/trending                  c= 50 rps=  710 p50=70ms p95=86ms p99=94ms err=0.0%
+GET /api/trending                  c=100 rps=  704 p50=143ms p95=169ms p99=179ms err=0.0%
+GET /api/trending                  c=200 rps=  717 p50=281ms p95=318ms p99=357ms err=0.0%
+{
+  "ran_at": "2026-11-11T17:21:01.820Z",
+  "base": "http://127.0.0.1:3001",
+  "seconds_per_step": 15,
+  "cpus": 4,
+  "results": [
+    {
+      "endpoint": "GET /health",
+      "concurrency": 10,
+      "requests": 37624,
+      "rps": 2508,
+      "p50_ms": 4,
+      "p95_ms": 7,
+      "p99_ms": 10,
+      "max_ms": 57,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 37624
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 50,
+      "requests": 43835,
+      "rps": 2922,
+      "p50_ms": 16,
+      "p95_ms": 25,
+      "p99_ms": 32,
+      "max_ms": 51,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 43835
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 100,
+      "requests": 43210,
+      "rps": 2881,
+      "p50_ms": 33,
+      "p95_ms": 52,
+      "p99_ms": 63,
+      "max_ms": 78,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 43210
+      }
+    },
+    {
+      "endpoint": "GET /health",
+      "concurrency": 200,
+      "requests": 40701,
+      "rps": 2713,
+      "p50_ms": 71,
+      "p95_ms": 96,
+      "p99_ms": 115,
+      "max_ms": 164,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 40701
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 10,
+      "requests": 680,
+      "rps": 45,
+      "p50_ms": 219,
+      "p95_ms": 291,
+      "p99_ms": 342,
+      "max_ms": 365,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 680
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 50,
+      "requests": 734,
+      "rps": 49,
+      "p50_ms": 1073,
+      "p95_ms": 1202,
+      "p99_ms": 1266,
+      "max_ms": 1295,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 734
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 100,
+      "requests": 795,
+      "rps": 53,
+      "p50_ms": 2138,
+      "p95_ms": 2338,
+      "p99_ms": 2453,
+      "max_ms": 2962,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 795
+      }
+    },
+    {
+      "endpoint": "GET /api/products (public list)",
+      "concurrency": 200,
+      "requests": 867,
+      "rps": 58,
+      "p50_ms": 4409,
+      "p95_ms": 4571,
+      "p99_ms": 4649,
+      "max_ms": 4715,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 867
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 10,
+      "requests": 15926,
+      "rps": 1062,
+      "p50_ms": 9,
+      "p95_ms": 14,
+      "p99_ms": 18,
+      "max_ms": 34,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 15926
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 50,
+      "requests": 17370,
+      "rps": 1158,
+      "p50_ms": 42,
+      "p95_ms": 56,
+      "p99_ms": 64,
+      "max_ms": 79,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 17370
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 100,
+      "requests": 17383,
+      "rps": 1159,
+      "p50_ms": 85,
+      "p95_ms": 104,
+      "p99_ms": 113,
+      "max_ms": 129,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 17383
+      }
+    },
+    {
+      "endpoint": "GET /api/businesses (public list)",
+      "concurrency": 200,
+      "requests": 16497,
+      "rps": 1100,
+      "p50_ms": 182,
+      "p95_ms": 219,
+      "p99_ms": 231,
+      "max_ms": 402,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 16497
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 10,
+      "requests": 10604,
+      "rps": 707,
+      "p50_ms": 14,
+      "p95_ms": 21,
+      "p99_ms": 26,
+      "max_ms": 42,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10604
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 50,
+      "requests": 10650,
+      "rps": 710,
+      "p50_ms": 70,
+      "p95_ms": 86,
+      "p99_ms": 94,
+      "max_ms": 114,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10650
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 100,
+      "requests": 10560,
+      "rps": 704,
+      "p50_ms": 143,
+      "p95_ms": 169,
+      "p99_ms": 179,
+      "max_ms": 207,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10560
+      }
+    },
+    {
+      "endpoint": "GET /api/trending",
+      "concurrency": 200,
+      "requests": 10757,
+      "rps": 717,
+      "p50_ms": 281,
+      "p95_ms": 318,
+      "p99_ms": 357,
+      "max_ms": 384,
+      "error_rate": 0,
+      "status_codes": {
+        "200": 10757
+      }
+    }
+  ]
+}

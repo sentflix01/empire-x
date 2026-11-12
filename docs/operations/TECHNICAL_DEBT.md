@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** September 22, 2026
+> **Last updated:** November 9, 2026
 
 ---
 
@@ -31,8 +31,8 @@
 ---
 
 ### TD-003: End-to-end test suite
-**Status:** Not started  
-**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there are no browser E2E tests for critical frontend flows.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — Playwright specs in `frontend-next/e2e/` run in the blocking "E2E — Chromium journeys" CI job against a real backend and Postgres (audit F-032).  
+**Problem:** Backend API E2E coverage exists (`backend/test/e2e.test.js`), but there were no browser E2E tests for critical frontend flows.  
 **Fix:** Add Playwright tests for: registration → OTP → onboarding → create post → add product → checkout → view order.  
 **Impact:** Prevents regressions on every deploy.
 
@@ -62,12 +62,26 @@
 
 ---
 
-## Medium Priority
+### TD-026: Rate limiting is per-instance only (in-memory)
+**Status:** Known limitation — acceptable for current single-instance Render deployment  
+**File:** `backend/index.ts` — `buildRateLimitStore()` function  
+**Problem:** `buildRateLimitStore()` always returns `undefined`, so `express-rate-limit` uses an in-memory store. Per-IP rate limits (login 20/15min, register 20/15min, forgot-password 5/15min, etc.) do NOT aggregate across multiple backend instances. A distributed brute-force attack hitting different instances could bypass the limits. Rate limiting is also entirely disabled in dev (`skip: () => isDev`).  
+**Fix when needed:** Switch to `rate-limit-redis` store using the existing Upstash connection. The `buildRateLimitStore(prefix)` function signature is already abstracted for this — replace `return undefined` with `return new RedisStore({ prefix, sendCommand: (...args) => redis.call(...args) })`. Import and conditional on Redis availability.  
+**Impact at current scale:** Not a problem on a single Render instance. Becomes a gap at horizontal scale or under targeted credential-stuffing.
+
+---
+
+### TD-025: Frontend test suite full-run parallelism flakes
+**Status:** Open — cause not found (re-checked 2026-11-06, audit F-053)  
+**Problem:** Now and then one test file fails in a full `vitest run` (two tests at once: `test/feed/PhotoViewer.test.tsx` PostCard tests in the audit, `test/showroom/sectionsLive.test.tsx` once on 2026-11-06) and passes when re-run. Only the test names were kept, not the error.  
+**Checked:** `vitest.config.mts` already limits workers (`maxWorkers: 2`). Eight full runs on 2026-11-06 (four alone, four with two suites at once) all passed. With Testing Library's wait limit cut to 60 ms every test still passed, so slow async waits are not the cause. Neither file uses lazy imports.  
+**Next time it fails:** keep the full error and stack from the CI log (Frontend unit tests job) and add it here before re-running. Do not add automatic retries: they would hide real failures.  
+**Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Not started  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`. Since 2026-11-09 the whole frontend is checked strictly (`frontend-next/tsconfig.strict.json`) with a ratchet: `npm run typecheck:strict` (in CI) fails when any file has more strict errors than `frontend-next/strict-baseline.json` records, and new files must have none; `-- --update` lowers the baseline after a fix and refuses to raise it. The feed, marketplace, messaging, Orders, Business Analytics, Profile, public showroom and coupon screens are clean. Remaining: 0 errors: every frontend file is strict-clean (the map screens since 2026-11-10, with the `@types/leaflet` dev dependency the owner approved). The ratchet now fails CI on any new strict error; some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
-**Problem:** Backend is JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
+**Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  
 **Impact:** Developer experience, bug prevention at scale.
 
@@ -114,6 +128,12 @@
 **Fix:** Add Cloudflare Workers image resize transform on R2 public URL. Or use `next/image` with R2 domain configured in `next.config.ts`.  
 **Impact:** Page load performance, mobile experience.
 
+### TD-027: Telegram notifications cannot be connected
+**Status:** Not started — needs an owner decision (found 2026-11-09, audit F-052 follow-up 6)
+**Problem:** Sending works (`notifyUser` in `backend/routes/telegram.ts`), but nothing links a person's Telegram chat to their account. `POST /api/telegram/connect` needs a chat id that people cannot see, there is no bot webhook for `/start`, and `GET /api/telegram/status` sends no bot link or bot name. The settings component (`frontend-next/components/settings/TelegramSettings.tsx`) is not shown on any page (checked 2026-11-10). It had an "Open Telegram Bot" button that opened `#` and would say "Connected to @undefined"; it now says connecting is not available yet, so it is safe to show once linking exists.
+**Fix (to decide):** a one-time link code (`t.me/<bot>?start=<code>`, short expiry, single use) checked by a bot webhook with Telegram's secret-token header, then `status` returns `connect_url` and `bot_username`. Needs the bot name and webhook secret as environment settings.
+**Impact:** Telegram alerts for orders and messages exist on the server, but nobody can turn them on and Settings does not offer them.
+
 ---
 
 ## Low Priority
@@ -146,7 +166,7 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 **Files changed:** `backend/index.js`, `frontend-next/next.config.ts`
 **What was done:**
 - Backend (API-only): strict CSP in production — `default-src 'none'`, allows only `connect-src 'self'`
-- Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe; `unsafe-inline`/`unsafe-eval` only in dev for HMR
+- Frontend (Next.js): full CSP with `script-src`, `img-src`, `connect-src`, `frame-src` for Stripe. Since 6 Nov 2026 (audit F-016) `script-src` uses a per-request nonce with `'strict-dynamic'` and no `'unsafe-inline'` (it was allowed in production before); `unsafe-eval` only in dev for HMR. Set in `frontend-next/proxy.ts` via `lib/csp.ts`.
 
 ---
 
@@ -167,7 +187,7 @@ Removed the old Vite frontend folder entirely. `frontend-next/` is the only fron
 | TD-019 | CI deploy gate — deploys now chained to CI pass, not raw push | September 2026 |
 | TD-020 | Jest hung in CI — added `--forceExit` + 15min job timeout | September 22, 2026 |
 | TD-021 | `showroom-digests.js` dynamic imports missing `.js` extension (Node ESM Docker fail) | September 22, 2026 |
-| TD-0xx | Duplicate PUT /me/upsert in profiles.js | July 2026 |
+| TD-0xx | `frontend-next/test/onboarding.test.tsx` queried `getByRole('img')` but `BrandLogoVideo` renders a `<div aria-label>` + `<video>`, not an `<img>` — test updated to `getByLabelText('Nodbusiness')` | October 2026 |
 | TD-0xx | Missing ticker_type column in migrate7.js | July 2026 |
 | TD-0xx | Wrong column in migrate8.js stories index | July 2026 |
 | TD-0xx | updateRecord null not checked by callers | July 2026 |

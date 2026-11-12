@@ -65,7 +65,7 @@ export const ALLOWED_TABLES = new Set<string>([
   'point_transactions', 'push_subscriptions', 'cart_items', 'wishlists',
   'product_variants', 'return_requests', 'delivery_updates', 'price_alerts',
   'hashtags', 'post_hashtags', 'poll_votes', 'coupons', 'commissions',
-  'conversation_participants', 'schema_migrations', 'devops_items', 'error_events',
+  'conversation_participants', 'migration_ledger', 'devops_items', 'error_events',
   'app_settings', 'webhook_events', 'dismissed_suggestions',
 ]);
 

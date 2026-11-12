@@ -10,9 +10,12 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['id']);
 const REAL_OWNER = 'IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)';
 
 function firstImage(images: unknown): string | null {

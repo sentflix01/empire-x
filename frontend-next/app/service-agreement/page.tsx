@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import ServiceAgreementPage from '@/views/ServiceAgreement';
+import MainContent from '@/components/layout/MainContent';
 
 /**
  * Legal terms must remain accessible before authentication. Keeping this route
@@ -10,8 +11,10 @@ import ServiceAgreementPage from '@/views/ServiceAgreement';
  */
 export default function Page() {
   return (
-    <Suspense fallback={null}>
-      <ServiceAgreementPage />
-    </Suspense>
+    <MainContent>
+      <Suspense fallback={null}>
+        <ServiceAgreementPage />
+      </Suspense>
+    </MainContent>
   );
 }

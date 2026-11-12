@@ -40,13 +40,13 @@ const TYPE_ICONS = {
 };
 
 const TYPE_COLORS = {
-  like:        "text-red-500 bg-red-50 dark:bg-red-900/20",
-  comment:     "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
-  follow:      "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
-  message:     "text-green-500 bg-green-50 dark:bg-green-900/20",
-  order:       "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
-  task_update: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
-  referral:    "text-amber-500 bg-amber-50 dark:bg-amber-900/20",
+  like:        "text-destructive bg-destructive-subtle",
+  comment:     "text-primary bg-primary-subtle",
+  follow:      "text-primary bg-primary-subtle",
+  message:     "text-success bg-success-subtle",
+  order:       "text-brand-secondary bg-brand-secondary-subtle",
+  task_update: "text-primary bg-primary-subtle",
+  referral:    "text-primary bg-primary-subtle",
 };
 
 /**
@@ -194,7 +194,7 @@ function NotificationsView() {
         <div className="flex items-center gap-2">
           <h1 className="font-display text-2xl font-bold">{t('notifications.title')}</h1>
           {unreadCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-xs font-bold">{unreadCount}</span>
+            <span className="px-2 py-0.5 rounded-full bg-primary text-white text-xs font-bold">{unreadCount}</span>
           )}
         </div>
         {unreadCount > 0 && (
@@ -205,17 +205,17 @@ function NotificationsView() {
         )}
       </div>
       {loading ? (
-        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
       ) : !user ? (
         <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-6">
-          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-            <Bell className="w-6 h-6 text-amber-600" />
+          <div className="w-14 h-14 rounded-full bg-primary-subtle flex items-center justify-center">
+            <Bell className="w-6 h-6 text-primary" />
           </div>
           <div>
             <p className="font-bold text-base">Sign in to see notifications</p>
             <p className="text-sm text-muted-foreground mt-1">Your notifications will appear here.</p>
           </div>
-          <a href="/login" className="h-10 px-6 rounded-xl bg-amber-500 text-white font-semibold text-sm flex items-center hover:bg-amber-600 transition-colors">Sign In</a>
+          <a href="/login" className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary/90 transition-colors">Sign In</a>
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16">
@@ -240,13 +240,19 @@ function NotificationsView() {
             return (
               <React.Fragment key={n.id}>
               {newDay && <h2 className="px-1 pb-1 pt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground first:pt-0">{day}</h2>}
+              {/* The row is one button; delete is a separate button beside it, not inside it (audit F-043). */}
               <div
-                onClick={() => markRead(n)}
-                data-page-guide="notif-list" className={`relative flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group
+                className={`relative rounded-xl transition-colors group
                   ${n.is_read
-                    ? "opacity-60 hover:opacity-100 hover:bg-secondary/30"
+                    ? "opacity-60 hover:opacity-100 focus-within:opacity-100 hover:bg-secondary/30"
                     : "bg-card border border-border/50 hover:bg-secondary/50 notif-unread-item"
                   }`}
+              >
+              <button
+                type="button"
+                onClick={() => markRead(n)}
+                data-page-guide="notif-list"
+                className="flex w-full items-start gap-3 p-3 rounded-xl text-left cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               >
                 {hasSenderIdentity ? (
                   <UserIdentity
@@ -257,34 +263,36 @@ function NotificationsView() {
                     className="shrink-0"
                   />
                 ) : (
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${color}`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
+                  <span className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${color}`}>
+                    <Icon className="w-4 h-4" aria-hidden="true" />
+                  </span>
                 )}
-                <div className="flex-1 min-w-0 pr-6">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-medium leading-snug">{n.title}</p>
+                <span className="block flex-1 min-w-0 pr-6">
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    <span className="block text-sm font-medium leading-snug">{n.title}</span>
                     {/* Group count badge — e.g. "5 people liked your post" */}
                     {(n.group_count ?? 0) > 1 && (
-                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-subtle text-primary">
                         ×{n.group_count}
                       </span>
                     )}
-                  </div>
+                  </span>
                   {n.body && (
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+                    <span className="block text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</span>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">{fromNow(n.created_at)}</p>
-                </div>
+                  <span className="block text-xs text-muted-foreground mt-1">{fromNow(n.created_at)}</span>
+                </span>
                 {/* Unread dot */}
                 {!n.is_read && (
-                  <div data-page-guide="notif-unread" className="w-2 h-2 rounded-full bg-amber-500 mt-2 shrink-0" />
+                  <span data-page-guide="notif-unread" className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" aria-label="Unread" role="img" />
                 )}
-                {/* Delete button — shows on hover */}
-                <button onClick={(e) => deleteNotif(e, n.id)}
-                  className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title={t('notifications.delete')}>
-                  <Trash2 className="w-3 h-3" />
+              </button>
+                {/* Delete button — shows on hover or keyboard focus */}
+                <button type="button" onClick={(e) => deleteNotif(e, n.id)}
+                  className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                  title={t('notifications.delete')}
+                  aria-label={t('notifications.delete')}>
+                  <Trash2 className="w-3 h-3" aria-hidden="true" />
                 </button>
               </div>
               </React.Fragment>

@@ -1,0 +1,26 @@
+{
+  "steps": [],
+  "found_on": "2026-11-05",
+  "environment": "repository",
+  "id": "F-011",
+  "title": "Positive: generated API reference matches the live routers",
+  "phase": "P12-docs",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "standards": [
+    "ISO/IEC 25010:2023 maintainability"
+  ],
+  "location": [
+    "docs/backend/API_REFERENCE.md",
+    "backend/scripts/generate-api-docs.js"
+  ],
+  "expected": "Documented endpoints equal exposed endpoints.",
+  "actual": "352 documented vs 354 live; the only differences are trailing slashes and one route registered with two paths (POST /api/referral/apply and /use), which the generator lists once.",
+  "evidence": [
+    "inventory/endpoints.json"
+  ],
+  "impact": "Reliable API docs. Small generator gap.",
+  "fix": "Teach generate-api-docs.js to expand array paths; add a CI check that regenerating produces no diff.",
+  "effort": "S",
+  "kind": "positive"
+}

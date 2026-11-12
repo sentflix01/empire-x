@@ -131,7 +131,7 @@ export default function MessageList({
           return (
             <React.Fragment key={msg.id}>
               {newDay && (
-                <div className="sticky top-0 z-[1] flex justify-center py-2">
+                <div className="sticky top-0 z-1 flex justify-center py-2">
                   <span className="rounded-full bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">{dayLabel(day)}</span>
                 </div>
               )}

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isPublicPath } from '@/lib/publicPaths';
+import { requiresSignIn } from '@/lib/publicPaths';
 import { safeReturnPath } from '@/lib/safeReturnPath';
+import { buildCsp, createNonce } from '@/lib/csp';
 
 /**
  * proxy.ts — Auth routing for Next.js 16+
@@ -55,14 +56,35 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/feed', request.url));
   }
 
-  // Unauthenticated users on protected routes → login with return URL
-  if (!isLoggedIn && !isPublicPath(pathname)) {
+  // Guests on known protected pages → sign-in with a return URL. Unknown
+  // paths fall through to the not-found page (audit F-036).
+  if (!isLoggedIn && requiresSignIn(pathname)) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('return', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  return withCsp(request);
+}
+
+/**
+ * Page responses carry a nonce-based CSP (audit F-016). Next.js reads the
+ * policy from the request headers and adds the nonce to its scripts; the
+ * root layout reads x-nonce for the theme script.
+ */
+function withCsp(request: NextRequest) {
+  const nonce = createNonce();
+  const csp = buildCsp({
+    nonce,
+    isDev: process.env.NODE_ENV !== 'production',
+    apiHost: process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001',
+  });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set('Content-Security-Policy', csp);
+  return response;
 }
 
 export const config = {

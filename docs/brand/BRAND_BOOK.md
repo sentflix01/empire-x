@@ -3,6 +3,8 @@
 > **The definitive guide to how Nodbusiness looks, sounds, and feels.**
 > Every designer, developer, marketer, and partner follows this guide.
 > Consistency builds trust. Trust builds brands.
+>
+> Last reviewed: 2026-11-09
 
 ---
 
@@ -62,80 +64,61 @@ Enabling       — We give people tools, not limitations.
 ## 2. Logo System
 
 ### Primary Logo
-- Crown icon (👑) + wordmark "Nodbusiness"
-- Crown represents: excellence, achievement, ambition
+- Mark: a globe ringed by eight connected business "briefcase" nodes (businesses connected worldwide).
+- **Colours (2026-11-08, owner decision):** white mark on brand blue `#2563eb`: blue disc or tile, white ring, lines and boxes, blue slots in the boxes. On light backgrounds the wordmark's globe is drawn in blue and the letters stay ink `#0a0a0a`; on dark backgrounds use the white wordmark. See `COLOR_SYSTEM.md`.
 - File: `frontend-next/public/brand/nodbusiness-logo.svg`
 
 ### Logo Variations
 ```
-Primary:     Crown + wordmark (horizontal) — use for most contexts
-Stacked:     Crown above wordmark — use for square formats
-Icon only:   Crown alone — use for favicon, app icon, small spaces
-Wordmark:    Text only — use when crown would be too small to render
+Icon:        Mark on a blue tile/disc — favicon, app icon, avatar, small spaces
+Wordmark:    "N" + globe + "dbusiness" — headers, marketing
+White:       Wordmark for dark backgrounds
+Animated:    Intro video of the mark (landing hero, splash), same colours
 ```
 
 ### Logo Clear Space
-Minimum clear space around logo = height of the crown icon on all sides.
+Minimum clear space around logo = height of one briefcase node of the mark on all sides.
 Never place text, icons, or images inside the clear space.
 
 ### Logo Don'ts
 ```
 ❌ Rotate the logo
 ❌ Stretch or distort the logo
-❌ Change the logo colors
+❌ Change the logo colours (white on brand blue; see `COLOR_SYSTEM.md`)
 ❌ Add drop shadows or effects
 ❌ Place on busy photographic backgrounds without a solid overlay
 ❌ Use the logo smaller than 24px height (use icon only below this)
 ```
 
-### File Formats to Always Have Available
+### Logo files (all in `frontend-next/public/`)
 ```
-nodbusiness-logo.svg          ← Primary (scalable, use everywhere possible)
-nodbusiness-logo.png          ← For contexts that don't support SVG
-nodbusiness-logo-white.svg    ← For dark backgrounds
-nodbusiness-logo-black.svg    ← For light/neutral backgrounds
-nodbusiness-icon.svg          ← Crown only (favicon, app icon)
-nodbusiness-icon-192.png      ← PWA icon
-nodbusiness-icon-512.png      ← PWA icon large
+brand/nodbusiness-icon-v3.svg                ← Icon (vector master, drawn by scripts/brand/build-logo.mjs)
+brand/nodbusiness-icon-on-blue-v3.svg        ← Icon with a white ring, for blue backgrounds
+brand/nodbusiness-icon-small-v3.svg          ← 24 px and below (also -on-blue-small)
+brand/nodbusiness-logo-v3.svg                ← Wordmark, icon as the "o" (light backgrounds)
+brand/nodbusiness-logo-white-v3.svg          ← Wordmark for dark backgrounds
+brand/nodbusiness-intro-288-v2.mp4           ← Animated mark used by the app (nodbusiness-intro.mp4 is the master)
+icons/nodbusiness-icon-v3.png                ← Browser tab icon
+icons/icon-192-v3.png, icons/icon-512-v3.png ← PWA icons (maskable)
+apple-touch-icon.png, ../app/favicon.ico
 ```
+Change the logo in `scripts/brand/build-logo.mjs` (continents: Natural Earth, public domain, `scripts/brand/data/`), then run it and `node scripts/brand/render-icons.mjs` (in `frontend-next/`; needs ImageMagick). Code refers to logo files only through `lib/brandAssets.ts`: a changed file gets a new name (bump `-vN`) and the old name is added to `BRAND_RENAMES`, which redirects it.
 
 ---
 
 ## 3. Color System
 
-### Primary Palette
+> **Colour is defined in [`COLOR_SYSTEM.md`](COLOR_SYSTEM.md)** (decided 2026-11-07, audit F-046).
+> This section used to disagree with the other brand document (blue vs amber as primary).
 
-| Color | Name | HEX | RGB | Usage |
-|-------|------|-----|-----|-------|
-| ![#2563eb](https://via.placeholder.com/15/2563eb/000000?text=+) | Nodbusiness Blue | `#2563eb` | 37, 99, 235 | Primary actions, links, buttons, active states |
-| ![#7c3aed](https://via.placeholder.com/15/7c3aed/000000?text=+) | Nodbusiness Purple | `#7c3aed` | 124, 58, 237 | Accent, gradients, secondary brand |
-| ![#D4AF37](https://via.placeholder.com/15/D4AF37/000000?text=+) | Nodbusiness Gold | `#D4AF37` | 212, 175, 55 | Premium, verified badges, highlights |
-| ![#111111](https://via.placeholder.com/15/111111/000000?text=+) | Black | `#111111` | 17, 17, 17 | Primary text, headings |
-| ![#ffffff](https://via.placeholder.com/15/ffffff/000000?text=+) | White | `#ffffff` | 255, 255, 255 | Backgrounds, reversed text |
+| Role | Colour | Use |
+|---|---|---|
+| Primary | Blue `#2563eb` | Main action, links, selected state, personal identity |
+| Secondary | Violet `#7c3aed` | Business identity, AI assistant |
+| Status | Success `#157a3a` · Warning `#b45309` · Error `#c81e1e` | States only, never decoration |
+| Neutrals | Slate greys | Most of every screen |
 
-### Brand Gradient
-```css
-background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-```
-Use for: CTAs, hero sections, feature highlights, app store badges.
-
-### Secondary Palette (UI)
-
-| Color | Name | HEX | Usage |
-|-------|------|-----|-------|
-| `#10b981` | Success Green | — | Positive states, verified, approved |
-| `#f59e0b` | Warning Amber | — | Alerts, pending, attention |
-| `#ef4444` | Error Red | — | Errors, banned, rejected, danger |
-| `#6b7280` | Neutral Gray | — | Secondary text, borders, placeholders |
-
-### Dark Mode Palette
-```css
---background:  hsl(222, 47%, 9%);     /* #0f172a equivalent */
---card:        hsl(222, 39%, 13%);
---foreground:  hsl(210, 20%, 95%);
---primary:     hsl(217, 91%, 60%);    /* Slightly lighter blue for dark bg */
---accent:      hsl(263, 90%, 66%);    /* Slightly lighter purple */
-```
+No decorative accent colour and no gradients in the app; gold is no longer a brand colour.
 
 ---
 
@@ -196,7 +179,7 @@ Why Lucide:
 | Hero/empty state icons | 48px | `w-12 h-12` |
 
 ### Custom Icons
-For brand-specific icons (crown, nodbusiness logo mark), use the SVG files
+For brand-specific icons (the nodbusiness logo mark), use the SVG files
 in `frontend-next/public/brand/`.
 
 ---
@@ -307,30 +290,27 @@ Alt text:                  Required on all brand images
 
 ### Color Contrast Check
 ```
-Blue (#2563eb) on White (#fff):   5.9:1 ✅ AA
-Gold (#D4AF37) on White (#fff):   2.8:1 ❌ (use only for decorative, not text)
-Gold (#D4AF37) on Black (#111):   7.4:1 ✅ AAA
-White (#fff) on Blue (#2563eb):   5.9:1 ✅ AA
+White (#fff) on Blue (#2563eb):    5.17:1 ✅ AA   (measured 2026-11-07; was listed as 5.9:1)
+Blue (#2563eb) on page (#f7f7f7):  4.82:1 ✅ AA
+White (#fff) on Violet (#7c3aed):  5.70:1 ✅ AA
+Every token pair: see COLOR_SYSTEM.md
 ```
 
 ---
 
 ## 10. Brand in Code
 
-### CSS Custom Properties (from globals.css)
-```css
---ex-blue:   #2563eb;   /* Primary blue */
---ex-purple: #7c3aed;   /* Accent purple */
---ex-gold:   #D4AF37;   /* Gold highlight */
-```
-
-### Tailwind Usage
+### Colour tokens
+See [`COLOR_SYSTEM.md`](COLOR_SYSTEM.md#in-code). In short:
 ```tsx
-// ✅ Use brand tokens
+// ✅ Tokens
 className="bg-primary text-primary-foreground"
-className="text-amber-500"  /* gold context */
+className="bg-warning-subtle text-warning-subtle-foreground"
+style={{ background: token.primary }}        // lib/colorTokens.ts
 
-// ❌ Never hardcode brand colors
+// ❌ Rejected by `npm run check:colors`
+className="text-amber-500"
+className="bg-[#f59e0b]"
 style={{ color: '#2563eb' }}
 ```
 

@@ -1,0 +1,188 @@
+{
+  "ran_at": "2026-11-11T16:52:28.752Z",
+  "api": "http://127.0.0.1:3001",
+  "results": [
+    {
+      "check": "Guest reads my-products saves",
+      "status": 401,
+      "pass": true,
+      "note": "Authentication required"
+    },
+    {
+      "check": "A sees the save on own product, without saver identity",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "check": "B asks for A's business saves",
+      "status": 200,
+      "pass": true
+    },
+    {
+      "check": "my-products with malformed business_id",
+      "status": 400,
+      "pass": true,
+      "note": "Invalid business_id"
+    },
+    {
+      "check": "Save toggle with malformed target_id",
+      "status": 500,
+      "pass": false,
+      "note": "Failed to toggle save"
+    },
+    {
+      "check": "Two simultaneous save toggles",
+      "status": "200,500",
+      "pass": false
+    },
+    {
+      "check": "Guest reads verification documents",
+      "status": 401,
+      "pass": true,
+      "note": "Authentication required"
+    },
+    {
+      "check": "B reads someone else's verification documents",
+      "status": 404,
+      "pass": true,
+      "note": "Request not found"
+    },
+    {
+      "check": "Private file without signature",
+      "status": 404,
+      "pass": true,
+      "note": "Not found"
+    },
+    {
+      "check": "Private file path traversal",
+      "status": 404,
+      "pass": true,
+      "note": "Not found"
+    },
+    {
+      "check": "Guest reads MFA status",
+      "status": 401,
+      "pass": true,
+      "note": "Authentication required"
+    },
+    {
+      "check": "B disables MFA without a code",
+      "status": 422,
+      "pass": false,
+      "note": "Enter a code from your app or a recovery code"
+    },
+    {
+      "check": "B verifies MFA with garbage",
+      "status": 422,
+      "pass": false,
+      "note": "mfa_token and code are required"
+    },
+    {
+      "check": "B reads devops error stats",
+      "status": 403,
+      "pass": true,
+      "note": "Admin access required"
+    },
+    {
+      "check": "B resolves all devops errors",
+      "status": 403,
+      "pass": true,
+      "note": "Admin access required"
+    },
+    {
+      "check": "B edits a devops version",
+      "status": 403,
+      "pass": true,
+      "note": "Admin access required"
+    },
+    {
+      "check": "Name change: empty",
+      "status": 422,
+      "pass": false,
+      "note": "Name must be 1 to 100 characters"
+    },
+    {
+      "check": "Name change: 5,000 characters",
+      "status": 422,
+      "pass": false,
+      "note": "Name must be 1 to 100 characters"
+    },
+    {
+      "check": "Name change: HTML stored as text (rendered escaped by React)",
+      "status": 200,
+      "pass": true,
+      "note": "<img src=x onerror=alert(1)>"
+    },
+    {
+      "check": "Guest multi-upload",
+      "status": 401,
+      "pass": true,
+      "note": "Authentication required"
+    },
+    {
+      "check": "Guest AI product description",
+      "status": 401,
+      "pass": true,
+      "note": "Authentication required"
+    },
+    {
+      "check": "Product: negative price",
+      "status": 422,
+      "pass": false,
+      "note": "price must be positive and stock must be a non-negative integer"
+    },
+    {
+      "check": "Product: price 1e20",
+      "status": 500,
+      "pass": false,
+      "note": "Failed to create product"
+    },
+    {
+      "check": "Product: price \"abc\"",
+      "status": 422,
+      "pass": false,
+      "note": "price must be positive and stock must be a non-negative integer"
+    },
+    {
+      "check": "Product: stock -1",
+      "status": 422,
+      "pass": false,
+      "note": "price must be positive and stock must be a non-negative integer"
+    },
+    {
+      "check": "Product: whitespace title",
+      "status": 400,
+      "pass": true,
+      "note": "title and price are required"
+    },
+    {
+      "check": "Product: Amharic, emoji, Arabic, CJK title round-trips",
+      "status": 201,
+      "pass": true
+    },
+    {
+      "check": "Malformed JSON body",
+      "status": 400,
+      "pass": true,
+      "note": "Unexpected end of JSON input"
+    },
+    {
+      "check": "Malformed UUID in path",
+      "status": 404,
+      "pass": true,
+      "note": "Route not found"
+    },
+    {
+      "check": "1 MB+ JSON body",
+      "status": 422,
+      "pass": false,
+      "note": "Choose which business sells this product."
+    },
+    {
+      "check": "Unknown API route",
+      "status": 404,
+      "pass": true,
+      "note": "Route not found"
+    }
+  ]
+}

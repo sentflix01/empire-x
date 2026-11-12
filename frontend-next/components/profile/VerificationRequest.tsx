@@ -7,14 +7,27 @@ import SafeImage from '@/components/ui/SafeImage';
  * Flow:
  *   1. User takes a selfie (camera capture or file upload)
  *   2. User uploads an ID document (passport, national ID, driver's license)
- *   3. Both are uploaded to storage, then submitted for admin review
- *   4. Admin approves → user gets a verified badge
+ *   3. Both go to private storage (POST /api/verification/documents), which
+ *      returns a reference, never a public URL (audit F-013). Previews use the
+ *      file on the device, so the document is never fetched back to show it.
+ *   4. The references are submitted for admin review
+ *   5. Admin approves → user gets a verified badge
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, Clock, XCircle, ShieldCheck, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { uploadFile } from '@/lib/uploadFile';
 import client from '@/api/client';
+
+type DocumentKind = 'selfie' | 'id';
+
+/** Stores the document privately and returns its reference ("private:…"). */
+async function uploadDocument(file: File, kind: DocumentKind): Promise<string> {
+  const form = new FormData();
+  form.append('kind', kind);
+  form.append('file', file);
+  const { data } = await client.post<{ ref: string }>('/api/verification/documents', form);
+  return data.ref;
+}
 import VerifiedBadge from '@/components/ui/VerifiedBadge';
 
 interface VerificationStatus {
@@ -38,8 +51,21 @@ export default function VerificationRequest() {
   const [showForm, setShowForm] = useState(false);
 
   // Form state
+  // Previews are local blob: URLs; refs are the private storage references sent on submit.
   const [selfieUrl, setSelfieUrl] = useState('');
   const [idDocUrl, setIdDocUrl] = useState('');
+  const [selfieRef, setSelfieRef] = useState('');
+  const [idDocRef, setIdDocRef] = useState('');
+
+  function setDocument(kind: DocumentKind, file: File | null, ref: string) {
+    const setPreview = kind === 'selfie' ? setSelfieUrl : setIdDocUrl;
+    setPreview((previous) => {
+      if (previous.startsWith('blob:')) URL.revokeObjectURL(previous);
+      return file ? URL.createObjectURL(file) : '';
+    });
+    (kind === 'selfie' ? setSelfieRef : setIdDocRef)(ref);
+  }
+  const clearDocuments = () => { setDocument('selfie', null, ''); setDocument('id', null, ''); };
   const [verType, setVerType] = useState<'personal' | 'business' | 'creator'>('personal');
   const [uploadingType, setUploadingType] = useState<'selfie' | 'id' | null>(null);
 
@@ -114,8 +140,7 @@ export default function VerificationRequest() {
         canvas.toBlob(b => resolve(b!), 'image/jpeg', 0.85)
       );
       const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: 'image/jpeg' });
-      const url = await uploadFile(file);
-      setSelfieUrl(url);
+      setDocument('selfie', file, await uploadDocument(file, 'selfie'));
       stopCamera();
       toast.success('Selfie captured!');
     } catch {
@@ -131,9 +156,7 @@ export default function VerificationRequest() {
     if (file.size > 10 * 1024 * 1024) { toast.error('File too large (max 10MB)'); return; }
     setUploadingType(type);
     try {
-      const url = await uploadFile(file);
-      if (type === 'selfie') setSelfieUrl(url);
-      else setIdDocUrl(url);
+      setDocument(type, file, await uploadDocument(file, type));
       toast.success(`${type === 'selfie' ? 'Selfie' : 'ID document'} uploaded!`);
     } catch {
       toast.error('Upload failed. Try again.');
@@ -144,21 +167,20 @@ export default function VerificationRequest() {
   }
 
   async function handleSubmit() {
-    if (!selfieUrl || !idDocUrl) {
+    if (!selfieRef || !idDocRef) {
       toast.error('Please provide both a selfie and an ID document.');
       return;
     }
     setSubmitting(true);
     try {
       await client.post('/api/verification/request', {
-        selfie_url: selfieUrl,
-        id_document_url: idDocUrl,
+        selfie_ref: selfieRef,
+        id_document_ref: idDocRef,
         verification_type: verType,
       });
       toast.success('Verification request submitted! We\'ll review it within 24–48 hours.');
       setShowForm(false);
-      setSelfieUrl('');
-      setIdDocUrl('');
+      clearDocuments();
       fetchStatus();
     } catch {
       toast.error('Failed to submit request. Please try again.');
@@ -181,7 +203,7 @@ export default function VerificationRequest() {
     return (
       <div className="bg-card rounded-2xl border border-border/50 p-4">
         <div className="flex items-center gap-2 mb-1">
-          <ShieldCheck className="w-4 h-4 text-blue-500" />
+          <ShieldCheck className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Verified Account</span>
           <VerifiedBadge type={status.verification_type as any} size="sm" />
         </div>
@@ -195,9 +217,9 @@ export default function VerificationRequest() {
   // ── Pending request ───────────────────────────────────────────────────────
   if (status?.request?.status === 'pending') {
     return (
-      <div className="bg-card rounded-2xl border border-amber-200/60 p-4">
+      <div className="bg-card rounded-2xl border border-primary/30 p-4">
         <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-amber-500" />
+          <Clock className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">Verification Pending</span>
         </div>
         <p className="text-xs text-muted-foreground">
@@ -214,7 +236,7 @@ export default function VerificationRequest() {
     <div className="bg-card rounded-2xl border border-border/50 p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-amber-500" />
+          <ShieldCheck className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold">
             {isRejected ? 'Reapply for Verification' : 'Get Verified'}
           </span>
@@ -222,7 +244,7 @@ export default function VerificationRequest() {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="text-xs font-semibold text-amber-600 hover:underline"
+            className="text-xs font-semibold text-primary hover:underline"
           >
             {isRejected ? 'Resubmit' : 'Apply'}
           </button>
@@ -230,11 +252,11 @@ export default function VerificationRequest() {
       </div>
 
       {isRejected && status?.request?.admin_note && !showForm && (
-        <div className="mb-3 flex items-start gap-2 bg-red-50 border border-red-200/60 rounded-xl px-3 py-2">
-          <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+        <div className="mb-3 flex items-start gap-2 bg-destructive-subtle border border-destructive/30 rounded-xl px-3 py-2">
+          <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-medium text-red-700">Previous request was rejected</p>
-            <p className="text-xs text-red-600 mt-0.5">{status.request.admin_note}</p>
+            <p className="text-xs font-medium text-destructive">Previous request was rejected</p>
+            <p className="text-xs text-destructive mt-0.5">{status.request.admin_note}</p>
           </div>
         </div>
       )}
@@ -260,7 +282,7 @@ export default function VerificationRequest() {
                   onClick={() => setVerType(t)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all capitalize ${
                     verType === t
-                      ? 'bg-amber-500 text-white border-amber-500'
+                      ? 'bg-primary text-white border-primary'
                       : 'border-border/50 text-muted-foreground hover:bg-secondary'
                   }`}
                 >
@@ -283,7 +305,7 @@ export default function VerificationRequest() {
               <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-border/50">
                 <SafeImage fill={false} width={800} height={600} loading="lazy" src={selfieUrl} alt="selfie" className="w-full h-full object-cover" />
                 <button
-                  onClick={() => setSelfieUrl('')}
+                  onClick={() => setDocument('selfie', null, '')}
                   className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"
                   aria-label="Remove selfie"
                 >
@@ -307,7 +329,7 @@ export default function VerificationRequest() {
                       <button
                         onClick={capturePhoto}
                         disabled={uploadingType === 'selfie'}
-                        className="flex-1 bg-white text-slate-900 font-semibold text-xs py-2 rounded-full hover:bg-slate-100 transition-colors"
+                        className="flex-1 bg-white text-foreground font-semibold text-xs py-2 rounded-full hover:bg-secondary transition-colors"
                       >
                         {uploadingType === 'selfie' ? 'Uploading...' : '📸 Capture'}
                       </button>
@@ -322,9 +344,9 @@ export default function VerificationRequest() {
                 )}
 
                 {cameraError && (
-                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200/60 rounded-xl px-3 py-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700">{cameraError}</p>
+                  <div className="flex items-start gap-2 bg-warning-subtle border border-rating/60 rounded-xl px-3 py-2">
+                    <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                    <p className="text-xs text-primary">{cameraError}</p>
                   </div>
                 )}
 
@@ -361,7 +383,7 @@ export default function VerificationRequest() {
               <div className="relative w-full max-w-xs rounded-xl overflow-hidden border border-border/50">
                 <SafeImage fill={false} width={800} height={600} loading="lazy" src={idDocUrl} alt="ID document" className="w-full object-cover" />
                 <button
-                  onClick={() => setIdDocUrl('')}
+                  onClick={() => setDocument('id', null, '')}
                   className="absolute top-1 right-1 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white hover:bg-black/80"
                   aria-label="Remove ID"
                 >
@@ -381,13 +403,13 @@ export default function VerificationRequest() {
           <div className="flex gap-2 pt-1">
             <button
               onClick={handleSubmit}
-              disabled={submitting || !selfieUrl || !idDocUrl}
-              className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+              disabled={submitting || !selfieRef || !idDocRef}
+              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
             >
               {submitting ? 'Submitting...' : 'Submit for Review'}
             </button>
             <button
-              onClick={() => { setShowForm(false); setSelfieUrl(''); setIdDocUrl(''); stopCamera(); }}
+              onClick={() => { setShowForm(false); clearDocuments(); stopCamera(); }}
               className="px-4 py-2.5 rounded-xl border border-border/50 text-sm font-medium hover:bg-secondary transition-colors"
             >
               Cancel

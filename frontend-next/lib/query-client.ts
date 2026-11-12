@@ -6,7 +6,10 @@ export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        refetchOnWindowFocus: false,
+        // Refetch on window focus so users returning to the tab see fresh data.
+        // Per-query overrides with refetchOnWindowFocus: false are used for
+        // stable data (settings, profile config) that doesn't need live updates.
+        refetchOnWindowFocus: true,
         // Don't refetch data that was fetched within the last 60 seconds — doubled
         // from 30s to reduce unnecessary backend hits on tab switches.
         staleTime: 60 * 1000,

@@ -1,0 +1,4 @@
+== backend
+{"unused_deps":["@aws-sdk/s3-request-presigner","chapa-nodejs","express-validator","pino-pretty","rate-limit-redis","sharp"],"unused_dev":["@faker-js/faker","axios"],"missing":["form-data"]}
+== frontend-next
+{"unused_deps":["@hello-pangea/dnd","@hookform/resolvers","@radix-ui/react-toast","@stripe/react-stripe-js","@stripe/stripe-js","canvas-confetti","moment","react-hot-toast","tailwindcss-animate","zod"],"unused_dev":["@tailwindcss/postcss","autoprefixer","eslint-config-next","tailwindcss"],"missing":["@next/eslint-plugin-next","@radix-ui/react-collapsible","eslint-plugin-react","eslint-plugin-react-hooks","typescript-eslint"]}

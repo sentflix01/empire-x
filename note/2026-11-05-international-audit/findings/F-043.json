@@ -1,0 +1,35 @@
+{
+  "id": "F-043",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Unnamed buttons, links and fields, and nested interactive controls",
+  "standards": [
+    "WCAG 2.2 SC 4.1.2 (Name, Role, Value)",
+    "WCAG 2.2 SC 1.1.1",
+    "WCAG 2.2 SC 2.4.4",
+    "EN 301 549 V4.1.1 9.4.1.2"
+  ],
+  "location": [
+    "frontend-next/views/Orders.tsx (10 icon buttons, 10 image links)",
+    "frontend-next/views/Notifications.tsx (13 nested interactive)",
+    "frontend-next/views/ProductCreate.tsx (2 unlabelled number inputs)",
+    "frontend-next/views/NearbyMap.tsx (select, map image)",
+    "product, profile and feed pages"
+  ],
+  "steps": [
+    "node scripts/browser/a11y-scan.cjs"
+  ],
+  "expected": "Every control has an accessible name; interactive elements are not nested.",
+  "actual": "button-name: 16 buttons on 7 pages; link-name: 12 links on 3 pages (orders); label: 2 inputs on /products/create; select-name and image-alt on /nearby; svg-img-alt on /feed; nested-interactive: 13 notification rows; aria-prohibited-attr: 19 elements (aria-label on plain div/span: Google sign-in slot, 'Guest session' badge).",
+  "evidence": [
+    "evidence/wave4/a11y-scan.json",
+    "evidence/wave4/a11y-detail.json"
+  ],
+  "impact": "Screen-reader users hear 'button' with no purpose on order management and product creation — core seller journeys.",
+  "fix": "Add aria-label to icon-only buttons and image links (reuse their tooltips), associate labels with the price/stock inputs, make notification rows a single link or button, and give the aria-labelled div/span a role (e.g. role=\"img\" or role=\"group\") or drop the label.",
+  "effort": "M",
+  "found_on": "2026-11-06",
+  "environment": "local"
+}

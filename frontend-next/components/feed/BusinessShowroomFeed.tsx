@@ -18,7 +18,10 @@ import VerifiedBadge, { VerificationType } from '@/components/ui/VerifiedBadge';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
+import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { BRAND } from '@/lib/brandAssets';
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface SectionItem {
@@ -107,11 +110,14 @@ export interface BusinessFeedCardProps {
   ownerAvatarUrl?: string | null;
   ownerIsVerified?: boolean;
   ownerIsSeed?: boolean;
+  /** Profile-level ticker — fallback when no feed_ticker builder section is set */
+  ownerTickerText?: string | null;
+  ownerTickerType?: string | null;
   viewer?: { id?: string } | null;
   onMessage?: (ownerId: string, bizName: string) => void;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage, ownerTickerText, ownerTickerType }: BusinessFeedCardProps) {
   const [qrOpen, setQrOpen] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
@@ -196,7 +202,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
               <button
                 type="button"
                 onClick={() => setQrOpen(v => !v)}
-                className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-amber-400/60 transition-all shadow-sm overflow-hidden"
+                className="w-14 h-14 rounded-xl border-4 border-white bg-white flex items-center justify-center hover:border-primary/60 transition-all shadow-sm overflow-hidden"
                 aria-label={`Show QR code for ${bizName}`}
                 title="Scan to open this business profile"
               >
@@ -206,6 +212,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                   level="L"
                   includeMargin={false}
                   style={{ display: 'block' }}
+                  aria-hidden="true"
                 />
               </button>
               {qrOpen && (
@@ -220,7 +227,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                     >
                       <button
                         onClick={() => setQrOpen(false)}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
                         type="button"
                         aria-label="Close QR code"
                       >
@@ -232,20 +239,20 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                             ? <NextImage src={logoUrl} alt={bizName} width={56} height={56} className="w-full h-full object-cover" unoptimized />
                             : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">{bizName.charAt(0)}</div>}
                         </div>
-                        <h3 className="font-bold text-sm text-center text-slate-800 leading-tight px-2">{bizName}</h3>
+                        <h3 className="font-bold text-sm text-center text-foreground leading-tight px-2">{bizName}</h3>
                         {biz.business_address && (
-                          <p className="text-xs text-slate-400 text-center mt-0.5">{biz.business_address as string}</p>
+                          <p className="text-xs text-muted-foreground text-center mt-0.5">{biz.business_address as string}</p>
                         )}
                       </div>
                       <div className="flex justify-center">
-                        <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-inner">
+                        <div className="p-3 bg-white rounded-2xl border border-border shadow-inner">
                           <QRCodeSVG
                             value={qrUrl}
                             size={220}
                             level="H"
                             includeMargin
                             imageSettings={{
-                              src: '/brand/nodbusiness-icon.svg',
+                              src: BRAND.icon,
                               height: 36,
                               width: 36,
                               excavate: true,
@@ -253,13 +260,13 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
                           />
                         </div>
                       </div>
-                      <p className="text-xs text-center text-slate-400 mt-3 px-4">
+                      <p className="text-xs text-center text-muted-foreground mt-3 px-4">
                         Scan with your phone camera to open this business showroom — no account needed
                       </p>
                       <Link
                         href={visitPath}
                         className="mt-3 flex items-center justify-center gap-2 w-full h-9 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: fillForWhiteText(color) }}
                         onClick={() => setQrOpen(false)}
                       >
                         Visit Business Profile
@@ -286,14 +293,14 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             )}
             <Link href={visitPath}>
               <Button size="sm" className="rounded-full h-7 text-xs text-white"
-                style={{ backgroundColor: color }}>
+                style={{ backgroundColor: fillForWhiteText(color) }}>
                 Visit <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </Link>
           </div>
         </div>
         {/* Fixed rows (name, owner, tagline, address) so every card is the same height. */}
-        <h3 className="mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ color }} title={bizName}>{bizName}</h3>
+        <h3 className="biz-text mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ ...themeTextStyle(color) }} title={bizName}>{bizName}</h3>
         {/* Owner identity */}
         <div className="h-5">
         {ownerName && (
@@ -313,7 +320,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
               />
             ) : (
               <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                style={{ backgroundColor: color }}>
+                style={{ backgroundColor: fillForWhiteText(color) }}>
                 {ownerName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -355,6 +362,60 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         })}
       />
 
+      {/* Feed announcement ticker — sources checked in priority order:
+           1. feed_ticker builder section (set in Showroom Studio)
+           2. profile-level ticker_text (set in ProfileEdit)
+           3. contact section phone/email inside the showroom sections (auto-generated) */}
+      {(() => {
+        // Source 1: explicit feed_ticker builder section
+        const tickerSection = sections.find((s: Record<string, any>) => s.type === 'feed_ticker');
+        if (tickerSection?.tickerText) {
+          return (
+            <TickerBar
+              text={String(tickerSection.tickerText)}
+              type={tickerSection.tickerType ? String(tickerSection.tickerType) : 'auto'}
+            />
+          );
+        }
+
+        // Source 2: profile-level ticker_text (set in ProfileEdit)
+        if (ownerTickerText && ownerTickerType !== 'none') {
+          return <TickerBar text={ownerTickerText} type={ownerTickerType || 'auto'} />;
+        }
+
+        // Source 3: auto-generate from the contact section inside the showroom sections
+        // This shows for ALL businesses that have a contact section — no user action needed
+        const contactSection = sections.find((s: Record<string, any>) => s.type === 'contact');
+        if (contactSection) {
+          const phone   = (contactSection.phone   as string | undefined)?.trim();
+          const email   = (contactSection.email   as string | undefined)?.trim();
+          const address = (contactSection.location as string | undefined)?.trim();
+          const autoText = phone
+            ? `📞 ${phone}  ·  ${bizName}`
+            : email
+            ? `✉️ ${email}  ·  ${bizName}`
+            : address
+            ? `📍 ${address}  ·  ${bizName}`
+            : null;
+          if (autoText) return <TickerBar text={autoText} type="contact" />;
+        }
+
+        // Source 4: fallback to business-level contact fields on the biz object itself
+        const bizPhone   = (biz.business_contact_phone as string | undefined)?.trim();
+        const bizEmail   = (biz.business_contact_email as string | undefined)?.trim();
+        const bizAddress = (biz.business_address       as string | undefined)?.trim();
+        const fallback = bizPhone
+          ? `📞 ${bizPhone}  ·  ${bizName}`
+          : bizEmail
+          ? `✉️ ${bizEmail}  ·  ${bizName}`
+          : bizAddress
+          ? `📍 ${bizAddress}  ·  ${bizName}`
+          : null;
+        if (fallback) return <TickerBar text={fallback} type="contact" />;
+
+        return null;
+      })()}
+
       {/* Inline PurchaseModal */}
       {purchaseModal && (
         <PurchaseModal
@@ -378,6 +439,18 @@ interface BusinessShowroomFeedProps {
   businesses?: Business[];
 }
 
+/**
+ * The feed's load error. "Check your connection" only when no answer came back;
+ * a server error (for example a Demo database that is briefly unavailable) is
+ * not the visitor's connection.
+ */
+export function feedLoadErrorMessage(err: unknown): string {
+  const status = err && typeof err === 'object' ? (err as { status?: unknown }).status : undefined;
+  return typeof status === 'number'
+    ? 'Business profiles could not be loaded right now. Please try again in a moment.'
+    : 'We could not load business profiles. Check your connection and try again.';
+}
+
 export default function BusinessShowroomFeed({ profile, currentUser, businesses: propBusinesses }: BusinessShowroomFeedProps) {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [selectedBizId, setSelectedBizId] = useState<string | null>(null);
@@ -387,7 +460,14 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [ownerShowrooms, setOwnerShowrooms] = useState<Array<Record<string, any>>>([]);
   const [loading, setLoading] = useState(true);
   // Owner display names for feed-mode cards — keyed by owner_id
-  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }>>({});
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, {
+    display_name?: string;
+    avatar_url?: string;
+    is_verified?: boolean;
+    is_seed?: boolean;
+    ticker_text?: string;
+    ticker_type?: string;
+  }>>({});
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
 
@@ -438,7 +518,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               .catch(() => ({ id, p: null }))
           )
         );
-        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean }> = {};
+        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean; ticker_text?: string; ticker_type?: string }> = {};
         for (const result of profileResults) {
           if (result.status === 'fulfilled' && result.value.p) {
             const p = result.value.p;
@@ -447,14 +527,16 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
               is_verified: p.is_verified,
               is_seed: (p as any).is_seed === true,
+              ticker_text: (p as any).ticker_text || undefined,
+              ticker_type: (p as any).ticker_type || undefined,
             };
           }
         }
         setOwnerProfiles(map);
       }
-    } catch {
+    } catch (err) {
       setFeedBusinesses([]);
-      setFeedError('We could not load business profiles. Check your connection and try again.');
+      setFeedError(feedLoadErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -504,7 +586,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -547,6 +629,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               ownerAvatarUrl={op?.avatar_url}
               ownerIsVerified={op?.is_verified}
               ownerIsSeed={op?.is_seed}
+              ownerTickerText={op?.ticker_text ?? null}
+              ownerTickerType={op?.ticker_type ?? null}
               viewer={viewer}
             />
           );
@@ -605,7 +689,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
         <div className="flex items-end justify-between">
           <div className="flex items-end gap-2">
             <div className="w-16 h-16 rounded-2xl border-4 border-white overflow-hidden shrink-0 shadow-sm"
-              style={{ backgroundColor: themeColor }}>
+              style={{ backgroundColor: fillForWhiteText(themeColor) }}>
               {logoUrl
                 ? <NextImage src={logoUrl} alt={`${bizName}'s logo`} width={48} height={48} className="w-full h-full object-cover" unoptimized />
                 : <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
@@ -629,7 +713,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             </Button>
             <Link href={`/profile/${profile!.user_id}?view=business`}>
               <Button size="sm" className="rounded-full h-8 text-xs text-white"
-                style={{ backgroundColor: themeColor }}>
+                style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                 Visit <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </Link>
@@ -638,7 +722,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
         <div className="mt-2 space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <h3 className="font-display text-base font-bold" style={{ color: themeColor }}>{bizName}</h3>
+            <h3 className="biz-text font-display text-base font-bold" style={{ ...themeTextStyle(themeColor) }}>{bizName}</h3>
             {profile!.is_verified && (
               <VerifiedBadge type={profile!.verification_type} size="sm" />
             )}
@@ -646,12 +730,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
           {heroSection?.subtitle && (
             <p className="text-xs text-muted-foreground italic line-clamp-1">{heroSection.subtitle}</p>
           )}
-          {biz.business_description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description as string}</p>
+          {typeof biz.business_description === 'string' && biz.business_description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{biz.business_description}</p>
           )}
-          {biz.business_address && (
+          {typeof biz.business_address === 'string' && biz.business_address && (
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address as string}
+              <MapPin className="w-3 h-3 shrink-0" /> {biz.business_address}
             </p>
           )}
 

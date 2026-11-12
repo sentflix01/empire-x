@@ -42,4 +42,25 @@ describe('Service Agreement page', () => {
     expect(text).toMatch(/Legal basis/);
     expect(text).toMatch(/International transfers/);
   });
+
+  it('publishes an accessibility statement with the target, known limits and a contact (F-055)', () => {
+    const { container } = render(<ServiceAgreement />);
+    fireEvent.click(screen.getByRole('button', { name: 'Accessibility' }));
+    expect(screen.getByRole('heading', { level: 2, name: 'Accessibility' })).toBeTruthy();
+    openAll();
+    const text = container.textContent ?? '';
+    expect(text).toContain('WCAG) 2.2, level AA');
+    expect(text).toContain('partially conformant');
+    expect(text).toContain('Known limitations');
+    const links = screen.getAllByRole('link', { name: CONTACT_EMAIL }).map((l) => l.getAttribute('href'));
+    expect(links.some((href) => href?.includes('Accessibility%20problem'))).toBe(true);
+  });
+
+  it('tells screen readers whether a section is open', () => {
+    render(<ServiceAgreement />);
+    const [first] = screen.getAllByRole('button', { name: /^\s*1\./ });
+    expect(first.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(first);
+    expect(first.getAttribute('aria-expanded')).toBe('true');
+  });
 });

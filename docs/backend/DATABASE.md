@@ -100,8 +100,8 @@ async function migrate() {
 }
 migrate();
 ```
-3. Add `'migrate9.js'` to the array in `migrate-all.js`
-4. Always use `IF NOT EXISTS` for idempotency (safe to run twice)
+3. Nothing to register: `migrate-all.js` finds `migrate<N>.js` by number, runs it once and records it in `migration_ledger` (`npm run migrate:status` shows what is pending)
+4. Always use `IF NOT EXISTS` for idempotency (safe to run twice; `--rerun` and `--all` run migrations again)
 5. Write a backwards-compatible migration (don't drop columns — mark as deprecated)
 
 ---

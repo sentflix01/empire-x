@@ -9,9 +9,10 @@
  *                  with inline live Starter/Premium sample previews
  *   3. Customize — the existing showroom builder (ShowroomCreate)
  *
- * Business domain → gold/amber accent styling throughout.
+ * Business domain → the business identity colour (violet, F-046).
  * Deep-link contract preserved: ?category=, ?template=&category=&sample=
  */
+import { token } from '@/lib/colorTokens';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -24,7 +25,6 @@ import BuilderPreview from "@/components/showroom/BuilderPreview";
 import ShowroomCreate from "@/views/ShowroomCreate";
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-const GOLD = "#b8860b";
 
 // Lucide icon mapping for categories (same names as BUILDER_CATEGORY_META.icon)
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -56,16 +56,16 @@ function TemplateMiniPane({ premium }: { premium: boolean }) {
     <div
       className={`relative h-16 overflow-hidden rounded-lg border p-1.5 ${
         premium
-          ? "border-violet-300/70 bg-gradient-to-br from-blue-600/90 to-violet-700/90"
-          : "border-blue-200/70 bg-gradient-to-br from-blue-400/70 to-violet-500/60"
+          ? "border-brand-secondary/30 bg-primary"
+          : "border-primary/30 bg-primary"
       }`}
     >
       <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 18% 34%, white 1px, transparent 1px)", backgroundSize: "12px 12px" }} />
       <div className="relative flex items-center justify-between">
-        <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: GOLD }}>
+        <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide" style={{ color: token.brandSecondary }}>
           {premium ? "Premium" : "Starter"}
         </span>
-        {premium && <BrandLogo className="h-2.5 w-2.5 text-white/90" />}
+        {premium && <BrandLogo variant="onBlue" className="h-3 w-3" />}
       </div>
       <div className="relative mt-1.5 space-y-1">
         <div className="h-1.5 w-2/3 rounded-full bg-white/80" />
@@ -111,7 +111,7 @@ function WizardTemplateCard({ template, selected, onSelect }: {
           <motion.div
             initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 shadow"
+            className="absolute left-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary shadow"
           >
             <Check className="h-3 w-3 text-white" />
           </motion.div>
@@ -156,7 +156,7 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
                   state === "done"
                     ? "bg-primary text-white"
                     : state === "active"
-                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-blue-600/20 ring-4 ring-blue-500/20"
+                      ? "bg-primary text-white shadow-md shadow-primary/20 ring-4 ring-primary/20"
                       : "border border-border bg-card text-muted-foreground"
                 }`}
               >
@@ -332,8 +332,8 @@ function ShowroomWizard() {
       <div className="shrink-0 border-b border-border bg-card">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:gap-5">
           <div className="hidden items-center gap-2 md:flex">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-sm shadow-blue-600/20">
-              <BrandLogo className="h-4 w-4 text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/20">
+              <BrandLogo variant="onBlue" className="h-5 w-5" />
             </div>
             <div>
               <p className="font-display text-sm font-bold leading-tight">{t("showroomWizard.title")}</p>
@@ -382,9 +382,9 @@ function ShowroomWizard() {
                         aria-pressed={selected}
                         initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04, duration: 0.25 }}
-                        className={`group relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/10 ${
+                        className={`group relative flex flex-col items-start gap-3 rounded-2xl border p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10 ${
                           selected
-                            ? "border-primary bg-gradient-to-br from-blue-50 to-blue-100/60 shadow-md shadow-blue-500/15 ring-2 ring-primary/60 dark:from-blue-900/25 dark:to-blue-900/10"
+                            ? "border-primary bg-primary-subtle shadow-md shadow-primary/15 ring-2 ring-primary/60"
                             : "border-border/60 bg-white hover:border-border dark:bg-card"
                         }`}
                       >
@@ -401,7 +401,7 @@ function ShowroomWizard() {
                           </p>
                         </div>
                         {selected && (
-                          <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 shadow">
+                          <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary shadow">
                             <Check className="h-3 w-3 text-white" />
                           </span>
                         )}
@@ -434,11 +434,11 @@ function ShowroomWizard() {
                     {t("showroomWizard.back")}
                   </button>
                   {activeCat && (
-                    <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-blue-50 py-1.5 pl-2 pr-3 dark:bg-blue-900/20">
+                    <div className="flex items-center gap-2 rounded-full border border-primary/30 bg-primary-subtle py-1.5 pl-2 pr-3">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ backgroundColor: `${activeCat.color}1f` }}>
                         <activeCat.Icon className="h-3.5 w-3.5" style={{ color: activeCat.color }} />
                       </span>
-                      <span className="text-xs font-bold text-blue-800 dark:text-blue-300">{activeCat.cat}</span>
+                      <span className="text-xs font-bold text-primary-subtle-foreground">{activeCat.cat}</span>
                       <button type="button" onClick={changeCategory} className="text-[11px] font-semibold text-primary underline-offset-2 hover:underline">
                         {t("showroomWizard.changeCategory")}
                       </button>
@@ -475,9 +475,9 @@ function ShowroomWizard() {
                 <button
                   type="button"
                   onClick={startFromScratch}
-                  className="mb-4 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-primary/50 bg-blue-50/60 p-4 text-left transition-all hover:border-primary hover:bg-blue-50 hover:shadow-md hover:shadow-blue-500/10 dark:border-primary/30 dark:bg-blue-900/15 dark:hover:bg-blue-900/25"
+                  className="mb-4 flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-primary/50 bg-primary-subtle/60 p-4 text-left transition-all hover:border-primary hover:bg-primary-subtle hover:shadow-md hover:shadow-primary/10 dark:border-primary/30"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 shadow-sm shadow-blue-600/20">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/20">
                     <Plus className="h-5 w-5 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -490,7 +490,7 @@ function ShowroomWizard() {
                 {/* Template grid */}
                 {templates.length === 0 ? (
                   <div className="py-14 text-center text-muted-foreground">
-                    <BrandLogo className="mx-auto mb-3 h-10 w-10 opacity-20" />
+                    <BrandLogo size={40} className="mx-auto mb-3 h-10 w-10 opacity-20" />
                     <p className="text-sm">{t("showroomWizard.noResults", { search })}</p>
                   </div>
                 ) : (
@@ -530,7 +530,7 @@ function ShowroomWizard() {
                                 key={m}
                                 type="button"
                                 onClick={() => setPreviewMode(m)}
-                                className={`rounded-full p-1.5 transition-colors ${previewMode === m ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white" : "text-muted-foreground hover:bg-secondary"}`}
+                                className={`rounded-full p-1.5 transition-colors ${previewMode === m ? "bg-primary text-white" : "text-muted-foreground hover:bg-secondary"}`}
                                 aria-label={`Preview as ${m}`}
                                 aria-pressed={previewMode === m}
                               >
@@ -547,7 +547,7 @@ function ShowroomWizard() {
                                 <div>
                                   <div className="flex items-center gap-2">
                                     {sample.id === "premium"
-                                      ? <BrandLogo className="h-4 w-4 text-amber-500" />
+                                      ? <BrandLogo className="h-4 w-4 text-primary" />
                                       : <Monitor className="h-4 w-4 text-primary" />}
                                     <h3 className="text-base font-bold">{sample.name}</h3>
                                   </div>
@@ -559,13 +559,13 @@ function ShowroomWizard() {
                                 <button
                                   type="button"
                                   onClick={() => customizeSample(sample.id)}
-                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:from-blue-700 hover:to-violet-700 sm:h-9 sm:w-auto"
+                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 px-4 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all sm:h-9 sm:w-auto"
                                 >
                                   <PenLine className="h-3.5 w-3.5" />
                                   {sample.id === "premium" ? t("showroomWizard.customizePremium") : t("showroomWizard.customizeStarter")}
                                 </button>
                               </div>
-                              <div className="h-[420px] bg-slate-100 p-2 dark:bg-slate-900 md:h-[520px] md:p-3">
+                              <div className="h-[420px] bg-secondary p-2 md:h-[520px] md:p-3">
                                 <BuilderPreview
                                   formData={sample.formData}
                                   activeSections={sample.activeSections}

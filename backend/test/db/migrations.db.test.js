@@ -1,7 +1,9 @@
 'use strict';
 
 /**
- * Every migration re-runs on each deploy. Run the whole chain again on a
+ * Migrations run once each (migration_ledger ledger, F-009), but every file
+ * must still be safe to run again (first ledger deploy, --rerun, restores).
+ * --all ignores the ledger. Run the whole chain again on a
  * database that already holds rows shaped like today's data (new order
  * statuses, private businesses, a legacy site with no business). This is the
  * check that would have caught the orders_status_check deploy breaker.
@@ -10,7 +12,7 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { pool, createUser, deleteUser, tag } = require('./helpers');
 
-const runAll = () => execFileSync(process.execPath, [path.join(__dirname, '../../db/migrate-all.js')], {
+const runAll = () => execFileSync(process.execPath, [path.join(__dirname, '../../db/migrate-all.js'), '--all'], {
   env: process.env, stdio: 'pipe', timeout: 110000,
 });
 

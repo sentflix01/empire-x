@@ -1,0 +1,30 @@
+{
+  "id": "F-012",
+  "title": "Guests are not redirected from product builder pages at the edge",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "standards": [
+    "ISO/IEC 25010:2023 security (defence in depth)",
+    "Nielsen heuristic 5 (error prevention)"
+  ],
+  "location": [
+    "frontend-next/lib/publicPaths.ts:59",
+    "frontend-next/lib/publicPaths.ts:42-47"
+  ],
+  "steps": [
+    "Start the local stack.",
+    "Without cookies, GET http://127.0.0.1:3002/products/create, /products/edit, /products/scan, and /orders as a control."
+  ],
+  "expected": "Builder pages redirect guests to /login?return=… like /orders, /profile/edit and /business/create do.",
+  "actual": "The '/products/' public prefix (for product detail pages) also matches /products/create, /products/edit and /products/scan, which are not in AUTH_ONLY_PREFIXES; they answer 200 to guests. The API still requires sign-in, so no data is exposed.",
+  "evidence": [
+    "evidence/wave1/edge-guard.txt"
+  ],
+  "impact": "A guest can open the product form and only fails on save (what the page shows is checked in Wave 3). Inconsistent with the documented 'builder pages remain auth-gated at all times'.",
+  "fix": "Add '/products/create', '/products/edit' and '/products/scan' to AUTH_ONLY_PREFIXES (or match /products/[id] only), and add cases to the existing publicPaths tests.",
+  "effort": "S",
+  "found_on": "2026-11-05",
+  "environment": "local",
+  "kind": "hardening"
+}

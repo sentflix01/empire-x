@@ -1,5 +1,6 @@
 // @ts-check
 import React from 'react';
+import { token } from '@/lib/colorTokens';
 
 export type VerificationType = 'personal' | 'business' | 'creator' | 'official' | null | undefined;
 
@@ -10,10 +11,10 @@ interface VerifiedBadgeProps {
 }
 
 const BADGE_CONFIG = {
-  personal:  { color: '#2563EB', label: 'Verified Person',        title: '✓' },
-  business:  { color: '#10B981', label: 'Verified Business',      title: '✓' },
-  creator:   { color: '#7C3AED', label: 'Verified Creator',       title: '✓' },
-  official:  { color: '#2563EB', label: 'Nodbusiness Official',      title: '✓' },
+  personal:  { color: token.primary, label: 'Verified Person',        title: '✓' },
+  business:  { color: token.brandSecondary, label: 'Verified Business',      title: '✓' },
+  creator:   { color: token.primary, label: 'Verified Creator',       title: '✓' },
+  official:  { color: token.primary, label: 'Nodbusiness Official',      title: '✓' },
 };
 
 const SIZE = {
@@ -42,7 +43,8 @@ export default function VerifiedBadge({ type, size = 'sm', showTooltip = true }:
         style={{ display: 'block' }}
       >
         {/* Shield / badge background */}
-        <circle cx="10" cy="10" r="10" fill={cfg.color} />
+        {/* fill as a style so the colour token (a CSS variable) resolves */}
+        <circle cx="10" cy="10" r="10" style={{ fill: cfg.color }} />
         {/* White checkmark */}
         <path
           d="M6 10.5L8.5 13L14 7.5"

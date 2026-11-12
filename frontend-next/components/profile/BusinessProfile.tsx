@@ -1,18 +1,24 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect, useCallback } from "react";
-import { entities } from "@/api/entities";
+import { entities, type Business, type Order, type Product, type Showroom, type UserProfile } from "@/api/entities";
+import type { AuthUser } from "@/lib/AuthContext";
+import { sectionList } from "@/lib/showroomSectionsCodec";
 
 import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import PurchaseModal from "@/components/checkout/PurchaseModal";
+
+type PurchaseItem = React.ComponentProps<typeof PurchaseModal>['item'];
 import { useStartChat } from "@/lib/messaging";
 import SectionRenderer, { resolveCtaTarget, firstProductsIndex, isCatalogueSection } from "@/components/showroom/SectionRenderer";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
+import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
+import { formatAmount } from '@/lib/money';
 
 
 /**
@@ -20,19 +26,29 @@ import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
  * published showroom linked to `businessId`. The API already drops sites that
  * are expired, private to guests, or past the 24-hour grace after a plan ends.
  */
-export function pickPublishedSite(showrooms, businessId) {
+export function pickPublishedSite<T extends { status?: string; business_id?: unknown; updated_at?: string }>(showrooms: T[] | null | undefined, businessId: string | null | undefined): T | null {
   if (!businessId || !Array.isArray(showrooms)) return null;
   const matches = showrooms.filter(s => s?.status === "published" && String(s.business_id ?? "") === String(businessId));
   matches.sort((a, b) => String(b.updated_at ?? "").localeCompare(String(a.updated_at ?? "")));
   return matches[0] ?? null;
 }
 
-export default function BusinessProfile({ profile, business, user, isOwner }) {
-  const [products, setProducts] = useState([]);
-  const [site, setSite] = useState(null);
-  const [orders, setOrders] = useState([]);
+/** A business shown on a profile: a business record, possibly built from a published site. */
+export type ProfileBusinessRecord = Business & { showroom_id?: string; showroom_slug?: string };
+
+interface BusinessProfileProps {
+  profile: UserProfile;
+  business: ProfileBusinessRecord | null;
+  user: AuthUser | null;
+  isOwner: boolean;
+}
+
+export default function BusinessProfile({ profile, business, user, isOwner }: BusinessProfileProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [site, setSite] = useState<Showroom | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [purchaseItem, setPurchaseItem] = useState(null);
+  const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
 
   // Merge: prefer business entity fields, fall back to profile's embedded business fields
   const biz = { ...profile, ...business };
@@ -48,8 +64,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
       entities.Product.filter({ seller_id: profile.user_id, status: "active" }, "-created_at", 50).catch(() => []),
       isOwner ? entities.Order.filter({ seller_id: profile.user_id }, "-created_at", 10).catch(() => []) : Promise.resolve([]),
       business?.id
-        ? entities.Showroom.filter({ owner_id: profile.user_id, status: "published" }, "-updated_at", 50).catch(() => [])
-        : Promise.resolve([]),
+        ? entities.Showroom.filter({ owner_id: profile.user_id, status: "published" }, "-updated_at", 50).catch(() => [] as Showroom[])
+        : Promise.resolve([] as Showroom[]),
     ]);
     setProducts(prods);
     setOrders(ords);
@@ -63,13 +79,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
   // Prefer the owner's published Studio site; the category template's sample
   // sections are only a fallback for businesses without one.
-  const sections = (() => {
-    try {
-      const raw = site ? site.sections : biz.business_sections;
-      const parsed = typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
-      return Array.isArray(parsed) ? parsed : [];
-    } catch { return []; }
-  })();
+  const sections = sectionList(site ? site.sections : biz.business_sections);
   const ctaTarget = resolveCtaTarget(sections);
   const productsIdx = firstProductsIndex(sections);
   const themeColor = (site && site.theme_color) || biz.business_theme_color || "#2563EB";
@@ -80,15 +90,16 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
     : biz;
   const siteSlug = site ? site.slug : biz.showroom_slug;
   const siteEditId = site ? site.id : biz.showroom_id;
-  const hours = (() => { try { return JSON.parse(biz.business_hours || "[]"); } catch { return []; } })();
+  const hours = (() => { try { return JSON.parse(String(biz.business_hours || "[]")); } catch { return []; } })();
 
-  const handleBuy = (product) => {
+  const handleBuy = (product: Record<string, any>) => {
     // Guests can buy: the Buy view asks for name, phone and email. Studio cards
     // carry their own product_type (linked product or website item).
-    setPurchaseItem(site ? product : { ...product, product_type: "product" });
+    const item = { ...product, title: String(product.title ?? product.name ?? '') };
+    setPurchaseItem(site ? item : { ...item, product_type: "product" });
   };
 
-  if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
 
   return (
     <div data-page-guide="profile-business-tab" className="space-y-0">
@@ -104,13 +115,13 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
           <div className="flex items-center gap-2 min-w-0">
             {biz.business_logo_url ? (
               <SafeImage src={biz.business_logo_url} alt={biz.business_name || 'Business logo'} className="w-7 h-7 rounded-lg object-cover shrink-0"
-                fallback={<div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>{biz.business_name?.charAt(0) || "B"}</div>} />
+                fallback={<div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{biz.business_name?.charAt(0) || "B"}</div>} />
             ) : (
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: themeColor }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                 {biz.business_name?.charAt(0) || "B"}
               </div>
             )}
-            <span className="font-display font-bold text-sm truncate" style={{ color: themeColor }}>{biz.business_name}</span>
+            <span className="biz-text font-display font-bold text-sm truncate" style={{ ...themeTextStyle(themeColor) }}>{biz.business_name}</span>
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -127,7 +138,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                 <Button size="sm" variant="outline" className="rounded-full h-7 text-xs" onClick={handleMessage} disabled={messaging}>
                   <MessageSquare className="w-3 h-3 mr-1" /> {messaging ? "..." : "Message"}
                 </Button>
-                <Button size="sm" className="rounded-full h-7 text-xs text-white" style={{ backgroundColor: themeColor }}>
+                <Button size="sm" className="rounded-full h-7 text-xs text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
                   <a href={contactHref}>Contact</a>
                 </Button>
               </div>
@@ -192,7 +203,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
       {/* Owner: Analytics Dashboard */}
       {isOwner && (
-        <div className="mt-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-5 text-white flex items-center justify-between">
+        <div className="mt-4 bg-primary rounded-2xl p-5 text-white flex items-center justify-between">
           <div>
             <h3 className="font-display text-lg font-bold">Business Analytics</h3>
             <p className="text-sm text-white/80 mt-0.5">Track sales, views & engagement</p>
@@ -203,11 +214,11 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
 
       {/* Owner: Add Product CTA */}
       {isOwner && products.length === 0 && (
-        <div className="mt-4 bg-amber-50 rounded-2xl border border-amber-200 p-5 text-center">
-          <ShoppingBag className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+        <div className="mt-4 bg-primary-subtle rounded-2xl border border-primary/30 p-5 text-center">
+          <ShoppingBag className="w-8 h-8 text-primary mx-auto mb-2" />
           <h3 className="font-semibold text-sm">Add products to your business</h3>
           <p className="text-xs text-muted-foreground mt-1 mb-3">Start selling directly from your mini-website</p>
-          <Link href="/products/create"><Button size="sm" className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600"><Plus className="w-3 h-3 mr-1" /> Add Product</Button></Link>
+          <Link href="/products/create"><Button size="sm" className="rounded-full bg-primary"><Plus className="w-3 h-3 mr-1" /> Add Product</Button></Link>
         </div>
       )}
 
@@ -223,7 +234,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }) {
                   <p className="text-xs text-muted-foreground">{o.buyer_name} • {o.quantity}x</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-amber-600">{o.total_price?.toLocaleString()} {o.currency}</p>
+                  <p className="text-sm font-bold text-primary">{formatAmount(o.total_price)} {o.currency}</p>
                   <Badge variant="outline" className="text-[10px] mt-0.5">{o.status}</Badge>
                 </div>
               </div>

@@ -24,9 +24,12 @@ import logger from '../lib/logger';
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { checkTierLimit } from '../middleware/tierLimit';
 import { getIO } from '../socket';
+import { uuidParams } from '../lib/uuidParams';
 
 const router = Router();
 
+// Malformed IDs answer 404 instead of reaching Postgres (audit F-034).
+uuidParams(router, ['businessId']);
 // ── POST /update ──────────────────────────────────────────────────────────────
 router.post(
   '/update',

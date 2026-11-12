@@ -105,7 +105,7 @@ export default function MessageBubble({
 
           {quote && (
             <button type="button" onClick={() => msg.reply_to_id && onQuoteClick?.(msg.reply_to_id)}
-              className={cn('mb-1 block w-full rounded-s border-s-2 ps-2 text-start', isMe ? 'border-amber-500' : 'border-blue-400')}>
+              className={cn('mb-1 block w-full rounded-s border-s-2 ps-2 text-start', isMe ? 'border-rating' : 'border-primary')}>
               <span className="block truncate text-[11px] font-semibold text-primary">{quote.name}</span>
               <span className="block truncate text-[11px] text-muted-foreground">{quote.text}</span>
             </button>

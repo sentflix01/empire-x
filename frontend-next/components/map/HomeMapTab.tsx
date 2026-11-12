@@ -1,5 +1,7 @@
 'use client';
+import { HEX, Z } from '@/lib/colorTokens';
 import SafeImage from '@/components/ui/SafeImage';
+import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { entities } from "@/api/entities";
@@ -8,16 +10,26 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, X, Search, Navigation, Loader2, ShoppingBag } from "lucide-react";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import { toast } from "sonner";
-import type { MapSearchResult, MapSearchState } from "@/types/map-search";
+import type { MapSearchPerson, MapSearchProduct, MapSearchResult, MapSearchState } from "@/types/map-search";
 import { getMapSearchDisplayState } from "@/types/map-search";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
+import { themeTextStyle } from '@/lib/contrast';
+import type * as Leaflet from "leaflet";
+import type * as ReactLeaflet from "react-leaflet";
+import type { LeafletMouseEvent } from "leaflet";
+import { firstImage } from "@/lib/spotlightTiles";
+import { formatAmount } from "@/lib/money";
 
 // Leaflet modules — assigned after dynamic import inside useEffect
 // We CANNOT use require() or static import because Turbopack processes CSS imports at build time
 // Instead we use dynamic import() which is truly deferred
-let MapContainer: any, TileLayer: any, Marker: any, Circle: any, useMap: any;
-let MarkerClusterGroup: any;
-let L: any;
+let MapContainer: typeof ReactLeaflet.MapContainer | undefined;
+let TileLayer: typeof ReactLeaflet.TileLayer | undefined;
+let Marker: typeof ReactLeaflet.Marker | undefined;
+let Circle: typeof ReactLeaflet.Circle | undefined;
+let useMap: typeof ReactLeaflet.useMap | undefined;
+let MarkerClusterGroup: React.ComponentType<{ chunkedLoading?: boolean; maxClusterRadius?: number; showCoverageOnHover?: boolean; children?: React.ReactNode }> | undefined;
+let L: typeof Leaflet | undefined;
 let leafletLoaded = false;
 
 async function loadLeaflet() {
@@ -46,12 +58,13 @@ async function loadLeaflet() {
   Marker = rl.Marker;
   Circle = rl.Circle;
   useMap = rl.useMap;
-  MarkerClusterGroup = function MarkerGroup({ children }: any) { return <>{children}</>; };
-  L = leaflet.default;
+  MarkerClusterGroup = function MarkerGroup({ children }: { children?: React.ReactNode }) { return <>{children}</>; };
+  const leafletLib = leaflet.default;
+  L = leafletLib;
 
   // Fix default marker icons
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
+    delete (leafletLib.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+  leafletLib.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
@@ -66,21 +79,23 @@ async function loadLeaflet() {
 
 function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green" = "blue") {
   const pinUrls: Record<string, string> = {
-    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
+    // "gold" marks businesses: violet, the business identity colour (F-046).
+    gold:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
     red:   "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
     blue:  "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
     green: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   };
   const accentColors: Record<string, string> = {
-    gold: "#2563EB", red: "#e53e3e", blue: "#3b82f6", green: "#22c55e",
+    gold: HEX.brandSecondary, red: HEX.destructive, blue: HEX.primary, green: HEX.success,
   };
   const accent = accentColors[color];
-  const truncated = label && label.length > 20 ? label.slice(0, 18) + "…" : (label || "");
+  // Escaped: names come from the database and this HTML is set with innerHTML (audit F-057).
+  const truncated = markerLabelHtml(label);
 
   const bubbleHtml = `
     <div style="
       position:absolute;bottom:49px;left:50%;transform:translateX(-50%);
-      background:#fff;color:#111;font-size:11px;font-weight:700;
+      background:#fff;color:${HEX.inverse};font-size:11px;font-weight:700;
       font-family:system-ui,sans-serif;white-space:nowrap;padding:5px 10px;
       border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);
       pointer-events:none;line-height:1.4;border:1.5px solid ${accent};z-index:2;
@@ -95,7 +110,7 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
     </div>`;
 
   const pinHtml = `
-    <img loading="lazy" src="${pinUrls[color]}" width="25" height="41"
+    <img loading="lazy" src="${pinUrls[color]}" alt="" width="25" height="41"
       style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:1;" />`;
 
   if (!L) return undefined;
@@ -108,14 +123,26 @@ function makeLabeledIcon(label: string, color: "gold" | "red" | "blue" | "green"
   });
 }
 
+type MatchedProduct = MapSearchProduct;
+
+type SearchBusiness = MapSearchResult["businesses"][number];
+type NearbyPerson = MapSearchPerson;
+
+/** Hover position: the pin's screen rectangle, or the pointer when it cannot be found. */
+function pinPosition(e: LeafletMouseEvent): { x: number; y: number } {
+  const target = e.originalEvent.target as Element | null;
+  const rect = target?.closest?.(".leaflet-marker-icon")?.getBoundingClientRect();
+  return { x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX, y: rect ? rect.top : e.originalEvent.clientY };
+}
+
 interface HoverData {
   ownerId: string;
   view: "personal" | "business";
   name: string;
-  category?: string;
-  avatarUrl?: string;
+  category?: string | null;
+  avatarUrl?: string | null;
   distanceKm?: number;
-  matchedProducts?: any[];
+  matchedProducts?: MatchedProduct[];
   x: number;
   y: number;
 }
@@ -145,11 +172,11 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
   const top = Math.max(pinTipY - 12 - 200, 8);
 
   const accentColor =
-    data.view === "business" ? "#2563EB" :
-    data.view === "personal" ? "#3b82f6" : "#22c55e";
+    data.view === "business" ? HEX.brandSecondary :
+    data.view === "personal" ? HEX.primary : HEX.success;
 
   return createPortal(
-    <div style={{ position: "fixed", left, top, width: cardW, zIndex: 999, pointerEvents: "none" }}>
+    <div style={{ position: "fixed", left, top, width: cardW, zIndex: Z.overlay, pointerEvents: "none" }}>
       <motion.div
         initial={{ y: 8, scale: 0.95 }}
         animate={{ y: 0, scale: 1 }}
@@ -170,7 +197,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
             <p className="text-xs font-bold truncate leading-tight">{data.name}</p>
             {data.category && <p className="text-[10px] text-muted-foreground truncate">{data.category}</p>}
             {data.distanceKm != null && (
-              <p className="text-[10px] font-semibold" style={{ color: accentColor }}>
+              <p className="biz-text text-[10px] font-semibold" style={{ ...themeTextStyle(accentColor) }}>
                 📍 {data.distanceKm < 1 ? `${Math.round(data.distanceKm * 1000)}m` : `${data.distanceKm.toFixed(1)} km`} away
               </p>
             )}
@@ -184,7 +211,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
                 <div key={p.id} className="flex-1 bg-secondary/40 rounded-lg p-1.5 min-w-0">
                   {imgs[0] && <SafeImage fill={false} width={800} height={600} loading="lazy" src={imgs[0]} alt={p.title || 'Product image'} className="w-full h-8 object-cover rounded mb-1" />}
                   <p className="text-[9px] font-medium truncate">{p.title}</p>
-                  <p className="text-[9px] font-bold" style={{ color: accentColor }}>{p.price?.toLocaleString()} ETB</p>
+                  <p className="biz-text text-[9px] font-bold" style={{ ...themeTextStyle(accentColor) }}>{p.price?.toLocaleString()} ETB</p>
                 </div>
               );
             })}
@@ -192,7 +219,7 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
         )}
         {loading ? (
           <div className="px-3 pb-3 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-            <div className="w-3 h-3 border border-t-amber-500 rounded-full animate-spin"
+            <div className="w-3 h-3 border border-t-primary rounded-full animate-spin"
               style={{ borderColor: `${accentColor}44`, borderTopColor: accentColor }} />
             Loading feed…
           </div>
@@ -223,7 +250,8 @@ function MarkerHoverCard({ data }: { data: HoverData }) {
 }
 
 function MapFlyTo({ center, zoom }: { center: [number, number]; zoom?: number }) {
-  const map = useMap();
+  // Rendered only inside the loaded map, so react-leaflet's useMap is set.
+  const map = useMap!();
   const [lat, lng] = center;
   useEffect(() => {
     map.flyTo(center, zoom ?? map.getZoom(), { duration: 0.8 });
@@ -239,11 +267,11 @@ const NEARBY_CATEGORIES: { value: string; label: string; icon?: any }[] = [
 ];
 
 // Search result business card
-function SearchResultBusinessCard({ business, query, onOpenProfile }) {
+export function SearchResultBusinessCard({ business, query, onOpenProfile }: { business: SearchBusiness; query: string; onOpenProfile: () => void }) {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
           {business.business_name?.charAt(0) || business.display_name?.charAt(0) || "B"}
         </div>
         <div className="flex-1 min-w-0">
@@ -252,31 +280,31 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
         </div>
         {business.distance_km != null && (
           <div className="flex items-center gap-1 shrink-0">
-            <MapPin className="w-3 h-3 text-amber-500" />
-            <span className="text-xs font-semibold text-amber-600">
+            <MapPin className="w-3 h-3 text-primary" />
+            <span className="text-xs font-semibold text-primary">
               {business.distance_km < 1 ? `${Math.round(business.distance_km * 1000)}m` : `${business.distance_km.toFixed(1)} km`}
             </span>
           </div>
         )}
       </div>
-      {business.matched_products?.length > 0 && (
+      {business.matched_products && business.matched_products.length > 0 && (
         <div className="px-4 pb-4">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             Has {business.matched_products.length} match{business.matched_products.length !== 1 ? "es" : ""} for "{query}"
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {business.matched_products.slice(0, 4).map(p => {
-              const pImgs = (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })();
+            {business.matched_products.slice(0, 4).map((p) => {
+              const image = firstImage(p.images);
               return (
                 <div key={p.id} className="flex items-center gap-2 bg-secondary/40 rounded-xl p-2">
                   <div className="w-9 h-9 rounded-lg bg-secondary/60 overflow-hidden shrink-0">
-                    {pImgs[0]
-                      ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={pImgs[0]} alt={p.title} className="w-full h-full object-cover" />
+                    {image
+                      ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={image} alt={p.title ?? ""} className="w-full h-full object-cover" />
                       : <ShoppingBag className="w-4 h-4 text-muted-foreground/30 m-auto mt-2.5" />}
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium truncate">{p.title}</p>
-                    <p className="text-[11px] text-amber-600 font-bold">{p.price?.toLocaleString()} {p.currency || "USD"}</p>
+                    <p className="text-[11px] text-primary font-bold">{formatAmount(p.price)} {p.currency || "ETB"}</p>
                   </div>
                 </div>
               );
@@ -299,12 +327,12 @@ function SearchResultBusinessCard({ business, query, onOpenProfile }) {
 }
 
 // Nearby person card for people search results
-function NearbyPersonCard({ person, onOpenProfile }) {
-  const accentColor = "#22c55e";
+function NearbyPersonCard({ person, onOpenProfile }: { person: NearbyPerson; onOpenProfile: () => void }) {
+  const accentColor = HEX.success;
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-sm">
+        <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-success flex items-center justify-center text-white font-bold text-sm">
           {person.avatar_url
             ? <SafeImage fill={false} width={800} height={600} loading="lazy" src={person.avatar_url} alt="" className="w-full h-full object-cover" />
             : (person.display_name?.charAt(0) ?? "U")}
@@ -313,14 +341,14 @@ function NearbyPersonCard({ person, onOpenProfile }) {
           <p className="font-semibold text-sm truncate">{person.display_name}</p>
           {person.headline && <p className="text-xs text-muted-foreground truncate">{person.headline}</p>}
           {person.distance_km != null && (
-            <p className="text-xs font-semibold" style={{ color: accentColor }}>
+            <p className="biz-text text-xs font-semibold" style={{ ...themeTextStyle(accentColor) }}>
               📍 {person.distance_km < 1 ? `${Math.round(person.distance_km * 1000)}m` : `${person.distance_km.toFixed(1)} km`} away
             </p>
           )}
         </div>
         <button
           onClick={onOpenProfile}
-          className="px-3 py-1.5 rounded-full bg-green-500 text-white text-xs font-semibold hover:bg-green-600 transition-colors shrink-0"
+          className="px-3 py-1.5 rounded-full bg-success text-white text-xs font-semibold hover:bg-success/90 transition-colors shrink-0"
         >
           View
         </button>
@@ -454,10 +482,15 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
   const searchQuery = searchState.query;
   const searchLoading = searchState.loading;
   const searchResults = searchState.results;
+
+  // The map parts, once Leaflet has loaded (local names keep the narrowing inside callbacks).
+  const map = leafletReady && MapContainer && TileLayer && Marker && Circle && MarkerClusterGroup
+    ? { MapContainer, TileLayer, Marker, Circle, MarkerClusterGroup }
+    : null;
   const display = getMapSearchDisplayState(searchState);
   const mapBizMarkers = searchResults?.searchType === "place" ? searchResults.businesses : [];
   const mapProductMarkers = searchResults?.searchType === "place" ? (searchResults.geo_products ?? []) : [];
-  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u: any) => u.latitude && u.longitude) : [];
+  const mapUserMarkers = searchResults?.searchType === "people" ? (searchResults.users ?? []).filter((u) => u.latitude && u.longitude) : [];
 
   return (
     <AnimatePresence mode="wait">
@@ -479,7 +512,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             value={searchQuery}
             onChange={e => setSearchState(prev => ({ ...prev, query: e.target.value }))}
             onKeyDown={e => { if (e.key === "Enter") handleProductSearch(searchQuery); }}
-            className="w-full pl-9 pr-20 py-2.5 rounded-full border border-border/60 bg-card text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+            className="w-full pl-9 pr-20 py-2.5 rounded-full border border-border/60 bg-card text-sm outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery && (
@@ -490,7 +523,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             <button
               onClick={() => handleProductSearch(searchQuery)}
               disabled={searchLoading}
-              className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
+              className="px-3 py-1 bg-primary hover:bg-primary/90 text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
             >
               {searchLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Go"}
             </button>
@@ -508,7 +541,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   if (searchResults && searchQuery) handleProductSearch(searchQuery);
                 }}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                  nearbyRadius === r ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                  nearbyRadius === r ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 {r} km
@@ -535,7 +568,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   key={cat.value}
                   onClick={() => setNearbyCategory(cat.value)}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                    nearbyCategory === cat.value ? "bg-amber-500 text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
+                    nearbyCategory === cat.value ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
                   }`}
                 >
                   {Icon && <Icon className="w-3 h-3" />}
@@ -554,27 +587,28 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
         {/* ── Embedded Map ── */}
         <div className="rounded-2xl overflow-hidden border border-border/50 shadow-sm relative" style={{ height: "340px" }}>
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-raised pointer-events-none">
             <span
               className="flex items-center gap-1.5 px-3 py-1 bg-card text-card-foreground border border-border text-[11px] font-medium rounded-full shadow-lg whitespace-nowrap"
               style={{ backgroundColor: "hsl(var(--card))", opacity: 1 }}
             >
-              <span className="text-amber-400">👆</span> Hover pin to preview · Double-click to open profile
+              <span className="text-primary">👆</span> Hover pin to preview · Double-click to open profile
             </span>
           </div>
 
-          {!leafletReady ? (
+          {!map ? (
             <div className="w-full h-full flex items-center justify-center bg-secondary/30">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-          <MapContainer
+          <map.MapContainer
+            className="isolate"
             center={mapCenter}
             zoom={13}
             style={{ height: "100%", width: "100%" }}
             doubleClickZoom={false}
           >
-            <TileLayer
+            <map.TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
@@ -582,51 +616,45 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
             {userLocation && user && (
               <>
-                <Marker
+                <map.Marker
                   position={[userLocation.lat, userLocation.lon]}
                   icon={makeLabeledIcon(user.full_name ?? "You", "gold")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                      setHoverCard({ ownerId: user.id, view: "personal", name: user.full_name ?? "You",
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                      setHoverCard({ ownerId: user.id, view: "personal", name: user.full_name ?? "You", ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: user.id, view: "personal" });
                     },
                   }}
                 />
-                <Circle
+                <map.Circle
                   center={[userLocation.lat, userLocation.lon]}
                   radius={nearbyRadius * 1000}
-                  pathOptions={{ color: "#2563EB", fillColor: "#2563EB", fillOpacity: 0.06, weight: 1.5, dashArray: "6" }}
+                  pathOptions={{ color: HEX.primary, fillColor: HEX.primary, fillOpacity: 0.06, weight: 1.5, dashArray: "6" }}
                 />
               </>
             )}
 
-            <MarkerClusterGroup chunkedLoading maxClusterRadius={50} showCoverageOnHover={false}>
+            <map.MarkerClusterGroup chunkedLoading maxClusterRadius={50} showCoverageOnHover={false}>
               {mapBizMarkers.filter(b => b.latitude && b.longitude).map(b => (
-                <Marker
+                <map.Marker
                   key={b.id}
-                  position={[parseFloat(b.latitude), parseFloat(b.longitude)]}
+                  position={[Number(b.latitude), Number(b.longitude)]}
                   icon={makeLabeledIcon(b.business_name || b.display_name || "Business", display.shouldShowResults ? "red" : "blue")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: b.owner_id, view: "business",
                         name: b.business_name || b.display_name || "Business", category: b.business_category,
-                        avatarUrl: b.avatar_url, distanceKm: b.distance_km, matchedProducts: b.matched_products,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        avatarUrl: b.avatar_url, distanceKm: b.distance_km, matchedProducts: b.matched_products, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: b.owner_id, view: "business" });
@@ -635,21 +663,18 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 />
               ))}
               {mapProductMarkers.filter(p => p.latitude && p.longitude).map(p => (
-                <Marker
+                <map.Marker
                   key={`prod-${p.id}`}
-                  position={[parseFloat(p.latitude), parseFloat(p.longitude)]}
+                  position={[Number(p.latitude), Number(p.longitude)]}
                   icon={makeLabeledIcon(p.title ?? "Product", display.shouldShowResults ? "blue" : "blue")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: p.seller_id, view: "business", name: p.title ?? "Product",
-                        category: p.category, distanceKm: p.distance_km,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        category: p.category, distanceKm: p.distance_km, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: p.seller_id, view: "business" });
@@ -658,21 +683,18 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                 />
               ))}
               {mapUserMarkers.map(u => (
-                <Marker
+                <map.Marker
                   key={`user-${u.user_id}`}
-                  position={[parseFloat(u.latitude), parseFloat(u.longitude)]}
+                  position={[Number(u.latitude), Number(u.longitude)]}
                   icon={makeLabeledIcon(u.display_name ?? "User", "green")}
                   eventHandlers={{
-                    mouseover: (e) => {
-                      const rect = (e.originalEvent.target as HTMLElement)?.closest(".leaflet-marker-icon")?.getBoundingClientRect();
+                    mouseover: (e: LeafletMouseEvent) => {
                       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
                       setHoverCard({ ownerId: u.user_id, view: "personal", name: u.display_name ?? "User",
-                        category: u.headline, avatarUrl: u.avatar_url, distanceKm: u.distance_km,
-                        x: rect ? rect.left + rect.width / 2 : e.originalEvent.clientX,
-                        y: rect ? rect.top : e.originalEvent.clientY });
+                        category: u.headline, avatarUrl: u.avatar_url, distanceKm: u.distance_km, ...pinPosition(e) });
                     },
                     mouseout: () => { setHoverCard(null); },
-                    dblclick: (e) => {
+                    dblclick: (e: LeafletMouseEvent) => {
                       e.originalEvent?.stopPropagation?.();
                       setHoverCard(null);
                       setSelectedMarker({ ownerId: u.user_id, view: "personal" });
@@ -680,8 +702,8 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                   }}
                 />
               ))}
-            </MarkerClusterGroup>
-          </MapContainer>
+            </map.MarkerClusterGroup>
+          </map.MapContainer>
           )}
         </div>
 
@@ -701,14 +723,14 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         </AnimatePresence>
 
         {/* ── Search Results Summary ── */}
-        {display.shouldShowResults && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 rounded-xl px-4 py-3">
+        {display.shouldShowResults && searchResults && (
+          <div className="bg-primary-subtle border border-primary/30 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                <p className="text-sm font-semibold text-primary-subtle-foreground">
                   "{searchQuery.replace(/^@/, "")}" within {nearbyRadius} km
                 </p>
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                <p className="text-xs text-primary mt-0.5">
                   {searchResults.searchType === "people"
                     ? searchResults.total_matches > 0
                       ? `${searchResults.total_matches} person${searchResults.total_matches !== 1 ? "s" : ""} found nearby`
@@ -718,7 +740,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
                       : `No nearby businesses found within ${nearbyRadius} km`}
                 </p>
               </div>
-              <button onClick={clearSearch} className="text-amber-500 hover:text-amber-700 transition-colors">
+              <button onClick={clearSearch} className="text-primary hover:text-primary transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -728,13 +750,13 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
         {/* ── Search Loading ── */}
         {searchLoading && (
           <div className="flex flex-col items-center py-8 gap-3">
-            <div className="w-8 h-8 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
             <p className="text-sm text-muted-foreground">Finding "{searchQuery}" within {nearbyRadius} km…</p>
           </div>
         )}
 
         {/* ── Search Results List ── */}
-        {display.shouldShowResults && !searchLoading && (
+        {display.shouldShowResults && searchResults && !searchLoading && (
           <div className="space-y-3">
             {searchResults.searchType === "people" ? (
               (searchResults.users ?? []).length === 0 ? (

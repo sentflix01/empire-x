@@ -1,0 +1,21 @@
+{
+  "checked_on": "2026-11-06",
+  "target": "local stack (dev build), guest at the product position",
+  "probe_title": "<b id=p1>P</b>",
+  "before_fix": {
+    "injected_element_found": true,
+    "marker_texts": [
+      "You",
+      "P"
+    ]
+  },
+  "test_data": "temporary user, business and product created and deleted by the probe script",
+  "after_fix": {
+    "injected_element_found": false,
+    "marker_texts": [
+      "You",
+      "<b id=p1>P</b>"
+    ],
+    "note": "label shown as text"
+  }
+}

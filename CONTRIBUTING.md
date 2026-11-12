@@ -22,7 +22,7 @@ Full engineering standards (naming, API patterns, security rules, testing bar):
 | `backend/` | Express + TypeScript API (run: `npm run dev`) |
 | `frontend-next/` | Next.js 16 App Router client (run: `npm run dev`) |
 | `docs/` | The knowledge base — **if you change behavior, change its doc in the same PR** |
-| `backend/db/migrate*.js` | Numbered, idempotent SQL migrations (tracked in `schema_migrations`) |
+| `backend/db/migrate*.js` | Numbered, idempotent SQL migrations (tracked in `migration_ledger`) |
 
 ## Rules that get PRs returned
 
@@ -35,6 +35,19 @@ Full engineering standards (naming, API patterns, security rules, testing bar):
   flow, or operational procedure, update the corresponding page under `docs/`.
   API endpoints specifically: run `cd backend && npm run docs:api` and include the regenerated
   `docs/backend/API_REFERENCE.md`.
+
+## Agent tooling (Claude Code)
+
+Coding assistants follow [`AGENTS.md`](AGENTS.md) first. The shared Claude Code setup is versioned here:
+
+| Path | Purpose |
+|---|---|
+| `.claude/settings.json` | Team permission rules: no reading or editing local `.env` files, no force-push or `--no-verify`; read-only checks pre-approved |
+| `.claude/settings.local.json` | Your personal overrides (gitignored) |
+| `.claude/skills/` | Repeatable procedures: `local-stack`, `audit-finding`, `security-audit`, `a11y-audit` |
+
+Change these through a normal PR and record the reason in `project-brain/DECISIONS.md`.
+No MCP servers are configured; see the 2026-11-05 decision before adding one.
 
 ## Reporting bugs & security issues
 

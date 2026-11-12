@@ -1,0 +1,21 @@
+# Code health (local, 2026-11-06)
+== backend tsconfig: strict="strict": false noImplicitAny="noImplicitAny": true
+== frontend-next tsconfig: strict=unset noImplicitAny=
+explicit 'any' (': any', 'as any', '<any>'), node_modules excluded: backend=43 frontend=244
+@ts-ignore/@ts-expect-error/@ts-nocheck (node_modules excluded): 2
+largest source files (lines):
+   2329 frontend-next/views/DevOps.tsx
+   1407 backend/routes/messages.ts
+   1380 frontend-next/components/feed/PostCard.tsx
+   1223 frontend-next/components/layout/AppLayout.tsx
+   1220 backend/routes/auth.ts
+   1206 frontend-next/components/PageGuide.tsx
+   1124 frontend-next/views/ShowroomCreate.tsx
+   1120 frontend-next/components/showroom/SectionRenderer.tsx
+== database integrity (local schema after all migrations)
+tables | 92
+foreign keys | 155
+check constraints | 92
+tables without primary key | 0
+user_id/*_id uuid columns without FK | 8
+money columns using float types:
