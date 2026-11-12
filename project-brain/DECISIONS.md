@@ -955,7 +955,6 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
-
 ### 2026-11-12 — A failed sign-in check is a 503, not a 401
 
 - **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
@@ -971,3 +970,11 @@ items in the open list until confirmed.
 - **Decision:** Follows "A failed sign-in check is a 503, not a 401" above. `optionalAuth` still continues as a guest for a missing, invalid, expired, revoked or banned token, but when a token was sent and the check fails on our side it **answers `503 AUTH_UNAVAILABLE` instead of continuing as a guest**. Token errors are any `jwt.JsonWebTokenError`; everything else counts as our failure. In both middlewares `next()` now runs outside the `try`, so an error from a later handler is never reported as a sign-in failure.
 - **Why:** As a guest, a signed-in person would hit guest-only routes that answer `401 SIGN_IN_REQUIRED`, which the web client treats as an expired session (refresh, then sign out), and could be served or cached a guest response.
 - **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web client needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on errors other than 401. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`, `docs/backend/API_REFERENCE.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
+
+### 2026-11-12 — Maximum lengths for text sent to the API
+
+- **Status:** Accepted (owner, 12 Nov 2026: "yes … fix the text limits first", approving the proposed limits)
+- **Decision owner:** Project owner
+- **Decision:** Every JSON request body is checked after parsing: product name 200, description 5,000, post and comment 5,000, business name 100, website sections 200,000 characters, and 10,000 for any other text field (full list in `backend/lib/textLimits.ts`). Longer text is refused with `422 TEXT_TOO_LONG`; bodies over 2 MB with `413`. The forms use the same limits as `maxLength`.
+- **Why:** Re-audit F-058: one member saved 900,000-character products, and every visitor's marketplace list became 2.2 MB and about 20 times slower.
+- **Consequences:** `backend/middleware/textLimits.ts` (mounted in `index.ts` after the body parsers), `backend/lib/textLimits.ts`, `frontend-next/lib/textLimits.ts` (kept in step by `backend/__tests__/textLimits.test.ts`), `docs/backend/API.md`, `docs/backend/SECURITY.md`. Rows already longer than a limit stay as they are; editing them requires shortening the text.

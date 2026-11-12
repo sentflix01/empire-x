@@ -7,6 +7,8 @@ Last reviewed: 2026-11-12
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
+> **Text limits** (audit F-058, `backend/lib/textLimits.ts`): JSON bodies are at most 2 MB, and every text field has a maximum length — product `title` 200, `description` 5,000, post/comment `content` 5,000, `business_name` 100, website `sections` 200,000, any other text 10,000 characters. Longer text answers `422 { "code": "TEXT_TOO_LONG", "field", "max", "error" }` before the route runs; a larger body answers `413`.
+> **Last updated:** 2026-11-12
 
 ---
 

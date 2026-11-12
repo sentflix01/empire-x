@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import NextImage from 'next/image';
 import { entities, type Post } from "@/api/entities";
 import type { AuthUser } from "@/lib/AuthContext";
@@ -87,6 +88,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
         <div className="flex-1 flex items-center bg-secondary/50 rounded-full px-3 py-1.5 gap-2 border border-border/30 focus-within:border-primary/30 transition-colors">
           <input
             value={content}
+            maxLength={TEXT_LIMITS.content}
             onChange={e => setContent(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSubmit()}
             placeholder={t ? t('feed.whatsHappening') : "What's happening?"}
