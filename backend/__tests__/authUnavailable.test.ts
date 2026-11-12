@@ -77,7 +77,7 @@ const tooManyClients = () => Object.assign(new Error('sorry, too many clients al
 const refused = () => Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:5432'), { code: 'ECONNREFUSED' });
 
 const unavailable = {
-  error: 'Sign-in is temporarily unavailable. Please try again.',
+  error: 'Sign-in check is temporarily unavailable. Try again shortly.',
   code: 'AUTH_UNAVAILABLE',
   request_id: expect.any(String),
 };

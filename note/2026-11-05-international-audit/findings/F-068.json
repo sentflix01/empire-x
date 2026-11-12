@@ -1,0 +1,31 @@
+{
+  "id": "F-068",
+  "kind": "hardening",
+  "phase": "P11-integrations",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Maps load styles from unpkg and pin images from a third-party GitHub repository at run time",
+  "standards": [
+    "OWASP A03:2025 (Software Supply Chain Failures)",
+    "GDPR Art. 44 (transfers; counsel)",
+    "ASVS 5.0 V3.6 (subresource integrity)"
+  ],
+  "location": [
+    "frontend-next/views/NearbyMap.tsx:52-95",
+    "frontend-next/components/map/HomeMapTab.tsx:49-86",
+    "frontend-next/lib/csp.ts:27"
+  ],
+  "steps": [
+    "Open /nearby as a guest: requests go to unpkg.com (2 stylesheets) and raw.githubusercontent.com/pointhi/leaflet-color-markers/master (pin image)."
+  ],
+  "expected": "Map CSS and marker images served from the app (leaflet is already a dependency) or a pinned, integrity-checked source.",
+  "actual": "CSS without integrity check; images from a mutable branch of a stranger's repository; visitor IPs sent to both.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/third-party-capture.json"
+  ],
+  "impact": "If the repository changes or disappears, pins break or show other images; unnecessary third-party data flow; GitHub raw is not a CDN for production traffic.",
+  "fix": "Import leaflet/dist/leaflet.css via a copied static file in public/vendor, copy the marker PNGs into public/brand/map-pins, and remove unpkg/raw.githubusercontent from CSP and next.config images.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-11"
+}

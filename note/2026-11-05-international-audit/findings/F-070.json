@@ -1,0 +1,39 @@
+{
+  "id": "F-070",
+  "kind": "defect",
+  "phase": "P13-polish",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Responsive and consistency gaps on core screens",
+  "standards": [
+    "ISO/IEC 25010:2023 interaction capability (user interface aesthetics)",
+    "Nielsen heuristic 4 (consistency and standards)",
+    "WCAG 2.2 SC 1.4.10 (for clipped controls)"
+  ],
+  "location": [
+    "frontend-next/views/BusinessAnalytics.tsx (header at 375 px: 12 px overflow, Google Sheets button clipped)",
+    "frontend-next/components/feed/PostCard.tsx (long unbroken text overflows 6 px at 375 px)",
+    "frontend-next/views/ProductDetail.tsx (single column at 1440 px; price \"850.00\" with ETB wrapped)",
+    "frontend-next/views/Orders.tsx (\"100.00 ETB\") vs marketplace (\"100 ETB\")",
+    "frontend-next/views/ShowroomView.tsx (raw status \"published\")",
+    "frontend-next/app/providers.tsx:42 (defaultTheme light ignores the device dark preference)",
+    "378 arbitrary text-[Npx] sizes in app/components/views"
+  ],
+  "steps": [
+    "Screenshots at 375/768/1440 px, light and dark (scripts/browser/reaudit-screens.cjs)."
+  ],
+  "expected": "One price format (formatAmount) everywhere; no clipped controls at 320-375 px; desktop product page uses the width (image beside details); labels instead of raw enum values; theme follows the device by default; type sizes from the scale.",
+  "actual": "As listed in location.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/sheet-analytics.jpg",
+    "evidence/reaudit-2026-11-11/sheet-feed.jpg",
+    "evidence/reaudit-2026-11-11/sheet-products.jpg",
+    "evidence/reaudit-2026-11-11/sheet-amharic.jpg",
+    "evidence/reaudit-2026-11-11/screens-console.json"
+  ],
+  "impact": "Falls short of the big-platform bar for consistency; small but visible on every core journey.",
+  "fix": "Wrap the Analytics header actions under the title below sm; add break-words to post text; two-column product layout at lg; use formatAmount for every price; map statuses to labels; defaultTheme=\"system\"; replace text-[10px]/[11px] with text-xs or a token.",
+  "effort": "M",
+  "environment": "local",
+  "found_on": "2026-11-11"
+}

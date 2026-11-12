@@ -1,0 +1,31 @@
+{
+  "id": "F-072",
+  "kind": "documentation",
+  "phase": "P12-docs",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "No record of a tested backup restore; recovery targets undefined; key docs undated",
+  "standards": [
+    "ISO/IEC 25010:2023 reliability (recoverability)",
+    "ISO/IEC 27001:2022 A.8.13 (information backup)"
+  ],
+  "location": [
+    "docs/operations/BACKUPS.md:146-149 (procedure only)",
+    "docs/DOCS_FRESHNESS.md (6 key pages undated: ONBOARDING, ENGINEERING_STANDARDS, backend/API, backend/DATABASE, architecture/ADR, compliance/DATA_GOVERNANCE)"
+  ],
+  "steps": [
+    "Read BACKUPS.md: restore steps exist, but no dated restore test, RPO or RTO.",
+    "node scripts/docs-freshness.mjs: 256 docs, 114 dated."
+  ],
+  "expected": "A dated restore drill with results, stated RPO/RTO, and dates on key pages.",
+  "actual": "As above.",
+  "evidence": [
+    "docs/operations/BACKUPS.md",
+    "docs/DOCS_FRESHNESS.md"
+  ],
+  "impact": "Recovery from data loss is unproven.",
+  "fix": "Owner: run a restore drill into a scratch Supabase project, record date, duration and row counts in BACKUPS.md, and set RPO/RTO. Date the six key pages.",
+  "effort": "S",
+  "environment": "repository",
+  "found_on": "2026-11-11"
+}

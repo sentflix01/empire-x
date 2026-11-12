@@ -60,7 +60,7 @@ describe('API client: Demo session ended', () => {
     const { DEMO_ENDED_EVENT } = await import('@/api/client');
     const heard = vi.fn();
     window.addEventListener(DEMO_ENDED_EVENT, heard);
-    await expect(handlers.rejected!(failure(503, { code: 'AUTH_UNAVAILABLE', error: 'Sign-in is temporarily unavailable. Please try again.' })))
+    await expect(handlers.rejected!(failure(503, { code: 'AUTH_UNAVAILABLE', error: 'Sign-in check is temporarily unavailable. Try again shortly.' })))
       .rejects.toMatchObject({ status: 503, code: 'AUTH_UNAVAILABLE' });
     window.removeEventListener(DEMO_ENDED_EVENT, heard);
     expect(heard).not.toHaveBeenCalled();

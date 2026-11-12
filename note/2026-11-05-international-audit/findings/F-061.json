@@ -1,0 +1,38 @@
+{
+  "id": "F-061",
+  "kind": "defect",
+  "phase": "P4-a11y",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Floating help and AI buttons animate without end and cover content on phones and tablets",
+  "standards": [
+    "WCAG 2.2 SC 2.2.2",
+    "WCAG 2.2 SC 2.4.11",
+    "EN 301 549 V4.1.1 9.2.2.2",
+    "Nielsen heuristic 8 (aesthetic and minimalist design)"
+  ],
+  "location": [
+    "frontend-next/app/globals.css:300-447 (ai-coin-flip 4.8s infinite; pg-flip-coin)",
+    "frontend-next/components/AiAssistant.tsx:511-545 (fixed at bottom 10.5rem / 6rem, right 1.25rem)"
+  ],
+  "steps": [
+    "Open any page at 375 or 768 px (light or dark).",
+    "The two round buttons flip continuously; screenshots catch them mid-flip (blank or stretched).",
+    "At 390 px on /login the buttons cover the Terms and Privacy Policy links; on /orders they cover the price; on /feed the composer send button."
+  ],
+  "expected": "Decorative motion stops after 5 s or can be paused; floating controls never cover links, prices or inputs.",
+  "actual": "The flip runs forever (only prefers-reduced-motion stops it). The stacked buttons occupy the lower-right corner over content on phone and tablet layouts.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/sheet-feed.jpg",
+    "evidence/reaudit-2026-11-11/sheet-analytics.jpg",
+    "evidence/reaudit-2026-11-11/sheet-showroom.jpg",
+    "evidence/reaudit-2026-11-11/sheet-amharic.jpg",
+    "evidence/reaudit-2026-11-11/dark-motion-forced-colors.json"
+  ],
+  "impact": "Constant motion distracts and can affect people with attention or vestibular conditions; covered legal links and prices undermine trust; focused elements under the buttons can be hidden (2.4.11).",
+  "fix": "Play the flip once (or every 30 s at most for a few seconds) and stop; merge the two launchers into one menu button on mobile; reserve bottom padding on page content (e.g. pb-28 on mobile) and move the launcher above the bottom navigation without overlapping content.",
+  "effort": "S",
+  "environment": "local",
+  "regression_test": "Playwright: at 375 px, elementsFromPoint at the Terms link and composer send button returns those elements, not the launcher.",
+  "found_on": "2026-11-11"
+}

@@ -247,7 +247,7 @@ function authUnavailable(res: Response, err: unknown, where: 'requireAuth' | 'op
     { err: e?.message, name: e?.name, code: e?.code, request_id: requestId, where },
     'auth: user lookup failed; answering 503',
   );
-  authError(res, 503, 'AUTH_UNAVAILABLE', 'Sign-in is temporarily unavailable. Please try again.');
+  authError(res, 503, 'AUTH_UNAVAILABLE', 'Sign-in check is temporarily unavailable. Try again shortly.');
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {

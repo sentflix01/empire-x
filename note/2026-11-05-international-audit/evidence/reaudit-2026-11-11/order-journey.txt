@@ -1,0 +1,135 @@
+{
+  "ran_at": "2026-11-11T16:51:33.872Z",
+  "api": "http://127.0.0.1:3001",
+  "results": [
+    {
+      "check": "setup: business, plan fixture, payment account, product",
+      "pass": true,
+      "account_status": 201
+    },
+    {
+      "check": "Unicode (Amharic + emoji) round-trips in business and product names",
+      "pass": true,
+      "business_name": "ሱቅ Audit Shop 🛍️",
+      "title": "ቡና Coffee ☕ test"
+    },
+    {
+      "check": "guest can now view the product (paid public business)",
+      "pass": true
+    },
+    {
+      "check": "quantity 0 rejected",
+      "pass": true,
+      "status": 422,
+      "error": "product_id and a valid quantity are required"
+    },
+    {
+      "check": "quantity -1 rejected",
+      "pass": true,
+      "status": 422,
+      "error": "product_id and a valid quantity are required"
+    },
+    {
+      "check": "quantity 1.5 rejected",
+      "pass": true,
+      "status": 422,
+      "error": "product_id and a valid quantity are required"
+    },
+    {
+      "check": "quantity 3 rejected",
+      "pass": true,
+      "status": 422,
+      "error": "Only 2 of this product are in stock"
+    },
+    {
+      "check": "quantity 10001 rejected",
+      "pass": true,
+      "status": 422,
+      "error": "product_id and a valid quantity are required"
+    },
+    {
+      "check": "quantity \"1; DROP TABLE orders\" rejected",
+      "pass": true,
+      "status": 422,
+      "error": "product_id and a valid quantity are required"
+    },
+    {
+      "check": "invalid phone rejected",
+      "pass": true,
+      "status": 422
+    },
+    {
+      "check": "member order created; client-sent price ignored",
+      "pass": true,
+      "status": 201,
+      "total_price": "100.00",
+      "order_status": "awaiting_payment"
+    },
+    {
+      "check": "stock reserved at order time (2 → 1)",
+      "pass": true,
+      "stock": 1
+    },
+    {
+      "check": "unrelated user C cannot read the receipt",
+      "pass": true
+    },
+    {
+      "check": "unrelated user C cannot confirm payment",
+      "pass": true
+    },
+    {
+      "check": "buyer B cannot confirm their own payment",
+      "pass": true
+    },
+    {
+      "check": "guest cannot confirm payment",
+      "pass": true
+    },
+    {
+      "check": "buyer reports payment",
+      "pass": true,
+      "status": 200,
+      "order_status": "payment_reported"
+    },
+    {
+      "check": "seller confirms payment → paid",
+      "pass": true,
+      "status": 200,
+      "order_status": "paid"
+    },
+    {
+      "check": "second confirmation is refused (idempotent state machine)",
+      "pass": true,
+      "status": 409
+    },
+    {
+      "check": "two concurrent orders for the last unit: exactly one succeeds, stock never negative",
+      "pass": true,
+      "statuses": [
+        422,
+        201
+      ],
+      "stock": 0
+    },
+    {
+      "check": "guest order created with a private link",
+      "pass": true,
+      "status": 201,
+      "has_token": true,
+      "token_length": 43
+    },
+    {
+      "check": "guest link opens the order",
+      "pass": true
+    },
+    {
+      "check": "altered guest token is rejected",
+      "pass": true
+    },
+    {
+      "check": "guest view does not expose seller internals or token hash",
+      "pass": true
+    }
+  ]
+}

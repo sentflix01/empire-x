@@ -1,0 +1,32 @@
+{
+  "id": "F-065",
+  "kind": "defect",
+  "phase": "P2-functional",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "Out-of-range numbers and bad bookmark requests return 500 instead of a validation error",
+  "standards": [
+    "OWASP A10:2025 (Mishandling of Exceptional Conditions)",
+    "ASVS 5.0 V2.2 (input validation)"
+  ],
+  "location": [
+    "backend/routes/products.ts:342-349 (price 1e10 overflows NUMERIC(12,2); stock 2^31 overflows integer)",
+    "backend/routes/saves.ts:64-77 (no UUID check on target_id; check-then-insert races UNIQUE(user_id,target_id))"
+  ],
+  "steps": [
+    "POST /api/products with price 10000000000 -> 500 \"Failed to create product\"; stock 2147483648 -> 500.",
+    "POST /api/saves/toggle with target_id \"not-a-uuid\" -> 500.",
+    "Two simultaneous toggles for the same target -> 200 and 500."
+  ],
+  "expected": "422 with a clear message for out-of-range or malformed input; idempotent toggle under concurrency.",
+  "actual": "Database errors surface as 500s (logged as server errors).",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/new-endpoints.json"
+  ],
+  "impact": "Confusing errors for users and noise in error tracking; same class as F-034.",
+  "fix": "Validate price <= 9,999,999,999.99 and stock <= 2,147,483,647; validate target_id as UUID; use INSERT ... ON CONFLICT DO NOTHING / DELETE ... RETURNING for the toggle.",
+  "effort": "S",
+  "environment": "local",
+  "regression_test": "reaudit-new-endpoints.mjs cases in Jest.",
+  "found_on": "2026-11-11"
+}

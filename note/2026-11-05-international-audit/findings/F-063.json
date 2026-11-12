@@ -1,0 +1,32 @@
+{
+  "id": "F-063",
+  "kind": "documentation",
+  "phase": "P6-privacy",
+  "severity": "Medium",
+  "status": "CONFIRMED",
+  "title": "Privacy and Cookie policies omit some processors, browser storage and the Ethiopian law",
+  "standards": [
+    "GDPR Art. 13(1)(e)",
+    "ePrivacy Art. 5(3)",
+    "Ethiopia Proclamation 1321/2024 (transparency duties; counsel to confirm articles)"
+  ],
+  "location": [
+    "frontend-next/views/ServiceAgreement.tsx (Privacy and Cookie tabs)",
+    "frontend-next/components/AiAssistant.tsx:143, components/messaging/Composer.tsx:15, views/ShowroomCreate.tsx:156, lib/i18n.ts:64 (browser storage writes)"
+  ],
+  "steps": [
+    "Search the policy text for each service in the third-party inventory.",
+    "Resend (email), Upstash (Redis), Telegram and the map asset hosts (unpkg, GitHub) are not named; local storage is never mentioned; no reference to Proclamation 1321/2024."
+  ],
+  "expected": "The policies list every recipient/processor and every kind of device storage, and name the applicable law for the primary market.",
+  "actual": "Most processors are named (Supabase, Render, Vercel, Sentry, Chapa, Stripe, OpenStreetMap, Google, OpenAI, Gemini, Anthropic, Cloudflare) but four are missing, browser storage of chat history and drafts is undisclosed, and the Ethiopian law is not cited.",
+  "evidence": [
+    "frontend-next/views/ServiceAgreement.tsx",
+    "evidence/reaudit-2026-11-11/third-party-capture.json"
+  ],
+  "impact": "Incomplete transparency notices are a compliance gap in both the EU and Ethiopia; for counsel to confirm. Not legal advice.",
+  "fix": "Owner/counsel: add the missing recipients and a \"Device storage\" section (what is stored, why, how long, how to clear), and cite the applicable law once counsel confirms (F-054). Update POLICIES_UPDATED to a full date.",
+  "effort": "S",
+  "environment": "repository",
+  "found_on": "2026-11-11"
+}

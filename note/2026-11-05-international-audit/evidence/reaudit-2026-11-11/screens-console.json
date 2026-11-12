@@ -1,0 +1,521 @@
+{
+  "ran_at": "2026-11-11T17:07:48.333Z",
+  "report": [
+    {
+      "screen": "/landing",
+      "width": 375,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 375,
+      "scheme": "light",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 375,
+      "scheme": "light",
+      "final": "/feed",
+      "overflow_px": 6,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 375,
+      "scheme": "light",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 375,
+      "scheme": "light",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 375,
+      "scheme": "light",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 375,
+      "scheme": "light",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 375,
+      "scheme": "light",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 375,
+      "scheme": "light",
+      "final": "/analytics",
+      "overflow_px": 12,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 375,
+      "scheme": "light",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 768,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 768,
+      "scheme": "light",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 768,
+      "scheme": "light",
+      "final": "/feed",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 768,
+      "scheme": "light",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 768,
+      "scheme": "light",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 768,
+      "scheme": "light",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 768,
+      "scheme": "light",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 768,
+      "scheme": "light",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 768,
+      "scheme": "light",
+      "final": "/analytics",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 768,
+      "scheme": "light",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/feed",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/analytics",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/feed",
+      "overflow_px": 6,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/analytics",
+      "overflow_px": 12,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/feed",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/analytics",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/login",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/login",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/feed",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/feed",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/marketplace",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/marketplace",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/products/151e05d7-a287-4161-9f74-bfa4f7055f76",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/showroom/e2e-coffee-house",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/showroom/e2e-coffee-house",
+      "overflow_px": 0,
+      "logs": [
+        "http 404: /api/showrooms/slug/e2e-coffee-house",
+        "error: Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ]
+    },
+    {
+      "screen": "/messages",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/messages",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/orders",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/orders",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/analytics",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/analytics",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/profile",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/profile",
+      "overflow_px": 0,
+      "logs": []
+    }
+  ]
+}
