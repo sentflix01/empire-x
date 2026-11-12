@@ -2,6 +2,7 @@ import SafeImage from '@/components/ui/SafeImage';
 /**
  * Shared section renderer for business mini-websites and showrooms.
  */
+import RoomsSection from '@/components/rooms/RoomsSection';
 import React, { useState } from "react";
 import Link from 'next/link';
 
@@ -683,6 +684,14 @@ export default function SectionRenderer({
           </a>
         )}
       </div>
+    );
+  }
+
+  if (s.type === "rooms") {
+    return (
+      <RoomsSection sectionIndex={sectionIndex} title={s.roomsTitle || s.title || "Our rooms"} description={s.roomsDesc || s.content}
+        businessId={businessId || biz.business_id || null} businessName={biz.business_name ?? null}
+        themeColor={themeColor} isOwner={isOwner} preview={preview} />
     );
   }
 

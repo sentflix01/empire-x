@@ -160,6 +160,13 @@ export interface Order extends BaseEntity {
   /** Shown instead of a price when the product had no fixed price ("Price on request"). */
   listed_price_text?: string | null;
   has_receipt?: boolean;
+  /** Room bookings (migrate90): the stay, as calendar days YYYY-MM-DD. */
+  room_type_id?: string | null;
+  check_in?: string | null;
+  check_out?: string | null;
+  nights?: number | null;
+  guests?: number | null;
+  rooms?: number | null;
   created_at: string;
   updated_at?: string;
 }

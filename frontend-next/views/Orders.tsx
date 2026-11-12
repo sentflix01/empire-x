@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { formatDay } from '@/lib/roomDates';
 import RequestPricing from '@/components/orders/RequestPricing';
 import { MessageCircle, type LucideIcon } from 'lucide-react';
 import { useStartChat } from '@/lib/messaging';
@@ -552,7 +553,13 @@ function Orders() {
                       {order.status === "requested"
                         ? <p className="text-sm font-semibold text-primary">{order.listed_price_text ? `Listed: ${order.listed_price_text}` : "Price to confirm"}</p>
                         : <p className="font-bold text-primary">{order.total_price?.toLocaleString()} {order.currency}</p>}
-                      <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
+                      {order.check_in && order.check_out ? (
+                        <p className="text-xs text-muted-foreground" data-testid="order-stay">
+                          {formatDay(order.check_in)} → {formatDay(order.check_out)} · {order.nights} night{order.nights === 1 ? '' : 's'} · {order.rooms} room{order.rooms === 1 ? '' : 's'} · {order.guests} guest{order.guests === 1 ? '' : 's'}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
+                      )}
                     </div>
                   </div>
 

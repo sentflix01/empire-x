@@ -5,7 +5,7 @@ import { entities, type Business, type Order, type Product, type Showroom, type 
 import type { AuthUser } from "@/lib/AuthContext";
 import { sectionList } from "@/lib/showroomSectionsCodec";
 
-import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink, BedDouble } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
@@ -135,6 +135,9 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
               <div className="flex items-center gap-1.5">
                 {siteSlug && <Link href={`/showroom/${siteSlug}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><ExternalLink className="w-3 h-3 mr-1" /> View site</Button></Link>}
                 <Link href={siteEditId ? `/showroom/create?edit=${siteEditId}` : `/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
+                {(sections.some(s => s.type === "rooms") || biz.business_category === "Hospitality & Tourism") && business?.id && (
+                  <Link href={`/business/rooms?business=${business.id}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><BedDouble className="w-3 h-3 mr-1" aria-hidden="true" /> Rooms</Button></Link>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-1.5">

@@ -18,10 +18,12 @@ import logger from '../lib/logger';
 import { optionalAuth, requireAuth, requireAdmin } from '../middleware/auth';
 import { getBusinessSubscriptionAccess } from '../lib/businessSubscriptionPolicy';
 import { businessViewGate, rejectViewGate } from '../lib/siteVisibility';
-import { uuidParams } from '../lib/uuidParams';
+import { isUuid, uuidParams } from '../lib/uuidParams';
 
 const router = Router({ mergeParams: true });
-uuidParams(router, ['businessId', 'reviewId']);
+// :businessId comes from the mount path, where router.param does not fire.
+router.use((req, res, next) => { if (isUuid(req.params.businessId)) next(); else res.status(404).json({ error: 'Business not found' }); });
+uuidParams(router, ['reviewId']);
 
 const writeLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, max: 10, skip: () => process.env.NODE_ENV === 'test',

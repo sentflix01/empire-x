@@ -14,6 +14,8 @@ const BUILDER_SECTION_TIERS = Object.freeze({
     'portfolio', 'newsletter', 'video', 'map', 'cta', 'process', 'booking',
     // sections added in builder overhaul
     'before_after', 'job_openings',
+    // rooms with an availability calendar (migrate90)
+    'rooms',
   ]),
   pro: Object.freeze([
     'caseStudies', 'partners', 'awards', 'industries',

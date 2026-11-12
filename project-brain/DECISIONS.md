@@ -969,6 +969,7 @@ items in the open list until confirmed.
   6. **Full guide (about 170 s, eight steps):** a "Watch how it works" button under the landing phone, and a round play button on the feed banner, open it in a modal player with controls. It downloads only when opened (budget ≤ 4.5 MB). Its subtitles are also a WebVTT track (`public/promo/guide-v4.en.vtt`) for caption tools.
   7. **Discovery steps:** scrolling the Personal feed and zooming a photo in place; peeking at a friend and switching to their business without leaving the page; the Business feed with shops near you and friends' businesses; searching "hotel room" near you, comparing the closest hotels by rooms, prices and reviews, and booking.
 - **Gaps (the video shows features that do not exist yet):** the owner chose on 12 Nov 2026 to show the full vision. Not built yet: the Business feed sorted by distance with a "Near you · x km" chip and a friend tag; distance search and nearest-first sorting for businesses (Search sorts only people and products by distance, `backend/routes/search.ts`); star ratings for whole businesses (only products have reviews); hotel rooms with per-night booking and dates (today rooms are Services or Price list items and "Book or request" sends a message). Follow-up: build these, or re-cut the discovery shots in `scripts/promo/scenes/shots.js` if any is dropped.
+- **Gaps resolved (12 Nov 2026):** all four are now built. Business pins and rounded distances ("Business location: exact pin only when the address is public"); the Business feed nearest first with Friend/Following tags and the businesses search tab (`GET /api/feed/businesses`, `routes/search.ts`); star ratings from verified customers ("Business reviews: verified customers only"); rooms with dates and an availability calendar ("Room bookings: availability calendar and 48-hour hold"). The video can stay as it is.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`) and are referenced only through `lib/promoAssets.ts`. Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
 
@@ -998,3 +999,21 @@ items in the open list until confirmed.
   - Backend: `backend/db/migrate89.js`, `backend/routes/businessReviews.ts`; ratings in `routes/feed.ts` and `routes/search.ts`.
   - Frontend: `components/ui/Stars.tsx` (shared with product reviews), `components/business/BusinessReviews.tsx` (business profile and site), `components/orders/RateBusinessPrompt.tsx` (`/orders` and `/order/<token>`).
   - Tests: `backend/test/db/businessReviews.db.test.js`, `frontend-next/test/reviews/businessReviews.test.tsx`.
+
+### 2026-11-12 — Room bookings: availability calendar and 48-hour hold
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Full availability calendar", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **Room types.** A business lists room types (name, price per night, guests per room, and how many identical rooms). Owners manage them on `/business/rooms`, and visitors book through the premium "Rooms & booking" website section.
+  2. **Bookings.** A booking is a direct order with a room type, check-in and check-out dates, guests and rooms. Its total is price × nights × rooms. Check-in must be today or later (Ethiopia's calendar day), at most 365 days ahead, and a stay is 1–30 nights.
+  3. **Holds.** A booking holds its rooms for every night from check-in up to check-out while it is open. A new request holds them for **48 hours** while the hotel answers. Once confirmed, the usual 7-day payment window applies. Cancelled, declined, expired, refunded and failed bookings release the rooms, as does an unpaid booking past its expiry, even before the expiry job runs.
+  4. **No double-booking.** Each booking locks its room type (`SELECT … FOR UPDATE`) and re-checks every night in one transaction. If a night is short it is refused with `409 ROOMS_UNAVAILABLE` and the full nights listed.
+  5. **Owner controls.** Owners can close nights (repairs, private use). Closed nights count as taken. Visitors see only how many rooms are free, never how many are booked.
+  6. **Payment.** The hotel confirms the booking at the per-night price (or lower) or declines it. The guest then pays the hotel directly, as with every direct order; NodBusiness never holds the money.
+- **Why:** The promo shows a guest choosing a hotel room for dates. A request-only booking with no availability would let two guests take the same last room, and an open-ended hold would block rooms indefinitely when a hotel never answers.
+- **Consequences:**
+  - Backend: `backend/db/migrate90.js` (room_types, room_blocks, orders stay columns); `backend/lib/roomAvailability.ts` and `backend/lib/roomTypes.ts`; `backend/routes/businessRooms.ts`, `backend/routes/rooms.ts`; `POST /api/direct-orders/bookings`, with set-price multiplying by nights.
+  - DATE columns are returned as `YYYY-MM-DD` text (`db/pool.ts`).
+  - Frontend: `components/rooms/RoomsSection.tsx`, `components/rooms/BookingSheet.tsx`, `views/BusinessRooms.tsx`, `lib/roomDates.ts`; stay dates on Orders and the order page.
+  - Tests: `backend/test/db/roomBookings.db.test.js`, `frontend-next/test/rooms/roomBooking.test.tsx`, `frontend-next/e2e/room-booking.spec.ts`.

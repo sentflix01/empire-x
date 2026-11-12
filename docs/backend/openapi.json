@@ -41,6 +41,10 @@
       "description": "Reviews of a business by verified customers."
     },
     {
+      "name": "businessRooms",
+      "description": "a business's room types and its bookings calendar."
+    },
+    {
       "name": "businessWebhooks",
       "description": "Business webhook management"
     },
@@ -167,6 +171,10 @@
     {
       "name": "reviews",
       "description": "reviews"
+    },
+    {
+      "name": "rooms",
+      "description": "availability per night and closed nights for a room type."
     },
     {
       "name": "saves",
@@ -2097,7 +2105,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/businessReviews.ts:61"
+        "x-source": "backend/routes/businessReviews.ts:63"
       },
       "post": {
         "operationId": "post_businesses_businessId_reviews",
@@ -2138,7 +2146,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businessReviews.ts:102"
+        "x-source": "backend/routes/businessReviews.ts:104"
       }
     },
     "/api/businesses/{businessId}/reviews/mine": {
@@ -2178,7 +2186,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businessReviews.ts:86"
+        "x-source": "backend/routes/businessReviews.ts:88"
       }
     },
     "/api/businesses/{businessId}/reviews/{reviewId}": {
@@ -2226,7 +2234,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/businessReviews.ts:145"
+        "x-source": "backend/routes/businessReviews.ts:147"
       }
     },
     "/api/businesses/{businessId}/reviews/{reviewId}/status": {
@@ -2280,7 +2288,223 @@
           }
         },
         "x-auth": "admin",
-        "x-source": "backend/routes/businessReviews.ts:159"
+        "x-source": "backend/routes/businessReviews.ts:161"
+      }
+    },
+    "/api/businesses/{businessId}/rooms": {
+      "get": {
+        "operationId": "get_businesses_businessId_rooms",
+        "tags": [
+          "businessRooms"
+        ],
+        "summary": "GET /api/businesses/{businessId}/rooms",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "optional",
+        "x-source": "backend/routes/businessRooms.ts:35"
+      },
+      "post": {
+        "operationId": "post_businesses_businessId_rooms",
+        "tags": [
+          "businessRooms"
+        ],
+        "summary": "POST /api/businesses/{businessId}/rooms",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessRooms.ts:52"
+      }
+    },
+    "/api/businesses/{businessId}/rooms/{roomId}": {
+      "put": {
+        "operationId": "put_businesses_businessId_rooms_roomId",
+        "tags": [
+          "businessRooms"
+        ],
+        "summary": "PUT /api/businesses/{businessId}/rooms/{roomId}",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessRooms.ts:71"
+      },
+      "delete": {
+        "operationId": "delete_businesses_businessId_rooms_roomId",
+        "tags": [
+          "businessRooms"
+        ],
+        "summary": "DELETE /api/businesses/{businessId}/rooms/{roomId}",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessRooms.ts:92"
+      }
+    },
+    "/api/businesses/{businessId}/rooms/bookings": {
+      "get": {
+        "operationId": "get_businesses_businessId_rooms_bookings",
+        "tags": [
+          "businessRooms"
+        ],
+        "summary": "GET /api/businesses/{businessId}/rooms/bookings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/businessRooms.ts:107"
       }
     },
     "/api/business-webhooks": {
@@ -3559,7 +3783,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/directOrders.ts:144"
+        "x-source": "backend/routes/directOrders.ts:150"
       }
     },
     "/api/direct-orders/requests": {
@@ -3587,7 +3811,35 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/directOrders.ts:238"
+        "x-source": "backend/routes/directOrders.ts:244"
+      }
+    },
+    "/api/direct-orders/bookings": {
+      "post": {
+        "operationId": "post_direct_orders_bookings",
+        "tags": [
+          "directOrders"
+        ],
+        "summary": "POST /api/direct-orders/bookings",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "optional",
+        "x-source": "backend/routes/directOrders.ts:323"
       }
     },
     "/api/direct-orders": {
@@ -3615,7 +3867,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/directOrders.ts:310"
+        "x-source": "backend/routes/directOrders.ts:403"
       }
     },
     "/api/direct-orders/link/{token}": {
@@ -3648,7 +3900,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/directOrders.ts:422"
+        "x-source": "backend/routes/directOrders.ts:515"
       }
     },
     "/api/direct-orders/link/{token}/report-payment": {
@@ -3684,7 +3936,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/directOrders.ts:457"
+        "x-source": "backend/routes/directOrders.ts:550"
       }
     },
     "/api/direct-orders/{id}/report-payment": {
@@ -3727,7 +3979,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:465"
+        "x-source": "backend/routes/directOrders.ts:558"
       }
     },
     "/api/direct-orders/{id}/confirm-payment": {
@@ -3770,7 +4022,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:475"
+        "x-source": "backend/routes/directOrders.ts:568"
       }
     },
     "/api/direct-orders/{id}/reject-payment": {
@@ -3813,7 +4065,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:492"
+        "x-source": "backend/routes/directOrders.ts:585"
       }
     },
     "/api/direct-orders/{id}/set-price": {
@@ -3856,7 +4108,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:511"
+        "x-source": "backend/routes/directOrders.ts:604"
       }
     },
     "/api/direct-orders/{id}/decline-request": {
@@ -3899,7 +4151,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:540"
+        "x-source": "backend/routes/directOrders.ts:633"
       }
     },
     "/api/direct-orders/link/{token}/receipt": {
@@ -3932,7 +4184,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/directOrders.ts:564"
+        "x-source": "backend/routes/directOrders.ts:657"
       }
     },
     "/api/direct-orders/{id}/receipt": {
@@ -3972,7 +4224,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/directOrders.ts:572"
+        "x-source": "backend/routes/directOrders.ts:665"
       }
     },
     "/api/docs": {
@@ -9943,6 +10195,95 @@
         },
         "x-auth": "auth",
         "x-source": "backend/routes/reviews.ts:90"
+      }
+    },
+    "/api/rooms/{roomId}/availability": {
+      "get": {
+        "operationId": "get_rooms_roomId_availability",
+        "tags": [
+          "rooms"
+        ],
+        "summary": "GET /api/rooms/{roomId}/availability",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "optional",
+        "x-source": "backend/routes/rooms.ts:31"
+      }
+    },
+    "/api/rooms/{roomId}/blocks/{night}": {
+      "put": {
+        "operationId": "put_rooms_roomId_blocks_night",
+        "tags": [
+          "rooms"
+        ],
+        "summary": "PUT /api/rooms/{roomId}/blocks/{night}",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "night",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "auth",
+        "x-source": "backend/routes/rooms.ts:57"
       }
     },
     "/api/saves": {

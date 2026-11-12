@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **376** across **54** mounted modules · Generated: 2026-11-12
+> Endpoints: **384** across **56** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -24,13 +24,14 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
 - [`businessReviews`](#businessreviews) (5)
+- [`businessRooms`](#businessrooms) (5)
 - [`businessWebhooks`](#businesswebhooks) (4)
 - [`cart`](#cart) (5)
 - [`commission`](#commission) (2)
 - [`coupons`](#coupons) (6)
 - [`delivery`](#delivery) (2)
 - [`devops`](#devops) (18)
-- [`directOrders`](#directorders) (12)
+- [`directOrders`](#directorders) (13)
 - [`docs`](#docs) (1)
 - [`externalSources`](#externalsources) (9)
 - [`feed`](#feed) (1)
@@ -56,6 +57,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 - [`referral`](#referral) (1)
 - [`returns`](#returns) (6)
 - [`reviews`](#reviews) (4)
+- [`rooms`](#rooms) (2)
 - [`saves`](#saves) (4)
 - [`search`](#search) (1)
 - [`sharePreview`](#sharepreview) (2)
@@ -160,11 +162,21 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/businesses/:businessId/reviews/` | ⚪ optional | routes/businessReviews.ts:61 |
-| `GET` | `/api/businesses/:businessId/reviews/mine` | 🔒 auth | routes/businessReviews.ts:86 |
-| `POST` | `/api/businesses/:businessId/reviews/` | 🔒 auth | routes/businessReviews.ts:102 |
-| `DELETE` | `/api/businesses/:businessId/reviews/:reviewId` | 🔒 auth | routes/businessReviews.ts:145 |
-| `PUT` | `/api/businesses/:businessId/reviews/:reviewId/status` | 👑 admin | routes/businessReviews.ts:159 |
+| `GET` | `/api/businesses/:businessId/reviews/` | ⚪ optional | routes/businessReviews.ts:63 |
+| `GET` | `/api/businesses/:businessId/reviews/mine` | 🔒 auth | routes/businessReviews.ts:88 |
+| `POST` | `/api/businesses/:businessId/reviews/` | 🔒 auth | routes/businessReviews.ts:104 |
+| `DELETE` | `/api/businesses/:businessId/reviews/:reviewId` | 🔒 auth | routes/businessReviews.ts:147 |
+| `PUT` | `/api/businesses/:businessId/reviews/:reviewId/status` | 👑 admin | routes/businessReviews.ts:161 |
+
+## businessRooms — a business's room types and its bookings calendar.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/businesses/:businessId/rooms/` | ⚪ optional | routes/businessRooms.ts:35 |
+| `POST` | `/api/businesses/:businessId/rooms/` | 🔒 auth | routes/businessRooms.ts:52 |
+| `PUT` | `/api/businesses/:businessId/rooms/:roomId` | 🔒 auth | routes/businessRooms.ts:71 |
+| `DELETE` | `/api/businesses/:businessId/rooms/:roomId` | 🔒 auth | routes/businessRooms.ts:92 |
+| `GET` | `/api/businesses/:businessId/rooms/bookings` | 🔒 auth | routes/businessRooms.ts:107 |
 
 ## businessWebhooks — Business webhook management
 
@@ -237,18 +249,19 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:144 |
-| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:238 |
-| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:310 |
-| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:422 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:457 |
-| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:465 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:475 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:492 |
-| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:511 |
-| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:540 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:564 |
-| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:572 |
+| `GET` | `/api/direct-orders/checkout-info` | ⚪ optional | routes/directOrders.ts:150 |
+| `POST` | `/api/direct-orders/requests` | ⚪ optional | routes/directOrders.ts:244 |
+| `POST` | `/api/direct-orders/bookings` | ⚪ optional | routes/directOrders.ts:323 |
+| `POST` | `/api/direct-orders/` | ⚪ optional | routes/directOrders.ts:403 |
+| `GET` | `/api/direct-orders/link/:token` | 🌐 public | routes/directOrders.ts:515 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | 🌐 public | routes/directOrders.ts:550 |
+| `POST` | `/api/direct-orders/:id/report-payment` | 🔒 auth | routes/directOrders.ts:558 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | 🔒 auth | routes/directOrders.ts:568 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | 🔒 auth | routes/directOrders.ts:585 |
+| `POST` | `/api/direct-orders/:id/set-price` | 🔒 auth | routes/directOrders.ts:604 |
+| `POST` | `/api/direct-orders/:id/decline-request` | 🔒 auth | routes/directOrders.ts:633 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | 🌐 public | routes/directOrders.ts:657 |
+| `GET` | `/api/direct-orders/:id/receipt` | 🔒 auth | routes/directOrders.ts:665 |
 
 ## docs — docs
 
@@ -541,6 +554,13 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `GET` | `/api/reviews/product/:productId` | ⚪ optional | routes/reviews.ts:40 |
 | `POST` | `/api/reviews/` | 🔒 auth | routes/reviews.ts:57 |
 | `DELETE` | `/api/reviews/:id` | 🔒 auth | routes/reviews.ts:90 |
+
+## rooms — availability per night and closed nights for a room type.
+
+| Method | Path | Auth | Source |
+|---|---|---|---|
+| `GET` | `/api/rooms/:roomId/availability` | ⚪ optional | routes/rooms.ts:31 |
+| `PUT` | `/api/rooms/:roomId/blocks/:night` | 🔒 auth | routes/rooms.ts:57 |
 
 ## saves — saves
 

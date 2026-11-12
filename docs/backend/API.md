@@ -569,6 +569,55 @@ Admin only. `{ "status": "visible" | "hidden" }`; hidden reviews leave the list 
 
 The Business feed items carry `rating_avg` (null without reviews) and `rating_count`; search business results and business records carry `average_rating` and `review_count`.
 
+## Rooms and bookings
+
+Decision "Room bookings: availability calendar and 48-hour hold". Dates are calendar days `YYYY-MM-DD` (Ethiopia's time zone for "today").
+
+### GET /api/businesses/:businessId/rooms
+Optional auth, with the same visibility as the business. Visitors get active room types; the owner gets all of them.
+`{ "rooms": [{ "id", "name", "description", "photo_url", "price_per_night": 1500, "currency": "ETB", "max_guests": 2, "units": 8, "active": true }] }`
+
+### POST /api/businesses/:businessId/rooms · PUT /api/businesses/:businessId/rooms/:roomId · DELETE …/:roomId
+Owner or admin only.
+- **Fields:** `name` (≤ 120), `price_per_night` (> 0), `max_guests` (1–20), `units` (1–500), optional `description` (≤ 1000), `photo_url` and `active`. PUT accepts any subset.
+- **Limit:** up to 50 room types per business.
+- **DELETE:** a room type with bookings is hidden (`{ "deleted": false, "hidden": true }`) rather than deleted.
+
+### GET /api/businesses/:businessId/rooms/bookings?from=&to=
+Owner or admin only. Lists open bookings overlapping `[from, to)`, at most 120 days (default: today plus 60 days): `id, room_type_id, check_in, check_out, nights, guests, rooms, status, buyer_name, total_price, currency`.
+
+### GET /api/rooms/:roomId/availability?from=&to=
+Optional auth. One row per night from `from` up to (not including) `to`, at most 120 days.
+- **Visitors:** `{ "night", "free" }`.
+- **Owner:** also `booked` and `blocked` (closed).
+- A hidden room type, or a business guests may not see, returns 404.
+
+### PUT /api/rooms/:roomId/blocks/:night
+Owner or admin only. Body `{ "units": 0-units, "note": "optional" }`: closes that many rooms for the night; `0` opens it again. Returns that night's availability.
+
+### POST /api/direct-orders/bookings
+Guest or member; uses the same rate limit as other direct orders. The owner cannot book their own business.
+
+Body:
+```json
+{ "room_type_id": "uuid", "check_in": "2026-12-01", "check_out": "2026-12-03", "guests": 2, "rooms": 1,
+  "buyer_name": "...", "buyer_phone": "...", "buyer_email": "...", "notes": "optional" }
+```
+
+Rules:
+- Check-in is today or later and at most 365 days ahead.
+- A stay is 1–30 nights.
+- `rooms` is at most the room type's `units`.
+- `guests` is at most `max_guests` × `rooms`.
+
+The request runs in one transaction: it locks the room type and re-checks every night.
+- If a night is short: `409 { "code": "ROOMS_UNAVAILABLE", "nights": ["2026-12-02"] }`.
+- Otherwise: `201`, with the order (`status: "requested"`, `product_type: "room"`, `unit_price` = price per night, `quantity` = rooms, `total_price` = price × nights × rooms, the stay fields, and `payment_expires_at` 48 hours ahead), plus `access_token` and `order_url`, as for other requests.
+
+The hotel answers with `POST /api/direct-orders/:id/set-price` (`unit_price` per night; the total is multiplied by nights and rooms) or `/decline-request`.
+
+**Which bookings hold rooms:** every status except cancelled, expired, refunded and payment_failed, unless the booking is unpaid and past `payment_expires_at`.
+
 ## Search
 
 ### GET /api/search?q=&type=&sort=&lat=&lon=&radius_km=&limit=20
