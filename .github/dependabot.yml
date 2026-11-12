@@ -15,6 +15,16 @@ updates:
     labels:
       - dependencies
       - backend
+    ignore:
+      # TypeScript 7 (the native compiler) has no JavaScript API yet, so
+      # typescript-eslint and ts-jest cannot load it (PR #96 failed). Revisit
+      # when they support it: docs/operations/TECHNICAL_DEBT.md TD-028.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # uuid 12+ is ES-module only; google-auth-library's gaxios require()s it
+      # and package.json overrides it to our version (PR #97 failed).
+      - dependency-name: uuid
+        update-types: ["version-update:semver-major"]
 
   # Frontend dependencies — Next.js majors can be breaking; keep them separate
   - package-ecosystem: npm
@@ -31,6 +41,11 @@ updates:
     labels:
       - dependencies
       - frontend
+    ignore:
+      # TypeScript 7 cannot be loaded by typescript-eslint or Next.js type
+      # checking yet (PR #93 failed). See TD-028.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions versions (checkout/setup-node/etc.)
   - package-ecosystem: github-actions
