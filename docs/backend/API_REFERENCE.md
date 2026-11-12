@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-09
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-12
 
 | Legend | Meaning |
 |---|---|
@@ -298,8 +298,8 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:26 |
-| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:104 |
+| `GET` | `/api/maps/nearby/product-search` | ⚪ optional | routes/maps.ts:27 |
+| `GET` | `/api/maps/nearby` | ⚪ optional | routes/maps.ts:105 |
 
 ## messages — Conversations and real-time messaging
 
