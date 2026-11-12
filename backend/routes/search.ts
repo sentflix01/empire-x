@@ -26,18 +26,37 @@ function toTsQuery(q: string): string|null {
   const t = q.replace(/[^\w\s]/g,' ').trim().split(/\s+/).filter(Boolean);
   return t.length ? t.join(' & ') : null;
 }
-function dExpr(lc: string, lonc: string, lat: number|null, lon: number|null): string|null {
-  if (lat==null||lon==null) return null;
-  return `6371*2*ASIN(SQRT(POWER(SIN(((${lc}-${lat})*PI()/180)/2),2)+COS(${lat}*PI()/180)*COS(${lc}*PI()/180)*POWER(SIN(((${lonc}-${lon})*PI()/180)/2),2)))`;
+/**
+ * Bound query values. add() appends one and returns its "$n" placeholder.
+ * $1 is the search term, which differs between the full-text query (tsQ) and
+ * the ILIKE fallback, so with() swaps it while every other index stays put.
+ */
+function sqlParams(...initial: unknown[]) {
+  const values = [...initial];
+  return {
+    add: (v: unknown): string => { values.push(v); return `$${values.length}`; },
+    with: (first: unknown): unknown[] => [first, ...values.slice(1)],
+  };
 }
-function dSel(lc: string, lonc: string, lat: number|null, lon: number|null): string {
-  const e=dExpr(lc,lonc,lat,lon); return e ? `,ROUND(CAST(${e} AS NUMERIC),1) AS distance_km` : ',NULL AS distance_km';
+type SqlParams = ReturnType<typeof sqlParams>;
+// Placeholders for the searcher's position, never the numbers themselves: a
+// negative value written as `col-${lat}` became `col--54.4`, a SQL comment.
+type Geo = { lat: string; lon: string } | null;
+function geoParams(P: SqlParams, lat: number|null, lon: number|null): Geo {
+  return lat!=null&&lon!=null ? { lat: `${P.add(lat)}::float8`, lon: `${P.add(lon)}::float8` } : null;
 }
-function dFlt(lc: string, lonc: string, lat: number|null, lon: number|null, r: number|null): string {
-  const e=dExpr(lc,lonc,lat,lon); return (e&&r) ? `AND ${lc} IS NOT NULL AND ${e}<=${r}` : '';
+function dExpr(lc: string, lonc: string, g: Geo): string|null {
+  if (!g) return null;
+  return `6371*2*ASIN(SQRT(POWER(SIN(((${lc}-${g.lat})*PI()/180)/2),2)+COS(${g.lat}*PI()/180)*COS(${lc}*PI()/180)*POWER(SIN(((${lonc}-${g.lon})*PI()/180)/2),2)))`;
 }
-function oBy(def: string, lc: string, lonc: string, pc: string|null, sort: string, lat: number|null, lon: number|null): string {
-  if (sort==='distance'&&lat!=null) { const e=dExpr(lc,lonc,lat,lon); if(e) return `${lc} IS NULL,${e} ASC`; }
+function dSel(lc: string, lonc: string, g: Geo): string {
+  const e=dExpr(lc,lonc,g); return e ? `,ROUND(CAST(${e} AS NUMERIC),1) AS distance_km` : ',NULL AS distance_km';
+}
+function dFlt(lc: string, lonc: string, g: Geo, P: SqlParams, r: number|null): string {
+  const e=dExpr(lc,lonc,g); return (e&&r) ? `AND ${lc} IS NOT NULL AND ${e}<=${P.add(r)}::float8` : '';
+}
+function oBy(def: string, lc: string, lonc: string, pc: string|null, sort: string, g: Geo): string {
+  if (sort==='distance') { const e=dExpr(lc,lonc,g); if(e) return `${lc} IS NULL,${e} ASC`; }
   if (sort==='recent') return 'created_at DESC';
   if (sort==='price_asc'&&pc) return `${pc} ASC NULLS LAST`;
   if (sort==='price_desc'&&pc) return `${pc} DESC NULLS LAST`;
@@ -77,10 +96,12 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
     if (guest&&(type==='all'||type==='users')) R.users=[];
     else if (type==='all'||type==='users') {
-      const ds=dSel('up.latitude','up.longitude',sL,sLon), df=dFlt('up.latitude','up.longitude',sL,sLon,radius), ob=oBy('up.follower_count DESC','up.latitude','up.longitude',null,sort,sL,sLon);
+      // $1 term, $2 limit, $3 viewer id when signed in, then position and radius.
+      const P=sqlParams(null,lim,...viewerParams), g=geoParams(P,sL,sLon);
+      const ds=dSel('up.latitude','up.longitude',g), df=dFlt('up.latitude','up.longitude',g,P,radius), ob=oBy('up.follower_count DESC','up.latitude','up.longitude',null,sort,g);
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim,...viewerParams])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); } }
-      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,P.with(tsQ))); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,P.with(ilike))); } }
+      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,P.with(ilike))); }
       // One result per person: someone with a personal and business profiles matched once per profile.
       const seen = new Set<string>();
       // People get a distance rounded up to 0.5 km, never the 0.1 km value (DECISIONS.md, 2026-11-12).
@@ -90,14 +111,17 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
         .map((r) => r.distance_km == null ? r : { ...r, distance_km: roundedDistanceKm(Number(r.distance_km)), distance_approx: true });
     }
     if (type==='all'||type==='products') {
-      const ds=dSel('p.latitude','p.longitude',sL,sLon), df=dFlt('p.latitude','p.longitude',sL,sLon,radius), ob=oBy('p.view_count DESC','p.latitude','p.longitude','p.price',sort,sL,sLon);
-      const pC: string[]=[], pE: unknown[]=[];
-      if (price_min) { pE.push(parseFloat(price_min)); pC.push(`p.price>=$${pE.length+2}`); }
-      if (price_max) { pE.push(parseFloat(price_max)); pC.push(`p.price<=$${pE.length+2}`); }
+      // $1 term, $2 limit, then price bounds, position and radius.
+      const P=sqlParams(null,lim);
+      const pC: string[]=[];
+      if (price_min) pC.push(`p.price>=${P.add(parseFloat(price_min))}`);
+      if (price_max) pC.push(`p.price<=${P.add(parseFloat(price_max))}`);
       const pW=pC.length?'AND '+pC.join(' AND '):'';
+      const g=geoParams(P,sL,sLon);
+      const ds=dSel('p.latitude','p.longitude',g), df=dFlt('p.latitude','p.longitude',g,P,radius), ob=oBy('p.view_count DESC','p.latitude','p.longitude','p.price',sort,g);
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status,ts_rank(p.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM products p WHERE p.status='active' AND p.search_vector@@to_tsquery('english',$1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${sort==='relevance'?'rank DESC,p.view_count DESC':ob} LIMIT $2`,[tsQ,lim,...pE])); } catch { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); } }
-      else { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status,ts_rank(p.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM products p WHERE p.status='active' AND p.search_vector@@to_tsquery('english',$1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${sort==='relevance'?'rank DESC,p.view_count DESC':ob} LIMIT $2`,P.with(tsQ))); } catch { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,P.with(ilike))); } }
+      else { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,P.with(ilike))); }
       R.products = rows;
     }
     if (type==='all'||type==='showrooms') {

@@ -537,7 +537,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:47 |
+| `GET` | `/api/search/` | ⚪ optional | routes/search.ts:66 |
 
 ## sharePreview — Link-preview data for shared business and product links.
 

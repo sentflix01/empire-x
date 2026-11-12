@@ -9837,7 +9837,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/search.ts:47"
+        "x-source": "backend/routes/search.ts:66"
       }
     },
     "/api/share-preview/showroom/{slug}": {

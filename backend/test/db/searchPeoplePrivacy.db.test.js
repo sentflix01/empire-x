@@ -5,6 +5,9 @@
  * rounded up to 0.5 km, never the 0.1 km value or coordinates. The radius
  * filter and the distance sort still use the exact distance. People who
  * turned off "appear in search", and anyone blocked either way, are left out.
+ * Products keep the 0.1 km distance. Coordinates are south of the equator and
+ * west of Greenwich, so the bound lat/lon parameters are negative (they were
+ * once written into the SQL, where "col--54.4" became a comment).
  * Real Postgres. See project-brain/DECISIONS.md (2026-11-12).
  */
 const request = require('supertest');
@@ -19,10 +22,10 @@ function buildApp() {
 }
 
 // Coordinates far from any seeded data, and a name only these users have.
-// Positive coordinates: routes/search.ts builds `col-${lat}`, so a negative value turns into a SQL "--" comment.
-const ORIGIN = { lat: 54.4, lon: 3.35 };
-const NEAR = { lat: '54.4027000', lon: '3.3500000' }; // ~0.30 km
-const FAR = { lat: '54.4200000', lon: '3.3500000' }; // ~2.22 km
+// Both negative: south of the equator and west of Greenwich.
+const ORIGIN = { lat: -54.4, lon: -3.35 };
+const NEAR = { lat: '-54.4027000', lon: '-3.3500000' }; // ~0.30 km
+const FAR = { lat: '-54.4200000', lon: '-3.3500000' }; // ~2.22 km
 const NAME = `Zqsearch${tag()}`;
 
 async function placeAt(userId, { lat, lon }, extra = '') {
@@ -37,6 +40,16 @@ const searchPeople = (extra = '') =>
   `/api/search?q=${NAME}&type=users&lat=${ORIGIN.lat}&lon=${ORIGIN.lon}&limit=50${extra}`;
 
 let app; let viewer; let near; let far; let hidden; let blockedByViewer; let blockingViewer;
+let nearProduct; let farProduct;
+
+async function productAt(sellerId, { lat, lon }, price) {
+  const { rows: [product] } = await pool.query(
+    `INSERT INTO products (seller_id, title, price, currency, stock, status, category, latitude, longitude)
+     VALUES ($1, $2, $3, 'ETB', 1, 'active', 'food', $4, $5) RETURNING id`,
+    [sellerId, `${NAME} product`, price, lat, lon],
+  );
+  return product.id;
+}
 
 beforeAll(async () => {
   app = buildApp();
@@ -54,9 +67,12 @@ beforeAll(async () => {
     'INSERT INTO blocks (blocker_id, blocked_id) VALUES ($1, $2), ($3, $1)',
     [viewer.id, blockedByViewer.id, blockingViewer.id],
   );
+  nearProduct = await productAt(near.id, NEAR, 250);
+  farProduct = await productAt(far.id, FAR, 50);
 });
 
 afterAll(async () => {
+  await pool.query('DELETE FROM products WHERE id = ANY($1::uuid[])', [[nearProduct, farProduct].filter(Boolean)]);
   // blocks rows cascade with their users.
   for (const user of [viewer, near, far, hidden, blockedByViewer, blockingViewer]) {
     if (user) await deleteUser(user.id);
@@ -124,5 +140,47 @@ describe('people in search', () => {
     const res = await request(app).get(searchPeople());
     expect(res.status).toBe(200);
     expect(res.body.users).toEqual([]);
+  });
+});
+
+describe('products in search', () => {
+  const searchProducts = (extra = '') =>
+    `/api/search?q=${NAME}&type=products&lat=${ORIGIN.lat}&lon=${ORIGIN.lon}&limit=50${extra}`;
+  const ids = (res) => res.body.products.map((p) => p.id);
+
+  it('keeps the 0.1 km distance for products, not marked approximate', async () => {
+    const res = await request(app).get(searchProducts()).set(auth(viewer));
+    expect(res.status).toBe(200);
+    const byId = new Map(res.body.products.map((p) => [p.id, p]));
+    expect(Number(byId.get(nearProduct).distance_km)).toBe(0.3);
+    expect(Number(byId.get(farProduct).distance_km)).toBe(2.2);
+    expect(byId.get(nearProduct)).not.toHaveProperty('distance_approx');
+  });
+
+  it('sorts and filters by distance', async () => {
+    const sorted = await request(app).get(searchProducts('&sort=distance')).set(auth(viewer));
+    expect(sorted.status).toBe(200);
+    expect(ids(sorted).indexOf(nearProduct)).toBeGreaterThanOrEqual(0);
+    expect(ids(sorted).indexOf(nearProduct)).toBeLessThan(ids(sorted).indexOf(farProduct));
+
+    const close = await request(app).get(searchProducts('&radius_km=1')).set(auth(viewer));
+    expect(close.status).toBe(200);
+    expect(ids(close)).toContain(nearProduct);
+    expect(ids(close)).not.toContain(farProduct);
+  });
+
+  it('combines price and distance filters', async () => {
+    const res = await request(app)
+      .get(searchProducts('&price_min=100&price_max=500&radius_km=5&sort=distance'))
+      .set(auth(viewer));
+    expect(res.status).toBe(200);
+    expect(ids(res)).toContain(nearProduct);
+    expect(ids(res)).not.toContain(farProduct); // price 50
+  });
+
+  it('works for guests', async () => {
+    const res = await request(app).get(searchProducts('&radius_km=5'));
+    expect(res.status).toBe(200);
+    expect(ids(res)).toEqual(expect.arrayContaining([nearProduct, farProduct]));
   });
 });

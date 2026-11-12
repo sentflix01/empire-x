@@ -53,9 +53,10 @@ describe('people search results', () => {
     expect(res.body.users[3]).not.toHaveProperty('distance_approx');
 
     // The radius filter and the order still use the exact distance expression.
-    const [sql] = pool.query.mock.calls[0];
-    expect(sql).toMatch(/ASIN\(SQRT\(.*<=5/);
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).toMatch(/ASIN\(SQRT\(.*<=\$6::float8/);
     expect(sql).toMatch(/ORDER BY up\.latitude IS NULL,6371\*2\*ASIN/);
+    expect(params).toEqual(['sam', 20, VIEWER, 9, 38.7, 5]);
   });
 
   it('binds the viewer id as $3 instead of writing it into the SQL', async () => {
@@ -81,6 +82,58 @@ describe('people search results', () => {
     expect(sql).not.toContain("'1'='1");
     expect(sql).toContain('AND COALESCE(up.searchable, TRUE)');
     expect(params).toEqual(['sam', 20]);
+  });
+});
+
+// Every $n in the SQL has a value, and every value is used.
+function expectPlaceholdersMatch(sql, params) {
+  const used = new Set([...sql.matchAll(/\$(\d+)/g)].map((m) => Number(m[1])));
+  expect([...used].sort((a, b) => a - b)).toEqual(params.map((_, i) => i + 1));
+}
+
+describe('negative coordinates (south of the equator, west of Greenwich)', () => {
+  it('binds lat, lon and radius for people instead of writing them into the SQL', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(buildApp())
+      .get('/api/search?q=sam&type=users&lat=-54.4&lon=-3.35&radius_km=2&sort=distance')
+      .set('x-test-user', VIEWER);
+
+    expect(res.status).toBe(200);
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).not.toContain('--');
+    expect(sql).not.toContain('54.4');
+    expect(sql).not.toContain('3.35');
+    expect(sql).toContain('up.latitude-$4::float8');
+    expect(sql).toContain('up.longitude-$5::float8');
+    expect(params).toEqual(['sam', 20, VIEWER, -54.4, -3.35, 2]);
+    expectPlaceholdersMatch(sql, params);
+  });
+
+  it('numbers product price, position and radius parameters without gaps or clashes', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(buildApp())
+      .get('/api/search?q=sam&type=products&lat=-54.4&lon=-3.35&radius_km=2&price_min=10&price_max=500&sort=distance');
+
+    expect(res.status).toBe(200);
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).not.toContain('--');
+    expect(sql).toContain('p.price>=$3 AND p.price<=$4');
+    expect(sql).toContain('p.latitude-$5::float8');
+    expect(sql).toContain('<=$7::float8');
+    expect(params).toEqual(['sam', 20, 10, 500, -54.4, -3.35, 2]);
+    expectPlaceholdersMatch(sql, params);
+  });
+
+  it('passes the ILIKE pattern as $1 with the same other parameters for short queries', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    await request(buildApp()).get('/api/search?q=sa&type=products&lat=-1&lon=-2&price_min=5');
+
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(params).toEqual(['%sa%', 20, 5, -1, -2]);
+    expectPlaceholdersMatch(sql, params);
   });
 });
 
