@@ -1,5 +1,7 @@
 # Nodbusiness — API Documentation
 
+Last reviewed: 2026-11-12
+
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
@@ -831,14 +833,14 @@ All errors follow this format:
 | Status | Meaning |
 |---|---|
 | 400 | Bad request — missing or invalid fields |
-| 401 | Unauthenticated — no token or expired token |
+| 401 | Unauthenticated — a problem with the token or account: `UNAUTHORIZED` (no token), `INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`. The web app refreshes the session once on a 401. |
 | 403 | Forbidden — authenticated but not authorized |
 | 404 | Not found |
 | 409 | Conflict — duplicate (e.g., email already registered) |
 | 413 | File too large |
 | 429 | Rate limited |
 | 500 | Server error — check Sentry |
-| 503 | Service unavailable — Stripe/AI not configured |
+| 503 | Service unavailable — Stripe/AI not configured, or `AUTH_UNAVAILABLE`: the server could not check the token's account (for example the database is unreachable). The session is still valid; retry later and do not sign the person out. Sent by `requireAuth` and by `optionalAuth` when a token was sent. |
 
 ---
 

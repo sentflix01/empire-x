@@ -955,6 +955,22 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+### 2026-11-12 — A failed sign-in check is a 503, not a 401
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for token problems (`INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`, `UNAUTHORIZED`). When the check fails on our side, such as a database error or an exhausted connection pool, it logs the error and answers `503 AUTH_UNAVAILABLE`.
+- **Why:** Every error used to become `401 INVALID_TOKEN`. The web client answers a 401 by refreshing and signing out, so a database outage signed people out. It also hid the real cause of the flaky `devopsVersions.db.test.js` (Postgres "too many clients already").
+- **Consequences:** `backend/middleware/auth.ts`. Test: `backend/test/authMiddleware.test.js`. Docs: `docs/backend/API_REFERENCE.md`. Investigation: `note/2026-11-12-devops-versions-flake.md`.
+
+### 2026-11-12 — `optionalAuth` also answers 503 on a failed sign-in check
+
+- **Status:** Accepted (owner asked to extend the 503 rule above to `optionalAuth` and to record the choice, 12 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** Follows "A failed sign-in check is a 503, not a 401" above. `optionalAuth` still continues as a guest for a missing, invalid, expired, revoked or banned token, but when a token was sent and the check fails on our side it **answers `503 AUTH_UNAVAILABLE` instead of continuing as a guest**. Token errors are any `jwt.JsonWebTokenError`; everything else counts as our failure. In both middlewares `next()` now runs outside the `try`, so an error from a later handler is never reported as a sign-in failure.
+- **Why:** As a guest, a signed-in person would hit guest-only routes that answer `401 SIGN_IN_REQUIRED`, which the web client treats as an expired session (refresh, then sign out), and could be served or cached a guest response.
+- **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web client needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on errors other than 401. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`, `docs/backend/API_REFERENCE.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
+
 ### 2026-11-12 — Maximum lengths for text sent to the API
 
 - **Status:** Accepted (owner, 12 Nov 2026: "yes … fix the text limits first", approving the proposed limits)
