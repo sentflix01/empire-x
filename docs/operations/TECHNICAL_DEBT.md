@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** November 9, 2026
+> **Last updated:** November 12, 2026
 
 ---
 
@@ -134,6 +134,12 @@
 **Fix (to decide):** a one-time link code (`t.me/<bot>?start=<code>`, short expiry, single use) checked by a bot webhook with Telegram's secret-token header, then `status` returns `connect_url` and `bot_username`. Needs the bot name and webhook secret as environment settings.
 **Impact:** Telegram alerts for orders and messages exist on the server, but nobody can turn them on and Settings does not offer them.
 
+
+### TD-028: TypeScript 7 and uuid 12+ cannot be adopted yet
+**Status:** Blocked by upstream (2026-11-12). Dependabot skips these majors (`.github/dependabot.yml`).
+**Problem:** TypeScript 7 is the native (Go) compiler without the JavaScript API that typescript-eslint, ts-jest and Next.js type checking load; its update PRs (#93 frontend, #96 backend) failed in lint and could not pass. uuid 12+ ships only as an ES module, while the CommonJS backend and google-auth-library's `gaxios` `require()` it (the backend overrides uuid to its own version); PR #97 failed.
+**Fix:** Revisit TypeScript 7 when typescript-eslint and ts-jest support it, then remove the ignore rule. For uuid, replace the two direct uses with Node's `crypto.randomUUID()` and drop the override once `gaxios` no longer needs uuid 11.
+**Impact:** None today; both stay on supported releases (TypeScript 5.9/6.0, uuid 11).
 ---
 
 ## Low Priority
