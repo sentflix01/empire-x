@@ -213,7 +213,7 @@ function verifyAccessToken(
  * Auth failures use the documented error shape (audit F-007):
  * { error, code, request_id }. The message text is unchanged.
  */
-function authError(res: Response, status: 401 | 403, code: string, message: string): void {
+function authError(res: Response, status: 401 | 403 | 503, code: string, message: string): void {
   const body: Record<string, unknown> = { error: message, code };
   const requestId = (res.req as Request & { requestId?: string } | undefined)?.requestId;
   if (requestId) body.request_id = requestId;
@@ -250,11 +250,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     if (user.is_demo) withoutRedis(next);
     else next();
   } catch (err) {
-    if ((err as Error).name === 'TokenExpiredError') {
+    if (err instanceof jwt.TokenExpiredError) {
       authError(res, 401, 'TOKEN_EXPIRED', 'Token expired');
       return;
     }
-    authError(res, 401, 'INVALID_TOKEN', 'Invalid token');
+    if (err instanceof jwt.JsonWebTokenError) {
+      authError(res, 401, 'INVALID_TOKEN', 'Invalid token');
+      return;
+    }
+    // Anything else is our failure (database down, pool exhausted), not a bad
+    // token. A 401 here would make the frontend refresh and sign the person
+    // out, so answer 503 and let them retry with the same session.
+    logger.error({ err: (err as Error).message }, 'auth: sign-in check failed');
+    authError(res, 503, 'AUTH_UNAVAILABLE', 'Sign-in check is temporarily unavailable. Try again shortly.');
   }
 }
 
