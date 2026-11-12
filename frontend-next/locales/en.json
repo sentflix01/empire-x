@@ -381,7 +381,8 @@
     "defaultLocation": "Using Addis Ababa as default location",
     "views": "views",
     "remote": "Remote",
-    "online": "Online"
+    "online": "Online",
+    "businesses": "Businesses"
   },
   "explore": {
     "title": "Explore",

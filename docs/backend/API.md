@@ -541,6 +541,17 @@ Response:
 - `distance_km` is rounded to 0.5 km (never below 0.5) and `null` without a pin. Exact pins never leave the server (see Business location).
 - `relationship`: `"friend"` when the viewer and the owner follow each other, `"following"` when only the viewer follows, otherwise `null` (always `null` for guests).
 
+## Search
+
+### GET /api/search?q=&type=&sort=&lat=&lon=&radius_km=&limit=20
+Optional auth. `q` needs at least 2 characters.
+- `type`: `all` (default), `users`, `products`, `showrooms`, `businesses`, `posts`. Unknown values mean `all`.
+- `sort`: `relevance` (default), `recent`, `distance`, `price_asc`, `price_desc`. Unknown values mean `relevance`.
+- With `lat`/`lon`, `sort=distance` puts the nearest first and `radius_km` (0–200; anything else is ignored) keeps results within that distance. Businesses and sites use the business's map pin; products and people their own location.
+- `businesses` finds businesses on a paid plan by name, category or description (guests: public businesses only), returning `id, owner_id, business_name, business_category, business_description, business_logo_url, created_at, distance_km`.
+- Every `distance_km` is rounded to 0.5 km (never below 0.5) or `null`; no coordinates are returned.
+- Guests get no people or posts, and no private businesses.
+
 ## Scheduled jobs (internal)
 
 ### POST /api/internal/jobs/:name
