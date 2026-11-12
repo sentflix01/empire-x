@@ -15,3 +15,15 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'db-test-secret-do-not-use-in
 process.env.NODE_ENV = 'test';
 delete process.env.DEMO_DATABASE_URL;
 delete process.env.REDIS_URL;
+
+// Close this suite's Postgres pools when it ends (called by test/db/environment.js
+// after all hooks). Suites do not need to close pools themselves. Both closes are
+// safe to repeat if a suite already closed a pool. The modules are loaded here,
+// after the env changes above, because nothing can be required during teardown;
+// they are the same instances the suite gets.
+const dbPool = require('../../db/pool');
+const shimPool = require('../../db/poolJsShim.cjs');
+global.__closeDbTestPools = async () => {
+  await dbPool.closeAllPools();
+  if (!shimPool.ended && !shimPool.ending) await shimPool.end();
+};
