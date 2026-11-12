@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
 import { productNotPrivateSql } from '../lib/siteVisibility';
+import { roundedDistanceKm } from '../lib/locationPrivacy';
 
 const router = Router();
 
@@ -128,13 +129,38 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
       );
       results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
     }
-    // People are personal content: signed-in users only.
+    // People are personal content: signed-in users only. Their coordinates never
+    // leave the server: each person gets a distance rounded up to 0.5 km. People
+    // who turned off "appear in search", and anyone blocked either way, are left out.
     if (req.user && (type === 'all' || type === 'people')) {
       const { rows } = await pool.query(
-        `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.latitude,up.longitude FROM user_profiles up ${realPeopleJoin} WHERE up.latitude IS NOT NULL AND up.longitude IS NOT NULL LIMIT $1`,
-        [lim * 3],
+        `SELECT up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.latitude,up.longitude
+         FROM user_profiles up ${realPeopleJoin}
+         WHERE up.latitude IS NOT NULL AND up.longitude IS NOT NULL
+           AND up.user_id <> $2
+           AND COALESCE(up.searchable, TRUE)
+           AND NOT EXISTS (SELECT 1 FROM blocks sb WHERE (sb.blocker_id=$2 AND sb.blocked_id=up.user_id) OR (sb.blocker_id=up.user_id AND sb.blocked_id=$2))
+         ORDER BY ABS(up.latitude - $3::float) + ABS(up.longitude - $4::float)
+         LIMIT $1`,
+        [lim * 3, req.user.id, uLat, uLon],
       );
-      results.people = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
+      results.people = rows
+        .map((r) => ({
+          row: r,
+          exactKm: haversine(uLat, uLon, parseFloat(r.latitude), parseFloat(r.longitude)),
+        }))
+        .filter(({ exactKm }) => Number.isFinite(exactKm) && exactKm <= radiusKm)
+        .sort((a, b) => a.exactKm - b.exactKm)
+        .slice(0, lim)
+        .map(({ row, exactKm }) => ({
+          user_id: row.user_id,
+          display_name: row.display_name,
+          avatar_url: row.avatar_url,
+          headline: row.headline,
+          is_verified: row.is_verified,
+          distance_km: roundedDistanceKm(exactKm),
+          distance_approx: true,
+        }));
     }
     res.json(results);
   } catch { res.status(500).json({ error: 'Failed to fetch nearby data' }); }

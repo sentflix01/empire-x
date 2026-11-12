@@ -955,3 +955,15 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+
+### 2026-11-12 — People on the map show a rounded distance, never coordinates
+
+- **Status:** Accepted (owner task, 12 Nov 2026: people on maps get a rounded distance only; hidden and blocked people are left out; pick the simplest clear map option)
+- **Decision owner:** Project owner
+- **Decision:** `GET /api/maps/nearby` returns people without `latitude`/`longitude`. Each person has `distance_km` rounded **up** to the next 0.5 km (`roundedDistanceKm` in `backend/lib/locationPrivacy.ts`; the smallest value, 0.5, reads "< 0.5 km") and `distance_approx: true`. People who are not searchable, the viewer, and anyone blocked in either direction are left out, as in `/api/search`. The map shows **no pins for people**: people appear only in the result list with their distance ("< 0.5 km away", "≈ 2.5 km away"; never metres).
+- **Why:** The endpoint sent every located person's exact coordinates to any signed-in user, ignoring "appear in search" and blocks. Dropping pins was the simplest clear option: people pins on the Home map were built from `/api/search` results, which never include coordinates, so they never rendered; a pin at a coarse position would suggest a real location.
+- **Consequences:**
+  - The radius filter and the nearest-first order use the exact distance on the server; the rounding only applies to what is sent.
+  - Known limit: a signed-in user can still narrow someone's position to about 0.5 km by querying from several chosen points. Accepted for now.
+  - Follow-up (not changed here): `/api/search` people results still carry `distance_km` to 0.1 km.
+  - Code: `backend/routes/maps.ts`, `backend/lib/locationPrivacy.ts`, `frontend-next/components/map/HomeMapTab.tsx`, `frontend-next/lib/personDistance.ts`. Tests: `backend/test/db/mapsPeoplePrivacy.db.test.js`, `backend/test/locationPrivacy.test.js`, `backend/test/integration/maps.test.js`, `frontend-next/test/personDistance.test.ts`. Docs: `docs/backend/API.md` (Maps).

@@ -502,6 +502,38 @@ Signed-in users, owners and admins see private businesses as usual.
 
 For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
 
+## Maps
+
+### GET /api/maps/nearby?lat=9.0&lon=38.75&type=all|products|businesses|people&radius=10&limit=50
+
+`lat` and `lon` are required (`400` otherwise). `radius` is in km (default 10);
+`limit` is per type (default 50, at most 200). The response has one array per
+requested type: `products`, `businesses`, `people`. Products and businesses
+carry `latitude`, `longitude` and `distance_km` (0.1 km).
+
+**People** are returned to signed-in users only (guests get no `people` key)
+and never with coordinates:
+
+```json
+{ "people": [{ "user_id": "uuid", "display_name": "Abebe", "avatar_url": null,
+  "headline": "Designer", "is_verified": false,
+  "distance_km": 0.5, "distance_approx": true }] }
+```
+
+- `distance_km` is rounded **up** to the next 0.5 km, so it means "within this
+  distance". The smallest value is `0.5`, shown as "< 0.5 km". Results are
+  sorted nearest first and filtered by `radius` on the server.
+- Left out: the viewer, people who turned off "appear in search"
+  (`user_profiles.searchable = false`), and anyone the viewer blocked or who
+  blocked the viewer — the same rules as people in `/api/search`.
+
+See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+
+### GET /api/maps/nearby/product-search?q=coffee&lat=9.0&lon=38.75&radius_km=10&category=
+
+Active products matching `q` (2–120 characters) within `radius_km`, plus the
+businesses that sell them: `{ businesses, geo_products, products_matched, total_matches }`.
+
 ## Scheduled jobs (internal)
 
 ### POST /api/internal/jobs/:name
