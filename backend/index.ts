@@ -28,6 +28,7 @@ initSentryCore();
 
 import express, { type Request, type Response, type NextFunction } from 'express';
 import defaultBody from './middleware/defaultBody';
+import textLimits from './middleware/textLimits';
 import { assertPasswordPolicyReady } from './lib/passwordPolicy';
 import http from 'http';
 import cors from 'cors';
@@ -265,9 +266,11 @@ app.use('/api/coupons/validate',      rateLimit(rlOpts(30,  'rl:coupon-validate:
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use('/api/orders/webhook',        express.raw({ type: 'application/json' }));
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// 2 MB is well above the largest legitimate body (website sections are capped at 200,000 characters).
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(defaultBody); // req.body is {} when no parser matched (audit F-034)
+app.use(textLimits); // 422 for text longer than its limit (audit F-058, lib/textLimits.ts)
 app.use(cookieParser());
 // Resolve demo-session cookies before auth, data, or payment routes execute so
 // AsyncLocalStorage selects the isolated demo database for the whole request.

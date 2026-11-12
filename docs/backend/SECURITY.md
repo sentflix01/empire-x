@@ -2,7 +2,7 @@
 
 > Security is built in from the start. This document explains every layer of protection.
 > For known threats and their mitigations, see `docs/architecture/THREAT_MODEL.md`.
-> **Verified against code on 2026-08-23.** Last updated: 2026-08-23
+> **Verified against code on 2026-08-23.** Last updated: 2026-11-12 (body limit and text limits)
 
 ---
 
@@ -73,7 +73,7 @@ Socket.IO handshakes run the same access-type check plus revocation and ban chec
 8.  cors() — origin allowlist (wildcard-subdomain support), credentials enabled
 9.  global rate limiter on /api/ + stricter auth limiter (both SKIPPED entirely in development)
 10. express.raw() on /api/orders/webhook (Stripe needs raw body)
-11. express.json() / express.urlencoded() (10mb)
+11. express.json() / express.urlencoded() (2mb), then text-length limits per field (422 TEXT_TOO_LONG; lib/textLimits.ts, audit F-058)
 12. static /uploads
 13. routes (44 modules) → admin-only /metrics
 14. Sentry error handler → errorMiddleware → 404 catch-all
