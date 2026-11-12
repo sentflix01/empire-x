@@ -543,6 +543,9 @@ businesses that sell them: `{ businesses, geo_products, products_matched, total_
 response has one array per requested type: `users`, `products`, `showrooms`,
 `posts`. Guests get empty `users` and `posts`.
 
+`lat` (−90 to 90) and `lon` (−180 to 180) may be negative or 0; values out of
+range are ignored. `radius_km` is ignored unless it is a positive, finite number.
+
 **People** (`users`) follow the same distance rule as people on the map:
 
 - When `lat`/`lon` are given, `distance_km` is rounded **up** to the next

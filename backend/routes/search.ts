@@ -26,18 +26,23 @@ function toTsQuery(q: string): string|null {
   const t = q.replace(/[^\w\s]/g,' ').trim().split(/\s+/).filter(Boolean);
   return t.length ? t.join(' & ') : null;
 }
-function dExpr(lc: string, lonc: string, lat: number|null, lon: number|null): string|null {
-  if (lat==null||lon==null) return null;
-  return `6371*2*ASIN(SQRT(POWER(SIN(((${lc}-${lat})*PI()/180)/2),2)+COS(${lat}*PI()/180)*COS(${lc}*PI()/180)*POWER(SIN(((${lonc}-${lon})*PI()/180)/2),2)))`;
+/**
+ * Distance SQL with the coordinates and radius as bound parameters, starting at
+ * $firstIndex. They were once written into the SQL, so a negative value made
+ * `col--54.4`, which Postgres reads as a comment.
+ */
+interface GeoSql { expr: string|null; sel: string; flt: string; params: number[] }
+function geoSql(lc: string, lonc: string, lat: number|null, lon: number|null, radius: number|null, firstIndex: number): GeoSql {
+  if (lat==null||lon==null) return { expr: null, sel: ',NULL AS distance_km', flt: '', params: [] };
+  const la=`$${firstIndex}::float8`, lo=`$${firstIndex+1}::float8`;
+  const expr=`6371*2*ASIN(SQRT(POWER(SIN(((${lc}-${la})*PI()/180)/2),2)+COS(${la}*PI()/180)*COS(${lc}*PI()/180)*POWER(SIN(((${lonc}-${lo})*PI()/180)/2),2)))`;
+  const params=[lat,lon];
+  let flt='';
+  if (radius!=null&&Number.isFinite(radius)&&radius>0) { params.push(radius); flt=`AND ${lc} IS NOT NULL AND ${expr}<=$${firstIndex+2}::float8`; }
+  return { expr, sel: `,ROUND(CAST(${expr} AS NUMERIC),1) AS distance_km`, flt, params };
 }
-function dSel(lc: string, lonc: string, lat: number|null, lon: number|null): string {
-  const e=dExpr(lc,lonc,lat,lon); return e ? `,ROUND(CAST(${e} AS NUMERIC),1) AS distance_km` : ',NULL AS distance_km';
-}
-function dFlt(lc: string, lonc: string, lat: number|null, lon: number|null, r: number|null): string {
-  const e=dExpr(lc,lonc,lat,lon); return (e&&r) ? `AND ${lc} IS NOT NULL AND ${e}<=${r}` : '';
-}
-function oBy(def: string, lc: string, lonc: string, pc: string|null, sort: string, lat: number|null, lon: number|null): string {
-  if (sort==='distance'&&lat!=null) { const e=dExpr(lc,lonc,lat,lon); if(e) return `${lc} IS NULL,${e} ASC`; }
+function oBy(def: string, lc: string, distExpr: string|null, pc: string|null, sort: string): string {
+  if (sort==='distance'&&distExpr) return `${lc} IS NULL,${distExpr} ASC`;
   if (sort==='recent') return 'created_at DESC';
   if (sort==='price_asc'&&pc) return `${pc} ASC NULLS LAST`;
   if (sort==='price_desc'&&pc) return `${pc} DESC NULLS LAST`;
@@ -77,10 +82,12 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
     if (guest&&(type==='all'||type==='users')) R.users=[];
     else if (type==='all'||type==='users') {
-      const ds=dSel('up.latitude','up.longitude',sL,sLon), df=dFlt('up.latitude','up.longitude',sL,sLon,radius), ob=oBy('up.follower_count DESC','up.latitude','up.longitude',null,sort,sL,sLon);
+      const geo=geoSql('up.latitude','up.longitude',sL,sLon,radius,3+viewerParams.length);
+      const ds=geo.sel, df=geo.flt, ob=oBy('up.follower_count DESC','up.latitude',geo.expr,null,sort);
+      const userParams=[...viewerParams,...geo.params];
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim,...viewerParams])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); } }
-      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim,...userParams])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...userParams])); } }
+      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...userParams])); }
       // One result per person: someone with a personal and business profiles matched once per profile.
       const seen = new Set<string>();
       // People get a distance rounded up to 0.5 km, never the 0.1 km value (DECISIONS.md, 2026-11-12).
@@ -90,11 +97,14 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
         .map((r) => r.distance_km == null ? r : { ...r, distance_km: roundedDistanceKm(Number(r.distance_km)), distance_approx: true });
     }
     if (type==='all'||type==='products') {
-      const ds=dSel('p.latitude','p.longitude',sL,sLon), df=dFlt('p.latitude','p.longitude',sL,sLon,radius), ob=oBy('p.view_count DESC','p.latitude','p.longitude','p.price',sort,sL,sLon);
       const pC: string[]=[], pE: unknown[]=[];
       if (price_min) { pE.push(parseFloat(price_min)); pC.push(`p.price>=$${pE.length+2}`); }
       if (price_max) { pE.push(parseFloat(price_max)); pC.push(`p.price<=$${pE.length+2}`); }
       const pW=pC.length?'AND '+pC.join(' AND '):'';
+      // Price params are $3/$4; the distance params follow them.
+      const geo=geoSql('p.latitude','p.longitude',sL,sLon,radius,3+pE.length);
+      const ds=geo.sel, df=geo.flt, ob=oBy('p.view_count DESC','p.latitude',geo.expr,'p.price',sort);
+      pE.push(...geo.params);
       let rows;
       if (useFTS) { try { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status,ts_rank(p.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM products p WHERE p.status='active' AND p.search_vector@@to_tsquery('english',$1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${sort==='relevance'?'rank DESC,p.view_count DESC':ob} LIMIT $2`,[tsQ,lim,...pE])); } catch { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); } }
       else { ({rows}=await pool.query(`SELECT p.id,p.seller_id,p.title,p.description,p.price,p.currency,p.images,p.category,p.status ${ds} FROM products p WHERE p.status='active' AND (p.title ILIKE $1 OR p.description ILIKE $1 OR p.category ILIKE $1) ${pW} ${df} ${realProductFilter} ${guestProductFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...pE])); }
@@ -120,7 +130,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       else { ({rows}=await pool.query(`SELECT p.id,p.author_id,p.author_name,p.content,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.content ILIKE $1 ${dW} ${realPostFilter} ORDER BY ${sort==='recent'?'p.created_at DESC':'p.like_count DESC'} LIMIT $2`,[ilike,lim,...dP])); }
       R.posts = rows;
     }
-    if (sL&&sLon) {
+    if (sL!=null&&sLon!=null) {
       // Products only: people keep the rounded distance set above.
       if (R.products) R.products = attachDistances(R.products as Record<string,unknown>[], sL, sLon);
     }

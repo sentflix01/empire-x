@@ -54,7 +54,7 @@ describe('people search results', () => {
 
     // The radius filter and the order still use the exact distance expression.
     const [sql] = pool.query.mock.calls[0];
-    expect(sql).toMatch(/ASIN\(SQRT\(.*<=5/);
+    expect(sql).toMatch(/ASIN\(SQRT\(.*<=\$6::float8/);
     expect(sql).toMatch(/ORDER BY up\.latitude IS NULL,6371\*2\*ASIN/);
   });
 
@@ -81,6 +81,73 @@ describe('people search results', () => {
     expect(sql).not.toContain("'1'='1");
     expect(sql).toContain('AND COALESCE(up.searchable, TRUE)');
     expect(params).toEqual(['sam', 20]);
+  });
+});
+
+describe('coordinates and radius are bound parameters', () => {
+  // A negative value written into the SQL once became `col--54.4`, a comment.
+  it('binds negative coordinates and the radius after the viewer id for people', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(buildApp())
+      .get('/api/search?q=sam&type=users&lat=-54.4&lon=-3.35&radius_km=5')
+      .set('x-test-user', VIEWER);
+
+    expect(res.status).toBe(200);
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(params).toEqual(['sam', 20, VIEWER, -54.4, -3.35, 5]);
+    expect(sql).toContain('up.latitude-$4::float8');
+    expect(sql).toContain('up.longitude-$5::float8');
+    expect(sql).toContain('<=$6::float8');
+    expect(sql).not.toContain('54.4');
+    expect(sql).not.toContain('3.35');
+    expect(sql).not.toContain('--');
+  });
+
+  it('binds the coordinates after the price params for products', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [] });
+
+    await request(buildApp())
+      .get('/api/search?q=sam&type=products&lat=-54.4&lon=-3.35&price_min=100')
+      .set('x-test-user', VIEWER);
+
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(params).toEqual(['sam', 20, 100, -54.4, -3.35]);
+    expect(sql).toContain('p.price>=$3');
+    expect(sql).toContain('p.latitude-$4::float8');
+    expect(sql).toContain('p.longitude-$5::float8');
+    expect(sql).not.toContain('--');
+  });
+
+  it('gives products a distance at latitude and longitude 0', async () => {
+    pool.query.mockResolvedValueOnce({ rows: [
+      { id: 'prod-0', title: 'Sambusa', latitude: '0.01', longitude: '0', distance_km: '1.1' },
+    ] });
+
+    const res = await request(buildApp())
+      .get('/api/search?q=sam&type=products&lat=0&lon=0')
+      .set('x-test-user', VIEWER);
+
+    expect(res.status).toBe(200);
+    expect(pool.query.mock.calls[0][1]).toEqual(['sam', 20, 0, 0]);
+    // The JS pass recomputes it from the row's coordinates (about 1.1 km).
+    expect(res.body.products[0].distance_km).toBe(1.1);
+  });
+
+  it('ignores a radius that is not a positive finite number', async () => {
+    for (const radius of ['Infinity', '-5', 'abc', '0']) {
+      pool.query.mockReset();
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const res = await request(buildApp())
+        .get(`/api/search?q=sam&type=users&lat=9&lon=38.7&radius_km=${radius}`)
+        .set('x-test-user', VIEWER);
+
+      expect(res.status).toBe(200);
+      const [sql, params] = pool.query.mock.calls[0];
+      expect(params).toEqual(['sam', 20, VIEWER, 9, 38.7]);
+      expect(sql).not.toContain('$6');
+    }
   });
 });
 
