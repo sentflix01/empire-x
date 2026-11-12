@@ -1,5 +1,6 @@
 ﻿'use client';
 import React, { useState, useEffect } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { entities } from "@/api/entities";
 import { useAuth } from "@/lib/AuthContext";
@@ -175,7 +176,7 @@ function BusinessCreate() {
           </div>
           <div>
             <Label htmlFor="business-name">Business Name</Label>
-            <Input id="business-name" value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
+            <Input id="business-name" maxLength={TEXT_LIMITS.business_name} value={business.business_name} onChange={e => setBusiness({...business, business_name: e.target.value})} placeholder="e.g. Abebe's Coffee Shop" className="mt-1 h-11" />
           </div>
           <div>
             <Label htmlFor="business-description">Business Description</Label>
