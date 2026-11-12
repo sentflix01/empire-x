@@ -9,6 +9,7 @@ import logger from '../lib/logger';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
 import { notPrivateBusinessSql, productNotPrivateSql } from '../lib/siteVisibility';
+import { roundedDistanceKm } from '../lib/locationPrivacy';
 
 const router = Router();
 
@@ -53,8 +54,10 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
   const radius=radius_km?parseFloat(radius_km):null;
   // People who turned off "appear in search", and anyone blocked either way, are left out.
   const viewerId = typeof req.user?.id === 'string' && /^[0-9a-f-]{36}$/i.test(req.user.id) ? req.user.id : null;
+  // The viewer id is bound as $3 in every people query ($1 is the search term, $2 the limit).
+  const viewerParams = viewerId ? [viewerId] : [];
   const realUserFilter=(req.realOnly?'AND u.is_seed=FALSE AND u.is_demo=FALSE':'')
-    + (viewerId ? ` AND (up.user_id='${viewerId}' OR COALESCE(up.searchable, TRUE)) AND NOT EXISTS (SELECT 1 FROM blocks sb WHERE (sb.blocker_id='${viewerId}' AND sb.blocked_id=up.user_id) OR (sb.blocker_id=up.user_id AND sb.blocked_id='${viewerId}'))` : ' AND COALESCE(up.searchable, TRUE)');
+    + (viewerId ? ' AND (up.user_id=$3 OR COALESCE(up.searchable, TRUE)) AND NOT EXISTS (SELECT 1 FROM blocks sb WHERE (sb.blocker_id=$3 AND sb.blocked_id=up.user_id) OR (sb.blocker_id=up.user_id AND sb.blocked_id=$3))' : ' AND COALESCE(up.searchable, TRUE)');
   const realProductFilter=req.realOnly?`AND p.seller_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)
     AND ((p.business_id IS NULL AND p.showroom_id IS NULL) OR EXISTS (
       SELECT 1 FROM business_subscriptions paid_sub
@@ -76,11 +79,15 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     else if (type==='all'||type==='users') {
       const ds=dSel('up.latitude','up.longitude',sL,sLon), df=dFlt('up.latitude','up.longitude',sL,sLon,radius), ob=oBy('up.follower_count DESC','up.latitude','up.longitude',null,sort,sL,sLon);
       let rows;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
-      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed,ts_rank(up.search_vector,to_tsquery('english',$1)) AS rank ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE up.search_vector@@to_tsquery('english',$1) ${df} ${realUserFilter} ORDER BY ${sort==='relevance'?'rank DESC,up.follower_count DESC':ob} LIMIT $2`,[tsQ,lim,...viewerParams])); } catch { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); } }
+      else { ({rows}=await pool.query(`SELECT up.id,up.user_id,up.display_name,up.avatar_url,up.headline,up.is_verified,up.location,u.is_seed ${ds} FROM user_profiles up JOIN users u ON u.id=up.user_id WHERE (up.display_name ILIKE $1 OR up.headline ILIKE $1 OR up.bio ILIKE $1) ${df} ${realUserFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...viewerParams])); }
       // One result per person: someone with a personal and business profiles matched once per profile.
       const seen = new Set<string>();
-      R.users = (rows as Array<{ user_id: string }>).filter((r) => { const k = String(r.user_id); if (seen.has(k)) return false; seen.add(k); return true; });
+      // People get a distance rounded up to 0.5 km, never the 0.1 km value (DECISIONS.md, 2026-11-12).
+      // The radius filter and distance sort above still use the exact distance.
+      R.users = (rows as Array<{ user_id: string; distance_km?: unknown }>)
+        .filter((r) => { const k = String(r.user_id); if (seen.has(k)) return false; seen.add(k); return true; })
+        .map((r) => r.distance_km == null ? r : { ...r, distance_km: roundedDistanceKm(Number(r.distance_km)), distance_approx: true });
     }
     if (type==='all'||type==='products') {
       const ds=dSel('p.latitude','p.longitude',sL,sLon), df=dFlt('p.latitude','p.longitude',sL,sLon,radius), ob=oBy('p.view_count DESC','p.latitude','p.longitude','p.price',sort,sL,sLon);
@@ -114,7 +121,8 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       R.posts = rows;
     }
     if (sL&&sLon) {
-      (['users','products'] as const).forEach(k => { if (R[k]) R[k] = attachDistances(R[k] as Record<string,unknown>[], sL, sLon); });
+      // Products only: people keep the rounded distance set above.
+      if (R.products) R.products = attachDistances(R.products as Record<string,unknown>[], sL, sLon);
     }
     res.json(R);
   } catch (err) {

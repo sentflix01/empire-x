@@ -534,6 +534,28 @@ See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
 Active products matching `q` (2–120 characters) within `radius_km`, plus the
 businesses that sell them: `{ businesses, geo_products, products_matched, total_matches }`.
 
+## Search
+
+### GET /api/search?q=abebe&type=all|users|products|showrooms|posts&sort=relevance|distance|recent&lat=&lon=&radius_km=&limit=20
+
+`q` needs at least 2 characters (`400` otherwise); `limit` is at most 50. The
+response has one array per requested type: `users`, `products`, `showrooms`,
+`posts`. Guests get empty `users` and `posts`.
+
+**People** (`users`) follow the same distance rule as people on the map:
+
+- When `lat`/`lon` are given, `distance_km` is rounded **up** to the next
+  0.5 km and `distance_approx: true` is added. People without a location
+  have `distance_km: null` and no `distance_approx`. People never come back
+  with coordinates.
+- `radius_km` and `sort=distance` use the exact distance on the server; the
+  rounding only applies to what is sent.
+- Left out: people who turned off "appear in search" (the viewer still finds
+  their own profile) and anyone the viewer blocked or who blocked the viewer.
+
+Products keep `distance_km` at 0.1 km, and showrooms have `distance_km: null`.
+See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+
 ## Scheduled jobs (internal)
 
 ### POST /api/internal/jobs/:name
