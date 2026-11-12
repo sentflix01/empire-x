@@ -955,3 +955,11 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+
+### 2026-11-12 — A failed sign-in check is a 503, not a 401
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for token problems (`INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`, `UNAUTHORIZED`). When the check fails on our side, such as a database error or an exhausted connection pool, it logs the error and answers `503 AUTH_UNAVAILABLE`.
+- **Why:** Every error used to become `401 INVALID_TOKEN`. The web client answers a 401 by refreshing and signing out, so a database outage signed people out. It also hid the real cause of the flaky `devopsVersions.db.test.js` (Postgres "too many clients already").
+- **Consequences:** `backend/middleware/auth.ts`. Test: `backend/test/authMiddleware.test.js`. Docs: `docs/backend/API_REFERENCE.md`. Investigation: `note/2026-11-12-devops-versions-flake.md`.
