@@ -991,3 +991,11 @@ items in the open list until confirmed.
   - Follow-up done (12 Nov 2026): `/api/search` people results now use the same rule: `distance_km` from `roundedDistanceKm` plus `distance_approx: true`, with radius and distance sort still on the exact distance. Products are unchanged (0.1 km). The search viewer id is now a bound `$3` parameter instead of text in the SQL.
   - Fixed (12 Nov 2026): `/api/search` wrote `lat`/`lon` into its distance SQL as `col-${lat}`, so a negative coordinate became a `--` comment and the search failed with 500. Coordinates and `radius_km` are now bound parameters. A `radius_km` that is not a positive finite number is ignored, and a coordinate of exactly 0 now counts as given. The DB test uses negative coordinates.
   - Code: `backend/routes/maps.ts`, `backend/routes/search.ts`, `backend/lib/locationPrivacy.ts`, `frontend-next/components/map/HomeMapTab.tsx`, `frontend-next/lib/personDistance.ts`. Tests: `backend/test/db/mapsPeoplePrivacy.db.test.js`, `backend/test/db/searchPeoplePrivacy.db.test.js`, `backend/test/integration/search.test.js`, `backend/test/locationPrivacy.test.js`, `backend/test/integration/maps.test.js`, `frontend-next/test/personDistance.test.ts`. Docs: `docs/backend/API.md` (Maps, Search).
+
+### 2026-11-13 — Backend and CI run on Node 22 LTS
+
+- **Status:** Accepted (owner, 13 Nov 2026: "yes upgrade to Node 22 next")
+- **Decision owner:** Project owner
+- **Decision:** The backend image (`backend/Dockerfile`, which Render builds), `docker-compose.yml` and CI use Node 22 LTS. `backend/package.json` declares `engines.node` `>=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for.
+- **Why:** Node 20 left maintenance on 30 April 2026 and gets no more security fixes (TD-029). google-auth-library 11 needs Node 22, and Node 22 can `require()` ES-module-only packages such as web-push 4.
+- **Consequences:** Developers need Node 22 (README, `docs/ONBOARDING.md`). The two blocked upgrades (#215, #216) can be redone on Node 22 as separate changes; web-push 4 needs a test that push actually loads. Vercel's Node version is a project setting outside the repository.
