@@ -11,7 +11,7 @@
  * Also adds a composite index on (post_id, parent_id) so the comment-fetch
  * query that filters by post_id and groups by parent_id uses an index scan.
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 const schema = `

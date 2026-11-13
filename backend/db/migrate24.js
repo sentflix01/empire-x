@@ -6,7 +6,7 @@
  * numbers. This recomputes comment_count from the comments table for every
  * post so the stored counter matches GET /api/posts/:id/comments.
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function run() {

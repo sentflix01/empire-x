@@ -1067,3 +1067,11 @@ items in the open list until confirmed.
 - **Why:** The fixed lists (1/5/10/25/50/100 km in Search, 2/5/10/20/50 on the Home map, 5/10/20/50/100 on Nearby) did not fit every place or need. The feed had no distance limit at all.
 - **Not changed:** distances shown are still rounded up to the next 0.5 km. The two 12 Nov rules were merged into that one on 13 Nov; the owner was asked and did not choose otherwise.
 - **Consequences:** `backend/routes/feed.ts` (`radius_km`), `frontend-next/components/ui/DistanceRange.tsx`, `components/feed/BusinessShowroomFeed.tsx`, `views/Search.tsx`, `components/map/HomeMapTab.tsx` (a changed distance now re-runs the open search with the new value; the old buttons used the previous one), `views/NearbyMap.tsx`. Tests: `backend/test/db/businessFeed.db.test.js`, `frontend-next/test/distanceRange.test.tsx`, `frontend-next/test/feed/businessFeed.test.tsx`.
+
+### 2026-11-13 — Backend and CI run on Node 22 LTS
+
+- **Status:** Accepted (owner, 13 Nov 2026: "yes upgrade to Node 22 next")
+- **Decision owner:** Project owner
+- **Decision:** The backend image (`backend/Dockerfile`, which Render builds), `docker-compose.yml` and CI use Node 22 LTS. `backend/package.json` declares `engines.node` `>=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for.
+- **Why:** Node 20 left maintenance on 30 April 2026 and gets no more security fixes (TD-029). google-auth-library 11 needs Node 22, and Node 22 can `require()` ES-module-only packages such as web-push 4.
+- **Consequences:** Developers need Node 22 (README, `docs/ONBOARDING.md`). The two blocked upgrades (#215, #216) can be redone on Node 22 as separate changes; web-push 4 needs a test that push actually loads. Vercel's Node version is a project setting outside the repository.

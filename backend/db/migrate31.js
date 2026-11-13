@@ -32,7 +32,7 @@
  * Run standalone: node db/migrate31.js
  * Auto-run:       node db/migrate-all.js  (exports async function)
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 async function migrate31(trackPool) {
   // When called by migrate-all.js, use the injected pool.

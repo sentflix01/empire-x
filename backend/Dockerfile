@@ -1,5 +1,5 @@
 # ── Stage 1: Dependencies + Build ────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json tsconfig.json ./
 RUN npm ci
@@ -10,7 +10,7 @@ RUN test -f dist/lib/showroomDoctor.js || (echo "ERROR: dist/lib/showroomDoctor.
 RUN test -f dist/lib/telemetry.js      || (echo "ERROR: dist/lib/telemetry.js missing after build" && exit 1)
 
 # ── Stage 2: Production image ─────────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 # Security: run as non-root

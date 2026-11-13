@@ -3,7 +3,7 @@
  * Stock is decremented when an order is created; provider success commits the
  * reservation, while payment failure or pre-payment cancellation releases it.
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function migrate() {

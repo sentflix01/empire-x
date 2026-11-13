@@ -28,6 +28,10 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 require('dotenv').config({ quiet: true, path: path.join(__dirname, '../.env') });
+// Applied migrations can't be edited (their ledger checksum covers every
+// line), so their own dotenv calls stay as written. This keeps them quiet:
+// migrations load in this process or in a child that inherits the variable.
+if (process.env.DOTENV_CONFIG_QUIET === undefined) process.env.DOTENV_CONFIG_QUIET = 'true';
 
 /**
  * Returns the list of migration filenames to run, in order.

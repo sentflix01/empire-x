@@ -1,7 +1,7 @@
 /**
  * migrate26.js ? Mewacho group money collection tables
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function run() {

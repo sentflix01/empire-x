@@ -2,7 +2,7 @@
 
 > How to safely create, run, and roll back database migrations.
 > Every schema change goes through this process — no direct ALTER TABLE in production.
-> Last updated: 2026-11-12
+> Last updated: 2026-11-13
 
 ---
 
@@ -35,7 +35,7 @@ backend/db/migrate90.js      ← Current latest (November 2026)
 backend/db/migrate-all.js    ← Runs pending migrations in order, once each
 ```
 
-**Rule:** Always increment the number. Never reuse a number. Never edit a migration that has already been run in production.
+**Rule:** Always increment the number. Never reuse a number. Never edit a migration that has already been run in production. That includes lines that don't touch SQL, such as the `dotenv` call at the top: the ledger checksum covers the whole file. On 13 Nov 2026 adding `quiet: true` to that line in 40 applied migrations (#217) stopped every production deploy until the files were restored.
 
 **Ledger (since 6 Nov 2026, audit F-009):** `migrate-all.js` records each migration that succeeds in `migration_ledger` (name, sha256 checksum, runner, duration, runs, applied_at) and skips recorded ones. A recorded file whose text changed stops the run with an error, so changes go in a new file; `--rerun <file>` re-runs one on purpose. A database lock (`pg_advisory_lock`) makes a second runner wait. A failed migration is not recorded and is tried again on the next run. Migrations must still be idempotent: the first ledger deploy, `--rerun` and `--all` run them again.
 
