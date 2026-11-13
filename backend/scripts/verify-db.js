@@ -2,7 +2,7 @@
  * verify-db.js — Quick DB connection check used in CI before running migrations.
  * Exits 0 on success, 1 on failure with a clear error message.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const { Pool } = require('pg');
 const fs = require('node:fs');
 const path = require('node:path');

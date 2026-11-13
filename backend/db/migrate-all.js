@@ -27,7 +27,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '../.env') });
 
 /**
  * Returns the list of migration filenames to run, in order.

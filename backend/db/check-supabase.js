@@ -2,7 +2,7 @@
 // Verifies the configured PostgreSQL connection and prints basic table/row counts.
 // Exits non-zero on any failure — safe to use as a CI verify step.
 
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const { Client } = require('pg');
 
 const url = process.env.DATABASE_URL;

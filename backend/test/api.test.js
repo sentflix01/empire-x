@@ -7,7 +7,7 @@
  * Creates a fresh test user, exercises every feature, then cleans up.
  */
 
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const http = require('http');
 
 const BASE_URL = `http://localhost:${process.env.PORT || 3001}`;

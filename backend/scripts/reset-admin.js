@@ -6,7 +6,7 @@
  * supplied password. Use the application's normal account recovery process
  * for hosted/production systems.
  */
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const bcrypt = require('bcryptjs');
 const { assertSafeLocalDatabase } = require('../db/operationSafety');
 

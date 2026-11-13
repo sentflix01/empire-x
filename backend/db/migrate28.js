@@ -5,7 +5,7 @@
  * all preserved) but they cannot log in ? the auth middleware checks this
  * flag before issuing a JWT. Admins can unban at any time.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 const schema = `

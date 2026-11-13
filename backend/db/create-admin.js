@@ -3,7 +3,7 @@
  * hosted database, does not use default passwords, and never changes existing
  * accounts or roles.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const { assertSafeLocalDatabase } = require('./operationSafety');
 
