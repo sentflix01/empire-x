@@ -4,7 +4,7 @@
  * scripts/promo/scenes by scripts/promo/render.mjs.
  *
  * Each clip has a small and a large rendition, each an H.264 MP4 (plays in
- * every browser) with a WebP poster. The guide and landing clips carry English
+ * every browser) with a WebP poster. The guide, builder and landing clips carry English
  * text drawn into the picture (scripts/promo/copy.js). When a clip changes, bump the -vN suffix
  * here and in the render script: browsers and the service worker keep the old
  * file under its old name.
@@ -34,6 +34,16 @@ export const PROMO = {
     large: rendition('guide', 720, 1280, 'v4'),
     /** The same subtitles as a WebVTT track, for caption tools (CC). */
     captions: '/promo/guide-v4.en.vtt',
+  },
+  /**
+   * 111 s, 9:16, English titles and subtitles: how anyone builds a website from
+   * pieces and edits, moves, deletes or adds any piece later with no code. The
+   * landing page's second button; loads only when opened.
+   */
+  builder: {
+    small: rendition('builder', 480, 854, 'v1'),
+    large: rendition('builder', 720, 1280, 'v1'),
+    captions: '/promo/builder-v1.en.vtt',
   },
 } as const satisfies Record<string, PromoClip>;
 
