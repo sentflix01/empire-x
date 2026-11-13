@@ -57,12 +57,14 @@ async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publis
       await route.fulfill({ status: 201, json: { ...publishedShowroom, ...body, id: publishedShowroom.id, slug: publishedShowroom.slug } });
       return;
     }
-    // The Business feed is built on the server; the published site is its only item.
-    if (path === '/api/feed/businesses') {
-      const items = isPublished || options.publishedByDefault
-        ? [{ type: 'showroom', record: publishedShowroom, distance_km: null, relationship: null, rating_avg: null, rating_count: 0 }]
-        : [];
-      await route.fulfill({ json: { items, owners: {}, next_offset: null } });
+    // The Business feed is built on the server (GET /api/feed/businesses).
+    if (path === '/api/feed/businesses' && request.method() === 'GET') {
+      const live = isPublished || options.publishedByDefault;
+      await route.fulfill({ json: {
+        items: live ? [{ type: 'showroom', record: publishedShowroom, distance_km: null, relationship: null, rating_avg: null, rating_count: 0 }] : [],
+        owners: live ? { [publishedShowroom.owner_id]: { display_name: 'E2E Business Owner' } } : {},
+        next_offset: null,
+      } });
       return;
     }
     if (path === '/api/showrooms' && request.method() === 'GET') {

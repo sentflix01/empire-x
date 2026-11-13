@@ -2,7 +2,7 @@
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.
-> Last updated: August 2026
+> Last updated: 2026-11-12
 
 ---
 
