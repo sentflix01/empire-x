@@ -107,7 +107,7 @@
     "lookFarther": "Move the distance up to look farther."
   },
   "promo": {
-    "showAnimation": "Show animation",
-    "showText": "Show text"
+    "textLevel": "Show the text over the animation",
+    "textLevelValue": "{{n}}% text"
   }
 }
