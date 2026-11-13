@@ -10,7 +10,7 @@
  *   bFill      3  tap a piece, fill a simple form: photo, words, prices
  *   bChange    4  edit, move, delete and add pieces at any time
  *   bStyle     5  pick a colour; computer, tablet, phone
- *   bPublish   6  publish; a week later change a photo and tap Update
+ *   bPublish   6  publish; bookings and orders arrive; a week later Update
  *   bAnyone    7  a city office, a company, a kid, a grandmother
  *   bFinale       code elsewhere vs tap, fill, done here; end card
  * Real Studio features: components/showroom/studio/SectionsPanel.tsx
@@ -548,8 +548,8 @@ function bPublish() {
     <g data-k="lblU">${at(248, 29, 0.6, IC.up(C.paper))}${tx(294, 35, B('update'), { size: 15, weight: 800, fill: C.paper, anchor: 'middle', fit: 76 })}</g>
     <g data-k="lblD">${at(248, 29, 0.6, ICON.check(C.paper))}${tx(294, 35, B('updated'), { size: 15, weight: 800, fill: C.paper, anchor: 'middle', fit: 76 })}</g></g>`;
   return {
-    dur: 9, title: 'bPublish', step: 6,
-    captions: [[0.2, 3.4, 'bPub1'], [3.5, 9, 'bPub2']], land: 'bPub2',
+    dur: 12, title: 'bPublish', step: 6,
+    captions: [[0.2, 3.4, 'bPub1'], [3.5, 6.4, 'bPubSell'], [6.5, 12, 'bPub2']], land: 'bPubSell',
     markup: `<rect width="360" height="640" fill="${C.page}"/>
       <g transform="translate(27 70) scale(.85)">${hotelSite(C.blue, 'pb')}</g>
       ${studioBar(B('yourSite'), pubBtn)}
@@ -558,16 +558,19 @@ function bPublish() {
       <g data-k="rings"><circle data-k="r1" cx="180" cy="270" r="50" fill="none" stroke="${C.paper}" stroke-width="3"/><circle data-k="r2" cx="180" cy="270" r="50" fill="none" stroke="${C.paper}" stroke-width="3"/></g>
       <g data-k="globe"><circle r="54" fill="${C.blue}"/>${g(GLYPH.globe(C.paper), 'scale(2)')}<g transform="translate(40 -40)"><circle r="20" fill="${C.green}"/>${g(ICON.check(C.paper), 'scale(.8)')}</g></g>
       <g data-k="live"><rect x="-52" y="-20" width="104" height="40" rx="20" fill="${C.green}"/>${tx(0, 8, B('live'), { size: 22, weight: 800, fill: C.paper, anchor: 'middle' })}</g>
+      ${[0, 1].map((i) => `<g data-k="note${i}"><rect x="-150" y="-30" width="300" height="60" rx="16" fill="${C.paper}" stroke="${C.line}"/>
+        <circle cx="-118" cy="0" r="20" fill="${i ? C.blue : C.green}"/>${at(-118, 0, 0.55, i ? ICON.bag(C.paper) : GLYPH.bed(C.paper))}
+        ${tx(-88, -4, B(i ? 'newOrder' : 'newBooking'), { size: 14, weight: 800, fit: 220 })}${tx(-88, 15, B(i ? 'newOrderLine' : 'newBookingLine'), { size: 12, weight: 600, fill: C.slate, fit: 220 })}</g>`).join('')}
       <g data-k="week"><rect x="-120" y="-36" width="240" height="72" rx="20" fill="${C.paper}"/>${at(-82, 0, 1, IC.calendar(C.blue))}${tx(-52, 7, B('week'), { size: 19, weight: 800, fit: 160 })}</g>
       <g data-k="toast"><rect x="-110" y="-22" width="220" height="44" rx="22" fill="${C.ink}"/>${at(-84, 0, 0.6, `<circle r="16" fill="${C.green}"/>${ICON.check(C.paper)}`)}${tx(10, 6, B('liveSeconds'), { size: 15, weight: 800, fill: C.paper, anchor: 'middle', fit: 160 })}</g>
       ${confettiMarkup('cf-pub', 22)}`,
     draw(lt, root) {
       const p = P(root);
-      $(root, 'pubbg').setAttribute('fill', (lt > 1.1 && lt < 4.6) || lt > 7.2 ? C.green : C.blue);
-      p('lblP', { o: lt < 4.6 ? 1 : 0 });
-      p('lblU', { o: lt >= 4.6 && lt < 7.2 ? 1 : 0 });
-      p('lblD', { o: lt >= 7.2 ? 1 : 0 });
-      p('dim', { o: 0.5 * Math.min(prog(lt, 1.4, 1.7), 1 - prog(lt, 4.5, 4.9)) });
+      $(root, 'pubbg').setAttribute('fill', (lt > 1.1 && lt < 7.6) || lt > 10.2 ? C.green : C.blue);
+      p('lblP', { o: lt < 7.6 ? 1 : 0 });
+      p('lblU', { o: lt >= 7.6 && lt < 10.2 ? 1 : 0 });
+      p('lblD', { o: lt >= 10.2 ? 1 : 0 });
+      p('dim', { o: 0.5 * Math.min(prog(lt, 1.4, 1.7), 1 - prog(lt, 3.4, 3.7)) + 0.5 * Math.min(prog(lt, 6.4, 6.6), 1 - prog(lt, 7.5, 7.9)) });
       p('globe', { x: 180, y: 270, s: back(prog(lt, 1.5, 2.0)), o: Math.min(prog(lt, 1.5, 1.6), 1 - prog(lt, 3.3, 3.6)) });
       ['r1', 'r2'].forEach((k, i) => {
         const f = lt > 1.8 && lt < 3.4 ? ((lt - 1.8) / 1.2 + i * 0.5) % 1 : 0;
@@ -577,15 +580,20 @@ function bPublish() {
       });
       p('live', { x: 180, y: 360, s: back(prog(lt, 1.9, 2.25)), o: Math.min(prog(lt, 1.9, 2.0), 1 - prog(lt, 3.3, 3.6)) });
       confetti('cf-pub', 180, 270, lt, 1.7, 170);
-      p('week', { x: 180, y: 300, s: back(prog(lt, 3.6, 3.95)), o: Math.min(prog(lt, 3.6, 3.7), 1 - prog(lt, 4.5, 4.8)) });
+      // Selling: bookings and orders arrive while she watches.
+      [0, 1].forEach((i) => {
+        const t0 = 3.9 + 0.9 * i, f = easeOut(prog(lt, t0, t0 + 0.4));
+        p(`note${i}`, { x: 180, y: lerp(70, 112 + i * 72, f), s: 1, o: Math.min(prog(lt, t0, t0 + 0.15), 1 - prog(lt, 6.2, 6.5)) });
+      });
+      p('week', { x: 180, y: 300, s: back(prog(lt, 6.6, 6.95)), o: Math.min(prog(lt, 6.6, 6.7), 1 - prog(lt, 7.5, 7.8)) });
       // Change the cover photo, tap Update: live again in seconds.
-      p('picker', { o: Math.min(prog(lt, 5.4, 5.5), 1 - prog(lt, 6.2, 6.4)) });
-      $(root, 'picker').setAttribute('transform', `translate(180 233) scale(${back(prog(lt, 5.4, 5.7)).toFixed(4)}) translate(-180 -233)`);
-      p('pb-ph0', { o: 1 - prog(lt, 6.2, 6.5) });
-      p('pb-ph1', { o: prog(lt, 6.2, 6.5) });
-      p('toast', { x: 180, y: 560, s: back(prog(lt, 7.3, 7.6)), o: prog(lt, 7.3, 7.4) });
+      p('picker', { o: Math.min(prog(lt, 8.4, 8.5), 1 - prog(lt, 9.2, 9.4)) });
+      $(root, 'picker').setAttribute('transform', `translate(180 233) scale(${back(prog(lt, 8.4, 8.7)).toFixed(4)}) translate(-180 -233)`);
+      p('pb-ph0', { o: 1 - prog(lt, 9.2, 9.5) });
+      p('pb-ph1', { o: prog(lt, 9.2, 9.5) });
+      p('toast', { x: 180, y: 560, s: back(prog(lt, 10.3, 10.6)), o: prog(lt, 10.3, 10.4) });
     },
-    hand: [[0.3, 240, 140], [1.0, 290, 29, true, 'bPublish'], [1.8, 300, 160], [5.0, 220, 200], [5.3, 180, 200, true, 'bPhoto'], [6.1, 108, 233, true, 'bPick'], [7.1, 290, 29, true, 'bUpdate'], [7.9, 300, 160]],
+    hand: [[0.3, 240, 140], [1.0, 290, 29, true, 'bPublish'], [1.8, 300, 420], [8.0, 220, 200], [8.3, 180, 200, true, 'bPhoto'], [9.1, 108, 233, true, 'bPick'], [10.1, 290, 29, true, 'bUpdate'], [10.9, 300, 160]],
   };
 }
 
@@ -660,8 +668,9 @@ function bFinale() {
         ${tx(267, 400, B('oursLine'), { size: 16, weight: 800, fill: C.paper, anchor: 'middle', fit: 140 })}
       </g>
       <g data-k="logo"><circle r="56" fill="${C.paper}"/><image href="${LOGO}" x="-50" y="-50" width="100" height="100"/></g>
-      <g data-k="endA">${tx(180, 0, B('end1'), { size: 26, weight: 800, anchor: 'middle', fit: 320 })}</g>
-      <g data-k="endB">${tx(180, 0, B('end2'), { size: 26, weight: 800, fill: C.blue, anchor: 'middle', fit: 320 })}</g>
+      <g data-k="endA">${tx(180, 0, B('end1'), { size: 24, weight: 800, anchor: 'middle', fit: 320 })}</g>
+      <g data-k="endB">${tx(180, 0, B('end2'), { size: 19, weight: 700, fill: C.slate, anchor: 'middle', fit: 320 })}</g>
+      <g data-k="endC">${tx(180, 0, B('end3'), { size: 24, weight: 800, fill: C.blue, anchor: 'middle', fit: 320 })}</g>
       <g data-k="endBtn"><rect x="-82" y="-26" width="164" height="52" rx="26" fill="${C.blue}"/>${tx(-10, 7, L('ui.startFree'), { size: 18, weight: 800, fill: C.paper, anchor: 'middle' })}${at(56, 0, 0.8, ICON.arrow(C.paper))}</g>`,
     draw(lt, root) {
       const p = P(root);
@@ -675,9 +684,10 @@ function bFinale() {
         p(`fp${i}`, { x: 267, y: 186 + i * 44, s: f, o: prog(lt, 1.1 + 0.25 * i, 1.2 + 0.25 * i) });
       });
       p('logo', { x: 180, y: 210, s: back(prog(lt, 4.0, 4.5)), o: prog(lt, 4.0, 4.1) });
-      p('endA', { y: lerp(320, 308, easeOut(prog(lt, 4.5, 5.0))), o: prog(lt, 4.5, 4.9) });
-      p('endB', { y: lerp(354, 342, easeOut(prog(lt, 4.9, 5.4))), o: prog(lt, 4.9, 5.3) });
-      p('endBtn', { x: 180, y: 420, s: back(prog(lt, 5.4, 5.8)), o: prog(lt, 5.4, 5.5) });
+      p('endA', { y: lerp(312, 300, easeOut(prog(lt, 4.5, 5.0))), o: prog(lt, 4.5, 4.9) });
+      p('endB', { y: lerp(344, 332, easeOut(prog(lt, 4.9, 5.4))), o: prog(lt, 4.9, 5.3) });
+      p('endC', { y: lerp(378, 366, easeOut(prog(lt, 5.3, 5.8))), o: prog(lt, 5.3, 5.7) });
+      p('endBtn', { x: 180, y: 436, s: back(prog(lt, 5.8, 6.2)), o: prog(lt, 5.8, 5.9) });
     },
   };
 }

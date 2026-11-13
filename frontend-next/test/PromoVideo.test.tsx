@@ -105,8 +105,8 @@ describe('PromoGuide', () => {
   it('opens the builder video with its own title, file and subtitles', () => {
     render(<><PromoGuide /><PromoGuide video="builder" /></>);
     expect(screen.queryByTestId('promo-guide-video')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Build and change a website' }));
-    screen.getByRole('dialog', { name: 'Build and change your website, no code' });
+    fireEvent.click(screen.getByRole('button', { name: 'Build, edit & sell your way' }));
+    screen.getByRole('dialog', { name: 'Build, edit & sell your way, no code' });
     const video = screen.getByTestId('promo-guide-video');
     expect(video.querySelector('source')?.getAttribute('src')).toMatch(/^\/promo\/builder-\d+x\d+-v\d+\.mp4$/);
     expect(video.querySelector('track')?.getAttribute('src')).toMatch(/^\/promo\/builder-v\d+\.en\.vtt$/);

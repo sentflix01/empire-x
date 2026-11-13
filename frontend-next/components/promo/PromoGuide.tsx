@@ -17,8 +17,14 @@ import { PROMO, pickRendition, type PromoClip, type PromoRendition } from '@/lib
 import { cn } from '@/lib/utils';
 
 type Props = {
-  /** "pill" shows the label; "icon" is a round button whose label is read by screen readers only. */
-  variant?: 'pill' | 'icon';
+  /**
+   * "pill" shows the label; "icon" is a round button whose label is read by
+   * screen readers only; "row" is a full-width row with the label and `meta`
+   * (for example the length) under it.
+   */
+  variant?: 'pill' | 'icon' | 'row';
+  /** Second line of a "row", such as "3 min". */
+  meta?: string;
   /** Which video the button opens. */
   video?: 'guide' | 'builder';
   className?: string;
@@ -34,9 +40,9 @@ const VIDEOS: Record<NonNullable<Props['video']>, { clip: PromoClip; label: Word
   },
   builder: {
     clip: PROMO.builder,
-    label: ['promo.watchBuilder', 'Build and change a website'],
-    title: ['promo.builderTitle', 'Build and change your website, no code'],
-    description: ['promo.builderDescription', 'An animation with subtitles, in seven steps. Many website makers build a site quickly, but changing it later needs code. On Nodbusiness a website is made of pieces: choose what you are building, such as a hotel, a shop, a city office or a company; start from a ready template or from scratch; add pieces such as a cover, rooms, photos and prices with +; tap a piece to fill a simple form with photos, words and prices while the preview updates; edit, move up or down, delete or add any piece at any time; pick a colour and see it on computer, tablet and phone; publish, and later change a photo and tap Update. A city office, a company, a child and a grandmother build their own sites the same way.'],
+    label: ['promo.watchBuilder', 'Build, edit & sell your way'],
+    title: ['promo.builderTitle', 'Build, edit & sell your way, no code'],
+    description: ['promo.builderDescription', 'An animation with subtitles, in seven steps. Many website makers build a site quickly, but changing it later needs code. On Nodbusiness a website is made of pieces: choose what you are building, such as a hotel, a shop, a city office or a company; start from a ready template or from scratch; add pieces such as a cover, rooms, photos and prices with +; tap a piece to fill a simple form with photos, words and prices while the preview updates; edit, move up or down, delete or add any piece at any time; pick a colour and see it on computer, tablet and phone; publish and sell, as booking requests and orders arrive; later change a photo and tap Update. A city office, a company, a child and a grandmother build their own sites the same way.'],
   },
 };
 
@@ -56,7 +62,7 @@ function prefersReducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
-export default function PromoGuide({ variant = 'pill', video = 'guide', className }: Props) {
+export default function PromoGuide({ variant = 'pill', video = 'guide', meta, className }: Props) {
   const { t } = useTranslation();
   const [clip, setClip] = useState<PromoRendition | null>(null);
   const v = VIDEOS[video];
@@ -71,20 +77,38 @@ export default function PromoGuide({ variant = 'pill', video = 'guide', classNam
   return (
     <Dialog.Root open={!!clip} onOpenChange={onOpenChange}>
       <Dialog.Trigger asChild>
-        <button
-          type="button"
-          aria-label={variant === 'icon' ? label : undefined}
-          className={cn(
-            'inline-flex h-11 items-center justify-center gap-2 rounded-full font-bold text-white ring-1 ring-white/45 backdrop-blur transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-            variant === 'pill' ? 'bg-white/15 pl-1.5 pr-5 text-sm' : 'w-11 bg-inverse/45',
-            className,
-          )}
-        >
-          <span className={cn('inline-flex items-center justify-center rounded-full', variant === 'pill' ? 'h-8 w-8 bg-white text-primary' : 'h-5 w-5 text-white')}>
-            <Play className="h-4 w-4 translate-x-px fill-current" aria-hidden="true" />
-          </span>
-          {variant === 'pill' && label}
-        </button>
+        {variant === 'row' ? (
+          <button
+            type="button"
+            className={cn(
+              'flex min-h-14 w-full items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-left text-white backdrop-blur transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+              className,
+            )}
+          >
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+              <Play className="h-4 w-4 translate-x-px fill-current" aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold leading-snug">{label}</span>
+              {meta && <span className="block text-xs text-white/75">{meta}</span>}
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={variant === 'icon' ? label : undefined}
+            className={cn(
+              'inline-flex h-11 items-center justify-center gap-2 rounded-full font-bold text-white ring-1 ring-white/45 backdrop-blur transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+              variant === 'pill' ? 'bg-white/15 pl-1.5 pr-5 text-sm' : 'w-11 bg-inverse/45',
+              className,
+            )}
+          >
+            <span className={cn('inline-flex items-center justify-center rounded-full', variant === 'pill' ? 'h-8 w-8 bg-white text-primary' : 'h-5 w-5 text-white')}>
+              <Play className="h-4 w-4 translate-x-px fill-current" aria-hidden="true" />
+            </span>
+            {variant === 'pill' && label}
+          </button>
+        )}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-black/85" />

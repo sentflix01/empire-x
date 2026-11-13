@@ -42,9 +42,9 @@ const SCENES = {
     renditions: [{ w: 720, h: 1280, budget: 4500 * KB }, { w: 480, h: 854, budget: 2400 * KB }],
   },
   // Owner side only: build from pieces and change any part, any time. Opens from
-  // the landing page's "Build and change a website" button.
+  // the landing page's "Build, edit & sell your way" button.
   builder: {
-    version: 'v1', css: [360, 640], scale: 2, fps: 30, poster: 60.0, captions: true,
+    version: 'v2', css: [360, 640], scale: 2, fps: 30, poster: 60.0, captions: true,
     renditions: [{ w: 720, h: 1280, budget: 4500 * KB }, { w: 480, h: 854, budget: 2400 * KB }],
   },
   landing: {
