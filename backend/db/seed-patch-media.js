@@ -21,7 +21,7 @@
  * Run: node db/seed-patch-media.js
  * Safe to re-run (uses ON CONFLICT DO NOTHING where possible).
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 

@@ -24,7 +24,7 @@ const path = require('path');
 const zlib = require('zlib');
 
 // Manual/CLI runs need the same env the server has.
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env') });
 
 const logger = require('../lib/logger');
 let recordEvent=null; try{recordEvent=require('../lib/telemetry').recordEvent;}catch{}

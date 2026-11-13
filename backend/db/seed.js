@@ -13,7 +13,7 @@
  * TEST_ACCOUNT_PASSWORD of at least 16 characters.
  * Existing synthetic accounts must be removed with the guarded cleanup script first.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const pool   = require('./poolJsShim.cjs');
 const { assertSafeLocalDatabase } = require('./operationSafety');
