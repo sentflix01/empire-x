@@ -11,7 +11,7 @@
  * Each scene draws a frame for any time t (window.setTime), so Playwright
  * steps through it frame by frame and ffmpeg encodes the frames. Output goes
  * to public/promo/<scene>-<w>x<h>-<version>.mp4 plus a -poster.webp (and, for
- * the guide, <scene>-<version>.en.vtt subtitles),
+ * the guide and builder videos, <scene>-<version>.en.vtt subtitles),
  * and every file must fit its size budget; the encoder lowers quality step by
  * step until it does. When a scene changes, bump its version and update
  * lib/promoAssets.ts (old names stay cached in browsers and the service worker).
@@ -39,6 +39,12 @@ const SCENES = {
   // Full step-by-step guide; downloads only when someone taps "Watch how it works".
   guide: {
     version: 'v4', css: [360, 640], scale: 2, fps: 30, poster: 6.0, captions: true,
+    renditions: [{ w: 720, h: 1280, budget: 4500 * KB }, { w: 480, h: 854, budget: 2400 * KB }],
+  },
+  // Owner side only: build from pieces and change any part, any time. Opens from
+  // the landing page's "Build and change a website" button.
+  builder: {
+    version: 'v1', css: [360, 640], scale: 2, fps: 30, poster: 60.0, captions: true,
     renditions: [{ w: 720, h: 1280, budget: 4500 * KB }, { w: 480, h: 854, budget: 2400 * KB }],
   },
   landing: {

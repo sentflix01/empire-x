@@ -3,6 +3,8 @@
  * saving, and can be paused (decision "Promo videos load when visible").
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import React from 'react';
 import { PROMO, pickRendition } from '@/lib/promoAssets';
@@ -98,6 +100,24 @@ describe('PromoGuide', () => {
     const track = video.querySelector('track');
     expect(track?.getAttribute('src')).toMatch(/^\/promo\/guide-v\d+\.en\.vtt$/);
     expect(track?.getAttribute('srclang')).toBe('en');
+  });
+
+  it('opens the builder video with its own title, file and subtitles', () => {
+    render(<><PromoGuide /><PromoGuide video="builder" /></>);
+    expect(screen.queryByTestId('promo-guide-video')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Build and change a website' }));
+    screen.getByRole('dialog', { name: 'Build and change your website, no code' });
+    const video = screen.getByTestId('promo-guide-video');
+    expect(video.querySelector('source')?.getAttribute('src')).toMatch(/^\/promo\/builder-\d+x\d+-v\d+\.mp4$/);
+    expect(video.querySelector('track')?.getAttribute('src')).toMatch(/^\/promo\/builder-v\d+\.en\.vtt$/);
+    expect(screen.getAllByTestId('promo-guide-video')).toHaveLength(1);
+  });
+
+  it('every promo file it names exists in public/', () => {
+    for (const clip of Object.values(PROMO)) {
+      const files = [clip.small.mp4, clip.small.poster, clip.large.mp4, clip.large.poster, 'captions' in clip ? clip.captions : undefined].filter(Boolean) as string[];
+      files.forEach((f) => expect(existsSync(join(process.cwd(), 'public', f)), f).toBe(true));
+    }
   });
 
   it('closes with Escape or the close button, and focus returns to the button', async () => {

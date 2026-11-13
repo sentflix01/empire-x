@@ -153,8 +153,10 @@ export default function LandingPage() {
               description="How Nodbusiness works, as an animation: a person shares a photo on the Personal feed, builds a website from a template or from sections by adding photos, pasting links and filling forms, publishes it to the Business feed, and customers order, message and pay them directly."
             />
           </div>
-          <div className="mt-5 flex justify-center">
+          {/* Two full videos, each downloaded only when its button is pressed. */}
+          <div className="mt-5 flex flex-col items-center gap-3">
             <PromoGuide />
+            <PromoGuide video="builder" />
           </div>
         </div>
         </div>

@@ -2,7 +2,7 @@
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.
-> Last updated: 2026-11-12
+> Last updated: 2026-11-13
 
 ---
 
@@ -200,5 +200,7 @@ visible and never with reduced motion or Save-Data; a pause button is built in.
 
 `<PromoGuide />` (or `variant="icon"`) is the "Watch how it works" button: it
 opens the full guide in a modal player and downloads nothing until pressed.
+`<PromoGuide video="builder" />` opens the builder video instead (how anyone
+builds a website from pieces and changes any piece later, with no code).
 Re-render clips with `node scripts/promo/render.mjs` after editing
 `scripts/promo/scenes/` (decision 2026-11-11 in `project-brain/DECISIONS.md`).

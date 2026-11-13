@@ -1,8 +1,10 @@
 'use client';
 /**
- * "Watch how it works": a button that opens the full guide (PROMO.guide,
- * about 170 s, with English titles and subtitles) in a phone-shaped player
- * with the browser's own controls. Nothing is downloaded until the button is pressed (decision
+ * "Watch how it works": a button that opens a full promo video in a
+ * phone-shaped player with the browser's own controls. `video` picks which:
+ * "guide" (PROMO.guide, about 170 s: the whole app) or "builder"
+ * (PROMO.builder, about 110 s: how anyone builds and keeps changing their
+ * website from pieces, with no code). Both have English titles and subtitles. Nothing is downloaded until the button is pressed (decision
  * "Promo videos load when visible"). The player is a modal dialog: focus
  * stays inside, Esc or the 44 px close button closes it, and focus returns
  * to the button.
@@ -11,13 +13,31 @@ import { useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Play, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { PROMO, pickRendition, type PromoRendition } from '@/lib/promoAssets';
+import { PROMO, pickRendition, type PromoClip, type PromoRendition } from '@/lib/promoAssets';
 import { cn } from '@/lib/utils';
 
 type Props = {
   /** "pill" shows the label; "icon" is a round button whose label is read by screen readers only. */
   variant?: 'pill' | 'icon';
+  /** Which video the button opens. */
+  video?: 'guide' | 'builder';
   className?: string;
+};
+
+type Words = [key: string, fallback: string];
+const VIDEOS: Record<NonNullable<Props['video']>, { clip: PromoClip; label: Words; title: Words; description: Words }> = {
+  guide: {
+    clip: PROMO.guide,
+    label: ['promo.watch', 'Watch how it works'],
+    title: ['promo.guideTitle', 'How Nodbusiness works'],
+    description: ['promo.guideDescription', 'An animation with subtitles, in eight steps: post your life on the Personal feed; explore the feeds, zoom into photos and peek at a friend\'s business without leaving the page; search for what you need near you, such as a hotel room, compare the closest places by price and reviews, and book; start a website from a ready-made template or from blank sections; fill it by adding photos, pasting links and filling simple forms; pick a colour and see it on computer, tablet and phone; publish it to the Business feed, where people find it and scan its QR code; customers order, message you and pay you directly. One account holds your personal life and your business.'],
+  },
+  builder: {
+    clip: PROMO.builder,
+    label: ['promo.watchBuilder', 'Build and change a website'],
+    title: ['promo.builderTitle', 'Build and change your website, no code'],
+    description: ['promo.builderDescription', 'An animation with subtitles, in seven steps. Many website makers build a site quickly, but changing it later needs code. On Nodbusiness a website is made of pieces: choose what you are building, such as a hotel, a shop, a city office or a company; start from a ready template or from scratch; add pieces such as a cover, rooms, photos and prices with +; tap a piece to fill a simple form with photos, words and prices while the preview updates; edit, move up or down, delete or add any piece at any time; pick a colour and see it on computer, tablet and phone; publish, and later change a photo and tap Update. A city office, a company, a child and a grandmother build their own sites the same way.'],
+  },
 };
 
 /**
@@ -36,15 +56,16 @@ function prefersReducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
-export default function PromoGuide({ variant = 'pill', className }: Props) {
+export default function PromoGuide({ variant = 'pill', video = 'guide', className }: Props) {
   const { t } = useTranslation();
   const [clip, setClip] = useState<PromoRendition | null>(null);
-  const label = t('promo.watch', 'Watch how it works');
+  const v = VIDEOS[video];
+  const label = t(...v.label);
 
   function onOpenChange(open: boolean) {
     if (!open) { setClip(null); return; }
     const w = playerWidth();
-    setClip(pickRendition(PROMO.guide, w, (w * 16) / 9, window.devicePixelRatio || 1));
+    setClip(pickRendition(v.clip, w, (w * 16) / 9, window.devicePixelRatio || 1));
   }
 
   return (
@@ -68,9 +89,9 @@ export default function PromoGuide({ variant = 'pill', className }: Props) {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-black/85" />
         <Dialog.Content className="fixed left-[4vw] top-1/2 z-overlay w-[min(calc(96vw_-_88px),380px,calc(86svh*9/16))] -translate-y-1/2 focus:outline-none sm:left-1/2 sm:w-[min(92vw,380px,calc(86svh*9/16))] sm:-translate-x-1/2">
-          <Dialog.Title className="sr-only">{t('promo.guideTitle', 'How Nodbusiness works')}</Dialog.Title>
+          <Dialog.Title className="sr-only">{t(...v.title)}</Dialog.Title>
           <Dialog.Description className="sr-only">
-            {t('promo.guideDescription', 'An animation with subtitles, in eight steps: post your life on the Personal feed; explore the feeds, zoom into photos and peek at a friend\'s business without leaving the page; search for what you need near you, such as a hotel room, compare the closest places by price and reviews, and book; start a website from a ready-made template or from blank sections; fill it by adding photos, pasting links and filling simple forms; pick a colour and see it on computer, tablet and phone; publish it to the Business feed, where people find it and scan its QR code; customers order, message you and pay you directly. One account holds your personal life and your business.')}
+            {t(...v.description)}
           </Dialog.Description>
           <div className="rounded-[2.25rem] bg-inverse p-2 shadow-2xl ring-1 ring-white/15">
             {clip && (
@@ -89,7 +110,7 @@ export default function PromoGuide({ variant = 'pill', className }: Props) {
               >
                 <source src={clip.mp4} type="video/mp4" />
                 {/* Subtitles are drawn into the video; this track is the same text for caption tools (CC). */}
-                {PROMO.guide.captions && <track kind="subtitles" src={PROMO.guide.captions} srcLang="en" label="English" />}
+                {v.clip.captions && <track kind="subtitles" src={v.clip.captions} srcLang="en" label="English" />}
               </video>
             )}
           </div>

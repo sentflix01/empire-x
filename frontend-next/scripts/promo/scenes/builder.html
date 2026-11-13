@@ -1,0 +1,29 @@
+<!doctype html>
+<!--
+  "Build and change your website" guide, about 110 s, 9:16 (360 x 640 units,
+  rendered at 2x = 720 x 1280). Opens from the landing page's "Watch: build
+  and change your website" button; never autoplays. It shows only the owner's
+  side: anyone builds a website from pieces by filling forms, and can edit,
+  move, delete or add any piece at any time without code. Title cards, full
+  subtitles and tap callouts as in guide.html. Shots are in builderShots.js.
+  Rendered by scripts/promo/render.mjs (?lang=en).
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="fonts.css">
+<script src="../copy.js"></script>
+<script src="common.js"></script>
+<script src="engine.js"></script>
+<script src="shots.js"></script>
+<script src="builderShots.js"></script>
+</head>
+<body>
+<svg id="svg" width="360" height="640" viewBox="0 0 360 640" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const S = window.BUILDER_SHOTS;
+window.ENGINE.run([S.bProblem(), S.bStart(), S.bPuzzle(), S.bFill(), S.bChange(), S.bStyle(), S.bPublish(), S.bAnyone(), S.bFinale()],
+  { titleCards: true, captions: 'full' });
+</script>
+</body>
+</html>

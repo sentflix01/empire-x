@@ -1035,5 +1035,5 @@ function finale() {
   };
 }
 
-window.SHOTS = { intro, life, feedScroll, friendBiz, bizFeed, searchNear, compareHotels, start, pathA, pathB, fill, style, publish, feed, buyers, finale, parts: { site, retheme } };
+window.SHOTS = { intro, life, feedScroll, friendBiz, bizFeed, searchNear, compareHotels, start, pathA, pathB, fill, style, publish, feed, buyers, finale, parts: { site, retheme, studioBar, device, typed, textW, at, g } };
 })();
