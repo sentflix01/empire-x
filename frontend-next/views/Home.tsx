@@ -1,5 +1,4 @@
 'use client';
-import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import client from "@/lib/api/client";
@@ -11,14 +10,12 @@ import CreatePostForm from "@/components/feed/CreatePostForm";
 import Stories from "@/views/Stories";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  TrendingUp, Users, MapPin, LayoutGrid, RefreshCw, Loader2, Sparkles,
+  TrendingUp, Users, MapPin, LayoutGrid, RefreshCw, Loader2,
   Megaphone, Eye, X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import PromoGuide from "@/components/promo/PromoGuide";
-import PromoVideo from "@/components/promo/PromoVideo";
-import { PROMO } from "@/lib/promoAssets";
+import FeedPromoBanner from "@/components/feed/FeedPromoBanner";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 import { useProfileView } from "@/lib/ProfileViewContext";
 
@@ -251,38 +248,7 @@ function Home() {
           <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90 transition-colors">Join Free</Link>
         </div>
       )}
-      {/* Mini Website Banner — brand blue (solid, F-046). The wordless promo clip
-          plays under the text from sm up and as a strip below it on phones. */}
-      <section data-page-guide="feed-banner" className="relative flex flex-col overflow-hidden rounded-2xl text-white shadow-lg shadow-primary/25 sm:block sm:min-h-[132px]" style={{ background: token.primary }}>
-        <PromoVideo
-          clip={PROMO.banner}
-          className="order-last h-32 w-full sm:absolute sm:inset-0 sm:h-full"
-          objectPosition="right center"
-          sizes="(min-width: 640px) 640px, 100vw"
-          buttonClassName="bottom-2 left-2 sm:left-auto sm:right-2"
-          description={t('promo.bannerDescription', 'Animation: someone picks a website template, adds a photo and a link, publishes it, and it appears in the Business feed with their products.')}
-        />
-        <PromoGuide variant="icon" className="absolute right-3 top-3 z-20" />
-        {/* Solid blue under the text, fading into the clip: white text stays at 5.2:1 (WCAG 1.4.3). */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,hsl(var(--primary))_0,hsl(var(--primary))_290px,hsl(var(--primary)/0)_380px)] sm:block" />
-        <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
-          <div className="max-w-[250px]">
-            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/40">
-              <Sparkles className="h-3 w-3" />
-              {t('common.showroomStudio')}
-            </div>
-            <p className="text-sm font-semibold leading-none text-white">{t('feed.createBusiness')}</p>
-            <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-normal sm:text-3xl">
-              {t('feed.buildMiniWebsite')}
-            </h1>
-            <p className="mt-2 text-sm font-medium leading-snug text-white">{t('feed.shareEmpire')}</p>
-            <Link href={isAuthenticated ? "/showroom/create" : "/register"}
-              className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-primary shadow-md shadow-black/10 transition-all duration-200 hover:bg-primary-subtle hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
-              {isAuthenticated ? t('feed.getStarted') : 'Join Free'}
-            </Link>
-          </div>
-        </div>
-      </section>
+      <FeedPromoBanner isAuthenticated={isAuthenticated} />
 
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
       <div data-page-guide="feed-content"><CompanyAnnouncementTicker /></div>

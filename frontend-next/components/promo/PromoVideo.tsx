@@ -30,6 +30,8 @@ type Props = {
   description?: string;
   /** Classes for the pause button (position). */
   buttonClassName?: string;
+  /** Called with true once the video is playable here (not with reduced motion or data saving), false otherwise. */
+  onPlayable?: (playable: boolean) => void;
 };
 
 export default function PromoVideo({
@@ -39,6 +41,7 @@ export default function PromoVideo({
   sizes = '100vw',
   description,
   buttonClassName = 'bottom-2 right-2',
+  onPlayable,
 }: Props) {
   const { t } = useTranslation();
   const motion = useBrandMotion();
@@ -67,6 +70,9 @@ export default function PromoVideo({
     if (inView && !paused) v.play().catch(() => { /* autoplay refused: the poster stays */ });
     else v.pause();
   }, [inView, paused, source]);
+
+  const playable = motion && !!source;
+  useEffect(() => { onPlayable?.(playable); }, [playable, onPlayable]);
 
   const fill = 'absolute inset-0 h-full w-full object-cover';
   return (
