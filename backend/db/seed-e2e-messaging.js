@@ -11,7 +11,7 @@
  *   - third:  e2e-msg-third@nodbusiness.test (requests, blocking, groups)
  * and removes their chats, blocks, mutes and follows so every run starts the same.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const { assertSafeLocalDatabase } = require('./operationSafety');

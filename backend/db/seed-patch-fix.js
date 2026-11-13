@@ -5,7 +5,7 @@
  *         (BusinessShowroomFeed reads biz.business_sections, not user_profiles)
  * Fix 2: posts.author_avatar is NULL ? update with user_profiles.avatar_url
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 

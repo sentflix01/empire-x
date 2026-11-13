@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const { URL } = require('node:url');
 const fs = require('node:fs/promises');
 const path = require('node:path');

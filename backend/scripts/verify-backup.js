@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env') });
 
 const logger = require('../lib/logger');
 

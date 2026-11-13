@@ -4,7 +4,7 @@
  * inappropriate for a demo feed. Text posts look clean and professional.
  * Run: node db/seed-clean-images.js
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 const { assertSafeDevSeed } = require('./operationSafety');
 

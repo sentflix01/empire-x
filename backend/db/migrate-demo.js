@@ -1,6 +1,6 @@
 const { spawnSync } = require('node:child_process');
 const { URL } = require('node:url');
-require('dotenv').config({ path: require('node:path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('node:path').join(__dirname, '../.env') });
 
 function databaseIdentity(connectionString) {
   const target = new URL(connectionString);

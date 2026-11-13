@@ -17,8 +17,12 @@ jest.mock('../../lib/redis', () => ({
 const { cached } = require('../../lib/redis');
 const router = require('../../routes/trending');
 
-function buildApp() {
+// Each request runs inside its database environment, as the real middleware
+// does. Wrapping the supertest call instead depends on when supertest starts
+// the request (7.3.2 starts it outside the caller's async context).
+function buildApp(environment = 'real') {
   const app = express();
+  app.use((_req, _res, next) => mockPool.runWithDatabaseEnvironment({ environment }, next));
   app.use('/api/trending', router);
   return app;
 }
@@ -29,10 +33,7 @@ beforeEach(() => {
 });
 
 it('uses the isolated Demo cache namespace and hides expired showrooms', async () => {
-  const response = await mockPool.runWithDatabaseEnvironment(
-    { environment: 'demo' },
-    () => request(buildApp()).get('/api/trending'),
-  );
+  const response = await request(buildApp('demo')).get('/api/trending');
 
   expect(response.status).toBe(200);
   expect(cached.mock.calls[0][0]).toBe('trending:demo:all-users:guest');

@@ -8,7 +8,7 @@
  *
  * Run: node backend/db/migrate30.js
  */
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const pool = require('./poolJsShim.cjs');
 
 async function migrate() {

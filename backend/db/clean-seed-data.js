@@ -6,7 +6,7 @@
  * ALLOW_SEED_CLEANUP=1, and a non-production NODE_ENV. It never truncates
  * tables and never deletes users that are not marked as seed data.
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const { databaseTarget, assertSafeTarget } = require('./operationSafety');
 
 function parseArgs(args) {
