@@ -117,13 +117,6 @@
     "navLabel": "Main",
     "signIn": "Sign in",
     "startFree": "Start free",
-    "eyebrow": "Showroom Studio · Social · Commerce",
-    "heroLine1": "Build your business showroom.",
-    "heroLine2": "Change any part, any time.",
-    "heroLine3": "Publish and sell, no code.",
-    "lead": "Choose a template or start from scratch, fill in simple forms, and your website is live. Customers book, buy and pay you directly.",
-    "audience": "For shops, hotels, companies, government offices and creators.",
-    "explore": "Explore as guest",
     "videoDescription": "How Nodbusiness works, as an animation: a person shares a photo on the Personal feed, builds a website from a template or from sections by adding photos, pasting links and filling forms, publishes it to the Business feed, and customers order, message and pay them directly.",
     "watch": "Watch",
     "guideLength": "3 min",
@@ -223,11 +216,6 @@
       "private": "Private contact details",
       "nearby": "Nearby discovery"
     },
-    "assurance": {
-      "free": "Free to start",
-      "noCode": "No code",
-      "direct": "Customers pay you directly"
-    },
     "footer": {
       "product": "Product",
       "account": "Account",
@@ -242,6 +230,12 @@
         "service-agreement": "Service agreement"
       }
     },
-    "tryDemoShort": "Try demo"
+    "tryDemoShort": "Try demo",
+    "heroBadge": "Free to start · No code needed",
+    "heroBuild": "Build it.",
+    "heroChange": "Change it.",
+    "heroSell": "Sell it.",
+    "heroLead": "Your business showroom in minutes. Edit any part, any time, and get paid directly.",
+    "exploreLink": "Or explore as a guest"
   }
 }

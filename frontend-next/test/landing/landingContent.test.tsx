@@ -19,13 +19,11 @@ import LandingContent from '@/components/landing/LandingContent';
 afterEach(async () => { await act(async () => { await i18n.changeLanguage('en'); }); });
 
 describe('LandingContent', () => {
-  it('has exactly one h1 that states the value in three lines', () => {
+  it('has exactly one short h1: build it, change it, sell it', () => {
     render(<LandingContent templateCount={20} />);
     const h1s = screen.getAllByRole('heading', { level: 1 });
     expect(h1s).toHaveLength(1);
-    expect(h1s[0]).toHaveTextContent('Build your business showroom.');
-    expect(h1s[0]).toHaveTextContent('Change any part, any time.');
-    expect(h1s[0]).toHaveTextContent('Publish and sell, no code.');
+    expect(h1s[0]).toHaveTextContent('Build it. Change it. Sell it.');
     expect(h1s[0]).not.toHaveTextContent('Merchant Commerce');
   });
 
@@ -35,7 +33,7 @@ describe('LandingContent', () => {
     const start = within(hero).getByRole('link', { name: /Start free/ });
     expect(start).toHaveAttribute('href', '/register');
     const demo = within(hero).getByRole('button', { name: 'Try demo' });
-    const guest = within(hero).getByRole('link', { name: /Explore as guest/ });
+    const guest = within(hero).getByRole('link', { name: /explore as a guest/ });
     expect(guest).toHaveAttribute('href', '/feed');
     expect(start.compareDocumentPosition(demo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(demo.compareDocumentPosition(guest) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -62,7 +60,7 @@ describe('LandingContent', () => {
   });
 
   it('changes its words with the language', async () => {
-    i18n.addResource('am', 'translation', 'landing.heroLine1', 'AM-HERO');
+    i18n.addResource('am', 'translation', 'landing.heroBuild', 'AM-HERO');
     render(<LandingContent templateCount={20} />);
     await act(async () => { await i18n.changeLanguage('am'); });
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('AM-HERO');

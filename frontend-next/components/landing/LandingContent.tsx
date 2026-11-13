@@ -23,7 +23,6 @@ import {
   BedDouble,
   Bot,
   Building2,
-  Check,
   CreditCard,
   GraduationCap,
   Landmark,
@@ -125,46 +124,37 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
         <div aria-hidden="true" className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
         <div className={`${CONTAINER} relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12 lg:py-24`}>
           <div data-page-guide="landing-actions">
-            <div className="flex items-center gap-3">
+            {/* Hero copy follows the common pattern of top product sites: a headline of
+                about six words, one sentence under it, one primary action. */}
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3.5 text-sm font-medium text-white backdrop-blur">
               <span
-                className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-white/25"
+                className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full"
                 style={{ backgroundColor: HEX.primary, backgroundImage: `url(${BRAND.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
               >
                 <BrandIntroVideo />
               </span>
-              <p className={`${EYEBROW} text-white/85`}>{tr('eyebrow', 'Showroom Studio · Social · Commerce')}</p>
-            </div>
-            <h1 id="landing-title" className="mt-6 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
-              <span className="block">{tr('heroLine1', 'Build your business showroom.')}</span>
-              <span className="block text-white/80">{tr('heroLine2', 'Change any part, any time.')}</span>
-              <span className="block">{tr('heroLine3', 'Publish and sell, no code.')}</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">
-              {tr('lead', 'Choose a template or start from scratch, fill in simple forms, and your website is live. Customers book, buy and pay you directly.')}
+              {tr('heroBadge', 'Free to start · No code needed')}
             </p>
-            <p className="mt-3 max-w-xl text-base text-white/75">
-              {tr('audience', 'For shops, hotels, companies, government offices and creators.')}
+            <h1 id="landing-title" className="mt-7 text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+              <span className="block">{tr('heroBuild', 'Build it.')}</span>{' '}
+              <span className="block">{tr('heroChange', 'Change it.')}</span>{' '}
+              <span className="block"><span className="underline decoration-white/45 decoration-[0.09em] underline-offset-[0.14em]">{tr('heroSell', 'Sell it.')}</span></span>
+            </h1>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85 sm:text-xl">
+              {tr('heroLead', 'Your business showroom in minutes. Edit any part, any time, and get paid directly.')}
             </p>
             <DemoEndedNotice />
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/register" className={PRIMARY} style={ON_WHITE}>
                 {tr('startFree', 'Start free')}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <TryDemoButton className={OUTLINE} label={tr('tryDemoShort', 'Try demo')} />
-              <Link data-page-guide="landing-guest" href="/feed" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-base font-semibold text-white underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                {tr('explore', 'Explore as guest')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
             </div>
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-white/85">
-              {[['free', 'Free to start'], ['noCode', 'No code'], ['direct', 'Customers pay you directly']].map(([k, v]) => (
-                <li key={k} className="inline-flex items-center gap-2">
-                  <Check className="h-4 w-4 text-white" aria-hidden="true" />
-                  {tr(`assurance.${k}`, v)}
-                </li>
-              ))}
-            </ul>
+            <Link data-page-guide="landing-guest" href="/feed" className="mt-5 inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-white/85 underline-offset-4 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+              {tr('exploreLink', 'Or explore as a guest')}
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
           </div>
 
           <div className="mx-auto w-full max-w-[300px] lg:max-w-none">
