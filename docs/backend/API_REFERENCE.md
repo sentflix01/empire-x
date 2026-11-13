@@ -525,9 +525,9 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/push/vapid-public-key` | 🌐 public | routes/push.ts:52 |
-| `POST` | `/api/push/subscribe` | 🔒 auth | routes/push.ts:57 |
-| `DELETE` | `/api/push/unsubscribe` | 🔒 auth | routes/push.ts:72 |
+| `GET` | `/api/push/vapid-public-key` | 🌐 public | routes/push.ts:54 |
+| `POST` | `/api/push/subscribe` | 🔒 auth | routes/push.ts:59 |
+| `DELETE` | `/api/push/unsubscribe` | 🔒 auth | routes/push.ts:74 |
 
 ## referral — referral
 

@@ -9768,7 +9768,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/push.ts:52"
+        "x-source": "backend/routes/push.ts:54"
       }
     },
     "/api/push/subscribe": {
@@ -9798,7 +9798,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/push.ts:57"
+        "x-source": "backend/routes/push.ts:59"
       }
     },
     "/api/push/unsubscribe": {
@@ -9825,7 +9825,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/push.ts:72"
+        "x-source": "backend/routes/push.ts:74"
       }
     },
     "/api/referral/my-code": {
