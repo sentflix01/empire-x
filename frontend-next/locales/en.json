@@ -17,8 +17,8 @@
     "builderLength": "2 min",
     "builtFor": "Built for every kind of organisation",
     "howEyebrow": "How it works",
-    "howTitle": "From idea to a website that sells, in three steps.",
-    "howLead": "Your website is made of sections you can touch. Change any of them whenever your business changes, without a developer.",
+    "howTitle": "One app to build, connect, buy and sell.",
+    "howLead": "Whether you are sharing your day or running a company, you use the same three steps, and everyone can reach everyone.",
     "stepLabel": "Step",
     "templatesNote": "{{n}} ready templates, one for each kind of business.",
     "startBuilding": "Start building",
@@ -59,23 +59,23 @@
         "title": "Government offices",
         "desc": "Services, hours and contacts"
       },
-      "creators": {
-        "title": "Creators & schools",
-        "desc": "Portfolios, courses and events"
+      "people": {
+        "title": "People & creators",
+        "desc": "Posts, followers and sales"
       }
     },
     "steps": {
       "build": {
-        "title": "Build",
-        "desc": "Pick a ready template for your kind of business, or start from scratch. Add the sections you need with one tap."
-      },
-      "edit": {
-        "title": "Edit any part, any time",
-        "desc": "Fill simple forms with photos, words and prices. Add, move, update or delete any section whenever you want. No code."
+        "title": "Build it",
+        "desc": "Make your profile and your showroom website from a ready template or from scratch. Edit, move or delete any part at any time, with no code."
       },
       "sell": {
-        "title": "Publish and sell",
-        "desc": "Go live in one tap. Customers order products, book services and rooms, message you and pay you directly."
+        "title": "Buy or sell it",
+        "desc": "Anyone can buy and sell: products, services and bookings. Customers pay the seller directly, and Nodbusiness never holds the money."
+      },
+      "connect": {
+        "title": "Connect & share it",
+        "desc": "Post your moments and your products, follow people and businesses, and chat. Friends, creators and businesses find you in the feeds."
       }
     },
     "modules": {
@@ -125,12 +125,12 @@
       }
     },
     "tryDemoShort": "Try demo",
-    "heroBadge": "Free to start · No code needed",
+    "heroBadge": "Social + commerce in one app",
     "heroBuild": "Build it.",
-    "heroChange": "Change it.",
-    "heroSell": "Sell it.",
-    "heroLead": "Your business showroom in minutes. Edit any part, any time, and get paid directly.",
-    "exploreLink": "Or explore as a guest"
+    "heroSell": "Buy or sell it.",
+    "heroLead": "Share your moments, build your showroom, and buy or sell with anyone: people, creators and businesses, in one app.",
+    "exploreLink": "Or explore as a guest",
+    "heroConnect": "Connect & share it."
   },
   "nav": {
     "home": "Home",

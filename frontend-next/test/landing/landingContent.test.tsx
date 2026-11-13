@@ -19,11 +19,11 @@ import LandingContent from '@/components/landing/LandingContent';
 afterEach(async () => { await act(async () => { await i18n.changeLanguage('en'); }); });
 
 describe('LandingContent', () => {
-  it('has exactly one short h1: build it, change it, sell it', () => {
+  it('has exactly one short h1: build it, connect and share it, buy or sell it', () => {
     render(<LandingContent templateCount={20} />);
     const h1s = screen.getAllByRole('heading', { level: 1 });
     expect(h1s).toHaveLength(1);
-    expect(h1s[0]).toHaveTextContent('Build it. Change it. Sell it.');
+    expect(h1s[0]).toHaveTextContent('Build it. Connect & share it. Buy or sell it.');
     expect(h1s[0]).not.toHaveTextContent('Merchant Commerce');
   });
 

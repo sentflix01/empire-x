@@ -10,13 +10,13 @@ import { SHOWROOM_TEMPLATES } from '@/lib/showroomTemplates';
 export const dynamic = 'force-dynamic';
 
 const description =
-  'Build your business showroom from ready templates or from scratch, change any part at any time with no code, then publish and sell. Customers book, buy and pay you directly.';
+  'Share your moments, build your showroom and buy or sell with anyone. People, creators and businesses connect, share and trade in one app.';
 
 export const metadata: Metadata = {
-  title: 'Nodbusiness: build, edit and sell from your own business showroom',
+  title: 'Nodbusiness: build, connect, share, buy and sell in one app',
   description,
   openGraph: {
-    title: 'Nodbusiness: build, edit and sell from your own business showroom',
+    title: 'Nodbusiness: build, connect, share, buy and sell in one app',
     description,
     images: [BRAND.logo],
   },

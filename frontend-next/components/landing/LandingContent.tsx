@@ -24,7 +24,6 @@ import {
   Bot,
   Building2,
   CreditCard,
-  GraduationCap,
   Landmark,
   LayoutGrid,
   LayoutTemplate,
@@ -32,7 +31,6 @@ import {
   MapPin,
   MessageCircle,
   Package,
-  PencilRuler,
   Rocket,
   ShoppingBag,
   Star,
@@ -64,17 +62,17 @@ const OUTLINE = 'inline-flex h-12 whitespace-nowrap items-center justify-center 
 type Item = { key: string; title: string; desc: string; Icon: LucideIcon };
 
 const AUDIENCES: Item[] = [
+  { key: 'people', title: 'People & creators', desc: 'Posts, followers and sales', Icon: Users },
   { key: 'shops', title: 'Shops & restaurants', desc: 'Menus, products and orders', Icon: Store },
   { key: 'hotels', title: 'Hotels & services', desc: 'Rooms, bookings and prices', Icon: BedDouble },
   { key: 'companies', title: 'Companies', desc: 'Teams, branches and catalogues', Icon: Building2 },
   { key: 'government', title: 'Government offices', desc: 'Services, hours and contacts', Icon: Landmark },
-  { key: 'creators', title: 'Creators & schools', desc: 'Portfolios, courses and events', Icon: GraduationCap },
 ];
 
 const STEPS: Item[] = [
-  { key: 'build', title: 'Build', desc: 'Pick a ready template for your kind of business, or start from scratch. Add the sections you need with one tap.', Icon: LayoutTemplate },
-  { key: 'edit', title: 'Edit any part, any time', desc: 'Fill simple forms with photos, words and prices. Add, move, update or delete any section whenever you want. No code.', Icon: PencilRuler },
-  { key: 'sell', title: 'Publish and sell', desc: 'Go live in one tap. Customers order products, book services and rooms, message you and pay you directly.', Icon: Rocket },
+  { key: 'build', title: 'Build it', desc: 'Make your profile and your showroom website from a ready template or from scratch. Edit, move or delete any part at any time, with no code.', Icon: LayoutTemplate },
+  { key: 'connect', title: 'Connect & share it', desc: 'Post your moments and your products, follow people and businesses, and chat. Friends, creators and businesses find you in the feeds.', Icon: MessageCircle },
+  { key: 'sell', title: 'Buy or sell it', desc: 'Anyone can buy and sell: products, services and bookings. Customers pay the seller directly, and Nodbusiness never holds the money.', Icon: Rocket },
 ];
 
 const MODULES: Item[] = [
@@ -133,15 +131,15 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
               >
                 <BrandIntroVideo />
               </span>
-              {tr('heroBadge', 'Free to start · No code needed')}
+              {tr('heroBadge', 'Social + commerce in one app')}
             </p>
-            <h1 id="landing-title" className="mt-7 text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 id="landing-title" className="mt-7 text-balance text-[2rem] font-extrabold leading-[1.08] tracking-tight min-[400px]:text-[2.4rem] sm:text-6xl lg:text-[4rem]">
               <span className="block">{tr('heroBuild', 'Build it.')}</span>{' '}
-              <span className="block">{tr('heroChange', 'Change it.')}</span>{' '}
-              <span className="block"><span className="underline decoration-white/45 decoration-[0.09em] underline-offset-[0.14em]">{tr('heroSell', 'Sell it.')}</span></span>
+              <span className="block">{tr('heroConnect', 'Connect & share it.')}</span>{' '}
+              <span className="block"><span className="underline decoration-white/45 decoration-[0.09em] underline-offset-[0.14em]">{tr('heroSell', 'Buy or sell it.')}</span></span>
             </h1>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-white/85 sm:text-xl">
-              {tr('heroLead', 'Your business showroom in minutes. Edit any part, any time, and get paid directly.')}
+              {tr('heroLead', 'Share your moments, build your showroom, and buy or sell with anyone: people, creators and businesses, in one app.')}
             </p>
             <DemoEndedNotice />
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -200,9 +198,9 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
         <div className={CONTAINER}>
           <div className="max-w-2xl">
             <p className={`${EYEBROW} text-primary`}>{tr('howEyebrow', 'How it works')}</p>
-            <h2 id="landing-how" className={`mt-3 ${H2}`}>{tr('howTitle', 'From idea to a website that sells, in three steps.')}</h2>
+            <h2 id="landing-how" className={`mt-3 ${H2}`}>{tr('howTitle', 'One app to build, connect, buy and sell.')}</h2>
             <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-              {tr('howLead', 'Your website is made of sections you can touch. Change any of them whenever your business changes, without a developer.')}
+              {tr('howLead', 'Whether you are sharing your day or running a company, you use the same three steps, and everyone can reach everyone.')}
             </p>
           </div>
           <ol className="mt-12 grid gap-6 md:grid-cols-3">
