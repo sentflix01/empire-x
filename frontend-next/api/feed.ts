@@ -36,9 +36,11 @@ export interface BusinessFeedPage {
 
 export type BusinessFeedSort = 'nearest' | 'recent';
 
-export async function fetchBusinessFeed(params: { sort: BusinessFeedSort; lat?: number; lon?: number; offset?: number; limit?: number }): Promise<BusinessFeedPage> {
+export async function fetchBusinessFeed(params: { sort: BusinessFeedSort; lat?: number; lon?: number; radiusKm?: number | null; offset?: number; limit?: number }): Promise<BusinessFeedPage> {
   const query: Record<string, string> = { sort: params.sort, limit: String(params.limit ?? 20), offset: String(params.offset ?? 0) };
   if (params.lat !== undefined && params.lon !== undefined) { query.lat = String(params.lat); query.lon = String(params.lon); }
+  // How far the viewer chose to look (nearest first only; null = no limit).
+  if (params.sort === 'nearest' && typeof params.radiusKm === 'number') query.radius_km = String(params.radiusKm);
   const { data } = await client.get<BusinessFeedPage>('/api/feed/businesses', { params: query });
   return { items: data?.items ?? [], owners: data?.owners ?? {}, next_offset: data?.next_offset ?? null };
 }

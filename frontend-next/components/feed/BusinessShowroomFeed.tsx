@@ -22,6 +22,7 @@ import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 import { useTranslation } from 'react-i18next';
 import { RatingSummary } from '@/components/ui/Stars';
+import DistanceRange from '@/components/ui/DistanceRange';
 import { fetchBusinessFeed, type BusinessFeedSort, type FeedRelationship } from '@/api/feed';
 import { useViewerLocation, type ViewerLocation } from '@/hooks/useViewerLocation';
 import { DemoBadge } from '@/components/profile/DemoBadge';
@@ -553,10 +554,13 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   const [loadingMore, setLoadingMore] = useState(false);
   const { request: requestLocation, status: locationStatus } = useViewerLocation();
   const pointRef = React.useRef<ViewerLocation | null>(null);
+  // How far "Near you" looks; null = no limit. The viewer moves it freely.
+  const [feedRadius, setFeedRadius] = useState<number | null>(null);
+  const radiusRef = React.useRef<number | null>(null);
 
   const loadFeedPage = useCallback(async (sort: BusinessFeedSort, offset: number) => {
     const point = sort === 'nearest' ? pointRef.current : null;
-    const page = await fetchBusinessFeed({ sort, offset, lat: point?.lat, lon: point?.lon });
+    const page = await fetchBusinessFeed({ sort, offset, lat: point?.lat, lon: point?.lon, radiusKm: radiusRef.current });
     const cards: Business[] = [];
     const meta: Record<string, { distance_km: number | null; relationship: FeedRelationship; rating_avg: number | null; rating_count: number }> = {};
     for (const item of page.items) {
@@ -614,6 +618,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     void loadFeedBusinesses(sort);
   }, [loadFeedBusinesses, requestLocation]);
 
+  const chooseRadius = useCallback((km: number | null) => {
+    radiusRef.current = km;
+    setFeedRadius(km);
+    void loadFeedBusinesses('nearest');
+  }, [loadFeedBusinesses]);
+
   const ownerId = profile?.user_id;
   const loadData = useCallback(async () => {
     if (!ownerId) return;
@@ -666,11 +676,28 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     void chat.start({ businessId: target.businessId, userId: target.userId });
   };
 
+  // Sort and distance stay on screen while the feed reloads or is empty, so the
+  // viewer can always look farther.
+  const feedControls = isFeedMode ? (
+    <>
+      <FeedSortSwitch sort={feedSort} locating={locationStatus === 'locating'} onChange={chooseSort} />
+      {feedSort === 'nearest' && (
+        <DistanceRange id="feed-distance" value={feedRadius} onChange={chooseRadius} allowAnywhere defaultKm={10} className="mb-3 rounded-2xl border border-border/50 bg-card p-3" />
+      )}
+      {feedSort === 'nearest' && locationStatus === 'fallback' && (
+        <p className="mb-3 text-xs text-muted-foreground" role="status">{t('feed.defaultLocation', 'We could not get your location, so distances are from central Addis Ababa.')}</p>
+      )}
+    </>
+  ) : null;
+
   if (loading) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
+      <>
+        {feedControls}
+        <div className="flex justify-center py-8">
+          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </>
     );
   }
 
@@ -679,12 +706,18 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     const buildPath = signedInUser ? '/showroom/create' : '/register';
     if (feedBusinesses.length === 0) {
       return (
+        <>
+        {feedControls}
         <div className="text-center py-10 px-4">
           {feedError ? (
             <>
               <p role="alert" className="text-sm font-medium text-destructive">{feedError}</p>
               <button type="button" onClick={() => void loadFeedBusinesses()} className="mt-3 text-sm font-semibold text-primary hover:underline">Try again</button>
             </>
+          ) : feedSort === 'nearest' && feedRadius !== null ? (
+            <p data-testid="feed-none-in-range" className="text-sm font-medium text-muted-foreground">
+              {t('feed.noneWithin', 'No businesses within')} {feedRadius} km. {t('feed.lookFarther', 'Move the distance up to look farther.')}
+            </p>
           ) : (
             <>
               <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
@@ -696,14 +729,12 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             </>
           )}
         </div>
+        </>
       );
     }
     return (
     <>
-      <FeedSortSwitch sort={feedSort} locating={locationStatus === 'locating'} onChange={chooseSort} />
-      {feedSort === 'nearest' && locationStatus === 'fallback' && (
-        <p className="mb-3 text-xs text-muted-foreground" role="status">{t('feed.defaultLocation', 'We could not get your location, so distances are from central Addis Ababa.')}</p>
-      )}
+      {feedControls}
       <div className="space-y-4">
         {feedBusinesses.map((biz) => {
           const ownerId = biz.owner_id as string || '';

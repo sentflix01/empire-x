@@ -64,6 +64,22 @@ describe('Business feed', () => {
     expect(screen.getByRole('button', { name: /Near you/ }).getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('"Near you" lets the viewer choose how far to look', async () => {
+    render(<BusinessShowroomFeed />);
+    await screen.findByText('Dawit Fashion');
+    fireEvent.click(screen.getByRole('button', { name: /Near you/ }));
+    await waitFor(() => expect(screen.getAllByTestId('biz-distance')).toHaveLength(2));
+    expect(screen.getByTestId('distance-label').textContent).toBe('Anywhere');
+    fireEvent.click(screen.getByLabelText('Anywhere (no distance limit)'));
+    await waitFor(() => expect(http.get.mock.calls.at(-1)![1].params).toMatchObject({ sort: 'nearest', radius_km: '10' }));
+    // Nothing that close: the distance stays on screen to look farther.
+    http.get.mockResolvedValue({ data: { items: [], owners: {}, next_offset: null } });
+    fireEvent.click(screen.getByRole('button', { name: 'Closer' }));
+    expect(await screen.findByTestId('feed-none-in-range')).toBeTruthy();
+    expect(screen.getByTestId('distance-range')).toBeTruthy();
+    expect(http.get.mock.calls.at(-1)![1].params.radius_km).toBe('9');
+  });
+
   it('starts nearest first when location is already allowed', async () => {
     Object.defineProperty(navigator, 'permissions', { value: { query: () => Promise.resolve({ state: 'granted' }) }, configurable: true });
     render(<BusinessShowroomFeed />);

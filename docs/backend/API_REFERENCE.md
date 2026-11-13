@@ -287,7 +287,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/feed/businesses` | ⚪ optional | routes/feed.ts:47 |
+| `GET` | `/api/feed/businesses` | ⚪ optional | routes/feed.ts:48 |
 
 ## flags — flags
 

@@ -80,6 +80,17 @@ describe('GET /api/feed/businesses', () => {
     expect(items.find((i) => i.type === 'business' && i.record.id === nopinBiz).distance_km).toBeNull();
   });
 
+  it('keeps to the distance the viewer chose', async () => {
+    const ids = (await allItems({ sort: 'nearest', radius_km: 2, ...HERE }, auth(viewer))).map(bizIdOf);
+    expect(ids).toContain(nearBiz);
+    expect(ids).not.toContain(farBiz); // ~5.8 km
+    expect(ids).not.toContain(nopinBiz); // no pin, so no distance
+    expect((await allItems({ sort: 'nearest', radius_km: 10, ...HERE }, auth(viewer))).map(bizIdOf)).toContain(farBiz);
+    for (const radius_km of [0, 101, 'far']) {
+      expect((await request(app).get('/api/feed/businesses').query({ sort: 'nearest', radius_km, ...HERE })).status).toBe(400);
+    }
+  });
+
   it('never sends the exact pin of a private address', async () => {
     const items = await allItems({ sort: 'nearest', ...HERE }, auth(viewer));
     const nearItem = items.find((i) => i.type === 'business' && i.record.id === nearBiz);

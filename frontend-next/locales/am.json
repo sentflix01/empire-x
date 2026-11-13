@@ -139,7 +139,9 @@
     "nearYou": "Near you",
     "newest": "Newest",
     "sortBusinesses": "Sort businesses",
-    "defaultLocation": "We could not get your location, so distances are from central Addis Ababa."
+    "defaultLocation": "We could not get your location, so distances are from central Addis Ababa.",
+    "noneWithin": "No businesses within",
+    "lookFarther": "Move the distance up to look farther."
   },
   "marketplace": {
     "title": "ገበያ",
@@ -723,5 +725,13 @@
     "guestsLower": "guests",
     "checkAvailability": "Check availability",
     "previewNote": "Visitors can book once your site is published."
+  },
+  "distance": {
+    "anywhere": "Anywhere",
+    "within": "Within",
+    "howFar": "How far to look",
+    "closer": "Closer",
+    "farther": "Farther",
+    "anywhereToggle": "Anywhere (no distance limit)"
   }
 }

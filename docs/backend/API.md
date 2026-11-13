@@ -5,7 +5,7 @@ Last reviewed: 2026-11-12
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
-> Last updated: 2026-11-12
+> Last updated: 2026-11-13
 > Errors follow `{ "error": "message" }` format.
 > Last reviewed: 2026-11-12
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
@@ -528,10 +528,11 @@ address is public").
 
 ## Business feed
 
-### GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&limit=20&offset=0
+### GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&radius_km=&limit=20&offset=0
 The Business feed, merged and ordered on the server. Optional auth.
 - Same visibility as `/api/showrooms` and `/api/businesses`: real/demo, paid plan, unexpired sites, guests see public businesses only. A business with a same-named published site appears once (as the site).
 - `sort=nearest` needs `lat` and `lon` (`400` otherwise): businesses with a map pin by distance, then those without a pin, newest first. `sort=recent` (default): newest first.
+- `radius_km` (with `sort=nearest`, 1–100, chosen by the viewer): only businesses whose pin is within that distance; businesses without a pin drop out. Values outside 0 < x ≤ 100 give `400`. Without it, nearest first has no distance limit.
 - `limit` 1–30 (default 20). `next_offset` is `null` on the last page.
 
 Response:

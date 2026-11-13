@@ -93,5 +93,17 @@
     "guestsLower": "guests",
     "checkAvailability": "Check availability",
     "previewNote": "Visitors can book once your site is published."
+  },
+  "distance": {
+    "anywhere": "Anywhere",
+    "within": "Within",
+    "howFar": "How far to look",
+    "closer": "Closer",
+    "farther": "Farther",
+    "anywhereToggle": "Anywhere (no distance limit)"
+  },
+  "feed": {
+    "noneWithin": "No businesses within",
+    "lookFarther": "Move the distance up to look farther."
   }
 }

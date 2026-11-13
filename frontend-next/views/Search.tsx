@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
 import { RatingSummary } from '@/components/ui/Stars';
+import DistanceRange from '@/components/ui/DistanceRange';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import client from "@/api/client";
@@ -25,15 +26,6 @@ const SORT_OPTIONS = [
   { value: "price_desc","label": "Price: High → Low" },
 ];
 
-const RADIUS_OPTIONS = [
-  { value: "",     label: "Anywhere" },
-  { value: "1",    label: "Within 1 km" },
-  { value: "5",    label: "Within 5 km" },
-  { value: "10",   label: "Within 10 km" },
-  { value: "25",   label: "Within 25 km" },
-  { value: "50",   label: "Within 50 km" },
-  { value: "100",  label: "Within 100 km" },
-];
 
 // ── Distance badge ────────────────────────────────────────────────────────────
 function DistanceBadge({ km }: { km?: number | null }) {
@@ -206,14 +198,8 @@ function Search() {
               </label>
               {locStatus === "loading" && <p className="text-xs text-muted-foreground">{t('search.detectingLocation')}</p>}
               {locStatus === "ok" && userLat && <p className="text-xs text-success mb-1.5">{t('search.locationDetected')}</p>}
-              <div className="flex flex-wrap gap-1.5">
-                {RADIUS_OPTIONS.map(opt => (
-                  <button key={opt.value} onClick={() => { setRadius(opt.value); if (opt.value && !locRequested.current) requestLocation(); }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${radius === opt.value ? "bg-primary text-white border-primary" : "border-border/50 text-muted-foreground hover:bg-secondary"}`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <DistanceRange id="search-distance" value={radius === "" ? null : Number(radius)} allowAnywhere defaultKm={10}
+                onChange={(km) => { setRadius(km === null ? "" : String(km)); if (km !== null && !locRequested.current) requestLocation(); }} />
             </div>
             {(tab === "all" || tab === "products") && (
               <div>

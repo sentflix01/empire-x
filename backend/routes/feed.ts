@@ -1,16 +1,17 @@
 /**
  * routes/feed.ts — The Business feed, built on the server.
  *
- * GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&limit=&offset=
+ * GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&radius_km=&limit=&offset=
  *
  * Merges published sites (showrooms) and business profiles with the same
  * visibility rules as /api/showrooms and /api/businesses (real/demo, paid
  * plan, unexpired sites, guests see public businesses only), drops a
  * business that already has a same-named site, and returns one ordered list:
  *   - sort=nearest (needs lat/lon): businesses with a map pin by distance,
- *     then those without a pin, newest first;
+ *     then those without a pin, newest first; with radius_km (1–100, chosen
+ *     by the viewer) only businesses within that distance;
  *   - sort=recent: newest first.
- * Each item carries `distance_km` (rounded to 0.5 km, null without a pin;
+ * Each item carries `distance_km` (rounded up to 0.5 km, null without a pin;
  * never exact coordinates for a private address, lib/locationPrivacy.ts) and
  * `relationship` ('friend' when the viewer and the owner follow each other,
  * 'following' when only the viewer follows). Owners' display details come in
@@ -51,6 +52,13 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
   const lon = num(q.lon);
   const hasPoint = Number.isFinite(lat) && lat >= -90 && lat <= 90 && Number.isFinite(lon) && lon >= -180 && lon <= 180;
   if (sort === 'nearest' && !hasPoint) { res.status(400).json({ error: 'sort=nearest needs valid lat and lon' }); return; }
+  // The viewer chooses how far to look (1–100 km); without it, nearest first has no limit.
+  const radiusRaw = q.radius_km === undefined ? NaN : Number(q.radius_km);
+  if (q.radius_km !== undefined && (!Number.isFinite(radiusRaw) || radiusRaw <= 0 || radiusRaw > 100)) {
+    res.status(400).json({ error: 'radius_km must be greater than 0 and at most 100' });
+    return;
+  }
+  const radiusKm = sort === 'nearest' && Number.isFinite(radiusRaw) ? radiusRaw : null;
   const limit = Math.min(Math.max(parseInt(q.limit, 10) || 20, 1), 30);
   const offset = Math.min(Math.max(parseInt(q.offset, 10) || 0, 0), POOL_SIZE * 2);
   const viewerId = req.user?.id ?? null;
@@ -89,7 +97,9 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
         .filter((b) => !showroomKeys.has(`${b.owner_id}:${nameKey(b.business_name)}`))
         .map((b) => ({ type: 'business' as const, record: b, created: Date.parse(String(b.created_at)), distance: distanceOf(b.id), ownerId: String(b.owner_id ?? ''), businessId: String(b.id ?? '') })),
     ];
-    items.sort((a, b) => {
+    // Within the chosen distance: businesses without a pin have no distance, so they drop out.
+    const inRange = radiusKm === null ? items : items.filter((i) => i.distance !== null && i.distance <= radiusKm);
+    inRange.sort((a, b) => {
       if (sort === 'nearest') {
         if (a.distance !== null && b.distance !== null && a.distance !== b.distance) return a.distance - b.distance;
         if (a.distance !== null && b.distance === null) return -1;
@@ -97,7 +107,7 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
       }
       return (b.created || 0) - (a.created || 0);
     });
-    const page = items.slice(offset, offset + limit);
+    const page = inRange.slice(offset, offset + limit);
 
     const ownerIds = [...new Set(page.map((i) => i.ownerId).filter(Boolean))];
     const owners: Record<string, Record<string, unknown>> = {};
@@ -147,7 +157,7 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
         rating_count: ratings.get(i.businessId)?.count ?? 0,
       })),
       owners,
-      next_offset: offset + limit < items.length ? offset + limit : null,
+      next_offset: offset + limit < inRange.length ? offset + limit : null,
     });
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Business feed failed');

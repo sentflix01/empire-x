@@ -1054,3 +1054,16 @@ items in the open list until confirmed.
   - Follow-up done (12 Nov 2026): `/api/search` people results now use the same rule: `distance_km` from `roundedDistanceKm` plus `distance_approx: true`, with radius and distance sort still on the exact distance. Products were unchanged (0.1 km) at the time; since the merge of 13 Nov 2026, product and business distances in search are also rounded up to 0.5 km ("Business location: exact pin only when the address is public"). The search viewer id is now a bound `$3` parameter instead of text in the SQL.
   - Fixed (12 Nov 2026): `/api/search` wrote `lat`/`lon` into its distance SQL as `col-${lat}`, so a negative coordinate became a `--` comment and the search failed with 500. Coordinates and `radius_km` are now bound parameters. A `radius_km` that is not a positive finite number is ignored, and a coordinate of exactly 0 now counts as given. The DB test uses negative coordinates.
   - Code: `backend/routes/maps.ts`, `backend/routes/search.ts`, `backend/lib/locationPrivacy.ts`, `frontend-next/components/map/HomeMapTab.tsx`, `frontend-next/lib/personDistance.ts`. Tests: `backend/test/db/mapsPeoplePrivacy.db.test.js`, `backend/test/db/searchPeoplePrivacy.db.test.js`, `backend/test/integration/search.test.js`, `backend/test/locationPrivacy.test.js`, `backend/test/integration/maps.test.js`, `frontend-next/test/personDistance.test.ts`. Docs: `docs/backend/API.md` (Maps, Search).
+
+### 2026-11-13 — The viewer chooses how far to look
+
+- **Status:** Accepted (owner, 13 Nov 2026: "let make it user input the distance area like what they want by increasing and decreasing the number of distance that will cover and don't be fixed the distance area covered")
+- **Decision owner:** Project owner
+- **Decision:** Wherever results depend on distance, the viewer sets the distance freely instead of picking from fixed choices. That covers the Business feed's "Near you", Search, the Home map and the Nearby page. One control (`components/ui/DistanceRange.tsx`) is used for all of them:
+  - a slider from 1 to 100 km, with − / + buttons (1 km steps up to 10 km, 5 km up to 50 km, then 10 km)
+  - "Anywhere" (no limit) where a limit is optional: the feed and Search
+  - the chosen distance is sent once the viewer stops moving it
+  - the Business feed gained `radius_km` (1–100)
+- **Why:** The fixed lists (1/5/10/25/50/100 km in Search, 2/5/10/20/50 on the Home map, 5/10/20/50/100 on Nearby) did not fit every place or need. The feed had no distance limit at all.
+- **Not changed:** distances shown are still rounded up to the next 0.5 km. The two 12 Nov 0.5 km rules (round to nearest for businesses, round up for people) were merged into main's round-up rule on 13 Nov; the owner was asked and did not choose otherwise.
+- **Consequences:** `backend/routes/feed.ts` (`radius_km`), `frontend-next/components/ui/DistanceRange.tsx`, `components/feed/BusinessShowroomFeed.tsx`, `views/Search.tsx`, `components/map/HomeMapTab.tsx` (a changed distance now re-runs the open search with the new value; the old buttons used the previous one), `views/NearbyMap.tsx`. Tests: `backend/test/db/businessFeed.db.test.js`, `frontend-next/test/distanceRange.test.tsx`, `frontend-next/test/feed/businessFeed.test.tsx`.
