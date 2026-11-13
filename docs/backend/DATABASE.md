@@ -2,7 +2,8 @@
 
 > Full ERD: `docs/architecture/ERD.md`
 > Migration files: `backend/db/migrate*.js`
-> Current migration count: **47**
+> Current migration count: **89** (`migrate.js` to `migrate90.js`)
+> Last updated: 2026-11-12
 
 ---
 

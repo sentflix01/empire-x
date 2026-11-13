@@ -2,7 +2,7 @@
 
 > How to safely create, run, and roll back database migrations.
 > Every schema change goes through this process — no direct ALTER TABLE in production.
-> Last updated: August 2026
+> Last updated: 2026-11-12
 
 ---
 

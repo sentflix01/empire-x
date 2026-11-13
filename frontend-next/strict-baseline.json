@@ -1,5 +1,5 @@
 {
-  "components/map/HomeMapTab.tsx": 33,
+  "components/map/HomeMapTab.tsx": 32,
   "components/profile/TemplateCard.tsx": 6,
   "components/settings/TelegramSettings.tsx": 12,
   "components/ui/alert-dialog.tsx": 2,
@@ -23,7 +23,7 @@
   "views/BusinessCreate.tsx": 4,
   "views/ForgotPassword.tsx": 1,
   "views/HashtagFeed.tsx": 2,
-  "views/NearbyMap.tsx": 56,
+  "views/NearbyMap.tsx": 55,
   "views/ProductCreate.tsx": 3,
   "views/ProfileEdit.tsx": 12,
   "views/Referral.tsx": 10,

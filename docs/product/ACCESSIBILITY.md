@@ -2,7 +2,7 @@
 
 > Making Nodbusiness usable by everyone, including users with disabilities and users on low-end devices.
 > Standard: WCAG 2.1 Level AA
-> Last updated: August 2026
+> Last updated: 2026-11-12
 
 ---
 
