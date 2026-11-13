@@ -22,7 +22,7 @@
  * 13. Clean up: delete the conversation
  */
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 const { io } = require('socket.io-client');
 
 const BASE = 'http://localhost:3001';

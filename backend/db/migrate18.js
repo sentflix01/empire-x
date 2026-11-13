@@ -8,7 +8,7 @@
  *
  * Run: node db/migrate18.js
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 const schema = `

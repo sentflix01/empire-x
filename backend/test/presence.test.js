@@ -9,7 +9,7 @@
  *   today, yesterday, this week, weeks ago, months ago, years ago
  */
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 // ─── Minimal date-fns shim for Node (no transpiler) ──────────────────────────
 // We test the same logic as presence.ts but implemented in plain JS here.

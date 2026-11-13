@@ -10,7 +10,7 @@
  * Production-only unless DIGEST_SCHEDULE_ENABLED=true. Manual: npm run digests.
  */
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ quiet: true, path: path.join(__dirname, '..', '.env') });
 const logger = require('../lib/logger');
 // Links in emails only ever point at a configured frontend (audit SEC-08).
 const { getPrimaryFrontendUrl } = require('../lib/frontendUrl');

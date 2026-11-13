@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** November 12, 2026
+> **Last updated:** November 13, 2026
 
 ---
 
@@ -140,6 +140,15 @@
 **Problem:** TypeScript 7 is the native (Go) compiler without the JavaScript API that typescript-eslint, ts-jest and Next.js type checking load; its update PRs (#93 frontend, #96 backend) failed in lint and could not pass. uuid 12+ ships only as an ES module, while the CommonJS backend and google-auth-library's `gaxios` `require()` it (the backend overrides uuid to its own version); PR #97 failed.
 **Fix:** Revisit TypeScript 7 when typescript-eslint and ts-jest support it, then remove the ignore rule. For uuid, replace the two direct uses with Node's `crypto.randomUUID()` and drop the override once `gaxios` no longer needs uuid 11.
 **Impact:** None today; both stay on supported releases (TypeScript 5.9/6.0, uuid 11).
+---
+
+### TD-029: Backend runs on Node 20, which is past end of life
+**Status:** Open — needs an owner decision (2026-11-13).
+**Problem:** The backend image (`backend/Dockerfile`, `node:20-alpine`) and CI (`setup-node` 20) use Node 20, whose maintenance ended on 30 April 2026, so it no longer gets security fixes. Two dependency majors are waiting on a newer Node:
+- google-auth-library 11 (and its `gaxios` 8, `gcp-metadata` 9) needs Node 22 or later. Its PR #215 was closed.
+- web-push 4 is an ES module only. The backend loads it with `require()` inside a try/catch in `routes/push.ts`, so a load failure would turn push notifications off silently. Its PR #216 was closed. Node 22 loads ES modules with `require()`; adopt it together with a test that push loads.
+**Fix:** Move the Dockerfile, every `setup-node` in `.github/workflows/`, and the Render runtime to Node 22 LTS (or 24) in one PR, with the full CI. Then re-open the two upgrades.
+**Impact:** Security fixes for the runtime; unblocks the two upgrades.
 ---
 
 ## Low Priority
