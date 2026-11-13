@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import logger from '../lib/logger';
 import pool from '../db/pool';
 import { requireAuth } from '../middleware/auth';
+import { loadWebPush, type WebPushApi } from '../lib/webPush';
 
 const router = Router();
 
@@ -11,14 +12,15 @@ const VAPID_PUBLIC_KEY  = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT     = process.env.VAPID_SUBJECT ?? 'mailto:support@nodbusiness.app';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let webpush: any = null;
+let webpush: WebPushApi | null = null;
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush = loadWebPush();
   try {
-    webpush = require('web-push');
-    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+    webpush?.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
   } catch (err) {
-    logger.warn({ err: (err as Error).message }, 'web-push not available');
+    // Invalid VAPID keys: say so loudly instead of sending nothing quietly.
+    logger.error({ err: (err as Error).message }, 'VAPID keys rejected: push notifications are off');
+    webpush = null;
   }
 }
 

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-12
+> Endpoints: **370** across **52** mounted modules · Generated: 2026-11-13
 
 | Legend | Meaning |
 |---|---|
@@ -494,9 +494,9 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/push/vapid-public-key` | 🌐 public | routes/push.ts:52 |
-| `POST` | `/api/push/subscribe` | 🔒 auth | routes/push.ts:57 |
-| `DELETE` | `/api/push/unsubscribe` | 🔒 auth | routes/push.ts:72 |
+| `GET` | `/api/push/vapid-public-key` | 🌐 public | routes/push.ts:54 |
+| `POST` | `/api/push/subscribe` | 🔒 auth | routes/push.ts:59 |
+| `DELETE` | `/api/push/unsubscribe` | 🔒 auth | routes/push.ts:74 |
 
 ## referral — referral
 
