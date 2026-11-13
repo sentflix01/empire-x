@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import client, { clearToken, ensureFreshToken, getAccessToken } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken } from '@/lib/api/client';
 
 export interface User {
   id: string;

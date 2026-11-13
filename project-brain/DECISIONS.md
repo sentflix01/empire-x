@@ -955,6 +955,24 @@ items in the open list until confirmed.
 - **Why:** Revenue previously added every order, including cancelled and unpaid ones.
 - **Consequences:** `frontend-next/lib/money.ts` (`isRevenueOrder`), `views/BusinessAnalytics.tsx`, `lib/exportReport.ts`, `components/analytics/StatCard.tsx` (`note`). Tests: `test/money.test.ts`, `test/exportReport.test.ts`, `e2e/business-analytics.spec.ts` (fails without the rule).
 
+
+### 2026-11-11 — Promo videos load when visible
+
+- **Status:** Accepted (owner, 10 Nov 2026: a wordless video on the feed banner and the landing hero, made as motion graphics; chose "Load when visible". 11 Nov 2026: the story must show the whole platform, detailed enough for children, older people and people who cannot read; chose "Short loop + full guide". 12 Nov 2026: add English text, titles and subtitles; Amharic to follow from the owner's translation. 12 Nov 2026: add exploring the feeds, peeking at friends' businesses and finding a hotel near you; chose "Show the full vision anyway", see Gaps). Supersedes the "app pages load no video" part of the F-045 mobile load budget; the rest of F-045 stands.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. Wordless motion graphics show the whole platform as one person's story: they post their life on the Personal feed; build a website from a ready-made template or from blank sections by adding photos, pasting links and filling simple forms; pick a colour and see it on every device; publish it to the Business feed (followers are told, people scan its QR code); customers order, message them and pay them directly; and the profile flips between Personal and Business. A pointing hand shows every tap, the camera zooms in on each field and a face reacts. The guide and landing clips also carry **English text**: real words on the screens, a subtitle band with highlighted key words and a step tab; the guide adds a title card for each step and callout bubbles beside the hand ("Tap Publish"). All words live in `scripts/promo/copy.js`; another language is a new block there plus a render with `?lang=`. The feed banner stays wordless, because it plays small behind the banner's own headline.
+  2. **Feed banner:** a 12 s clip (pick a template, add a photo and a link, publish, the card appears in the Business feed) plays behind the "Build Your Mini Website" text from `sm` up, with solid brand blue under the text fading into the clip (white text stays at 5.2:1). On phones it plays as a strip under the text.
+  3. **Landing hero:** a 59 s version of the story plays inside a phone frame beside the text from `lg` up and under the buttons below `lg`. It replaces the two floating decorative cards.
+  4. A clip's file is requested only once its frame is a quarter visible, never with reduced motion or Save-Data on (`useBrandMotion`); the poster still shows instead. Each clip has a small and a large H.264 MP4, and the player picks the smaller one that covers the frame. Budgets: banner ≤ 400 KB, landing ≤ 2 MB (phones load the ≤ 1.1 MB small version).
+  5. Every clip has a 44 px pause button (WCAG 2.2.2) and a screen-reader description of the same story.
+  6. **Full guide (about 170 s, eight steps):** a "Watch how it works" button under the landing phone, and a round play button on the feed banner, open it in a modal player with controls. It downloads only when opened (budget ≤ 4.5 MB). Its subtitles are also a WebVTT track (`public/promo/guide-v4.en.vtt`) for caption tools.
+  7. **Discovery steps:** scrolling the Personal feed and zooming a photo in place; peeking at a friend and switching to their business without leaving the page; the Business feed with shops near you and friends' businesses; searching "hotel room" near you, comparing the closest hotels by rooms, prices and reviews, and booking.
+- **Gaps (the video shows features that do not exist yet):** the owner chose on 12 Nov 2026 to show the full vision. Not built yet: the Business feed sorted by distance with a "Near you · x km" chip and a friend tag; distance search and nearest-first sorting for businesses (Search sorts only people and products by distance, `backend/routes/search.ts`); star ratings for whole businesses (only products have reviews); hotel rooms with per-night booking and dates (today rooms are Services or Price list items and "Book or request" sends a message). Follow-up: build these, or re-cut the discovery shots in `scripts/promo/scenes/shots.js` if any is dropped.
+- **Gaps resolved (12 Nov 2026):** all four are now built. Business pins and rounded distances ("Business location: exact pin only when the address is public"); the Business feed nearest first with Friend/Following tags and the businesses search tab (`GET /api/feed/businesses`, `routes/search.ts`); star ratings from verified customers ("Business reviews: verified customers only"); rooms with dates and an availability calendar ("Room bookings: availability calendar and 48-hour hold"). The video can stay as it is.
+- **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
+- **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`) and are referenced only through `lib/promoAssets.ts`. Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
+
 ### 2026-11-12 — A failed sign-in check is a 503, not a 401
 
 - **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
@@ -988,9 +1006,67 @@ items in the open list until confirmed.
 - **Consequences:**
   - The radius filter and the nearest-first order use the exact distance on the server; the rounding only applies to what is sent.
   - Known limit: a signed-in user can still narrow someone's position to about 0.5 km by querying from several chosen points. Accepted for now.
-  - Follow-up done (12 Nov 2026): `/api/search` people results now use the same rule: `distance_km` from `roundedDistanceKm` plus `distance_approx: true`, with radius and distance sort still on the exact distance. Products are unchanged (0.1 km). The search viewer id is now a bound `$3` parameter instead of text in the SQL.
+  - Follow-up done (12 Nov 2026): `/api/search` people results now use the same rule: `distance_km` from `roundedDistanceKm` plus `distance_approx: true`, with radius and distance sort still on the exact distance. Products were unchanged (0.1 km) until "Business location" merged on 13 Nov 2026; since then every search distance, products included, is rounded up to 0.5 km. The search viewer id is now a bound `$3` parameter instead of text in the SQL.
   - Fixed (12 Nov 2026): `/api/search` wrote `lat`/`lon` into its distance SQL as `col-${lat}`, so a negative coordinate became a `--` comment and the search failed with 500. Coordinates and `radius_km` are now bound parameters. A `radius_km` that is not a positive finite number is ignored, and a coordinate of exactly 0 now counts as given. The DB test uses negative coordinates.
   - Code: `backend/routes/maps.ts`, `backend/routes/search.ts`, `backend/lib/locationPrivacy.ts`, `frontend-next/components/map/HomeMapTab.tsx`, `frontend-next/lib/personDistance.ts`. Tests: `backend/test/db/mapsPeoplePrivacy.db.test.js`, `backend/test/db/searchPeoplePrivacy.db.test.js`, `backend/test/integration/search.test.js`, `backend/test/locationPrivacy.test.js`, `backend/test/integration/maps.test.js`, `frontend-next/test/personDistance.test.ts`. Docs: `docs/backend/API.md` (Maps, Search).
+
+### 2026-11-12 — Business location: exact pin only when the address is public
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Pin + distance only", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. A business owner sets a map pin in the business editor (tap the map, drag the pin, or "Use my location").
+  2. Other people see the exact pin only when the owner made the address public. Otherwise they get coordinates rounded to about 1 km (enough for a neighbourhood pin on a map) and distances rounded **up** to the next 0.5 km, never below 0.5 km (the same `roundedDistanceKm` rule as people; aligned when this work merged with "People on the map show a rounded distance, never coordinates").
+  3. Product coordinates are always rounded the same way for non-owners, because a product's pin can reveal the shop.
+  4. Owners and admins always see the exact pin.
+- **Why:** "Nearest first" needs every business to have a location, but decision §2.3 keeps a private address hidden until an order. Exact coordinates were already leaking through `GET /api/businesses` and `/api/maps/*` even when the address was private; this closes that leak.
+- **Consequences:** `backend/lib/locationPrivacy.ts` (used by `lib/contactPrivacy.ts`, `routes/maps.ts`, `routes/products.ts`); pin validation on business create/update. Frontend: `components/map/LocationPinPicker.tsx`, `components/map/leafletLoader.tsx`, `hooks/useViewerLocation.ts` (one Addis Ababa fallback), the business editor (`views/BusinessCreate.tsx`). Tests: `backend/__tests__/locationPrivacy.test.ts`, `backend/test/db/businessLocation.db.test.js`, `frontend-next/test/map/useViewerLocation.test.tsx`, `frontend-next/e2e/business-location.spec.ts`. People's coordinates on the maps endpoint: done in "People on the map show a rounded distance, never coordinates".
+
+### 2026-11-12 — Business reviews: verified customers only
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Verified customers", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. Only a signed-in buyer with a `completed` order from a business can rate it (1–5 stars, optional comment of up to 1000 characters). Owners cannot rate their own business.
+  2. Each person has one review per business. Sending again edits it.
+  3. The business keeps `average_rating` and `review_count`, recalculated from visible reviews whenever a review changes.
+  4. Anyone can report a review (`business_review` report target). Admins can hide or show it; hidden reviews leave the list and the average.
+- **Why:** The promo shows star ratings on businesses. Limiting them to real customers keeps them trustworthy without heavy moderation. Product reviews (`reviews`) stay as they are.
+- **Consequences:**
+  - Backend: `backend/db/migrate89.js`, `backend/routes/businessReviews.ts`; ratings in `routes/feed.ts` and `routes/search.ts`.
+  - Frontend: `components/ui/Stars.tsx` (shared with product reviews), `components/business/BusinessReviews.tsx` (business profile and site), `components/orders/RateBusinessPrompt.tsx` (`/orders` and `/order/<token>`).
+  - Tests: `backend/test/db/businessReviews.db.test.js`, `frontend-next/test/reviews/businessReviews.test.tsx`.
+
+### 2026-11-12 — Room bookings: availability calendar and 48-hour hold
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Full availability calendar", while planning the features shown in the promo video)
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **Room types.** A business lists room types (name, price per night, guests per room, and how many identical rooms). Owners manage them on `/business/rooms`, and visitors book through the premium "Rooms & booking" website section.
+  2. **Bookings.** A booking is a direct order with a room type, check-in and check-out dates, guests and rooms. Its total is price × nights × rooms. Check-in must be today or later (Ethiopia's calendar day), at most 365 days ahead, and a stay is 1–30 nights.
+  3. **Holds.** A booking holds its rooms for every night from check-in up to check-out while it is open. A new request holds them for **48 hours** while the hotel answers. Once confirmed, the usual 7-day payment window applies. Cancelled, declined, expired, refunded and failed bookings release the rooms, as does an unpaid booking past its expiry, even before the expiry job runs.
+  4. **No double-booking.** Each booking locks its room type (`SELECT … FOR UPDATE`) and re-checks every night in one transaction. If a night is short it is refused with `409 ROOMS_UNAVAILABLE` and the full nights listed.
+  5. **Owner controls.** Owners can close nights (repairs, private use). Closed nights count as taken. Visitors see only how many rooms are free, never how many are booked.
+  6. **Payment.** The hotel confirms the booking at the per-night price (or lower) or declines it. The guest then pays the hotel directly, as with every direct order; NodBusiness never holds the money.
+- **Why:** The promo shows a guest choosing a hotel room for dates. A request-only booking with no availability would let two guests take the same last room, and an open-ended hold would block rooms indefinitely when a hotel never answers.
+- **Consequences:**
+  - Backend: `backend/db/migrate90.js` (room_types, room_blocks, orders stay columns); `backend/lib/roomAvailability.ts` and `backend/lib/roomTypes.ts`; `backend/routes/businessRooms.ts`, `backend/routes/rooms.ts`; `POST /api/direct-orders/bookings`, with set-price multiplying by nights.
+  - DATE columns are returned as `YYYY-MM-DD` text (`db/pool.ts`).
+  - Frontend: `components/rooms/RoomsSection.tsx`, `components/rooms/BookingSheet.tsx`, `views/BusinessRooms.tsx`, `lib/roomDates.ts`; stay dates on Orders and the order page.
+  - Tests: `backend/test/db/roomBookings.db.test.js`, `frontend-next/test/rooms/roomBooking.test.tsx`, `frontend-next/e2e/room-booking.spec.ts`.
+
+### 2026-11-13 — The viewer chooses how far to look
+
+- **Status:** Accepted (owner, 13 Nov 2026: "let make it user input the distance area like what they want by increasing and decreasing the number of distance that will cover and don't be fixed the distance area covered")
+- **Decision owner:** Project owner
+- **Decision:** Wherever results depend on distance, the viewer sets the distance freely instead of picking from fixed choices. That covers the Business feed's "Near you", Search, the Home map and the Nearby page. One control (`components/ui/DistanceRange.tsx`) is used for all of them:
+  - a slider from 1 to 100 km, with − / + buttons (1 km steps up to 10 km, 5 km up to 50 km, then 10 km)
+  - "Anywhere" (no limit) where a limit is optional: the feed and Search
+  - the chosen distance is sent once the viewer stops moving it
+  - the Business feed gained `radius_km` (1–100)
+- **Why:** The fixed lists (1/5/10/25/50/100 km in Search, 2/5/10/20/50 on the Home map, 5/10/20/50/100 on Nearby) did not fit every place or need. The feed had no distance limit at all.
+- **Not changed:** distances shown are still rounded up to the next 0.5 km. The two 12 Nov rules were merged into that one on 13 Nov; the owner was asked and did not choose otherwise.
+- **Consequences:** `backend/routes/feed.ts` (`radius_km`), `frontend-next/components/ui/DistanceRange.tsx`, `components/feed/BusinessShowroomFeed.tsx`, `views/Search.tsx`, `components/map/HomeMapTab.tsx` (a changed distance now re-runs the open search with the new value; the old buttons used the previous one), `views/NearbyMap.tsx`. Tests: `backend/test/db/businessFeed.db.test.js`, `frontend-next/test/distanceRange.test.tsx`, `frontend-next/test/feed/businessFeed.test.tsx`.
 
 ### 2026-11-13 — Backend and CI run on Node 22 LTS
 
@@ -999,3 +1075,11 @@ items in the open list until confirmed.
 - **Decision:** The backend image (`backend/Dockerfile`, which Render builds), `docker-compose.yml` and CI use Node 22 LTS. `backend/package.json` declares `engines.node` `>=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for.
 - **Why:** Node 20 left maintenance on 30 April 2026 and gets no more security fixes (TD-029). google-auth-library 11 needs Node 22, and Node 22 can `require()` ES-module-only packages such as web-push 4.
 - **Consequences:** Developers need Node 22 (README, `docs/ONBOARDING.md`). The two blocked upgrades (#215, #216) can be redone on Node 22 as separate changes; web-push 4 needs a test that push actually loads. Vercel's Node version is a project setting outside the repository.
+
+### 2026-11-13 — The frontend API client lives in `lib/api/`, not a root `api/` folder
+
+- **Status:** Accepted (owner approved the fix for #207's failing Vercel preview, 13 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** `frontend-next/api/` moves to `frontend-next/lib/api/` and imports become `@/lib/api/...`. No top-level `api/` folder may exist in `frontend-next`.
+- **Why:** Vercel deploys every file in a project-root `api/` folder as a serverless function. The client modules (`client.ts`, `entities.ts`, …) were each deployed as a useless function (7 on `main`). With #207's three new client files the preview had 14 functions, above the Hobby plan's 12, and failed at "Deploying outputs". `vercel build` on the branch confirmed the count. Moving the folder drops the deployment to the Next.js app's own 4 functions.
+- **Consequences:** about 170 imports changed. The `lint` script and the colour and CSS checks no longer list `api`. The guard test is `frontend-next/test/noRootApiFolder.test.ts`. The generated `docs/Production/frontend-next/api*` pages are refreshed by the docs-sync bot.

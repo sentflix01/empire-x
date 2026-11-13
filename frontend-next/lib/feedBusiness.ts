@@ -7,7 +7,7 @@
  * profile used the bare business row, so their cards had no sections and no
  * spotlight. Every card now goes through these helpers.
  */
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 import { spotlightSectionIds } from '@/lib/spotlightSections';
 
 type Row = Record<string, any>;

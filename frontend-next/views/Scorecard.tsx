@@ -9,7 +9,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, ShieldCheck, ChevronDown, ChevronUp, Lock, ExternalLink } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 interface Check { label: string; status: 'pass' | 'warn' | 'fail'; detail: string }
 interface Dimension { key: string; label: string; grade: string; score: number; checks: Check[] }

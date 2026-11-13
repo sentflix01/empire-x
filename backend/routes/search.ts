@@ -2,6 +2,11 @@
  * routes/search.ts — Cross-entity full-text search
  * Uses tsvector GIN indexes (migrate32) for queries ≥ 3 chars.
  * Falls back to ILIKE when search_vector column not yet present.
+ *
+ * Types: users, products, showrooms, businesses, posts (or all). With lat/lon,
+ * sort=distance puts the nearest first and radius_km (0–200) limits the area.
+ * Businesses and sites use the business's map pin. Every distance that leaves
+ * the server is rounded to 0.5 km (lib/locationPrivacy.ts).
  */
 import { Router } from 'express';
 import type { Request, Response } from 'express';
@@ -13,15 +18,9 @@ import { roundedDistanceKm } from '../lib/locationPrivacy';
 
 const router = Router();
 
-function hav(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2-lat1)*Math.PI)/180, dLon = ((lon2-lon1)*Math.PI)/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos((lat1*Math.PI)/180)*Math.cos((lat2*Math.PI)/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-function attachDistances<T extends Record<string,unknown>>(rows: T[], lat: number, lon: number): T[] {
-  return rows.map(r => r.latitude!=null&&r.longitude!=null ? { ...r, distance_km: Math.round(hav(lat,lon,parseFloat(r.latitude as string),parseFloat(r.longitude as string))*10)/10 } : r);
-}
+const SORTS = new Set(['relevance', 'recent', 'distance', 'price_asc', 'price_desc']);
+const TYPES = new Set(['all', 'users', 'products', 'showrooms', 'businesses', 'posts']);
+
 function toTsQuery(q: string): string|null {
   const t = q.replace(/[^\w\s]/g,' ').trim().split(/\s+/).filter(Boolean);
   return t.length ? t.join(' & ') : null;
@@ -50,13 +49,17 @@ function oBy(def: string, lc: string, distExpr: string|null, pc: string|null, so
 }
 
 router.get('/', optionalAuth, async (req: Request, res: Response) => {
-  const { q, type='all', sort='relevance', date_from, date_to, price_min, price_max, lat, lon, radius_km, limit='20' } = req.query as Record<string,string>;
+  const query = req.query as Record<string,string>;
+  const { q, date_from, date_to, price_min, price_max, lat, lon, radius_km, limit='20' } = query;
+  const type = TYPES.has(query.type) ? query.type : 'all';
+  const sort = SORTS.has(query.sort) ? query.sort : 'relevance';
   if (!q||q.trim().length<2) { res.status(400).json({ error: 'Query must be at least 2 characters' }); return; }
   const raw=q.trim(), ilike=`%${raw}%`, tsQ=toTsQuery(raw), useFTS=raw.length>=3&&tsQ!==null;
   const lim=Math.min(parseInt(limit)||20,50);
   const uL=lat!=null&&!isNaN(parseFloat(lat))?parseFloat(lat):null, uLon=lon!=null&&!isNaN(parseFloat(lon))?parseFloat(lon):null;
   const sL=uL!=null&&uL>=-90&&uL<=90?uL:null, sLon=uLon!=null&&uLon>=-180&&uLon<=180?uLon:null;
-  const radius=radius_km?parseFloat(radius_km):null;
+  const rParsed=radius_km?parseFloat(radius_km):NaN;
+  const radius=Number.isFinite(rParsed)&&rParsed>0&&rParsed<=200?rParsed:null;
   // People who turned off "appear in search", and anyone blocked either way, are left out.
   const viewerId = typeof req.user?.id === 'string' && /^[0-9a-f-]{36}$/i.test(req.user.id) ? req.user.id : null;
   // The viewer id is bound as $3 in every people query ($1 is the search term, $2 the limit).
@@ -111,13 +114,38 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       R.products = rows;
     }
     if (type==='all'||type==='showrooms') {
-      const ob=sort==='recent'?'s.created_at DESC':'s.view_count DESC';
+      // Distance comes from the site's business pin.
+      // The full-text query binds $1-$3, the fallbacks $1-$2; the distance params follow.
+      const geoFts=geoSql('sb.latitude','sb.longitude',sL,sLon,radius,4);
+      const geo=geoSql('sb.latitude','sb.longitude',sL,sLon,radius,3);
+      const showroomOrder = (g: GeoSql) => sort==='distance'&&g.expr ? oBy('s.view_count DESC','sb.latitude',g.expr,null,sort) : sort==='recent'?'s.created_at DESC':'s.view_count DESC';
+      const ob=showroomOrder(geo), obFts=showroomOrder(geoFts);
+      const from = 'FROM showrooms s LEFT JOIN businesses sb ON sb.id=s.business_id';
       let rows;
       // The ILIKE pattern is $2 in the full-text query and $1 in the fallbacks.
       const ownerNameMatch = (param: string) => `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE ${param})`;
-      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km,ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch('$2')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':ob} LIMIT $3`,[tsQ,ilike,lim])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); } }
-      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count,NULL AS distance_km FROM showrooms s WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim])); }
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geoFts.sel},ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch('$2')}) ${geoFts.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':obFts} LIMIT $3`,[tsQ,ilike,lim,...geoFts.params])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geo.sel} ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${geo.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...geo.params])); } }
+      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geo.sel} ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${geo.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...geo.params])); }
       R.showrooms = rows;
+    }
+    if (type==='all'||type==='businesses') {
+      // Businesses on a paid plan, found by name, category or description; distance from their pin.
+      // $1 is the pattern, $2 the limit; the distance params follow.
+      const geo=geoSql('b.latitude','b.longitude',sL,sLon,radius,3);
+      const ds=geo.sel, df=geo.flt;
+      const ob=sort==='distance'&&geo.expr ? oBy('b.created_at DESC','b.latitude',geo.expr,null,sort) : sort==='recent'?'b.created_at DESC':'(b.business_name ILIKE $1) DESC,b.created_at DESC';
+      const realBizFilter=req.realOnly?'AND b.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
+      const guestBizFilter=guest?"AND b.visibility='public'":'';
+      const { rows } = await pool.query(
+        `SELECT b.id,b.owner_id,b.business_name,b.business_category,b.business_description,b.business_logo_url,b.created_at,b.average_rating,b.review_count${ds}
+         FROM businesses b
+         WHERE (b.business_name ILIKE $1 OR b.business_category ILIKE $1 OR b.business_description ILIKE $1)
+           AND EXISTS (SELECT 1 FROM business_subscriptions paid_sub WHERE paid_sub.business_id=b.id AND paid_sub.tier <> 'freemium' AND paid_sub.current_period_end > NOW() - INTERVAL '24 hours')
+           ${df} ${realBizFilter} ${guestBizFilter}
+         ORDER BY ${ob} LIMIT $2`,
+        [ilike,lim,...geo.params],
+      );
+      R.businesses = rows;
     }
     if (guest&&(type==='all'||type==='posts')) R.posts=[];
     else if (type==='all'||type==='posts') {
@@ -130,9 +158,9 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       else { ({rows}=await pool.query(`SELECT p.id,p.author_id,p.author_name,p.content,p.post_type,p.like_count,p.comment_count,p.created_at FROM posts p WHERE p.content ILIKE $1 ${dW} ${realPostFilter} ORDER BY ${sort==='recent'?'p.created_at DESC':'p.like_count DESC'} LIMIT $2`,[ilike,lim,...dP])); }
       R.posts = rows;
     }
-    if (sL!=null&&sLon!=null) {
-      // Products only: people keep the rounded distance set above.
-      if (R.products) R.products = attachDistances(R.products as Record<string,unknown>[], sL, sLon);
+    // Distances leave the server rounded to 0.5 km; nobody's exact spot can be worked out.
+    for (const k of ['users','products','showrooms','businesses']) {
+      if (R[k]) R[k] = (R[k] as Record<string,unknown>[]).map((r) => ({ ...r, distance_km: roundedDistanceKm(r.distance_km) }));
     }
     res.json(R);
   } catch (err) {

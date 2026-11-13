@@ -356,6 +356,16 @@ export const SECTION_TYPES: SectionType[] = [
     ],
   },
   {
+    key: "rooms", label: "Rooms & booking", icon: "BedDouble", tier: "premium",
+    purpose: "Your rooms with prices; guests pick dates and you get a booking request. Booked nights close by themselves.",
+    tierLabel: "Premium feature",
+    tierFeatures: ["Availability calendar", "No double-booking", "Close nights yourself"],
+    fields: [
+      { ...TITLE("Our rooms"), key: "roomsTitle", hint: "Add rooms, prices and closed nights on the Rooms page (Business → Rooms)." },
+      { key: "roomsDesc", label: "A few words", type: "textarea", placeholder: "Breakfast included. Check-in from 2 pm." },
+    ],
+  },
+  {
     key: "caseStudies", label: "Success stories", icon: "TrendingUp", tier: "pro",
     purpose: "Short stories of how you helped a customer, with the result.",
     tierLabel: "Pro feature",
@@ -607,7 +617,7 @@ export const CATEGORY_DEFAULT_SECTIONS: Record<string, string[]> = {
   "Education":              ["hero", "services", "event_schedule", "features", "testimonials", "contact"],
   "Professional Services":  ["hero", "services", "certifications", "portfolio", "team", "testimonials", "contact"],
   "Agriculture & Farming":  ["hero", "items", "about", "contact"],
-  "Hospitality & Tourism":  ["hero", "gallery", "services", "event_schedule", "testimonials", "contact", "social"],
+  "Hospitality & Tourism":  ["hero", "rooms", "gallery", "services", "event_schedule", "testimonials", "contact", "social"],
   "Beauty & Personal Care": ["hero", "services", "gallery", "before_after", "pricing", "contact", "social"],
 };
 

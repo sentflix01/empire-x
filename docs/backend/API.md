@@ -1,15 +1,13 @@
 # Nodbusiness — API Documentation
 
-Last reviewed: 2026-11-12
+Last reviewed: 2026-11-13
 
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
-> Last reviewed: 2026-11-12
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
 > **Text limits** (audit F-058, `backend/lib/textLimits.ts`): JSON bodies are at most 2 MB, and every text field has a maximum length — product `title` 200, `description` 5,000, post/comment `content` 5,000, `business_name` 100, website `sections` 200,000, any other text 10,000 characters. Longer text answers `422 { "code": "TEXT_TOO_LONG", "field", "max", "error" }` before the route runs; a larger body answers `413`.
-> **Last updated:** 2026-11-12
 
 ---
 
@@ -165,7 +163,7 @@ Change password while logged in. Requires auth.
 **Response 200:** `{ "message": "Password changed successfully" }`
 
 ### POST /api/auth/refresh
-Silently refresh the access token using the HttpOnly `refresh_token` cookie. Called automatically by the axios interceptor in `api/client.ts` on any 401 — no manual call needed from application code.
+Silently refresh the access token using the HttpOnly `refresh_token` cookie. Called automatically by the axios interceptor in `frontend-next/lib/api/client.ts` on any 401 — no manual call needed from application code.
 
 **Response 200:** `{ "access_token": "eyJhbG..." }`
 **Errors:** 401 (no cookie, invalid, or expired refresh token)
@@ -514,7 +512,8 @@ For everyone, an announcement post is hidden once its site is unpublished, expir
 `lat` and `lon` are required (`400` otherwise). `radius` is in km (default 10);
 `limit` is per type (default 50, at most 200). The response has one array per
 requested type: `products`, `businesses`, `people`. Products and businesses
-carry `latitude`, `longitude` and `distance_km` (0.1 km).
+carry `latitude`, `longitude` and `distance_km`, protected as described in
+Business location (map pin) below.
 
 **People** are returned to signed-in users only (guests get no `people` key)
 and never with coordinates:
@@ -539,30 +538,135 @@ See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
 Active products matching `q` (2–120 characters) within `radius_km`, plus the
 businesses that sell them: `{ businesses, geo_products, products_matched, total_matches }`.
 
+## Business location (map pin)
+
+Owners set the pin with `latitude` and `longitude` on `POST /api/businesses`
+and `PUT /api/businesses/:id`. Send both together (or both `null` to remove
+the pin); latitude must be -90..90 and longitude -180..180, otherwise `422`.
+
+**Who sees the exact pin.** Only the owner and admins, or everyone when the
+owner made the address public (`public_contact_fields` includes
+`business_address`). Everyone else gets:
+- `latitude`/`longitude` rounded to 2 decimal places (about 1 km) on
+  `GET /api/businesses`, `GET /api/businesses/:id` and `/api/maps/*`;
+- `distance_km` rounded to 0.5 km steps, never below 0.5, on `/api/maps/*`.
+
+Product coordinates are always rounded the same way for non-owners, because a
+product's pin can reveal the shop. See `backend/lib/locationPrivacy.ts` and
+`project-brain/DECISIONS.md` ("Business location: exact pin only when the
+address is public").
+
+## Business feed
+
+### GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&radius_km=&limit=20&offset=0
+The Business feed, merged and ordered on the server. Optional auth.
+- Same visibility as `/api/showrooms` and `/api/businesses`: real/demo, paid plan, unexpired sites, guests see public businesses only. A business with a same-named published site appears once (as the site).
+- `sort=nearest` needs `lat` and `lon` (`400` otherwise): businesses with a map pin by distance, then those without a pin, newest first. `sort=recent` (default): newest first.
+- `radius_km` (with `sort=nearest`, 1–100, chosen by the viewer): only businesses whose pin is within that distance; businesses without a pin drop out. Values outside 0 < x ≤ 100 give `400`. Without it, nearest first has no distance limit.
+- `limit` 1–30 (default 20). `next_offset` is `null` on the last page.
+
+Response:
+```json
+{
+  "items": [
+    { "type": "showroom" | "business", "record": { ... }, "distance_km": 1.5, "relationship": "friend", "rating_avg": 4.5, "rating_count": 12 }
+  ],
+  "owners": { "<owner_id>": { "display_name": "Dawit", "avatar_url": null, "is_verified": false, "is_seed": false, "ticker_text": null, "ticker_type": null } },
+  "next_offset": 20
+}
+```
+- `distance_km` is rounded to 0.5 km (never below 0.5) and `null` without a pin. Exact pins never leave the server (see Business location).
+- `relationship`: `"friend"` when the viewer and the owner follow each other, `"following"` when only the viewer follows, otherwise `null` (always `null` for guests).
+
+## Business reviews (verified customers)
+
+Mounted at `/api/businesses/:businessId/reviews`. Decision "Business reviews: verified customers only".
+
+### GET /api/businesses/:businessId/reviews?limit=20&offset=0
+Visible reviews, newest first. Optional auth; same visibility as the business (guests: public businesses only).
+```json
+{ "reviews": [{ "id": "uuid", "rating": 5, "comment": "Clean rooms", "reviewer_name": "Hana", "reviewer_avatar": null, "created_at": "..." }],
+  "average_rating": 4.5, "review_count": 12, "next_offset": 20 }
+```
+
+### GET /api/businesses/:businessId/reviews/mine
+Requires auth. `{ "can_review": true, "reason": null | "owner" | "no_completed_order", "review": { ... } | null }`.
+
+### POST /api/businesses/:businessId/reviews
+Requires auth; 10 per hour per user. Body `{ "rating": 1-5 (whole number), "comment": "≤ 1000 chars, optional" }`.
+- `403 OWN_BUSINESS` for the owner; `403 NO_COMPLETED_ORDER` unless the viewer has an order from this business with status `completed`.
+- One review per person per business: the first send returns `201`, later sends edit it and return `200`.
+- Response: `{ "review": { ... }, "average_rating": 4.5, "review_count": 12 }` (recalculated from visible reviews in the same transaction).
+
+### DELETE /api/businesses/:businessId/reviews/:reviewId
+The reviewer or an admin. Returns the new `average_rating` and `review_count`.
+
+### PUT /api/businesses/:businessId/reviews/:reviewId/status
+Admin only. `{ "status": "visible" | "hidden" }`; hidden reviews leave the list and the average. Anyone can report a review with `POST /api/moderation/report` and `target_type: "business_review"`.
+
+The Business feed items carry `rating_avg` (null without reviews) and `rating_count`; search business results and business records carry `average_rating` and `review_count`.
+
+## Rooms and bookings
+
+Decision "Room bookings: availability calendar and 48-hour hold". Dates are calendar days `YYYY-MM-DD` (Ethiopia's time zone for "today").
+
+### GET /api/businesses/:businessId/rooms
+Optional auth, with the same visibility as the business. Visitors get active room types; the owner gets all of them.
+`{ "rooms": [{ "id", "name", "description", "photo_url", "price_per_night": 1500, "currency": "ETB", "max_guests": 2, "units": 8, "active": true }] }`
+
+### POST /api/businesses/:businessId/rooms · PUT /api/businesses/:businessId/rooms/:roomId · DELETE …/:roomId
+Owner or admin only.
+- **Fields:** `name` (≤ 120), `price_per_night` (> 0), `max_guests` (1–20), `units` (1–500), optional `description` (≤ 1000), `photo_url` and `active`. PUT accepts any subset.
+- **Limit:** up to 50 room types per business.
+- **DELETE:** a room type with bookings is hidden (`{ "deleted": false, "hidden": true }`) rather than deleted.
+
+### GET /api/businesses/:businessId/rooms/bookings?from=&to=
+Owner or admin only. Lists open bookings overlapping `[from, to)`, at most 120 days (default: today plus 60 days): `id, room_type_id, check_in, check_out, nights, guests, rooms, status, buyer_name, total_price, currency`.
+
+### GET /api/rooms/:roomId/availability?from=&to=
+Optional auth. One row per night from `from` up to (not including) `to`, at most 120 days.
+- **Visitors:** `{ "night", "free" }`.
+- **Owner:** also `booked` and `blocked` (closed).
+- A hidden room type, or a business guests may not see, returns 404.
+
+### PUT /api/rooms/:roomId/blocks/:night
+Owner or admin only. Body `{ "units": 0-units, "note": "optional" }`: closes that many rooms for the night; `0` opens it again. Returns that night's availability.
+
+### POST /api/direct-orders/bookings
+Guest or member; uses the same rate limit as other direct orders. The owner cannot book their own business.
+
+Body:
+```json
+{ "room_type_id": "uuid", "check_in": "2026-12-01", "check_out": "2026-12-03", "guests": 2, "rooms": 1,
+  "buyer_name": "...", "buyer_phone": "...", "buyer_email": "...", "notes": "optional" }
+```
+
+Rules:
+- Check-in is today or later and at most 365 days ahead.
+- A stay is 1–30 nights.
+- `rooms` is at most the room type's `units`.
+- `guests` is at most `max_guests` × `rooms`.
+
+The request runs in one transaction: it locks the room type and re-checks every night.
+- If a night is short: `409 { "code": "ROOMS_UNAVAILABLE", "nights": ["2026-12-02"] }`.
+- Otherwise: `201`, with the order (`status: "requested"`, `product_type: "room"`, `unit_price` = price per night, `quantity` = rooms, `total_price` = price × nights × rooms, the stay fields, and `payment_expires_at` 48 hours ahead), plus `access_token` and `order_url`, as for other requests.
+
+The hotel answers with `POST /api/direct-orders/:id/set-price` (`unit_price` per night; the total is multiplied by nights and rooms) or `/decline-request`.
+
+**Which bookings hold rooms:** every status except cancelled, expired, refunded and payment_failed, unless the booking is unpaid and past `payment_expires_at`.
+
 ## Search
 
-### GET /api/search?q=abebe&type=all|users|products|showrooms|posts&sort=relevance|distance|recent&lat=&lon=&radius_km=&limit=20
-
-`q` needs at least 2 characters (`400` otherwise); `limit` is at most 50. The
-response has one array per requested type: `users`, `products`, `showrooms`,
-`posts`. Guests get empty `users` and `posts`.
-
-`lat` (−90 to 90) and `lon` (−180 to 180) may be negative or 0; values out of
-range are ignored. `radius_km` is ignored unless it is a positive, finite number.
-
-**People** (`users`) follow the same distance rule as people on the map:
-
-- When `lat`/`lon` are given, `distance_km` is rounded **up** to the next
-  0.5 km and `distance_approx: true` is added. People without a location
-  have `distance_km: null` and no `distance_approx`. People never come back
-  with coordinates.
-- `radius_km` and `sort=distance` use the exact distance on the server; the
-  rounding only applies to what is sent.
-- Left out: people who turned off "appear in search" (the viewer still finds
-  their own profile) and anyone the viewer blocked or who blocked the viewer.
-
-Products keep `distance_km` at 0.1 km, and showrooms have `distance_km: null`.
-See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+### GET /api/search?q=&type=&sort=&lat=&lon=&radius_km=&limit=20
+Optional auth. `q` needs at least 2 characters.
+- `type`: `all` (default), `users`, `products`, `showrooms`, `businesses`, `posts`. Unknown values mean `all`.
+- `sort`: `relevance` (default), `recent`, `distance`, `price_asc`, `price_desc`. Unknown values mean `relevance`.
+- With `lat`/`lon`, `sort=distance` puts the nearest first and `radius_km` (0–200; anything else is ignored) keeps results within that distance. Businesses and sites use the business's map pin; products and people their own location.
+- `businesses` finds businesses on a paid plan by name, category or description (guests: public businesses only), returning `id, owner_id, business_name, business_category, business_description, business_logo_url, created_at, distance_km`.
+- Every `distance_km` is rounded **up** to the next 0.5 km (never below 0.5) or `null`; no coordinates are returned. `radius_km` and `sort=distance` use the exact distance on the server; the rounding only applies to what is sent.
+- `lat` (−90 to 90) and `lon` (−180 to 180) may be negative or 0; values out of range are ignored. They and `radius_km` are bound as query parameters.
+- **People** (`users`) also get `distance_approx: true` when they have a distance. Left out: people who turned off "appear in search" (the viewer still finds their own profile) and anyone the viewer blocked or who blocked the viewer. See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+- Guests get no people or posts, and no private businesses.
 
 ## Scheduled jobs (internal)
 

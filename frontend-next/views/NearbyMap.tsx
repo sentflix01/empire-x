@@ -1,12 +1,13 @@
 'use client';
+import DistanceRange from '@/components/ui/DistanceRange';
 import { HEX, Z } from '@/lib/colorTokens';
 import Link from 'next/link';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import client from "@/api/client";
-import { entities, type Post, type UserProfile } from "@/api/entities";
+import client from "@/lib/api/client";
+import { entities, type Post, type UserProfile } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { MapPin, ShoppingBag, Navigation, Loader2 } from "lucide-react";
@@ -339,18 +340,6 @@ function NearbyMap() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            aria-label="Search radius"
-            value={radiusKm}
-            onChange={e => {
-              const r = Number(e.target.value);
-              setRadiusKm(r);
-              if (location) fetchNearby(location, r);
-            }}
-            className="text-sm border border-border/50 rounded-full px-3 py-1.5 bg-card outline-none"
-          >
-            {[5, 10, 20, 50, 100].map(r => <option key={r} value={r}>{r} km</option>)}
-          </select>
           <Button
             size="sm"
             onClick={handleLocate}
@@ -362,6 +351,10 @@ function NearbyMap() {
           </Button>
         </div>
       </div>
+
+      {/* How far to look: chosen freely, not from a fixed list */}
+      <DistanceRange id="nearby-distance" value={radiusKm} className="mb-4 rounded-2xl border border-border/50 bg-card p-3"
+        onChange={(km) => { const r = km ?? DEFAULT_RADIUS; setRadiusKm(r); if (location) fetchNearby(location, r); }} />
 
       {/* Map */}
       <div

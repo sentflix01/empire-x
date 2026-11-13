@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -20,6 +20,12 @@ import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
 import TickerBar from './TickerBar';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
+import { useTranslation } from 'react-i18next';
+import { RatingSummary } from '@/components/ui/Stars';
+import DistanceRange from '@/components/ui/DistanceRange';
+import { fetchBusinessFeed, type BusinessFeedSort, type FeedRelationship } from '@/lib/api/feed';
+import { useViewerLocation, type ViewerLocation } from '@/hooks/useViewerLocation';
+import { DemoBadge } from '@/components/profile/DemoBadge';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { BRAND } from '@/lib/brandAssets';
 
@@ -115,9 +121,17 @@ export interface BusinessFeedCardProps {
   ownerTickerType?: string | null;
   viewer?: { id?: string } | null;
   onMessage?: (ownerId: string, bizName: string) => void;
+  /** Distance from the viewer, rounded to 0.5 km by the server; null without a map pin. */
+  distanceKm?: number | null;
+  /** 'friend' = the viewer and the owner follow each other; 'following' = only the viewer follows. */
+  relationship?: FeedRelationship;
+  /** Average stars from verified customers (business_reviews) and how many reviewed. */
+  ratingAvg?: number | null;
+  ratingCount?: number;
 }
 
-export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, viewer, onMessage, ownerTickerText, ownerTickerType }: BusinessFeedCardProps) {
+export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerified, ownerIsSeed, viewer, onMessage, ownerTickerText, ownerTickerType, distanceKm, relationship, ratingAvg, ratingCount }: BusinessFeedCardProps) {
+  const { t } = useTranslation();
   const [qrOpen, setQrOpen] = useState(false);
   const [purchaseModal, setPurchaseModal] = useState<{
     item: { id?: string; title: string; description?: string; price?: number; currency?: string; images?: string };
@@ -183,6 +197,12 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
           <CatIcon className="w-3 h-3" />
           {category}
         </span>
+        {typeof distanceKm === 'number' && (
+          <span data-testid="biz-distance" className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+            <MapPin className="h-3 w-3" aria-hidden="true" />
+            {distanceKm.toLocaleString(undefined, { maximumFractionDigits: 1 })} {t('feed.kmAway', 'km away')}
+          </span>
+        )}
       </div>
 
       {/* Header */}
@@ -302,7 +322,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
         {/* Fixed rows (name, owner, tagline, address) so every card is the same height. */}
         <h3 className="biz-text mt-2 h-6 truncate font-display text-base font-bold leading-6" style={{ ...themeTextStyle(color) }} title={bizName}>{bizName}</h3>
         {/* Owner identity */}
-        <div className="h-5">
+        <div className="flex h-5 items-center">
         {ownerName && (
           <Link
             href={`/profile/${ownerId}`}
@@ -332,11 +352,18 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
             )}
           </Link>
         )}
+        {relationship && (
+          <span data-testid="biz-relationship" className={`ml-1 inline-flex h-4 items-center rounded-full px-1.5 text-[10px] font-bold leading-none ${relationship === 'friend' ? 'bg-brand-secondary-subtle text-brand-secondary-subtle-foreground' : 'bg-primary-subtle text-primary-subtle-foreground'}`}>
+            {relationship === 'friend' ? t('feed.friend', 'Friend') : t('feed.following', 'Following')}
+          </span>
+        )}
+        {ownerIsSeed && <span className="ml-1 inline-flex align-middle"><DemoBadge /></span>}
         </div>
         <p className="h-4 truncate text-xs leading-4 text-muted-foreground">
           {heroSection?.subtitle || (biz.business_description as string | undefined) || ''}
         </p>
         <p className="mt-1 flex h-4 items-center gap-1 text-xs leading-4 text-muted-foreground">
+          <RatingSummary average={ratingAvg} count={ratingCount} className="shrink-0 mr-1" />
           {biz.business_address && (<>
             <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
             <span className="truncate">{biz.business_address as string}</span>
@@ -439,6 +466,45 @@ interface BusinessShowroomFeedProps {
   businesses?: Business[];
 }
 
+
+/** "Near you" / "Newest" for the Business feed. */
+function FeedSortSwitch({ sort, locating, onChange }: { sort: BusinessFeedSort; locating: boolean; onChange: (sort: BusinessFeedSort) => void }) {
+  const { t } = useTranslation();
+  const option = (value: BusinessFeedSort, label: string, icon: React.ReactNode) => (
+    <button
+      type="button"
+      aria-pressed={sort === value}
+      onClick={() => onChange(value)}
+      className={`inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition ${sort === value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
+    >
+      {icon}{label}
+    </button>
+  );
+  return (
+    <div className="mb-3 flex items-center gap-2" role="group" aria-label={t('feed.sortBusinesses', 'Sort businesses')}>
+      {option('nearest', t('feed.nearYou', 'Near you'), locating ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" /> : <MapPin className="h-3.5 w-3.5" aria-hidden="true" />)}
+      {option('recent', t('feed.newest', 'Newest'), null)}
+    </div>
+  );
+}
+
+/** Loads the next page when it scrolls into view (same pattern as the Personal feed). */
+function LoadMoreSentinel({ onVisible, loading }: { onVisible: () => void; loading: boolean }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) onVisible(); }, { rootMargin: '300px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [onVisible]);
+  return (
+    <div ref={ref} className="flex justify-center py-4" aria-hidden={!loading}>
+      {loading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />}
+    </div>
+  );
+}
+
 /**
  * The feed's load error. "Check your connection" only when no answer came back;
  * a server error (for example a Demo database that is briefly unavailable) is
@@ -470,6 +536,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   }>>({});
   const { user: signedInUser } = useAuth();
   const viewer = currentUser ?? signedInUser;
+  const { t } = useTranslation();
 
   // ── Purchase modal state for single-profile mode ───────────────────
   const [singlePurchaseModal, setSinglePurchaseModal] = useState<{
@@ -480,67 +547,82 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
   // ── Global feed mode (no profile prop) ────────────────────────────
   const isFeedMode = !profile;
 
-  const loadFeedBusinesses = useCallback(async () => {
+  // Business feed: built on the server, nearest first when the viewer allows location.
+  const [feedSort, setFeedSort] = useState<BusinessFeedSort>('recent');
+  const [feedMeta, setFeedMeta] = useState<Record<string, { distance_km: number | null; relationship: FeedRelationship; rating_avg: number | null; rating_count: number }>>({});
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { request: requestLocation, status: locationStatus } = useViewerLocation();
+  const pointRef = React.useRef<ViewerLocation | null>(null);
+  // How far "Near you" looks; null = no limit. The viewer moves it freely.
+  const [feedRadius, setFeedRadius] = useState<number | null>(null);
+  const radiusRef = React.useRef<number | null>(null);
+
+  const loadFeedPage = useCallback(async (sort: BusinessFeedSort, offset: number) => {
+    const point = sort === 'nearest' ? pointRef.current : null;
+    const page = await fetchBusinessFeed({ sort, offset, lat: point?.lat, lon: point?.lon, radiusKm: radiusRef.current });
+    const cards: Business[] = [];
+    const meta: Record<string, { distance_km: number | null; relationship: FeedRelationship; rating_avg: number | null; rating_count: number }> = {};
+    for (const item of page.items) {
+      const card = (item.type === 'showroom' ? showroomToFeedBusiness(item.record) : item.record) as Business;
+      cards.push(card);
+      meta[String(card.id)] = { distance_km: item.distance_km, relationship: item.relationship, rating_avg: item.rating_avg ?? null, rating_count: item.rating_count ?? 0 };
+    }
+    const owners: typeof ownerProfiles = {};
+    for (const [id, o] of Object.entries(page.owners)) {
+      owners[id] = {
+        display_name: o.display_name ?? undefined,
+        avatar_url: o.avatar_url ?? undefined,
+        is_verified: o.is_verified,
+        is_seed: o.is_seed,
+        ticker_text: o.ticker_text ?? undefined,
+        ticker_type: o.ticker_type ?? undefined,
+      };
+    }
+    return { cards, meta, owners, next: page.next_offset };
+  }, []);
+
+  const loadFeedBusinesses = useCallback(async (sort: BusinessFeedSort = feedSort) => {
     setLoading(true);
     setFeedError('');
     try {
-      const [businessRows, showroomRows] = await Promise.all([
-        entities.Business.filter({}, '-created_at', 50) as Promise<Business[]>,
-        entities.Showroom.filter({ status: 'published' }, '-created_at', 50) as Promise<Array<Record<string, unknown>>>,
-      ]);
-      const publishedShowrooms = showroomRows.filter(showroom => showroom.status === 'published');
-      const showroomItems = publishedShowrooms.map((showroom) => showroomToFeedBusiness(showroom) as Business);
-      const nameKey = (value?: string) => String(value ?? '').trim().toLocaleLowerCase();
-      const showroomKeys = new Set(publishedShowrooms.map(showroom =>
-        `${showroom.owner_id}:${nameKey(String(showroom.title ?? ''))}`,
-      ));
-      const businessItems = businessRows
-        .filter(business => !showroomKeys.has(`${business.owner_id}:${nameKey(business.business_name)}`))
-        .map(business => {
-          const matchingShowroom = publishedShowrooms.find(showroom =>
-            showroom.owner_id === business.owner_id && nameKey(String(showroom.title ?? '')) === nameKey(business.business_name),
-          );
-          return matchingShowroom
-            ? { ...business, showroom_id: String(matchingShowroom.id), showroom_slug: String(matchingShowroom.slug ?? '') }
-            : business;
-        });
-      setFeedBusinesses([...showroomItems, ...businessItems]
-        .sort((left, right) => Date.parse(String(right.created_at ?? '')) - Date.parse(String(left.created_at ?? '')))
-        .slice(0, 50));
-      // Batch-fetch owner display names so each card shows who runs the business
-      const combined = [...showroomItems, ...businessItems];
-      const uniqueOwnerIds = [...new Set(combined.map(b => b.owner_id as string).filter(Boolean))];
-      if (uniqueOwnerIds.length > 0) {
-        const profileResults = await Promise.allSettled(
-          uniqueOwnerIds.map(id =>
-            entities.UserProfile.filter({ user_id: id }, 'created_at', 1)
-              .then((rows: unknown[]) => ({ id, p: (rows[0] as Profile | undefined) ?? null }))
-              .catch(() => ({ id, p: null }))
-          )
-        );
-        const map: Record<string, { display_name?: string; avatar_url?: string; is_verified?: boolean; is_seed?: boolean; ticker_text?: string; ticker_type?: string }> = {};
-        for (const result of profileResults) {
-          if (result.status === 'fulfilled' && result.value.p) {
-            const p = result.value.p;
-            map[result.value.id] = {
-              display_name: p.display_name,
-              avatar_url: Array.isArray(p.avatar_url) ? (p.avatar_url[0] ?? '') : p.avatar_url,
-              is_verified: p.is_verified,
-              is_seed: (p as any).is_seed === true,
-              ticker_text: (p as any).ticker_text || undefined,
-              ticker_type: (p as any).ticker_type || undefined,
-            };
-          }
-        }
-        setOwnerProfiles(map);
-      }
+      const { cards, meta, owners, next } = await loadFeedPage(sort, 0);
+      setFeedBusinesses(cards);
+      setFeedMeta(meta);
+      setOwnerProfiles(owners);
+      setNextOffset(next);
     } catch (err) {
       setFeedBusinesses([]);
       setFeedError(feedLoadErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [feedSort, loadFeedPage]);
+
+  const loadMoreFeed = useCallback(async () => {
+    if (nextOffset === null || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const { cards, meta, owners, next } = await loadFeedPage(feedSort, nextOffset);
+      setFeedBusinesses((prev) => [...prev, ...cards.filter((c) => !prev.some((p) => p.id === c.id))]);
+      setFeedMeta((prev) => ({ ...prev, ...meta }));
+      setOwnerProfiles((prev) => ({ ...prev, ...owners }));
+      setNextOffset(next);
+    } catch { /* keep what is shown; the sentinel retries on the next scroll */ }
+    finally { setLoadingMore(false); }
+  }, [feedSort, loadFeedPage, loadingMore, nextOffset]);
+
+  const chooseSort = useCallback(async (sort: BusinessFeedSort) => {
+    if (sort === 'nearest' && !pointRef.current) pointRef.current = await requestLocation();
+    setFeedSort(sort);
+    void loadFeedBusinesses(sort);
+  }, [loadFeedBusinesses, requestLocation]);
+
+  const chooseRadius = useCallback((km: number | null) => {
+    radiusRef.current = km;
+    setFeedRadius(km);
+    void loadFeedBusinesses('nearest');
+  }, [loadFeedBusinesses]);
 
   const ownerId = profile?.user_id;
   const loadData = useCallback(async () => {
@@ -556,8 +638,18 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
 
   useEffect(() => {
     if (isFeedMode) {
-      loadFeedBusinesses();
-      return;
+      let cancelled = false;
+      (async () => {
+        let granted = false;
+        try {
+          const perm = await navigator.permissions?.query({ name: 'geolocation' as PermissionName });
+          granted = perm?.state === 'granted';
+        } catch { /* older browsers: start with Newest */ }
+        if (cancelled) return;
+        if (granted) await chooseSort('nearest');
+        else void loadFeedBusinesses('recent');
+      })();
+      return () => { cancelled = true; };
     }
     if (!profile?.user_id) return;
     if (propBusinesses !== undefined) {
@@ -567,7 +659,8 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     } else {
       loadData();
     }
-  }, [isFeedMode, profile?.user_id, propBusinesses, loadData, loadFeedBusinesses]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- the first feed load runs once; sort changes reload through chooseSort
+  }, [isFeedMode, profile?.user_id, propBusinesses, loadData]);
 
   useEffect(() => {
     if (isFeedMode || !profile?.user_id) return;
@@ -583,11 +676,28 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     void chat.start({ businessId: target.businessId, userId: target.userId });
   };
 
+  // Sort and distance stay on screen while the feed reloads or is empty, so the
+  // viewer can always look farther.
+  const feedControls = isFeedMode ? (
+    <>
+      <FeedSortSwitch sort={feedSort} locating={locationStatus === 'locating'} onChange={chooseSort} />
+      {feedSort === 'nearest' && (
+        <DistanceRange id="feed-distance" value={feedRadius} onChange={chooseRadius} allowAnywhere defaultKm={10} className="mb-3 rounded-2xl border border-border/50 bg-card p-3" />
+      )}
+      {feedSort === 'nearest' && locationStatus === 'fallback' && (
+        <p className="mb-3 text-xs text-muted-foreground" role="status">{t('feed.defaultLocation', 'We could not get your location, so distances are from central Addis Ababa.')}</p>
+      )}
+    </>
+  ) : null;
+
   if (loading) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
+      <>
+        {feedControls}
+        <div className="flex justify-center py-8">
+          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </>
     );
   }
 
@@ -596,12 +706,18 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
     const buildPath = signedInUser ? '/showroom/create' : '/register';
     if (feedBusinesses.length === 0) {
       return (
+        <>
+        {feedControls}
         <div className="text-center py-10 px-4">
           {feedError ? (
             <>
               <p role="alert" className="text-sm font-medium text-destructive">{feedError}</p>
-              <button type="button" onClick={loadFeedBusinesses} className="mt-3 text-sm font-semibold text-primary hover:underline">Try again</button>
+              <button type="button" onClick={() => void loadFeedBusinesses()} className="mt-3 text-sm font-semibold text-primary hover:underline">Try again</button>
             </>
+          ) : feedSort === 'nearest' && feedRadius !== null ? (
+            <p data-testid="feed-none-in-range" className="text-sm font-medium text-muted-foreground">
+              {t('feed.noneWithin', 'No businesses within')} {feedRadius} km. {t('feed.lookFarther', 'Move the distance up to look farther.')}
+            </p>
           ) : (
             <>
               <Store className="w-10 h-10 text-muted-foreground/20 mx-auto mb-2" />
@@ -613,14 +729,17 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
             </>
           )}
         </div>
+        </>
       );
     }
     return (
     <>
+      {feedControls}
       <div className="space-y-4">
         {feedBusinesses.map((biz) => {
           const ownerId = biz.owner_id as string || '';
           const op = ownerProfiles[ownerId];
+          const meta = feedMeta[String(biz.id)];
           return (
             <BusinessFeedCard
               key={biz.id}
@@ -632,10 +751,15 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
               ownerTickerText={op?.ticker_text ?? null}
               ownerTickerType={op?.ticker_type ?? null}
               viewer={viewer}
+              distanceKm={meta?.distance_km ?? null}
+              relationship={meta?.relationship ?? null}
+              ratingAvg={meta?.rating_avg ?? null}
+              ratingCount={meta?.rating_count ?? 0}
             />
           );
         })}
       </div>
+      {nextOffset !== null && <LoadMoreSentinel onVisible={loadMoreFeed} loading={loadingMore} />}
     </>
     );
   }

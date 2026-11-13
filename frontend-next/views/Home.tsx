@@ -2,11 +2,11 @@
 import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { HomeMapTabDynamic as HomeMapTab } from "@/components/map/DynamicMap";
 import PostCard from "@/components/feed/PostCard";
-import type { Post } from "@/api/entities";
+import type { Post } from "@/lib/api/entities";
 import CreatePostForm from "@/components/feed/CreatePostForm";
 import Stories from "@/views/Stories";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PromoGuide from "@/components/promo/PromoGuide";
+import PromoVideo from "@/components/promo/PromoVideo";
+import { PROMO } from "@/lib/promoAssets";
 import BusinessShowroomFeed from "@/components/feed/BusinessShowroomFeed";
 import { useProfileView } from "@/lib/ProfileViewContext";
 
@@ -248,8 +251,20 @@ function Home() {
           <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90 transition-colors">Join Free</Link>
         </div>
       )}
-      {/* Mini Website Banner — brand blue (solid, F-046) */}
-      <section data-page-guide="feed-banner" className="relative overflow-hidden rounded-2xl text-white shadow-lg shadow-primary/25 min-h-[132px]" style={{ background: token.primary }}>
+      {/* Mini Website Banner — brand blue (solid, F-046). The wordless promo clip
+          plays under the text from sm up and as a strip below it on phones. */}
+      <section data-page-guide="feed-banner" className="relative flex flex-col overflow-hidden rounded-2xl text-white shadow-lg shadow-primary/25 sm:block sm:min-h-[132px]" style={{ background: token.primary }}>
+        <PromoVideo
+          clip={PROMO.banner}
+          className="order-last h-32 w-full sm:absolute sm:inset-0 sm:h-full"
+          objectPosition="right center"
+          sizes="(min-width: 640px) 640px, 100vw"
+          buttonClassName="bottom-2 left-2 sm:left-auto sm:right-2"
+          description={t('promo.bannerDescription', 'Animation: someone picks a website template, adds a photo and a link, publishes it, and it appears in the Business feed with their products.')}
+        />
+        <PromoGuide variant="icon" className="absolute right-3 top-3 z-20" />
+        {/* Solid blue under the text, fading into the clip: white text stays at 5.2:1 (WCAG 1.4.3). */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden bg-[linear-gradient(90deg,hsl(var(--primary))_0,hsl(var(--primary))_290px,hsl(var(--primary)/0)_380px)] sm:block" />
         <div className="relative z-10 flex min-h-[132px] items-center justify-between gap-4 px-5 py-5 sm:px-6">
           <div className="max-w-[250px]">
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white ring-1 ring-white/40">
@@ -265,55 +280,6 @@ function Home() {
               className="mt-4 inline-flex h-10 items-center rounded-xl bg-white px-5 text-sm font-bold text-primary shadow-md shadow-black/10 transition-all duration-200 hover:bg-primary-subtle hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
               {isAuthenticated ? t('feed.getStarted') : 'Join Free'}
             </Link>
-          </div>
-
-          <div className="relative hidden h-32 w-44 shrink-0 sm:block" aria-hidden="true">
-            <div className="absolute left-2 top-8 h-2 w-3 rotate-[24deg] rounded-sm bg-primary/85 shadow-[0_0_12px_rgba(103,232,249,0.8)]" />
-            <div className="absolute left-9 top-0 h-2 w-4 rotate-[18deg] rounded-sm bg-brand-secondary/85 shadow-[0_0_12px_rgba(244,114,182,0.75)]" />
-            <div className="absolute right-4 bottom-3 h-2 w-3 rotate-[-18deg] rounded-sm bg-primary/80 shadow-[0_0_12px_rgba(147,197,253,0.75)]" />
-
-            <div className="absolute right-6 top-0 h-[7.5rem] w-20 rotate-[12deg] rounded-[1.55rem] bg-inverse/78 p-1.5 shadow-2xl shadow-foreground/10 ring-1 ring-white/20">
-              <div className="h-full rounded-[1.18rem] p-2" style={{ background: token.primary }}>
-                <div className="mx-auto mb-3 h-1.5 w-7 rounded-full bg-inverse/55" />
-                <div className="space-y-2">
-                  <div className="h-4 rounded-md bg-white/28" />
-                  <div className="h-4 rounded-md bg-white/18" />
-                  <div className="h-4 w-11 rounded-md bg-white/18" />
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute left-0 top-14 flex h-12 w-24 rotate-[-9deg] items-center gap-2 rounded-xl bg-white/92 p-2 shadow-xl shadow-foreground/10">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success-subtle text-success">
-                <span className="h-5 w-5 rounded-full border-[3px] border-success border-t-transparent rotate-[-35deg]" />
-              </div>
-              <div className="flex-1 space-y-1.5">
-                <div className="h-2 rounded-full bg-muted-foreground/30" />
-                <div className="h-2 w-9 rounded-full bg-muted" />
-              </div>
-            </div>
-
-            <div className="absolute left-9 top-2 flex h-10 w-[5.5rem] rotate-[7deg] items-center gap-2 rounded-xl bg-white/22 p-2 shadow-xl ring-1 ring-white/25 backdrop-blur-md">
-              <div className="h-5 w-5 rounded-full bg-white/35" />
-              <div className="flex-1 space-y-1.5">
-                <div className="h-1.5 rounded-full bg-white/60" />
-                <div className="h-1.5 w-8 rounded-full bg-white/30" />
-              </div>
-            </div>
-
-            <div className="absolute right-0 top-[4.25rem] h-12 w-[5.75rem] rotate-[3deg] rounded-xl bg-brand-secondary/82 p-2 shadow-xl shadow-foreground/10 ring-1 ring-white/20">
-              <div className="mb-2 flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-white/55" />
-                <div className="h-1.5 w-8 rounded-full bg-white/70" />
-              </div>
-              <div className="h-1.5 rounded-full bg-white/45" />
-              <div className="mt-1.5 h-1.5 w-11 rounded-full bg-white/35" />
-            </div>
-
-            <div className="absolute left-7 bottom-1 h-8 w-20 rotate-[5deg] rounded-xl bg-white/18 p-2 shadow-lg ring-1 ring-white/20 backdrop-blur-md">
-              <div className="h-1.5 w-8 rounded-full bg-white/45" />
-              <div className="mt-1.5 h-1.5 w-11 rounded-full bg-white/25" />
-            </div>
           </div>
         </div>
       </section>

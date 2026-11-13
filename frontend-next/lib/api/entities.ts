@@ -89,6 +89,12 @@ export interface Product extends BaseEntity {
 
 export interface Business extends BaseEntity {
   owner_id?: string;
+  /** Map pin. Others get it rounded to about 1 km unless the address is public. */
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  /** Average stars from verified customers (business_reviews) and how many reviewed. */
+  average_rating?: number | string | null;
+  review_count?: number | null;
   business_name?: string;
   business_category?: string;
   business_template?: string | string[];
@@ -154,6 +160,13 @@ export interface Order extends BaseEntity {
   /** Shown instead of a price when the product had no fixed price ("Price on request"). */
   listed_price_text?: string | null;
   has_receipt?: boolean;
+  /** Room bookings (migrate90): the stay, as calendar days YYYY-MM-DD. */
+  room_type_id?: string | null;
+  check_in?: string | null;
+  check_out?: string | null;
+  nights?: number | null;
+  guests?: number | null;
+  rooms?: number | null;
   created_at: string;
   updated_at?: string;
 }

@@ -11,7 +11,7 @@
  * the component mounts.
  */
 import { useEffect } from 'react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 interface ErrorPayload {
   message: string;

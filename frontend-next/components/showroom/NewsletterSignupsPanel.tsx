@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronDown, Copy, Mail } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 interface Signup { email: string; created_at: string }
 

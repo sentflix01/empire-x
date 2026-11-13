@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 
 const api = vi.hoisted(() => ({ get: vi.fn() }));
 
-vi.mock('@/api/client', () => ({ default: api }));
+vi.mock('@/lib/api/client', () => ({ default: api }));
 
 describe('entity cursor pagination', () => {
   beforeEach(() => {

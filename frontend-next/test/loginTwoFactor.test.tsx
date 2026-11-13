@@ -8,7 +8,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const authApi = vi.hoisted(() => ({ loginViaEmailPassword: vi.fn(), verifyMfa: vi.fn(), loginWithProvider: vi.fn() }));
-vi.mock('@/api/auth', () => ({ auth: authApi }));
+vi.mock('@/lib/api/auth', () => ({ auth: authApi }));
 const completeLogin = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ completeLogin }) }));
 vi.mock('@/lib/googleAuth', () => ({ renderGoogleSignInButton: () => false, describeGoogleOAuthError: (m: string) => m }));

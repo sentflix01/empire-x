@@ -16,22 +16,22 @@ vi.mock('react-i18next', () => ({
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a>,
 }));
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   apiFetch: vi.fn(),
   storeToken: vi.fn(),
   clearToken: vi.fn(),
   getAccessToken: vi.fn().mockReturnValue(null),
 }));
-vi.mock('@/api/entities', () => ({ entities: { Showroom: { filter: vi.fn() } } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Showroom: { filter: vi.fn() } } }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'viewer-1' }, authChecked: true }) }));
 vi.mock('@/components/ui/BookmarkButton', () => ({ default: () => null }));
 vi.mock('@/components/showroom/ShowroomDoctorPanel', () => ({ default: () => null }));
 vi.mock('@/components/feed/PostCard', () => ({ default: () => null }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-import client from '@/api/client';
-import { entities } from '@/api/entities';
+import client from '@/lib/api/client';
+import { entities } from '@/lib/api/entities';
 import Showrooms from '@/views/Showrooms';
 import Explore from '@/views/Explore';
 import Bookmarks from '@/views/Bookmarks';

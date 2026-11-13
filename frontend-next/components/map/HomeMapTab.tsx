@@ -5,12 +5,13 @@ import { formatPersonDistance } from '@/lib/personDistance';
 import { markerLabelHtml } from "@/lib/mapLabel";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { entities } from "@/api/entities";
-import client from "@/api/client";
+import { entities } from "@/lib/api/entities";
+import client from "@/lib/api/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, X, Search, Navigation, Loader2, ShoppingBag } from "lucide-react";
 import ProfilePeek from "@/components/profile/ProfilePeek";
 import { toast } from "sonner";
+import DistanceRange from "@/components/ui/DistanceRange";
 import type { MapSearchPerson, MapSearchProduct, MapSearchResult, MapSearchState } from "@/types/map-search";
 import { getMapSearchDisplayState } from "@/types/map-search";
 import { BUSINESS_CATEGORIES } from "@/lib/businessTemplates";
@@ -261,7 +262,6 @@ function MapFlyTo({ center, zoom }: { center: [number, number]; zoom?: number })
 }
 
 const DEFAULT_CENTER: [number, number] = [9.005401, 38.763611];
-const RADIUS_OPTIONS = [2, 5, 10, 20, 50];
 const NEARBY_CATEGORIES: { value: string; label: string; icon?: any }[] = [
   { value: "", label: "All" },
   ...BUSINESS_CATEGORIES.map(category => ({ value: category.value, label: category.label, icon: category.icon })),
@@ -474,6 +474,15 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
     }
   }, [userLocation, nearbyRadius, nearbyCategory]);
 
+  // A new distance re-runs the open search once it has taken effect (the old
+  // buttons searched straight away, still with the previous distance).
+  const searchedRadius = useRef(nearbyRadius);
+  useEffect(() => {
+    if (searchedRadius.current === nearbyRadius) return;
+    searchedRadius.current = nearbyRadius;
+    if (searchState.results && searchState.query) void handleProductSearch(searchState.query);
+  }, [nearbyRadius, handleProductSearch, searchState.results, searchState.query]);
+
   const clearSearch = () => {
     setSearchState({ query: "", results: null, loading: false, searchType: null });
     if (searchInputRef.current) searchInputRef.current.value = "";
@@ -531,22 +540,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
 
         {/* ── Radius + Re-locate row ── */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex gap-1">
-            {RADIUS_OPTIONS.map(r => (
-              <button
-                key={r}
-                onClick={() => {
-                  setNearbyRadius(r);
-                  if (searchResults && searchQuery) handleProductSearch(searchQuery);
-                }}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
-                  nearbyRadius === r ? "bg-primary text-white" : "bg-card border border-border/50 text-muted-foreground hover:bg-secondary"
-                }`}
-              >
-                {r} km
-              </button>
-            ))}
-          </div>
+          <DistanceRange id="map-distance" value={nearbyRadius} onChange={(km) => setNearbyRadius(km ?? 10)} className="min-w-0 flex-1 basis-56" />
           <button
             onClick={requestLocation}
             disabled={locating}

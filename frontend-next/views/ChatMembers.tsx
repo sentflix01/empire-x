@@ -9,7 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Users, Radio, UserPlus, Pencil, LogOut, Trash2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { getSocket, joinConversation, leaveConversation } from '@/lib/socket';
 import { useChatViewport } from '@/lib/useChatViewport';

@@ -10,16 +10,21 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Clock, Loader2, MapPin, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import client, { apiFetch } from '@/api/client';
+import client, { apiFetch } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/lib/AuthContext';
+import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
+import { formatDay } from '@/lib/roomDates';
 import { PaymentAccountList, type PaymentAccount } from '@/components/checkout/PurchaseModal';
 
 interface OrderView {
   order: {
     id: string; product_title: string; quantity: number; total_price: string | number; currency: string; status: string;
     listed_price_text?: string | null;
+    business_id?: string | null;
+    check_in?: string | null; check_out?: string | null; nights?: number | null; guests?: number | null; rooms?: number | null;
     payment_reference: string | null; has_receipt: boolean; payment_expires_at: string | null; created_at: string;
   };
   business: { business_name?: string; business_contact_phone?: string | null; business_contact_email?: string | null; pickup_address?: string | null } | null;
@@ -49,6 +54,7 @@ export default function OrderStatus() {
   const [reference, setReference] = useState('');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const { user } = useAuth();
 
   const load = useCallback(async () => {
     try {
@@ -85,14 +91,22 @@ export default function OrderStatus() {
   const status = STATUS_TEXT[order.status] ?? { label: order.status, tone: 'wait' as const };
   const canReport = ['awaiting_payment', 'payment_reported'].includes(order.status);
   const isRequest = order.status === 'requested';
+  const isStay = !!order.check_in;
   const Icon = status.tone === 'ok' ? CheckCircle2 : status.tone === 'bad' ? XCircle : Clock;
 
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-md space-y-4 p-4 outline-none">
-      <h1 className="text-xl font-bold">{isRequest ? 'Your request' : 'Your order'}</h1>
+      <h1 className="text-xl font-bold">{isStay ? 'Your booking' : isRequest ? 'Your request' : 'Your order'}</h1>
       <section className="rounded-2xl border border-border/50 bg-card p-4 space-y-1">
-        <p className="font-medium">{order.quantity}× {order.product_title}</p>
-        {isRequest ? (
+        <p className="font-medium">{order.check_in ? order.product_title : `${order.quantity}× ${order.product_title}`}</p>
+        {order.check_in && order.check_out && (
+          <p className="text-sm" data-testid="order-stay">
+            {formatDay(order.check_in)} → {formatDay(order.check_out)} · {order.nights} night{order.nights === 1 ? '' : 's'} · {order.rooms} room{order.rooms === 1 ? '' : 's'} · {order.guests} guest{order.guests === 1 ? '' : 's'}
+          </p>
+        )}
+        {isRequest && isStay ? (
+          <p className="text-sm">Total: <strong>{Number(order.total_price).toLocaleString()} {order.currency}</strong> (the hotel confirms the price)</p>
+        ) : isRequest ? (
           <p className="text-sm">Price: <strong>to be confirmed by the seller</strong>{order.listed_price_text ? ` (listed as ${order.listed_price_text})` : ''}</p>
         ) : (
           <p className="text-sm">Total: <strong>{Number(order.total_price).toLocaleString()} {order.currency}</strong></p>
@@ -103,7 +117,9 @@ export default function OrderStatus() {
         </p>
         {isRequest && (
           <p className="text-xs text-muted-foreground">
-            Nothing is charged now. When the seller confirms the price, this page shows how to pay them{order.payment_expires_at ? `. Without an answer, the request expires on ${new Date(order.payment_expires_at).toLocaleDateString()}` : ''}.
+            {isStay
+              ? <>Your rooms are held while the hotel answers. Nothing is charged now. When the hotel confirms, this page shows how to pay them{order.payment_expires_at ? `. Without an answer, the hold ends on ${new Date(order.payment_expires_at).toLocaleString()}` : ''}.</>
+              : <>Nothing is charged now. When the seller confirms the price, this page shows how to pay them{order.payment_expires_at ? `. Without an answer, the request expires on ${new Date(order.payment_expires_at).toLocaleDateString()}` : ''}.</>}
           </p>
         )}
         {canReport && order.payment_expires_at && (
@@ -130,6 +146,10 @@ export default function OrderStatus() {
             </Button>
           </div>
         </section>
+      )}
+
+      {user && order.status === 'completed' && order.business_id && (
+        <RateBusinessPrompt businessId={order.business_id} businessName={business?.business_name} />
       )}
 
       {(business?.pickup_address || business?.business_contact_phone || business?.business_contact_email) && (

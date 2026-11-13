@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 type GuideStep = { target: string; title: string; description: string };
 

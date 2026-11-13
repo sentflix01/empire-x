@@ -8,8 +8,14 @@ import dns from 'node:dns';
 import fs from 'node:fs';
 import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
+
 import logger from '../lib/logger';
+
+// DATE columns (stay dates, closed nights) are calendar days: return them as
+// 'YYYY-MM-DD' text, not a JS Date at the server's local midnight, which can
+// show as the day before once serialized to UTC.
+types.setTypeParser(1082, (value: string) => value);
 
 // Force IPv4 — Render free tier does not support IPv6 outbound connections.
 // Supabase direct connections resolve to IPv6; the pooler resolves to IPv4.

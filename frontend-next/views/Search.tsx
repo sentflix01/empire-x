@@ -1,10 +1,12 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from 'next/link';
+import { RatingSummary } from '@/components/ui/Stars';
+import DistanceRange from '@/components/ui/DistanceRange';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import client from "@/api/client";
-import { Search as SearchIcon, Users, ShoppingBag, FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Navigation, Filter } from "lucide-react";
+import client from "@/lib/api/client";
+import { Search as SearchIcon, Users, ShoppingBag, FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Navigation, Filter, Store } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -13,6 +15,7 @@ import { fromNow } from "@/lib/date";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import UserIdentity from '@/components/ui/UserIdentity';
+import { useViewerLocation } from '@/hooks/useViewerLocation';
 
 // ── Category tabs ────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
@@ -23,15 +26,6 @@ const SORT_OPTIONS = [
   { value: "price_desc","label": "Price: High → Low" },
 ];
 
-const RADIUS_OPTIONS = [
-  { value: "",     label: "Anywhere" },
-  { value: "1",    label: "Within 1 km" },
-  { value: "5",    label: "Within 5 km" },
-  { value: "10",   label: "Within 10 km" },
-  { value: "25",   label: "Within 25 km" },
-  { value: "50",   label: "Within 50 km" },
-  { value: "100",  label: "Within 100 km" },
-];
 
 // ── Distance badge ────────────────────────────────────────────────────────────
 function DistanceBadge({ km }: { km?: number | null }) {
@@ -53,6 +47,7 @@ function Search() {
     { key: "all",       label: t('search.all'),        Icon: SearchIcon },
     { key: "users",     label: t('search.people'),     Icon: Users },
     { key: "products",  label: t('search.products'),   Icon: ShoppingBag },
+    { key: "businesses", label: t('search.businesses', 'Businesses'), Icon: Store },
     { key: "showrooms", label: t('search.showrooms'),  Icon: BrandLogo },
     { key: "posts",     label: t('search.posts'),      Icon: FileText },
   ];
@@ -73,34 +68,24 @@ function Search() {
   const [dateFrom, setDateFrom]   = useState("");
   const [dateTo, setDateTo]       = useState("");
 
-  // Location
-  const [userLat, setUserLat]     = useState<number | null>(null);
-  const [userLon, setUserLon]     = useState<number | null>(null);
-  const [locStatus, setLocStatus] = useState<"idle"|"loading"|"ok"|"denied">("idle");
+  // Location (shared hook: the viewer's position, or Addis Ababa when blocked)
+  const { location: viewerLocation, status: locationStatus, request: askLocation } = useViewerLocation();
+  const userLat = viewerLocation?.lat ?? null;
+  const userLon = viewerLocation?.lon ?? null;
+  const locStatus = locationStatus === 'locating' ? 'loading' : locationStatus === 'idle' ? 'idle' : 'ok';
   const locRequested = useRef(false);
 
   const debouncedQuery = useDebounce(query, 380);
 
   // Request geolocation when distance sort or radius filter is active
   const requestLocation = useCallback(() => {
-    if (!navigator.geolocation) { setLocStatus("denied"); return; }
-    setLocStatus("loading");
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        setUserLat(pos.coords.latitude);
-        setUserLon(pos.coords.longitude);
-        setLocStatus("ok");
-      },
-      () => {
-        // Fallback to default map centre
-        setUserLat(9.0192);
-        setUserLon(38.7525);
-        setLocStatus("ok");
-        toast.info(t('search.defaultLocation'));
-      },
-      { timeout: 8000 }
-    );
-  }, [t]);
+    locRequested.current = true;
+    void askLocation();
+  }, [askLocation]);
+
+  useEffect(() => {
+    if (locationStatus === 'fallback') toast.info(t('search.defaultLocation'));
+  }, [locationStatus, t]);
 
   // Reset all section expanded states when query changes
   useEffect(() => {
@@ -130,10 +115,7 @@ function Search() {
 
   useEffect(() => {
     const needsLoc = sort === "distance" || radius !== "";
-    if (needsLoc && !locRequested.current) {
-      locRequested.current = true;
-      requestLocation();
-    }
+    if (needsLoc && !locRequested.current) requestLocation();
   }, [sort, radius, requestLocation]);
 
   useEffect(() => {
@@ -216,14 +198,8 @@ function Search() {
               </label>
               {locStatus === "loading" && <p className="text-xs text-muted-foreground">{t('search.detectingLocation')}</p>}
               {locStatus === "ok" && userLat && <p className="text-xs text-success mb-1.5">{t('search.locationDetected')}</p>}
-              <div className="flex flex-wrap gap-1.5">
-                {RADIUS_OPTIONS.map(opt => (
-                  <button key={opt.value} onClick={() => { setRadius(opt.value); if (opt.value && !locRequested.current) requestLocation(); }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${radius === opt.value ? "bg-primary text-white border-primary" : "border-border/50 text-muted-foreground hover:bg-secondary"}`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <DistanceRange id="search-distance" value={radius === "" ? null : Number(radius)} allowAnywhere defaultKm={10}
+                onChange={(km) => { setRadius(km === null ? "" : String(km)); if (km !== null && !locRequested.current) requestLocation(); }} />
             </div>
             {(tab === "all" || tab === "products") && (
               <div>
@@ -361,6 +337,29 @@ function Search() {
           </CollapsibleSection>
         )}
 
+        {results.businesses?.length > 0 && (tab === "all" || tab === "businesses") && (
+          <CollapsibleSection title={t('search.businesses', 'Businesses')} icon={Store} count={results.businesses.length} sectionKey="businesses" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
+            {results.businesses.map(b => (
+              <Link key={b.id} href={`/profile/${b.owner_id}?view=business`} data-testid="search-business"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0 overflow-hidden">
+                  {b.business_logo_url ? <Image src={b.business_logo_url} alt="" width={40} height={40} className="w-full h-full object-cover rounded-xl" unoptimized /> : <Store className="w-5 h-5 text-primary" aria-hidden="true" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-sm font-medium truncate">{b.business_name}</p>
+                    <DistanceBadge km={b.distance_km} />
+                  </div>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <RatingSummary average={b.average_rating} count={b.review_count} className="shrink-0" />
+                    <p className="text-xs text-muted-foreground truncate">{b.business_category}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </CollapsibleSection>
+        )}
+
         {results.showrooms?.length > 0 && (tab === "all" || tab === "showrooms") && (
           <CollapsibleSection title={t('search.showrooms')} icon={BrandLogo} count={results.showrooms.length} sectionKey="showrooms" expandedSections={expandedSections} setExpandedSections={setExpandedSections}>
             {results.showrooms.map(s => (
@@ -374,7 +373,7 @@ function Search() {
                     <p className="text-sm font-medium truncate">{s.title}</p>
                     <DistanceBadge km={s.distance_km} />
                   </div>
-                  <p className="text-xs text-muted-foreground">{s.category} · {s.view_count} views</p>
+                  <p className="text-xs text-muted-foreground">{s.category} · {s.view_count} {t('search.views')}</p>
                 </div>
               </Link>
             ))}

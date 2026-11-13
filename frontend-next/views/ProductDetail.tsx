@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import ReviewsSection from "@/components/product/ReviewsSection";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
 import { ArrowLeft, Heart, ShoppingCart, MapPin, Star, Shield, MessageCircle, Bell, Zap } from "lucide-react";
@@ -54,7 +54,7 @@ function ProductDetail() {
     setAlertTarget("");
     try {
       const p = await client.get(`/api/products/${id}`).then(r => r.data).catch((err) => { if (isSignInRequired(err)) throw err; return null; })
-        || await import("@/api/entities").then(m => m.entities.Product.get(id));
+        || await import("@/lib/api/entities").then(m => m.entities.Product.get(id));
       if (requestId !== productRequestId.current) return;
       setProduct(p);
       // Check wishlist for authenticated users
@@ -71,14 +71,14 @@ function ProductDetail() {
       } catch { /* guests have no private wishlist state */ }
       if (p?.seller_id) {
         try {
-          const { entities: entitiesApi } = await import("@/api/entities");
+          const { entities: entitiesApi } = await import("@/lib/api/entities");
           const profiles = await entitiesApi.UserProfile.filter({ user_id: p.seller_id });
           if (requestId !== productRequestId.current) return;
           if (profiles.length) setSeller(profiles[0]);
         } catch { /* seller details can be retried by reloading the product */ }
       }
       if (p?.id) {
-        import("@/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
+        import("@/lib/api/entities").then(m => m.entities.Product.update(p.id, { view_count: (p.view_count || 0) + 1 })).catch(() => {});
       }
     } catch (err) {
       // Otherwise surfaced by the empty product state.

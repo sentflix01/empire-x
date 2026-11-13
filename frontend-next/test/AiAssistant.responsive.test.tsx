@@ -2,7 +2,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-vi.mock('@/api/client', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
+vi.mock('@/lib/api/client', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }) }));
 

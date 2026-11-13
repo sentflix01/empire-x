@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { storeToken, clearToken, getAccessToken } from '@/api/client';
+import { storeToken, clearToken, getAccessToken } from '@/lib/api/client';
 
 beforeEach(() => {
   localStorage.clear();

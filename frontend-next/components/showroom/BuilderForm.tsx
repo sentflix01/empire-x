@@ -6,7 +6,7 @@ import ExternalDataSourcePanel from "./ExternalDataSourcePanel";
 import FieldMapperPanel, { FieldDef } from "./FieldMapperPanel";
 import DataSourceStatusPanel from "./DataSourceStatusPanel";
 import type { ExternalDataSource } from "../../types/externalApi";
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 import ProductPicker from "./ProductPicker";
 import PhotoField from "./PhotoField";
 import HoursField from "./HoursField";

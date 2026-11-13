@@ -3,7 +3,7 @@ import React, { Suspense, useCallback, useEffect, useRef, useState } from "react
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { auth } from "@/api/auth";
+import { auth } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

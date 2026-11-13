@@ -1,3 +1,4 @@
+import { RatingSummary } from '@/components/ui/Stars';
 import SafeImage from '@/components/ui/SafeImage';
 /**
  * ProfilePeek — full-screen profile modal
@@ -14,8 +15,8 @@ import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { createPortal } from "react-dom";
-import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { entities } from "@/lib/api/entities";
+import { auth } from "@/lib/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,6 +50,8 @@ interface Profile {
 interface Business {
   id: string;
   business_name?: string;
+  average_rating?: number | string | null;
+  review_count?: number | null;
   business_category?: string;
   business_theme_color?: string;
   business_logo_url?: string;
@@ -228,6 +231,7 @@ function BusinessProfileEmbed({ profile, business, businesses, themeColor }: any
               <VerifiedBadge type={profile.verification_type} size="lg" />
             )}
           </div>
+          <RatingSummary average={business?.average_rating} count={business?.review_count} className="mt-0.5" />
           {biz.business_category && (
             <p className="text-xs text-muted-foreground mt-0.5">{biz.business_category}</p>
           )}

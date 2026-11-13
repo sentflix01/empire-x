@@ -11,7 +11,7 @@ import React from 'react';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock('@/api/auth', () => ({
+vi.mock('@/lib/api/auth', () => ({
   auth: {
     loginViaEmailPassword: vi.fn().mockResolvedValue({ access_token: 'test-token' }),
     loginWithProvider: vi.fn(),
@@ -38,7 +38,7 @@ vi.mock('@/lib/googleAuth', () => ({
 }));
 
 import Login from '@/views/Login';
-import { auth } from '@/api/auth';
+import { auth } from '@/lib/api/auth';
 import { setSearchParams, clearSearchParams } from './setup';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

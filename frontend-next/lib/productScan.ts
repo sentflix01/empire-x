@@ -3,7 +3,7 @@
  * (GET /api/products/lookup/:code), copy a suggested open-database photo into
  * our storage, and save a quick-scan list in one go.
  */
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 export type LookupSource = 'mine' | 'nodbusiness' | 'open_food_facts' | 'open_beauty_facts' | 'open_products_facts' | 'not_found';
 export interface ScanSuggestion { title: string; description?: string | null; category?: string | null; brand?: string | null; image_url?: string | null; unit?: string | null }

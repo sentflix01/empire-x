@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import { ExternalDataSource } from '../../types/externalApi';
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 
 interface Props {
   showroomId: string;

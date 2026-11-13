@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ShieldCheck, ChevronRight, Loader2, Copy, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 interface Status { enabled: boolean; pending: boolean; recovery_codes_left: number; setup_allowed: boolean; required: boolean; has_password: boolean }

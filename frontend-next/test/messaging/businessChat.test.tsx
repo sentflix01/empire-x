@@ -9,7 +9,7 @@ import { render, screen, act } from '@testing-library/react';
 import React from 'react';
 
 const http = vi.hoisted(() => ({ post: vi.fn(), get: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http }));
+vi.mock('@/lib/api/client', () => ({ default: http }));
 const push = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));

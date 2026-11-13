@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import {
   UserCircle, BellOff, Bell, Archive, ArchiveRestore, ShieldOff, Flag, Trash2, LogOut, Users, Radio,
 } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { getSocket, joinConversation, leaveConversation } from '@/lib/socket';
 import { applyReceipt, tickFor, type MemberReadState } from '@/lib/readReceipts';

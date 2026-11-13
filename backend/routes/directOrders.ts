@@ -15,6 +15,10 @@
  * service typed into a website section): requested → (seller sets the price)
  * awaiting_payment → … as above; requested → cancelled (seller declines) |
  * expired (no answer within 7 days).
+ *
+ * Room bookings (POST /bookings): a request for a room type and dates. It
+ * holds the rooms for 48 hours while the hotel answers (lib/roomAvailability);
+ * the hotel confirms the price with set-price, then it is paid as above.
  */
 import crypto from 'crypto';
 import { Router } from 'express';
@@ -35,6 +39,7 @@ import { validateFileBytes } from '../middleware/upload';
 import { resolvePartnerAttribution } from './profilePartnerships';
 import { RECEIPT_MIME_TYPES, receiptUploadsAvailable, signedReceiptUrl, uploadReceipt } from '../lib/privateReceipts';
 import { resolveProductBusiness, soleBusinessOf } from '../lib/productBusiness';
+import { ROOM_REQUEST_HOLD_HOURS, nightlyAvailability, validateStay } from '../lib/roomAvailability';
 
 const router = Router();
 
@@ -127,7 +132,8 @@ async function sellerPaymentDetails(businessId: string | null): Promise<Record<s
 
 const PUBLIC_ORDER_COLUMNS = `id, product_id, product_title, listed_price_text, quantity, unit_price, total_price, currency, status, buyer_name,
   delivery_address, notes, payment_reference, receipt_key IS NOT NULL AS has_receipt, payment_reported_at,
-  payment_confirmed_at, payment_expires_at, created_at, updated_at, business_id, seller_id, buyer_id, buyer_email`;
+  payment_confirmed_at, payment_expires_at, created_at, updated_at, business_id, seller_id, buyer_id, buyer_email,
+  room_type_id, to_char(check_in, 'YYYY-MM-DD') AS check_in, to_char(check_out, 'YYYY-MM-DD') AS check_out, nights, guests, rooms`;
 
 function publicOrder(row: Record<string, unknown>): Record<string, unknown> {
   const { buyer_email: _email, buyer_id: _buyer, seller_id: _seller, ...rest } = row;
@@ -304,6 +310,93 @@ router.post('/requests', guestLimiter, optionalAuth, async (req: Request, res: R
   } catch (err) {
     logger.error({ err: (err as Error).message }, 'Order request failed');
     apiError.serverError(res, 'Could not send the request');
+  }
+});
+
+// ── Room booking: a request for dates, checked against availability ────────────
+
+/** Stops two guests getting the last room: thrown inside the booking transaction. */
+class RoomsUnavailableError extends Error {
+  constructor(public nights: string[]) { super('Not available'); }
+}
+
+router.post('/bookings', guestLimiter, optionalAuth, async (req: Request, res: Response) => {
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const buyerName = text(body.buyer_name, 200);
+  const buyerPhone = text(body.buyer_phone, 30);
+  const buyerEmail = text(body.buyer_email, 320)?.toLowerCase() ?? null;
+  const notes = body.notes === undefined ? null : text(body.notes, 2000);
+  if (typeof body.room_type_id !== 'string' || !UUID_RE.test(body.room_type_id)) { apiError.validationError(res, 'Choose a room'); return; }
+  if (!buyerName) { apiError.validationError(res, 'Your name is required'); return; }
+  if (!buyerPhone || !PHONE_RE.test(buyerPhone)) { apiError.validationError(res, 'A valid phone number is required'); return; }
+  if (!buyerEmail || !EMAIL_RE.test(buyerEmail)) { apiError.validationError(res, 'A valid email address is required'); return; }
+
+  try {
+    const { rows: [room] } = await pool.query(
+      `SELECT r.id, r.business_id, r.name, r.price_per_night, r.currency, r.max_guests, r.units, b.owner_id
+         FROM room_types r JOIN businesses b ON b.id = r.business_id WHERE r.id = $1 AND r.active`,
+      [body.room_type_id],
+    );
+    if (!room) { apiError.notFound(res, 'This room is not available'); return; }
+    if (req.user?.id === room.owner_id) { apiError.validationError(res, 'You cannot book your own business'); return; }
+    const access = await getBusinessSubscriptionAccess(room.business_id);
+    if (rejectViewGate(res, businessViewGate(access, req), 'This business is not available')) return;
+    const stay = validateStay(body as never, room);
+    if ('error' in stay) { apiError.validationError(res, stay.error); return; }
+
+    const price = Number(room.price_per_night);
+    const total = Math.round(price * stay.nights * stay.rooms * 100) / 100;
+    const title = `${String(room.name)} · ${stay.nights} night${stay.nights === 1 ? '' : 's'}`;
+    const token = crypto.randomBytes(32).toString('base64url');
+    const client = await pool.connect();
+    let order: Record<string, unknown>;
+    try {
+      await client.query('BEGIN');
+      // One booking at a time per room type: the second waits, then sees the first.
+      await client.query('SELECT id FROM room_types WHERE id = $1 FOR UPDATE', [room.id]);
+      const nights = await nightlyAvailability(client as never, room.id, room.units, stay.checkIn, stay.checkOut);
+      const short = nights.filter((n) => n.free < stay.rooms).map((n) => n.night);
+      if (short.length) throw new RoomsUnavailableError(short);
+      const { rows } = await client.query(
+        `INSERT INTO orders (product_id, seller_id, business_id, product_title, listed_price_text, product_type, quantity, unit_price, total_price, currency,
+                             buyer_id, buyer_name, buyer_phone, buyer_email, notes, status, payment_provider, access_token_hash, payment_expires_at,
+                             room_type_id, check_in, check_out, nights, guests, rooms)
+         VALUES (NULL,$1,$2,$3,$4,'room',$5,$6,$7,$8,$9,$10,$11,$12,$13,'requested','direct',$14, NOW() + make_interval(hours => $15),
+                 $16,$17,$18,$19,$20,$5)
+         RETURNING ${PUBLIC_ORDER_COLUMNS}`,
+        [room.owner_id, room.business_id, title, `${price.toLocaleString('en-US')} ${String(room.currency)} / night`, stay.rooms, price, total, room.currency,
+          req.user?.id ?? null, buyerName, buyerPhone, buyerEmail, notes, hashToken(token), ROOM_REQUEST_HOLD_HOURS,
+          room.id, stay.checkIn, stay.checkOut, stay.nights, stay.guests],
+      );
+      await client.query('COMMIT');
+      order = rows[0] as Record<string, unknown>;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      if (err instanceof RoomsUnavailableError) {
+        res.status(409).json({ error: `Not available on: ${err.nights.join(', ')}`, code: 'ROOMS_UNAVAILABLE', nights: err.nights });
+        return;
+      }
+      throw err;
+    } finally {
+      client.release();
+    }
+
+    const link = orderUrl(token);
+    res.status(201).json({ order: publicOrder(order), access_token: token, order_url: link, ...(await sellerPaymentDetails(room.business_id)) });
+
+    const when = `${stay.checkIn} to ${stay.checkOut}`;
+    const amount = `${total.toLocaleString('en-US')} ${String(room.currency)}`;
+    void notifyUser(room.owner_id, `New booking request: ${String(room.name)}`, `${buyerName} asks for ${stay.rooms} room${stay.rooms === 1 ? '' : 's'}, ${when} (${amount}). Confirm within ${ROOM_REQUEST_HOLD_HOURS} hours.`, '/orders');
+    void emailUser(room.owner_id, `New booking request: ${String(room.name)}`,
+      `<p>${escapeHtml(buyerName)} asks for ${stay.rooms}× ${escapeHtml(room.name)} from ${escapeHtml(stay.checkIn)} to ${escapeHtml(stay.checkOut)} (${stay.nights} night${stay.nights === 1 ? '' : 's'}, ${stay.guests} guest${stay.guests === 1 ? '' : 's'}): ${escapeHtml(amount)}.</p>
+       <p>The rooms are held for ${ROOM_REQUEST_HOLD_HOURS} hours. Open Orders in NodBusiness to confirm the price or decline.</p>`);
+    void emailBuyer(order, `Booking request sent: ${String(room.name)}`,
+      `<p>Thank you, ${escapeHtml(buyerName)}. Your request for ${escapeHtml(room.name)} from ${escapeHtml(stay.checkIn)} to ${escapeHtml(stay.checkOut)} is held for ${ROOM_REQUEST_HOLD_HOURS} hours while the hotel confirms it. You will then pay the hotel directly.</p>
+       <p><a href="${escapeHtml(link)}">View your booking</a></p>
+       <p>Keep this link private: anyone with it can see your booking.</p>`);
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Room booking failed');
+    apiError.serverError(res, 'Could not send the booking request');
   }
 });
 
@@ -520,7 +613,7 @@ router.post('/:id/set-price', requireAuth, async (req: Request, res: Response) =
       return;
     }
     const { rows } = await pool.query(
-      `UPDATE orders SET unit_price=$2::numeric, total_price=ROUND($2::numeric * quantity, 2), status='awaiting_payment',
+      `UPDATE orders SET unit_price=$2::numeric, total_price=ROUND($2::numeric * quantity * COALESCE(nights, 1), 2), status='awaiting_payment',
               payment_expires_at=NOW() + make_interval(days => $3), updated_at=NOW()
         WHERE id=$1 AND status='requested' RETURNING ${PUBLIC_ORDER_COLUMNS}`,
       [req.params.id, Math.round(unitPrice * 100) / 100, PAYMENT_WINDOW_DAYS],

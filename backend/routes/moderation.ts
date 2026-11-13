@@ -10,7 +10,7 @@ router.post('/report', requireAuth, async (req: Request, res: Response) => {
   if (!target_id || !target_type || !reason) {
     res.status(400).json({ error: 'target_id, target_type, and reason are required' }); return;
   }
-  const validTypes = ['user', 'post', 'product', 'comment', 'message'];
+  const validTypes = ['user', 'post', 'product', 'comment', 'message', 'business_review'];
   if (!validTypes.includes(target_type)) {
     res.status(400).json({ error: `target_type must be one of: ${validTypes.join(', ')}` }); return;
   }

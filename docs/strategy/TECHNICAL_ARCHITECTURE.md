@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Last Updated:** August 2026
+> **Last Updated:** 2026-11-13
 
 ---
 
@@ -264,7 +264,7 @@ components/
 |---------|-------|---------|
 | **Server Components** | Initial page data, SEO | `app/(app)/page.tsx` |
 | **Client Components + TanStack Query** | Interactive data, mutations | `views/Orders.tsx` |
-| **Entities API** | Typed CRUD with keyset pagination | `api/entities.ts` |
+| **Entities API** | Typed CRUD with keyset pagination | `lib/api/entities.ts` |
 | **Optimistic Updates** | Cart, bookmarks, likes | `store/cartSlice.ts` |
 | **Real-time Sync** | Socket events → query invalidation | `lib/socket.ts` |
 

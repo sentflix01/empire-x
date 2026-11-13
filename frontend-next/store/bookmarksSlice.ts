@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { toast } from 'sonner';
 
 export interface SavedItem {

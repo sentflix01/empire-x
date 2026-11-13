@@ -19,7 +19,7 @@ import {
   ChevronRight, Eye, EyeOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 

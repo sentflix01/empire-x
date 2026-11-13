@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, EyeOff, Globe } from 'lucide-react';
-import client from '@/api/client';
-import { entities } from '@/api/entities';
+import client from '@/lib/api/client';
+import { entities } from '@/lib/api/entities';
 import { parseShowroomSections } from '@/lib/showroomSectionsCodec';
 import { getSectionPlanRequirement } from '@/lib/sectionPlanRequirement';
 import { getBuilderCategoryQuery } from '@/lib/showroomCategoryMapping';

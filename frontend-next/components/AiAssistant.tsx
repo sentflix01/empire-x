@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import { X, Send, RotateCcw, Wifi, WifiOff, Compass, Square } from "lucide-react";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { offlineAnswer } from "@/lib/aiOffline";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/AuthContext";

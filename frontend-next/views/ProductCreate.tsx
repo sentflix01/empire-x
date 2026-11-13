@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import { TEXT_LIMITS } from "@/lib/textLimits";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
-import { entities } from "@/api/entities";
-import client from "@/api/client";
+import { entities } from "@/lib/api/entities";
+import client from "@/lib/api/client";
 
 import Link from "next/link";
 import { ArrowLeft, ScanBarcode, Sparkles, X } from "lucide-react";

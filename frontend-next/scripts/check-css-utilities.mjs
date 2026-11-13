@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { findMissingUtilities } from './cssUtilityCheck.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const SOURCE_DIRS = ['app', 'components', 'views', 'lib', 'hooks', 'store', 'api'];
+const SOURCE_DIRS = ['app', 'components', 'views', 'lib', 'hooks', 'store'];
 const SOURCE_EXT = /\.(tsx?|jsx?|mjs)$/;
 
 function walk(dir, keep, out = []) {

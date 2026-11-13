@@ -133,7 +133,15 @@
     "viewMoreComments_plural": "{{count}} ተጨማሪ አስተያየቶች አሳይ",
     "hideComments": "አስተያየቶችን ደብቅ",
     "businessShowroom": "የንግድ ሾዎሩም",
-    "loadingShowroom": "እየጫነ..."
+    "loadingShowroom": "እየጫነ...",
+    "kmAway": "km away",
+    "friend": "Friend",
+    "nearYou": "Near you",
+    "newest": "Newest",
+    "sortBusinesses": "Sort businesses",
+    "defaultLocation": "We could not get your location, so distances are from central Addis Ababa.",
+    "noneWithin": "No businesses within",
+    "lookFarther": "Move the distance up to look farther."
   },
   "marketplace": {
     "title": "ገበያ",
@@ -375,7 +383,8 @@
     "defaultLocation": "ነባሪ አካባቢ አዲስ አበባ ጥቅም ላይ ዋለ",
     "views": "ዕይታዎች",
     "remote": "ርቀት",
-    "online": "ኦንላይን"
+    "online": "ኦንላይን",
+    "businesses": "Businesses"
   },
   "explore": {
     "title": "ያስሱ",
@@ -429,7 +438,13 @@
     "noBusiness": "ምንም ንግድ የለም",
     "switchBusiness": "ንግድ ቀይር",
     "productViews": "የምርት እይታዎች",
-    "engagement": "ተሳትፎ"
+    "engagement": "ተሳትፎ",
+    "mapUnavailable": "The map could not load. Check your connection and try again.",
+    "useMyLocation": "Use my location",
+    "removePin": "Remove pin",
+    "pinSet": "Pin set",
+    "pinHint": "Tap the map to place your pin",
+    "locationBlocked": "We could not get your location, so the map shows Addis Ababa. Tap the map to place your pin."
   },
   "referral": {
     "title": "የጥሪ ፕሮግራም",
@@ -644,5 +659,79 @@
     "samplesReady_one": "{{count}} ናሙና ዝግጁ",
     "samplesReady_other": "{{count}} ናሙናዎች ዝግጁ",
     "selected": "ተመርጧል"
+  },
+  "promo": {
+    "play": "አኒሜሽኑን አጫውት",
+    "pause": "አኒሜሽኑን አቁም",
+    "watch": "እንዴት እንደሚሰራ ይመልከቱ",
+    "close": "ዝጋ",
+    "guideTitle": "ኖድቢዝነስ እንዴት እንደሚሰራ",
+    "bannerDescription": "አኒሜሽን፦ አንድ ሰው የድረ-ገጽ አብነት መርጦ ፎቶና ሊንክ ያክላል፣ ያትመዋል፣ ድረ-ገጹም ከምርቶቹ ጋር በቢዝነስ ፊድ ላይ ይታያል።",
+    "guideDescription": "ቃል የሌለው አኒሜሽን በስድስት ደረጃዎች፦ ሕይወትዎን በግል ፊድ ላይ ያጋሩ፤ ድረ-ገጽ ከተዘጋጀ አብነት ወይም ከባዶ ክፍሎች ይጀምሩ፤ ፎቶ በማከል፣ ሊንክ በመለጠፍ እና ቀላል ቅጾችን በመሙላት ያዘጋጁት፤ ቀለም መርጠው በኮምፒውተር፣ በታብሌት እና በስልክ ይመልከቱት፤ በቢዝነስ ፊድ ላይ ያትሙት፣ ሰዎችም ያገኙታል እና የQR ኮዱን ይቃኛሉ፤ ደንበኞች ያዝዛሉ፣ መልእክት ይልካሉ እና በቀጥታ ይከፍሉዎታል። አንድ መለያ የግል ሕይወትዎንም ቢዝነስዎንም ይይዛል።"
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "verifiedNote": "Only customers with a completed order can review.",
+    "customer": "Customer",
+    "showMore": "Show more reviews",
+    "one": "review",
+    "many": "reviews",
+    "thanks": "Thanks — your review helps other customers.",
+    "saveFailed": "Could not save your review. Please try again.",
+    "editTitle": "Your review",
+    "rateTitle": "Rate this business",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "What went well? (optional)",
+    "update": "Update review",
+    "submit": "Send review"
+  },
+  "rooms": {
+    "chooseDates": "Choose your dates",
+    "pastDate": "Check-in cannot be in the past",
+    "checkoutAfter": "Check-out must be after check-in",
+    "tooLong": "A booking can be at most 30 nights",
+    "sendFailed": "Could not send the booking request. Please try again.",
+    "requestSent": "Booking request sent",
+    "bookTitle": "Book a room",
+    "perNight": "/ night",
+    "heldNote": "Your rooms are held for 48 hours while the hotel confirms. Nothing is paid yet: once confirmed, your booking page shows how to pay the hotel directly.",
+    "night": "night",
+    "nights": "nights",
+    "viewBooking": "View my booking",
+    "keepPrivate": "We emailed you this link. Keep it private: anyone with it can see your booking.",
+    "dates": "Dates",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "guests": "Guests",
+    "rooms": "Rooms",
+    "tooManyGuests": "Up to {{n}} guests for this many rooms",
+    "notAvailable": "Not available on",
+    "tryOther": "Try other dates or fewer rooms.",
+    "checking": "Checking availability…",
+    "room": "room",
+    "roomsLower": "rooms",
+    "yourDetails": "Your details",
+    "name": "Full name",
+    "phone": "Phone",
+    "email": "Email",
+    "notes": "Anything the hotel should know (optional)",
+    "sendRequest": "Send booking request",
+    "noPayment": "Nothing is charged now. The hotel confirms first; NodBusiness never receives your money.",
+    "manage": "Manage rooms",
+    "emptyOwner": "No rooms yet. Add your rooms and prices on the Rooms page.",
+    "empty": "Rooms will be listed here soon.",
+    "upTo": "Up to",
+    "guest": "guest",
+    "guestsLower": "guests",
+    "checkAvailability": "Check availability",
+    "previewNote": "Visitors can book once your site is published."
+  },
+  "distance": {
+    "anywhere": "Anywhere",
+    "within": "Within",
+    "howFar": "How far to look",
+    "closer": "Closer",
+    "farther": "Farther",
+    "anywhereToggle": "Anywhere (no distance limit)"
   }
 }

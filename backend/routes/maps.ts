@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import pool from '../db/pool';
 import { optionalAuth } from '../middleware/auth';
 import { productNotPrivateSql } from '../lib/siteVisibility';
-import { roundedDistanceKm } from '../lib/locationPrivacy';
+import { protectCoordinates, roundedDistanceKm } from '../lib/locationPrivacy';
 
 const router = Router();
 
@@ -13,6 +13,18 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * What leaves the server: the distance rounded to 0.5 km and, unless the
+ * exact pin may be shown (`address_public`), coordinates rounded to about 1 km.
+ */
+function protectRows<T extends Record<string, unknown>>(rows: T[]): T[] {
+  return rows.map((row) => {
+    const { address_public: addressPublic, ...rest } = row as Record<string, unknown>;
+    const out = protectCoordinates(rest, addressPublic === true);
+    return { ...out, distance_km: roundedDistanceKm(out.distance_km) } as unknown as T;
+  });
 }
 
 function attachDistances<T extends { latitude?: unknown; longitude?: unknown }>(rows: T[], lat: number, lon: number): (T & { distance_km: number })[] {
@@ -75,7 +87,7 @@ router.get('/nearby/product-search', optionalAuth, async (req: Request, res: Res
     let businesses: Array<Record<string, unknown>> = [];
     if (ownerIds.length) {
       const { rows: businessRows } = await pool.query(
-        `SELECT id,owner_id,business_name,business_category,business_logo_url AS logo_url,CASE WHEN 'business_address' = ANY(public_contact_fields) THEN business_address END AS address,latitude,longitude
+        `SELECT id,owner_id,business_name,business_category,business_logo_url AS logo_url,CASE WHEN 'business_address' = ANY(public_contact_fields) THEN business_address END AS address,('business_address' = ANY(COALESCE(public_contact_fields,'{}'))) AS address_public,latitude,longitude
          FROM businesses
          WHERE owner_id = ANY($1::uuid[])
            AND latitude IS NOT NULL AND longitude IS NOT NULL
@@ -87,14 +99,16 @@ router.get('/nearby/product-search', optionalAuth, async (req: Request, res: Res
         .filter((business) => business.distance_km <= radiusKm)
         .map((business) => ({
           ...business,
-          matched_products: products.filter((product) => product.seller_id === business.owner_id),
+          matched_products: protectRows(products.filter((product) => product.seller_id === business.owner_id)),
         }));
+      businesses = protectRows(businesses);
     }
 
+    const safeProducts = protectRows(products);
     res.json({
       businesses,
-      geo_products: products,
-      products_matched: products,
+      geo_products: safeProducts,
+      products_matched: safeProducts,
       total_matches: products.length,
     });
   } catch {
@@ -120,14 +134,14 @@ router.get('/nearby', optionalAuth, async (req: Request, res: Response) => {
         `SELECT id,seller_id,title,price,currency,images,category,latitude,longitude FROM products WHERE status='active' AND latitude IS NOT NULL AND longitude IS NOT NULL ${realProductFilter} LIMIT $1`,
         [lim * 3],
       );
-      results.products = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
+      results.products = protectRows(attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim));
     }
     if (type === 'all' || type === 'businesses') {
       const { rows } = await pool.query(
-        `SELECT id,owner_id,business_name AS name,business_name,business_category AS category,business_category,business_logo_url AS logo_url,CASE WHEN 'business_address' = ANY(public_contact_fields) THEN business_address END AS address,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL ${realBusinessFilter} LIMIT $1`,
+        `SELECT id,owner_id,business_name AS name,business_name,business_category AS category,business_category,business_logo_url AS logo_url,CASE WHEN 'business_address' = ANY(public_contact_fields) THEN business_address END AS address,('business_address' = ANY(COALESCE(public_contact_fields,'{}'))) AS address_public,latitude,longitude FROM businesses WHERE latitude IS NOT NULL AND longitude IS NOT NULL ${realBusinessFilter} LIMIT $1`,
         [lim * 3],
       );
-      results.businesses = attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim);
+      results.businesses = protectRows(attachDistances(rows, uLat, uLon).filter((r) => r.distance_km <= radiusKm).slice(0, lim));
     }
     // People are personal content: signed-in users only. Their coordinates never
     // leave the server: each person gets a distance rounded up to 0.5 km. People

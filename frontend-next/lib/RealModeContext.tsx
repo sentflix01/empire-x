@@ -11,7 +11,7 @@
  *   - Normal mode — seed users and real users are mixed together
  */
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 const STORAGE_KEY = 'nodbusiness_real_mode';
 

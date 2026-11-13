@@ -3,8 +3,8 @@
  *
  * Some older files may still import from this path.
  * Prefer importing directly:
- *   import { auth } from '@/api/auth'
- *   import { entities } from '@/api/entities'
+ *   import { auth } from '@/lib/api/auth'
+ *   import { entities } from '@/lib/api/entities'
  */
 import { auth } from './auth';
 import { entities } from './entities';

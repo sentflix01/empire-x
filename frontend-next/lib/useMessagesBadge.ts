@@ -6,7 +6,7 @@
  * slow poll as a fallback.
  */
 import { useEffect, useRef, useState } from 'react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { connectSocket, getSocket } from '@/lib/socket';
 
 export interface UnreadCounts { chats: number; messages: number; requests: number }

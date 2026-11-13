@@ -141,13 +141,13 @@ describe('products in search', () => {
   const searchProducts = (extra = '') =>
     `/api/search?q=${NAME}&type=products&lat=${ORIGIN.lat}&lon=${ORIGIN.lon}${extra}`;
 
-  it('works with negative coordinates and keeps the 0.1 km distance', async () => {
+  it('works with negative coordinates and rounds the distance up to 0.5 km', async () => {
     const res = await request(app).get(searchProducts()).set(auth(viewer));
     expect(res.status).toBe(200);
     const found = res.body.products.find((p) => p.id === product);
     expect(found).toBeDefined();
-    // Products come back as a Postgres NUMERIC, which pg sends as a string.
-    expect(Number(found.distance_km)).toBe(1.1);
+    // About 1.1 km, sent rounded up to 1.5 km (DECISIONS.md "Business location", item 3).
+    expect(found.distance_km).toBe(1.5);
     expect(found).not.toHaveProperty('distance_approx');
   });
 

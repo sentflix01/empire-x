@@ -12,7 +12,7 @@ import { createBookmarksSlice, SavedItem } from '@/store/bookmarksSlice';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -64,7 +64,7 @@ vi.mock('@/store', () => {
 // ─── Import component AFTER mocks are set up ─────────────────────────────────
 
 import BookmarkButton from '@/components/ui/BookmarkButton';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

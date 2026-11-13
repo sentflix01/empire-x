@@ -1,10 +1,11 @@
 ﻿'use client'
+import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { entities, type Order } from "@/api/entities";
+import { entities, type Order } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import {
   ShoppingBag, Package, Clock, CheckCircle, XCircle,
   Truck, FileDown, RotateCcw, MapPin, ChevronDown, ChevronUp,
@@ -19,6 +20,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { formatDay } from '@/lib/roomDates';
 import RequestPricing from '@/components/orders/RequestPricing';
 import { MessageCircle, type LucideIcon } from 'lucide-react';
 import { useStartChat } from '@/lib/messaging';
@@ -551,7 +553,13 @@ function Orders() {
                       {order.status === "requested"
                         ? <p className="text-sm font-semibold text-primary">{order.listed_price_text ? `Listed: ${order.listed_price_text}` : "Price to confirm"}</p>
                         : <p className="font-bold text-primary">{order.total_price?.toLocaleString()} {order.currency}</p>}
-                      <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
+                      {order.check_in && order.check_out ? (
+                        <p className="text-xs text-muted-foreground" data-testid="order-stay">
+                          {formatDay(order.check_in)} → {formatDay(order.check_out)} · {order.nights} night{order.nights === 1 ? '' : 's'} · {order.rooms} room{order.rooms === 1 ? '' : 's'} · {order.guests} guest{order.guests === 1 ? '' : 's'}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Qty: {order.quantity}</p>
+                      )}
                     </div>
                   </div>
 
@@ -688,6 +696,13 @@ function Orders() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Buyer: rate the business once the order is completed */}
+                {!isSelling && order.status === "completed" && order.business_id && (
+                  <div className="px-4 pb-4">
+                    <RateBusinessPrompt businessId={String(order.business_id)} businessName={order.seller_id ? nameMap[order.seller_id] : null} />
+                  </div>
+                )}
 
                 {/* Inline return form for buyer */}
                 <AnimatePresence>

@@ -3,7 +3,7 @@
  * interested, owner post settings, mute / restrict / block, report, comment
  * edits and reactions. Rules are enforced by the backend (lib/socialGraph.ts).
  */
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 /** The quick row; any single emoji is a valid reaction (the server checks). */
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '👏', '🔥'] as const;

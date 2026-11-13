@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 
 const http = vi.hoisted(() => ({ get: vi.fn() }));
 const nav = vi.hoisted(() => ({ pathname: '/landing' }));
-vi.mock('@/api/client', () => ({ default: http }));
+vi.mock('@/lib/api/client', () => ({ default: http }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ i18n: { language: 'en', resolvedLanguage: 'en' } }) }));
 vi.mock('next/navigation', () => ({ usePathname: () => nav.pathname, useRouter: () => ({ push: vi.fn() }), useSearchParams: () => new URLSearchParams() }));
 

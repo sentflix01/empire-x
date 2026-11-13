@@ -10,7 +10,7 @@ import { createStore } from 'zustand';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -28,7 +28,7 @@ vi.mock('sonner', () => ({
 
 // ─── Import after mocks ───────────────────────────────────────────────────────
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { createBookmarksSlice, SavedItem } from '@/store/bookmarksSlice';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

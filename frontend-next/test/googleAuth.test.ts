@@ -7,7 +7,7 @@ const VALID_CLIENT_ID = '123456789012-demo123.apps.googleusercontent.com';
 
 const mockPost = vi.fn();
 const mockStoreToken = vi.fn();
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { post: (...args: unknown[]) => mockPost(...args) },
   storeToken: (...args: unknown[]) => mockStoreToken(...args),
 }));
@@ -206,7 +206,7 @@ describe('incognito compatibility', () => {
       value: { removeItem: () => { throw new DOMException('SecurityError'); }, getItem: () => null, setItem: () => {}, clear: () => {}, length: 0, key: () => null },
       writable: true, configurable: true,
     });
-    const { storeToken: st } = await import('@/api/client');
+    const { storeToken: st } = await import('@/lib/api/client');
     expect(() => st('tok')).not.toThrow();
     Object.defineProperty(window, 'localStorage', { value: orig, writable: true, configurable: true });
     vi.resetModules();

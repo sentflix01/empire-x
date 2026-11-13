@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from "@/lib/AuthContext";
-import { auth } from "@/api/auth";
-import { entities, type Business, type UserProfile } from "@/api/entities";
+import { auth } from "@/lib/api/auth";
+import { entities, type Business, type UserProfile } from "@/lib/api/entities";
 import { resolveMediaUrl } from "@/lib/media";
 import SafeImage from "@/components/ui/SafeImage";
 

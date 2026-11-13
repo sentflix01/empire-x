@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { getAccessToken } from "@/api/client";
+import { getAccessToken } from "@/lib/api/client";
 
 let socket: Socket | null = null;
 /** Chat rooms this tab is in, joined again after every reconnect. */

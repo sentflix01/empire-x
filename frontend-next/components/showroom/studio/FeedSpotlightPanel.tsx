@@ -14,7 +14,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 import { getSectionType } from '@/lib/builderSections';
 import { SPOTLIGHT_LABELS } from '@/lib/spotlight';
 

@@ -9,14 +9,14 @@ import React from 'react';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1', is_demo: false } }) }));
-vi.mock('@/api/entities', () => ({
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     Business: { filter: vi.fn().mockResolvedValue([]), update: vi.fn(), create: vi.fn() },
     Showroom: { create: vi.fn(), update: vi.fn() },
     UserProfile: { filter: vi.fn().mockResolvedValue([]), update: vi.fn() },
   },
 }));
-vi.mock('@/api/client', () => ({ apiFetch: vi.fn() }));
+vi.mock('@/lib/api/client', () => ({ apiFetch: vi.fn() }));
 vi.mock('@/components/showroom/BuilderForm', () => ({
   default: ({ onChange }: { onChange: (k: string, v: string) => void }) => (
     <label>Business name<input aria-label="Business name" onChange={(e) => onChange('title', e.target.value)} /></label>

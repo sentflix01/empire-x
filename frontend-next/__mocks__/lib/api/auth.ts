@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
 
 /**
- * Manual mock for @/api/auth
- * Usage in tests: vi.mock('@/api/auth')
+ * Manual mock for @/lib/api/auth
+ * Usage in tests: vi.mock('@/lib/api/auth')
  * Then override per-test: (auth.me as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'u1' })
  */
 export const auth = {

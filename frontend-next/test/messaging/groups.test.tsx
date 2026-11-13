@@ -11,8 +11,8 @@ import React from 'react';
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() }));
 const nav = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock('@/api/client', () => ({ default: http, getAccessToken: () => 't' }));
-vi.mock('@/api/entities', () => ({ entities: { UserProfile: { list: vi.fn().mockResolvedValue([
+vi.mock('@/lib/api/client', () => ({ default: http, getAccessToken: () => 't' }));
+vi.mock('@/lib/api/entities', () => ({ entities: { UserProfile: { list: vi.fn().mockResolvedValue([
   { id: 'profile-1', user_id: 'u-sara', display_name: 'Sara' },
   { id: 'profile-2', user_id: 'u-abebe', display_name: 'Abebe' },
 ]) } } }));

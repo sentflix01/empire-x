@@ -1,0 +1,139 @@
+<!doctype html>
+<!--
+  Feed banner loop, 12 s, 8:3 (640 x 240 units, rendered at 2x = 1280 x 480).
+  Plays behind the "Build Your Mini Website" text on /feed, so the left 300
+  units stay plain brand blue and the action sits on the right:
+    0-1.8   the hand picks a template; the site appears on the phone
+    1.8-3   a photo flies in from the gallery
+    3-4.4   a link is pasted; social icons appear
+    4.4-5   the hand taps Publish
+    5-6.4   the site becomes a card in the Business feed beside the phone
+    6.4-9   its products slide; a friend's heart: life and business together
+    11.2-12 everything fades for the loop
+  Rendered by scripts/promo/render.mjs.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:#2563eb}svg{display:block}</style>
+<script src="../copy.js"></script>
+<script src="common.js"></script>
+<script src="engine.js"></script>
+<script src="shots.js"></script>
+</head>
+<body>
+<svg id="svg" width="640" height="240" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const { C, prog, lerp, easeOut, easeInOut, easeIn, back, window_, place, arc, ICON } = window.PROMO;
+const { $, P, photo, bar, GLYPH, HAND, keyed, phoneFrame } = window.ENGINE;
+const { site } = window.SHOTS.parts;
+const PX = 400, PY = 122, PW = 100, PH = 196;   // phone, screen size
+const FX = 562;                                  // feed column centre
+const g = (inner, tr = '') => `<g${tr ? ` transform="${tr}"` : ''}>${inner}</g>`;
+const at = (x, y, s, inner) => g(inner, `translate(${x} ${y}) scale(${s})`);
+const toShot = (x, y) => ({ x: PX - PW / 2 + x, y: PY - PH / 2 + y });   // phone screen -> banner
+
+const svg = document.getElementById('svg');
+const tpl = [0, 1, 2, 3].map((i) => ({ x: 8 + (i % 2) * 44, y: 30 + Math.floor(i / 2) * 78 }));
+svg.innerHTML = `
+  <rect width="640" height="240" fill="${C.blue}"/>
+  <circle cx="490" cy="120" r="150" fill="${C.paper}" opacity=".06"/>
+  <circle cx="610" cy="10" r="80" fill="${C.violet}" opacity=".35"/>
+  <circle cx="330" cy="230" r="60" fill="${C.blueDeep}" opacity=".5"/>
+  <g id="stage">
+    <g data-k="feed">
+      <rect x="${FX - 64}" y="16" width="128" height="208" rx="18" fill="${C.paper}" opacity=".96"/>
+      <rect x="${FX - 54}" y="26" width="108" height="50" rx="10" fill="${C.page}" stroke="${C.line}"/><rect x="${FX - 54}" y="26" width="108" height="20" rx="10" fill="${C.greenSubtle}"/>${bar(FX - 46, 54, 60, 6, C.line)}
+      <rect x="${FX - 54}" y="164" width="108" height="50" rx="10" fill="${C.page}" stroke="${C.line}"/><rect x="${FX - 54}" y="164" width="108" height="20" rx="10" fill="${C.violetTint}"/>${bar(FX - 46, 192, 60, 6, C.line)}
+    </g>
+    <g data-k="card">
+      <rect x="-56" y="-38" width="112" height="76" rx="10" fill="${C.paper}" stroke="${C.blue}" stroke-width="2"/>
+      <path d="M-56 -18 V-28 A10 10 0 0 1 -46 -38 H46 A10 10 0 0 1 56 -28 V-18 Z" fill="${C.blue}"/>
+      <rect x="-48" y="-28" width="18" height="18" rx="5" fill="${C.paper}"/>${at(-39, -19, 0.28, ICON.store(C.blue))}
+      ${bar(-26, -26, 50, 6, C.paper, 0.9)}
+      <clipPath id="bstrip"><rect x="-50" y="-6" width="100" height="40" rx="6"/></clipPath>
+      <g clip-path="url(#bstrip)"><g data-k="strip">${[0, 1, 2, 3, 4, 5].map((i) => `
+        <g transform="translate(${-50 + i * 36} -4)"><rect width="32" height="38" rx="6" fill="${[C.violetSubtle, C.blueSubtle, C.greenSubtle][i % 3]}"/>
+        ${at(16, 14, 0.36, [ICON.dress(C.violet), ICON.cup(C.blue), ICON.basket(C.green)][i % 3])}<rect x="4" y="28" width="24" height="7" rx="3.5" fill="${C.blue}"/></g>`).join('')}</g></g>
+    </g>
+    <g data-k="phone">${phoneFrame(PW, PH, `
+      <g data-k="tpls"><rect width="${PW}" height="${PH}" fill="${C.page}"/>${bar(8, 12, 60, 6, C.line)}
+        ${tpl.map((t, i) => `<g><rect x="${t.x}" y="${t.y}" width="40" height="70" rx="7" fill="${C.paper}" stroke="${i === 1 ? C.blue : C.line}" stroke-width="${i === 1 ? 2 : 1}"/>
+          <rect x="${t.x + 4}" y="${t.y + 4}" width="32" height="10" rx="3" fill="${[C.blue, C.violet, C.green, C.blueDeep][i]}"/>${photo(t.x + 4, t.y + 18, 32, 22, C.blueTint, [C.blue, C.violet, C.green, C.blueDeep][i], 3)}${bar(t.x + 4, t.y + 46, 26, 5, C.line)}${bar(t.x + 4, t.y + 56, 18, 5, C.line)}</g>`).join('')}</g>
+      <g data-k="site"><svg width="${PW}" height="${PH}" viewBox="0 0 360 706" preserveAspectRatio="xMidYMin slice">
+        ${site(C.blue)}
+        <g data-k="hslot"><rect x="16" y="70" width="328" height="168" rx="14" fill="${C.page}"/><rect x="16" y="70" width="328" height="168" rx="14" fill="none" stroke="${C.violet}" stroke-width="6" stroke-dasharray="20 14"/>${at(180, 154, 2.2, GLYPH.camera(C.violet))}</g>
+        <rect data-k="soccover" x="10" y="524" width="220" height="50" fill="${C.paper}"/>
+      </svg></g>
+      <g data-k="pub"><rect x="60" y="4" width="34" height="16" rx="8" fill="${C.blue}"/>${at(77, 12, 0.32, ICON.check(C.paper))}</g>
+      <rect data-k="pubgreen" x="60" y="4" width="34" height="16" rx="8" fill="${C.green}"/><g data-k="pubcheck">${at(77, 12, 0.32, ICON.check(C.paper))}</g>`)}</g>
+    <g data-k="gal"><rect x="-34" y="-28" width="68" height="56" rx="10" fill="${C.paper}"/>${photo(-28, -22, 56, 44, C.violetTint, C.violet, 6)}</g>
+    <g data-k="paste"><rect x="-26" y="-14" width="52" height="28" rx="14" fill="${C.ink}"/>${g(GLYPH.clipboard(C.paper), 'scale(.45)')}</g>
+    <g data-k="burst"><circle r="14" fill="${C.green}"/>${g(ICON.check(C.paper), 'scale(.6)')}</g>
+    <g data-k="heart">${GLYPH.heart(C.violet)}</g>
+    <g id="hand" opacity="0"><circle id="ring" r="12" fill="none" stroke="${C.paper}" stroke-width="2.5"/><g id="hbody" transform="scale(.6)">${HAND}</g></g>
+  </g>`;
+
+const root = svg;
+const p = P(root);
+const tplHit = toShot(tpl[1].x + 20, tpl[1].y + 35);
+const pubHit = toShot(77, 12);
+const HANDK = [[0.5, 470, 230], [1.0, tplHit.x, tplHit.y], [2.1, 300, 200], [3.6, 0, 0], [4.7, pubHit.x, pubHit.y], [5.6, 470, 250]];
+HANDK[3] = [3.6, PX + 40, 70];
+const TAPS = [1.0, 2.1, 3.6, 4.7];
+
+window.setTime = function (t) {
+  const out = prog(t, 11.2, 12);
+  p('stage', { o: 1 - out });
+  place(document.getElementById('stage'), { o: Math.min(prog(t, 0, 0.4), 1 - out) });
+  p('phone', { x: PX, y: lerp(PY + 20, PY, easeOut(prog(t, 0, 0.5))) });
+  // 1. Pick a template; the site appears.
+  p('tpls', { o: 1 - prog(t, 1.2, 1.5) });
+  const sIn = easeOut(prog(t, 1.2, 1.7));
+  p('site', { x: PW / 2 * (1 - lerp(0.5, 1, sIn)), y: PH / 2 * (1 - lerp(0.5, 1, sIn)), s: lerp(0.5, 1, sIn), o: prog(t, 1.2, 1.35) });
+  // 2. A photo flies from the gallery into the empty hero.
+  p('gal', { x: 300, y: 196, s: back(prog(t, 1.7, 2.0)), o: Math.min(prog(t, 1.7, 1.8), 1 - prog(t, 2.2, 2.3)) });
+  const fl = easeInOut(prog(t, 2.2, 2.8));
+  const fp = arc({ x: 300, y: 196 }, { x: 330, y: 60 }, toShot(50, 41), fl);
+  if (fl > 0 && fl < 1) p('gal', { x: fp.x, y: fp.y, s: lerp(1, 1.1, fl), o: 1 });
+  p('hslot', { o: 1 - prog(t, 2.75, 2.95) });
+  // 3. Paste a link; social icons appear.
+  p('paste', { x: PX + 40, y: 70, s: back(prog(t, 3.1, 3.4)), o: Math.min(prog(t, 3.1, 3.2), 1 - prog(t, 3.75, 3.9)) });
+  p('soccover', { x: lerp(0, 230, easeInOut(prog(t, 3.8, 4.3))) });
+  // 4. Publish.
+  p('pub', { o: prog(t, 1.4, 1.6) });
+  p('pubgreen', { o: prog(t, 4.75, 4.85) });
+  p('pubcheck', { o: prog(t, 4.75, 4.85) });
+  p('burst', { x: pubHit.x + 18, y: pubHit.y + 18, s: back(prog(t, 4.85, 5.2)), o: window_(t, 4.85, 4.95, 5.6, 5.9) });
+  // 5. The site becomes a card in the Business feed.
+  p('feed', { o: prog(t, 4.9, 5.3), x: lerp(20, 0, easeOut(prog(t, 4.9, 5.3))) });
+  const cf = easeInOut(prog(t, 5.3, 6.3));
+  const cp = arc({ x: PX, y: PY }, { x: (PX + FX) / 2, y: 30 }, { x: FX, y: 124 }, cf);
+  p('card', { x: cp.x, y: cp.y, s: lerp(0.4, 1, cf), o: prog(t, 5.3, 5.4) });
+  const n = Math.min(3, Math.max(0, (t - 6.6) / 0.8));
+  const k = Math.floor(n), fr = n - k;
+  $(root, 'strip').setAttribute('transform', `translate(${(-36 * (k + easeInOut(Math.min(1, fr / 0.55)))).toFixed(1)} 0)`);
+  // 6. A friend's heart: life and business in one place.
+  const hf = prog(t, 8.8, 10.2);
+  p('heart', { x: FX + 40 + 8 * Math.sin(5 * hf), y: lerp(150, 60, easeOut(hf)), s: back(prog(t, 8.8, 9.1)) * 0.9, o: hf > 0 && hf < 1 ? 1 - easeIn(hf) : 0 });
+
+  // Hand.
+  const [hx, hy] = keyed(HANDK, t);
+  const hv = Math.min(prog(t, 0.3, 0.6), 1 - prog(t, 5.4, 5.8));
+  place(document.getElementById('hand'), { x: hx, y: hy, o: hv });
+  let press = 1, ring = 0;
+  TAPS.forEach((tk) => {
+    press = Math.min(press, 1 - 0.16 * Math.sin(Math.PI * prog(t, tk - 0.1, tk + 0.15)));
+    const r = prog(t, tk, tk + 0.5); if (r > 0 && r < 1) ring = r;
+  });
+  document.getElementById('hbody').setAttribute('transform', `scale(${(0.6 * press).toFixed(3)})`);
+  const re = document.getElementById('ring');
+  re.setAttribute('r', (8 + 16 * easeOut(ring)).toFixed(1));
+  re.setAttribute('opacity', ring > 0 ? (0.9 * (1 - ring)).toFixed(2) : 0);
+};
+window.DURATION = 12;
+window.setTime(0);
+window.READY = Promise.resolve(true);
+</script>
+</body>
+</html>

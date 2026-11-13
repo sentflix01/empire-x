@@ -13,7 +13,7 @@ vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a>,
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('leaflet', () => { throw new Error('no map in tests'); });
 vi.mock('react-leaflet', () => { throw new Error('no map in tests'); });
 vi.mock('react-leaflet-cluster', () => { throw new Error('no map in tests'); });
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import NearbyMap from '@/views/NearbyMap';
 import { SearchResultBusinessCard } from '@/components/map/HomeMapTab';
 

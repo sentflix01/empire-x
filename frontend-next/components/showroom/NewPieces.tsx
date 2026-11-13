@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Clock, Copy, Landmark, Smartphone, Tag, UtensilsCrossed, Wallet } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { sectionItemBuyPayload, type BuyPayload } from '@/lib/sectionItemPurchase';
 import { formatTime, isOpenNow, readOpeningHours, todayIndex } from '@/lib/openingHours';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';

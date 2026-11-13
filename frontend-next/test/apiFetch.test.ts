@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiFetch, clearToken, storeToken } from '@/api/client';
+import { apiFetch, clearToken, storeToken } from '@/lib/api/client';
 
 describe('apiFetch request policy', () => {
   const fetchMock = vi.fn();

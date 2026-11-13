@@ -15,7 +15,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import UpgradePromptModal from './UpgradePromptModal';
 import { SECTION_TYPES } from '@/lib/builderSections';
 

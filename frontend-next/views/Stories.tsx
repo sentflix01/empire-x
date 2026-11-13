@@ -1,8 +1,8 @@
 'use client'
 import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { entities } from '@/api/entities';
-import client from '@/api/client';
+import { entities } from '@/lib/api/entities';
+import client from '@/lib/api/client';
 import { uploadFile } from '@/lib/uploadFile';
 import { X, Plus, Clock, Heart, MessageCircle, Send } from 'lucide-react';
 import SafeImage from '@/components/ui/SafeImage';

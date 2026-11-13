@@ -11,9 +11,9 @@ import React from 'react';
 const auth: { isAuthenticated: boolean; user: { id: string; role?: string } | null } = { isAuthenticated: true, user: { id: 'viewer-1' } };
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ ...auth, logout: vi.fn() }) }));
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http }));
+vi.mock('@/lib/api/client', () => ({ default: http }));
 const comments = vi.hoisted(() => ({ filter: vi.fn(), create: vi.fn() }));
-vi.mock('@/api/entities', () => ({
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     Post: { update: vi.fn(), delete: vi.fn() },
     UserProfile: { filter: vi.fn().mockResolvedValue([]) },
@@ -22,7 +22,7 @@ vi.mock('@/api/entities', () => ({
     Comment: comments,
   },
 }));
-vi.mock('@/api/auth', () => ({ auth: { me: vi.fn().mockResolvedValue({}) } }));
+vi.mock('@/lib/api/auth', () => ({ auth: { me: vi.fn().mockResolvedValue({}) } }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }));

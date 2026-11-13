@@ -20,7 +20,7 @@ vi.mock("react-i18next", () => ({
 vi.mock("@/lib/AuthContext", () => ({
   useAuth: () => ({ user: { id: "user-1", is_demo: false } }),
 }));
-vi.mock("@/api/client", () => ({ default: { post: mocks.post } }));
+vi.mock("@/lib/api/client", () => ({ default: { post: mocks.post } }));
 
 describe("AiAssistant guided tour", () => {
   beforeEach(() => {

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trash2, FlaskConical, Save, Loader2, ChevronDown, ChevronUp, ClipboardPaste } from 'lucide-react';
 import { FieldMapping } from '../../types/externalApi';
 import { computePreview } from '../../lib/externalMappingPreview';
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 
 export interface FieldDef {
   key: string;

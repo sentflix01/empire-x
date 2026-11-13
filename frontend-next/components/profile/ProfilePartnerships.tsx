@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { profilePartnershipsApi, type ProfilePartnership } from '@/api/profilePartnerships';
-import { entities } from '@/api/entities';
+import { profilePartnershipsApi, type ProfilePartnership } from '@/lib/api/profilePartnerships';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SafeImage from '@/components/ui/SafeImage';

@@ -12,7 +12,7 @@ vi.mock('next/link', () => ({
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 const showroomApi = vi.hoisted(() => ({ filter: vi.fn(), update: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { Showroom: showroomApi } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Showroom: showroomApi } }));
 
 import WebsiteSectionsPanel from '@/components/profile/WebsiteSectionsPanel';
 import { toast } from 'sonner';

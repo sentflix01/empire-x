@@ -1,7 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react';
 import { HealthRecord } from '../../types/externalApi';
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

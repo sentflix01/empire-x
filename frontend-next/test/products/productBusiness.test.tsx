@@ -7,11 +7,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
-vi.mock('@/api/client', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
+vi.mock('@/lib/api/client', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'seller-1' } }) }));
 const products = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), get: vi.fn() }));
 const businesses = vi.hoisted(() => ({ filter: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { Product: products, Business: businesses } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Product: products, Business: businesses } }));
 const nav = vi.hoisted(() => ({ push: vi.fn() }));
 vi.mock('next/navigation', () => ({ useParams: () => ({}), useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: nav.push, back: vi.fn() }) }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));

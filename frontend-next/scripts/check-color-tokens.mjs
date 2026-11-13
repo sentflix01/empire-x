@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const DIRS = ['app', 'components', 'views', 'lib', 'hooks', 'store', 'api'];
+const DIRS = ['app', 'components', 'views', 'lib', 'hooks', 'store'];
 const RAW = /(?<![\w-])(?:[\w-]+(?:\[[^\]]*\])?:)*(?:bg|text|border|from|to|via|ring|fill|stroke|divide|outline|placeholder|shadow|decoration|caret|accent)-(?:[trblxyse]-)?(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}(?:\/\d{1,3})?(?![\w-])/g;
 
 function walk(dir, out = []) {

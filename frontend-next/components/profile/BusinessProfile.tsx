@@ -1,11 +1,11 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect, useCallback } from "react";
-import { entities, type Business, type Order, type Product, type Showroom, type UserProfile } from "@/api/entities";
+import { entities, type Business, type Order, type Product, type Showroom, type UserProfile } from "@/lib/api/entities";
 import type { AuthUser } from "@/lib/AuthContext";
 import { sectionList } from "@/lib/showroomSectionsCodec";
 
-import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink } from "lucide-react";
+import { Mail, Phone, MapPin, ShoppingBag, Plus, Edit2, MessageSquare, ExternalLink, BedDouble } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,8 @@ import SafeImage from "@/components/ui/SafeImage";
 import WebsiteStatusBanner from "@/components/profile/WebsiteStatusBanner";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { formatAmount } from '@/lib/money';
+import { RatingSummary } from '@/components/ui/Stars';
+import BusinessReviews from '@/components/business/BusinessReviews';
 
 
 /**
@@ -123,6 +125,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
             )}
             <span className="biz-text font-display font-bold text-sm truncate" style={{ ...themeTextStyle(themeColor) }}>{biz.business_name}</span>
             {profile.is_verified && <VerifiedBadge type={profile.verification_type} size="sm" />}
+            <RatingSummary average={business?.average_rating} count={business?.review_count} className="shrink-0" />
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {sections.filter(s => s.title).slice(0, 3).map(s => (
@@ -132,6 +135,9 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
               <div className="flex items-center gap-1.5">
                 {siteSlug && <Link href={`/showroom/${siteSlug}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><ExternalLink className="w-3 h-3 mr-1" /> View site</Button></Link>}
                 <Link href={siteEditId ? `/showroom/create?edit=${siteEditId}` : `/business/edit?id=${business?.id || ""}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><Edit2 className="w-3 h-3 mr-1" /> Edit</Button></Link>
+                {(sections.some(s => s.type === "rooms") || biz.business_category === "Hospitality & Tourism") && business?.id && (
+                  <Link href={`/business/rooms?business=${business.id}`}><Button size="sm" variant="outline" className="rounded-full h-7 text-xs"><BedDouble className="w-3 h-3 mr-1" aria-hidden="true" /> Rooms</Button></Link>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
@@ -169,6 +175,8 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
               />
             );
           })}
+
+          {business?.id && <BusinessReviews businessId={String(business.id)} />}
 
           {/* Contact Section (a Studio site with its own contact section skips it) */}
           {siteContactIdx < 0 && <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">

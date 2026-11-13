@@ -68,7 +68,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
       data: { access_token: 'at-existing' },
     });
 
-    const { storeToken, ensureFreshToken } = await import('@/api/client');
+    const { storeToken, ensureFreshToken } = await import('@/lib/api/client');
     storeToken('in-memory-token');
 
     const result = await ensureFreshToken();
@@ -86,7 +86,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
       data: { access_token: 'freshly-issued' },
     });
 
-    const { clearToken, ensureFreshToken } = await import('@/api/client');
+    const { clearToken, ensureFreshToken } = await import('@/lib/api/client');
     clearToken(); // make sure no in-memory token
 
     const result = await ensureFreshToken();
@@ -105,7 +105,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
       data: { access_token: 'brand-new-token' },
     });
 
-    const { clearToken, ensureFreshToken, getAccessToken } = await import('@/api/client');
+    const { clearToken, ensureFreshToken, getAccessToken } = await import('@/lib/api/client');
     clearToken();
 
     const result = await ensureFreshToken();
@@ -120,7 +120,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
 
     vi.spyOn(axios, 'post').mockRejectedValueOnce({ response: { status: 401 } });
 
-    const { clearToken, ensureFreshToken } = await import('@/api/client');
+    const { clearToken, ensureFreshToken } = await import('@/lib/api/client');
     clearToken();
 
     const result = await ensureFreshToken();
@@ -133,7 +133,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
   it('returns false on network error (fail safe — never throw)', async () => {
     vi.spyOn(axios, 'post').mockRejectedValueOnce(new Error('Network Error'));
 
-    const { clearToken, ensureFreshToken } = await import('@/api/client');
+    const { clearToken, ensureFreshToken } = await import('@/lib/api/client');
     clearToken();
 
     const result = await ensureFreshToken();
@@ -148,7 +148,7 @@ describe('ensureFreshToken — ITP / Safari fix', () => {
       inflightPromise as ReturnType<typeof axios.post>,
     );
 
-    const { clearToken, ensureFreshToken } = await import('@/api/client');
+    const { clearToken, ensureFreshToken } = await import('@/lib/api/client');
     clearToken();
 
     // Fire three concurrent calls before the first resolves

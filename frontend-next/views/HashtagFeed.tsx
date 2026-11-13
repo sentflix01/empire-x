@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
 import { Hash, ArrowLeft, Loader2 } from "lucide-react";

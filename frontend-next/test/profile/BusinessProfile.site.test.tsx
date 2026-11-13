@@ -14,7 +14,7 @@ const { productFilter, orderFilter, showroomFilter, purchaseProps } = vi.hoisted
   purchaseProps: [] as Record<string, unknown>[],
 }));
 
-vi.mock('@/api/entities', () => ({
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     Product: { filter: productFilter },
     Order: { filter: orderFilter },

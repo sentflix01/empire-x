@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 // Messages and an open conversation can briefly coexist during route changes.
 // A small module-level reference count prevents one view's cleanup from marking

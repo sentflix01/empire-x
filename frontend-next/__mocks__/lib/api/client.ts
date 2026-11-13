@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
 
 /**
- * Manual mock for @/api/client
- * Usage in tests: vi.mock('@/api/client')
+ * Manual mock for @/lib/api/client
+ * Usage in tests: vi.mock('@/lib/api/client')
  * Then override per-test: (client.get as ReturnType<typeof vi.fn>).mockResolvedValue(...)
  */
 const client = {

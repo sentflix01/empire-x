@@ -6,7 +6,7 @@
  * fix deep-links into the builder.
  */
 import React, { useState } from 'react';
-import { apiFetch } from '@/api/client';
+import { apiFetch } from '@/lib/api/client';
 import { Loader2, Stethoscope, AlertTriangle, CheckCircle2, ExternalLink, Sparkles } from 'lucide-react';
 
 interface Finding { id: string; severity: 'critical'|'high'|'medium'|'low'; area: string; message: string;

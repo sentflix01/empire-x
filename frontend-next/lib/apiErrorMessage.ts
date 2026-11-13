@@ -1,7 +1,7 @@
 /**
  * Read a failed API call's error body, whichever shape the failure took.
  *
- * The `@/api/client` interceptor (and therefore `entities`) rejects with the
+ * The `@/lib/api/client` interceptor (and therefore `entities`) rejects with the
  * response BODY itself, with the HTTP `status` attached — not an axios error.
  * Reading `err.response?.data` on those rejections is always `undefined`, so
  * server messages and code-based recovery branches silently never run.

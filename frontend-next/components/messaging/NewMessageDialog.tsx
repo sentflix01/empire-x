@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Search } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useStartChat } from '@/lib/messaging';
 import UserIdentity from '@/components/ui/UserIdentity';
 import { uniquePeople } from '@/lib/chatDisplay';

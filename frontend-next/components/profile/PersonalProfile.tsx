@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities, type UserProfile } from "@/api/entities";
+import { entities, type UserProfile } from "@/lib/api/entities";
 import type { AuthUser } from "@/lib/AuthContext";
 import type { ProfileBusinessRecord } from "@/components/profile/BusinessProfile";
 

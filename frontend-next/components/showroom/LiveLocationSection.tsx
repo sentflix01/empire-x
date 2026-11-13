@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Loader2, MapPin, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { getIO } from '@/lib/socket';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 

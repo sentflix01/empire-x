@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import React, { useState } from "react";
-import { auth } from "@/api/auth";
+import { auth } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -20,7 +20,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { X, ShoppingBag, Check, Loader2, Copy, Phone, Mail, MapPin, CreditCard, MessageCircle } from "lucide-react";
 import { findOrCreateConversation } from "@/lib/messaging";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

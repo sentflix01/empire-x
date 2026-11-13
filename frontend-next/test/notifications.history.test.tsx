@@ -9,7 +9,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), delete: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http }));
+vi.mock('@/lib/api/client', () => ({ default: http }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'me' }, authChecked: true }) }));
 vi.mock('@/lib/socket', () => ({ connectSocket: vi.fn(), getSocket: () => ({ on: vi.fn(), off: vi.fn() }) }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }));

@@ -2,7 +2,7 @@
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.
-> Last updated: August 2026
+> Last updated: 2026-11-12
 
 ---
 
@@ -54,6 +54,7 @@ components/
 ├── map/                     ← Leaflet map wrapper, pin clusters, ProfilePeek
 ├── tasks/                   ← Task cards, bid form, task calendar
 ├── analytics/               ← Charts, stats cards
+├── promo/                   ← PromoVideo (loops), PromoGuide (full guide): wordless how-it-works clips (lib/promoAssets.ts)
 ├── settings/                ← Profile edit, password change
 ├── ui/                      ← shadcn/ui components (Button, Input, Dialog…)
 └── [SharedComponents].tsx   ← AiAssistant, PushPermissionBanner, ProtectedRoute
@@ -185,3 +186,19 @@ toast('Order placed', {
   action: { label: 'View', onClick: () => router.push('/orders') }
 })
 ```
+
+### Promo video
+```tsx
+import PromoVideo from '@/components/promo/PromoVideo'
+import { PROMO } from '@/lib/promoAssets'
+
+// The frame needs a size; the clip fills it (object-fit: cover).
+<PromoVideo clip={PROMO.landing} className="aspect-[9/16] w-full" description="What the clip shows" />
+```
+The poster paints first. The video loads only when the frame is a quarter
+visible and never with reduced motion or Save-Data; a pause button is built in.
+
+`<PromoGuide />` (or `variant="icon"`) is the "Watch how it works" button: it
+opens the full guide in a modal player and downloads nothing until pressed.
+Re-render clips with `node scripts/promo/render.mjs` after editing
+`scripts/promo/scenes/` (decision 2026-11-11 in `project-brain/DECISIONS.md`).

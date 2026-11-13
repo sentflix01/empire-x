@@ -130,8 +130,8 @@ describe('coordinates and radius are bound parameters', () => {
 
     expect(res.status).toBe(200);
     expect(pool.query.mock.calls[0][1]).toEqual(['sam', 20, 0, 0]);
-    // The JS pass recomputes it from the row's coordinates (about 1.1 km).
-    expect(res.body.products[0].distance_km).toBe(1.1);
+    // 1.1 km is sent rounded up to 1.5 km, like every search distance.
+    expect(res.body.products[0].distance_km).toBe(1.5);
   });
 
   it('ignores a radius that is not a positive finite number', async () => {
@@ -152,7 +152,9 @@ describe('coordinates and radius are bound parameters', () => {
 });
 
 describe('product search results', () => {
-  it('keep the 0.1 km distance and are not marked approximate', async () => {
+  // A product's exact distance could reveal the shop's pin, so it is rounded
+  // up to 0.5 km like people (DECISIONS.md "Business location", item 3).
+  it('get a distance rounded up to 0.5 km and are not marked approximate', async () => {
     pool.query.mockResolvedValueOnce({ rows: [
       { id: 'prod-1', title: 'Sambusa', latitude: '9.01', longitude: '38.7', distance_km: '1.1' },
     ] });
@@ -162,7 +164,7 @@ describe('product search results', () => {
       .set('x-test-user', VIEWER);
 
     expect(res.status).toBe(200);
-    expect(res.body.products[0].distance_km).toBe(1.1);
+    expect(res.body.products[0].distance_km).toBe(1.5);
     expect(res.body.products[0]).not.toHaveProperty('distance_approx');
   });
 });

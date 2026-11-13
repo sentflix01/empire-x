@@ -10,8 +10,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { Search, Users, Radio, MessageCircle, Store, PenSquare, BellOff, Archive, Inbox as InboxIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
-import { entities } from '@/api/entities';
+import client from '@/lib/api/client';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { getSocket, connectSocket } from '@/lib/socket';
 import { useChatPresence } from '@/lib/useChatPresence';

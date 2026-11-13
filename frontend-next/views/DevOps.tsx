@@ -13,7 +13,7 @@ import OpsCopilot from '@/components/devops/OpsCopilot';
  * Access: all authenticated users (read). Admin: full CRUD.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';

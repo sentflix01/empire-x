@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Users, Radio } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 import PeoplePicker, { type Person } from '@/components/messaging/PeoplePicker';
