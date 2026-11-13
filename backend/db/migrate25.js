@@ -10,7 +10,7 @@
  * (updated_at DESC, fallback created_at DESC) ? matching runtime sync.
  * Idempotent: already-filled full_name values are left untouched.
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function run() {

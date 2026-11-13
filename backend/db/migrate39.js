@@ -5,7 +5,7 @@
  * admin@nodbusiness.app is the real platform admin (owner decision 2026-10-15)
  * and must stay a real account; see migrate53.js.
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function migrate() {

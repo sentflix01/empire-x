@@ -125,7 +125,7 @@ module.exports = async function migrate37(trackPool) {
 
 // Allow standalone run
 if (require.main === module) {
-  require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+  require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
   const pool = require('./poolJsShim.cjs');
   module.exports(pool)
     .then(() => { pool.end(); process.exit(0); })
