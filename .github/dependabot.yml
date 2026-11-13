@@ -12,9 +12,6 @@ updates:
         update-types:
           - minor
           - patch
-    labels:
-      - dependencies
-      - backend
     ignore:
       # TypeScript 7 (the native compiler) has no JavaScript API yet, so
       # typescript-eslint and ts-jest cannot load it (PR #96 failed). Revisit
@@ -38,9 +35,6 @@ updates:
         update-types:
           - minor
           - patch
-    labels:
-      - dependencies
-      - frontend
     ignore:
       # TypeScript 7 cannot be loaded by typescript-eslint or Next.js type
       # checking yet (PR #93 failed). See TD-028.
@@ -52,6 +46,3 @@ updates:
     directory: /
     schedule:
       interval: monthly
-    labels:
-      - dependencies
-      - ci
