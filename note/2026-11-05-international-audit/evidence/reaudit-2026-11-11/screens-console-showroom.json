@@ -1,0 +1,101 @@
+{
+  "ran_at": "2026-11-11T17:12:47.335Z",
+  "report": [
+    {
+      "screen": "/landing",
+      "width": 375,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 375,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 768,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 768,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/landing",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/landing",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    }
+  ]
+}

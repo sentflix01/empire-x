@@ -10,11 +10,12 @@ import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { Pool, types } from 'pg';
 
+import logger from '../lib/logger';
+
 // DATE columns (stay dates, closed nights) are calendar days: return them as
 // 'YYYY-MM-DD' text, not a JS Date at the server's local midnight, which can
 // show as the day before once serialized to UTC.
 types.setTypeParser(1082, (value: string) => value);
-import logger from '../lib/logger';
 
 // Force IPv4 — Render free tier does not support IPv6 outbound connections.
 // Supabase direct connections resolve to IPv6; the pooler resolves to IPv4.
@@ -91,8 +92,7 @@ export function buildPoolOptions(rawUrl: string | undefined, environment: Databa
     ssl,
     max: parseInt(process.env[environment === 'demo' ? 'DEMO_DB_POOL_MAX' : 'DB_POOL_MAX'] ?? '5', 10),
     min: 0,
-    // How long an unused connection stays open (test:db shortens it so files don't pile up connections).
-    idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_MS ?? '60000', 10),
+    idleTimeoutMillis: 60_000,
     connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT_MS ?? '15000', 10),
     allowExitOnIdle: false,
     statement_timeout: 10_000,

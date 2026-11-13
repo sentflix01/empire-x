@@ -10432,7 +10432,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/search.ts:46"
+        "x-source": "backend/routes/search.ts:51"
       }
     },
     "/api/share-preview/showroom/{slug}": {

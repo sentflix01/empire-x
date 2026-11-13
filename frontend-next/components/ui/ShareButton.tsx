@@ -14,15 +14,24 @@ import { toast } from "sonner";
  *   size     – "sm" | "md" (default "sm")
  *   label    – Optional text label next to icon
  */
-export default function ShareButton({ title, text, url, size = "sm", label }) {
+interface ShareButtonProps {
+  title?: string;
+  text?: string;
+  url?: string;
+  size?: "sm" | "md";
+  label?: string;
+}
+
+export default function ShareButton({ title, text, url, size = "sm", label }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = url || window.location.href;
   const canNativeShare = typeof navigator !== "undefined" && !!navigator.share;
 
-  const handleShare = async (e) => {
+  const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    // Read the page address on click: window does not exist while the server renders.
+    const shareUrl = url || window.location.href;
 
     if (canNativeShare) {
       try {
@@ -30,7 +39,7 @@ export default function ShareButton({ title, text, url, size = "sm", label }) {
         return;
       } catch (err) {
         // User cancelled or error — fall through to clipboard
-        if (err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") return;
       }
     }
 

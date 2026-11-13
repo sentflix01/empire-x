@@ -10,7 +10,17 @@ const THEMES = {
   dark: ".dark"
 }
 
-const ChartContext = React.createContext(null)
+export type ChartConfig = Record<string, {
+  label?: React.ReactNode
+  icon?: React.ComponentType
+  color?: string
+  theme?: Partial<Record<keyof typeof THEMES, string>>
+}>
+
+/** One entry of a Recharts tooltip or legend payload (shape owned by Recharts). */
+type ChartPayloadItem = Record<string, any>
+
+const ChartContext = React.createContext<{ config: ChartConfig } | null>(null)
 
 function useChart() {
   const context = React.useContext(ChartContext)
@@ -153,7 +163,7 @@ const ChartTooltipContent = React.forwardRef<any, any>((
       )}>
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload.map((item, index) => {
+        {payload.map((item: ChartPayloadItem, index: number) => {
           const key = `${nameKey || item.name || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
@@ -237,7 +247,7 @@ const ChartLegendContent = React.forwardRef<any, any>((
         verticalAlign === "top" ? "pb-3" : "pt-3",
         className
       )}>
-      {payload.map((item) => {
+      {payload.map((item: ChartPayloadItem) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -267,34 +277,28 @@ ChartLegendContent.displayName = "ChartLegend"
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
-  config,
-  payload,
-  key
+  config: ChartConfig,
+  payload: unknown,
+  key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
     return undefined
   }
 
+  const item = payload as Record<string, unknown>
   const payloadPayload =
-    "payload" in payload &&
-    typeof payload.payload === "object" &&
-    payload.payload !== null
-      ? payload.payload
+    typeof item.payload === "object" && item.payload !== null
+      ? (item.payload as Record<string, unknown>)
       : undefined
 
   let configLabelKey = key
 
-  if (
-    key in payload &&
-    typeof payload[key] === "string"
-  ) {
-    configLabelKey = payload[key]
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key] === "string"
-  ) {
-    configLabelKey = payloadPayload[key]
+  const direct = item[key]
+  const nested = payloadPayload?.[key]
+  if (typeof direct === "string") {
+    configLabelKey = direct
+  } else if (typeof nested === "string") {
+    configLabelKey = nested
   }
 
   return configLabelKey in config

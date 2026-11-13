@@ -1,0 +1,43 @@
+{
+  "id": "F-073",
+  "kind": "positive",
+  "phase": "P5-security",
+  "severity": "Info",
+  "status": "POSITIVE",
+  "title": "Positive: access control, journeys, dependencies, secrets and production checks hold on re-test",
+  "standards": [
+    "OWASP A01:2025",
+    "OWASP API1:2023",
+    "OWASP A03:2025",
+    "ePrivacy Art. 5(3)",
+    "WCAG 2.2 SC 2.4.1"
+  ],
+  "location": [
+    "scripts/two-account-check.mjs",
+    "scripts/order-journey.mjs",
+    "scripts/account-lifecycle.mjs",
+    "scripts/reaudit-new-endpoints.mjs",
+    "scripts/prod-verify.cjs"
+  ],
+  "steps": [
+    "Re-ran the 11-05 suites and new probes on the local stack; production read-only checks."
+  ],
+  "expected": "No regressions.",
+  "actual": "Two-account 9/9; order journey 24/24; export and deletion 10/10 (was 9/10); all 20 new endpoints enforce sign-in, ownership and admin roles (seller saves hide saver identity; verification documents answer 404 for missing and not-yours; private files need a signature); 0 frontend calls to missing routes (was 16); 0 known vulnerabilities in production dependencies; 12 history-scan hits all placeholders, no secrets in the client bundle; production checks 23/23; no third-party requests or cookies before sign-in on public pages; axe clean on 40/41 of 50 pages, no horizontal scroll at 320 px; skip link, landmarks, visible focus, reduced motion and forced colours OK; refresh tokens rotate on use.",
+  "evidence": [
+    "evidence/reaudit-2026-11-11/two-account-check.txt",
+    "evidence/reaudit-2026-11-11/order-journey.txt",
+    "evidence/reaudit-2026-11-11/account-lifecycle.txt",
+    "evidence/reaudit-2026-11-11/new-endpoints.json",
+    "evidence/reaudit-2026-11-11/history-secret-scan.txt",
+    "evidence/reaudit-2026-11-11/prod-verify.json",
+    "evidence/reaudit-2026-11-11/third-party-capture.json",
+    "evidence/reaudit-2026-11-11/skip-link-landmarks.json",
+    "evidence/reaudit-2026-11-11/keyboard-order.json"
+  ],
+  "impact": "These controls must not regress.",
+  "fix": "Keep the suites in CI.",
+  "effort": "S",
+  "environment": "local",
+  "found_on": "2026-11-11"
+}

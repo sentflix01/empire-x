@@ -40,7 +40,7 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [failedUrls, setFailedUrls] = useState<string[]>([]);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const urls = multiple
     ? (Array.isArray(value) ? value : value ? [value] : [])
@@ -80,7 +80,7 @@ export default function ImageUpload({
     }
   };
 
-  const removeUrl = (idx) => {
+  const removeUrl = (idx: number) => {
     const removed = multiple ? urls[idx] : singleValue;
     if (removed) setFailedUrls(current => current.filter(url => url !== removed));
     if (multiple) {

@@ -3,7 +3,7 @@
 > A living document. Track what needs to improve and why.
 > Add items when you notice them. Resolve them intentionally, not reactively.
 > Priority: High (fix before Phase 2) · Medium (fix in Phase 2) · Low (nice to have)
-> **Last updated:** November 9, 2026
+> **Last updated:** November 12, 2026
 
 ---
 
@@ -79,7 +79,7 @@
 **Impact:** Occasional false-red CI runs; no real test regressions found.
 
 ### TD-004: TypeScript migration (backend)
-**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`. Since 2026-11-09 the whole frontend is checked strictly (`frontend-next/tsconfig.strict.json`) with a ratchet: `npm run typecheck:strict` (in CI) fails when any file has more strict errors than `frontend-next/strict-baseline.json` records, and new files must have none; `-- --update` lowers the baseline after a fix and refuses to raise it. The feed, marketplace, messaging, Orders, Business Analytics, Profile, public showroom and coupon screens are clean. Remaining: 207 errors in 31 files (largest: `views/NearbyMap.tsx` and `components/map/HomeMapTab.tsx`, which need `@types/leaflet`, a new dev dependency for the owner to approve); some migrations and tests are still JavaScript.  
+**Status:** Done (corrected 2026-11-07, audit F-008) — the backend is TypeScript and `tsc --noEmit` runs in CI. Since 2026-11-08 the backend runs with `"strict": true`. Since 2026-11-09 the whole frontend is checked strictly (`frontend-next/tsconfig.strict.json`) with a ratchet: `npm run typecheck:strict` (in CI) fails when any file has more strict errors than `frontend-next/strict-baseline.json` records, and new files must have none; `-- --update` lowers the baseline after a fix and refuses to raise it. The feed, marketplace, messaging, Orders, Business Analytics, Profile, public showroom and coupon screens are clean. Remaining: 0 errors: every frontend file is strict-clean (the map screens since 2026-11-10, with the `@types/leaflet` dev dependency the owner approved). The ratchet now fails CI on any new strict error; some migrations and tests are still JavaScript.  
 **File:** All `backend/` files  
 **Problem:** Backend was JavaScript — no type checking, autocomplete is limited, refactoring is risky.  
 **Fix:** Rename `.js` to `.ts`, add `tsconfig.json`, fix type errors incrementally. Add Prisma for type-safe DB queries.  
@@ -128,6 +128,18 @@
 **Fix:** Add Cloudflare Workers image resize transform on R2 public URL. Or use `next/image` with R2 domain configured in `next.config.ts`.  
 **Impact:** Page load performance, mobile experience.
 
+### TD-027: Telegram notifications cannot be connected
+**Status:** Not started — needs an owner decision (found 2026-11-09, audit F-052 follow-up 6)
+**Problem:** Sending works (`notifyUser` in `backend/routes/telegram.ts`), but nothing links a person's Telegram chat to their account. `POST /api/telegram/connect` needs a chat id that people cannot see, there is no bot webhook for `/start`, and `GET /api/telegram/status` sends no bot link or bot name. The settings component (`frontend-next/components/settings/TelegramSettings.tsx`) is not shown on any page (checked 2026-11-10). It had an "Open Telegram Bot" button that opened `#` and would say "Connected to @undefined"; it now says connecting is not available yet, so it is safe to show once linking exists.
+**Fix (to decide):** a one-time link code (`t.me/<bot>?start=<code>`, short expiry, single use) checked by a bot webhook with Telegram's secret-token header, then `status` returns `connect_url` and `bot_username`. Needs the bot name and webhook secret as environment settings.
+**Impact:** Telegram alerts for orders and messages exist on the server, but nobody can turn them on and Settings does not offer them.
+
+
+### TD-028: TypeScript 7 and uuid 12+ cannot be adopted yet
+**Status:** Blocked by upstream (2026-11-12). Dependabot skips these majors (`.github/dependabot.yml`).
+**Problem:** TypeScript 7 is the native (Go) compiler without the JavaScript API that typescript-eslint, ts-jest and Next.js type checking load; its update PRs (#93 frontend, #96 backend) failed in lint and could not pass. uuid 12+ ships only as an ES module, while the CommonJS backend and google-auth-library's `gaxios` `require()` it (the backend overrides uuid to its own version); PR #97 failed.
+**Fix:** Revisit TypeScript 7 when typescript-eslint and ts-jest support it, then remove the ignore rule. For uuid, replace the two direct uses with Node's `crypto.randomUUID()` and drop the override once `gaxios` no longer needs uuid 11.
+**Impact:** None today; both stay on supported releases (TypeScript 5.9/6.0, uuid 11).
 ---
 
 ## Low Priority

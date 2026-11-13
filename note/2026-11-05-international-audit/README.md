@@ -1,6 +1,6 @@
 # International-grade audit — 2026-11-05
 
-> **Status:** Fixes merged and deployed; close-out report: `CLOSEOUT.md` (2026-11-08). Original report: `REPORT.md`; findings table: `SUMMARY.md`; fixes: `FIXES.md`; regression starters: `regression-starters/`. Non-authoritative work note per
+> **Status:** Fixes merged and deployed; close-out report: `CLOSEOUT.md` (2026-11-08). **Re-audit 2026-11-11:** `REAUDIT-2026-11-11.md` (findings F-058 – F-073). Original report: `REPORT.md`; findings table: `SUMMARY.md`; fixes: `FIXES.md`; regression starters: `regression-starters/`. Non-authoritative work note per
 > [`note/README.md`](../README.md). Findings become requirements only when
 > adopted into `docs/` or `project-brain/DECISIONS.md`.
 

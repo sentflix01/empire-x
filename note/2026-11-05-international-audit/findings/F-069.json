@@ -1,0 +1,32 @@
+{
+  "id": "F-069",
+  "kind": "hardening",
+  "phase": "P6-privacy",
+  "severity": "Low",
+  "status": "CONFIRMED",
+  "title": "AI chat history and drafts stay in the browser after signing out",
+  "standards": [
+    "GDPR Art. 25",
+    "GDPR Art. 32",
+    "ASVS 5.0 V14.3 (client-side data)"
+  ],
+  "location": [
+    "frontend-next/lib/AuthContext.tsx:158-172 (logout)",
+    "frontend-next/components/AiAssistant.tsx:143,162",
+    "frontend-next/components/messaging/Composer.tsx:15",
+    "frontend-next/views/ShowroomCreate.tsx:156"
+  ],
+  "steps": [
+    "Read logout: it clears the token and user state but not localStorage keys nodbusiness_ai_history:<userId>:*, nodbusiness:chat-draft:<conversationId>, nodbusiness_builder_draft:<userId>:*."
+  ],
+  "expected": "Personal content stored in the browser is removed on sign-out (or kept only with the user's choice).",
+  "actual": "It remains readable in the browser profile after sign-out.",
+  "evidence": [
+    "frontend-next/lib/AuthContext.tsx:158-172"
+  ],
+  "impact": "On shared or family devices, the next person can read previous AI conversations and unsent message drafts via browser storage.",
+  "fix": "On logout remove keys with the prefixes nodbusiness_ai_history:, nodbusiness:chat-draft:, nodbusiness_builder_draft: (keep language/theme).",
+  "effort": "S",
+  "environment": "repository",
+  "found_on": "2026-11-11"
+}

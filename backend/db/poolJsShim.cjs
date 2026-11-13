@@ -62,7 +62,7 @@ function poolOptions(rawUrl, env = process.env) {
     connectionString,
     ssl,
     max: parseInt(env.DB_POOL_MAX || '5', 10),
-    idleTimeoutMillis: parseInt(env.DB_POOL_IDLE_MS || '60000', 10),
+    idleTimeoutMillis: 60000,
     connectionTimeoutMillis: parseInt(env.DB_CONNECTION_TIMEOUT_MS || '15000', 10),
     allowExitOnIdle: false,
   };
