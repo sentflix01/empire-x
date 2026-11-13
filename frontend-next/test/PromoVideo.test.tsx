@@ -53,6 +53,14 @@ describe('PromoVideo', () => {
     expect(screen.getByRole('button', { name: 'Play animation' })).toBeInTheDocument();
   });
 
+  it('tells the parent when the video can play', () => {
+    const onPlayable = vi.fn();
+    render(<PromoVideo clip={PROMO.banner} onPlayable={onPlayable} />);
+    expect(onPlayable).toHaveBeenLastCalledWith(false);
+    show(true);
+    expect(onPlayable).toHaveBeenLastCalledWith(true);
+  });
+
   it('never loads the video with reduced motion or data saving', () => {
     motion.allowed = false;
     const { container } = render(<PromoVideo clip={PROMO.landing} />);

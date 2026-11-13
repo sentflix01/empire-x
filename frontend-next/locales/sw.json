@@ -105,5 +105,9 @@
   "feed": {
     "noneWithin": "No businesses within",
     "lookFarther": "Move the distance up to look farther."
+  },
+  "promo": {
+    "showAnimation": "Show animation",
+    "showText": "Show text"
   }
 }
