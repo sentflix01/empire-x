@@ -14,6 +14,7 @@ module.exports = {
   testMatch: undefined,
   testRegex: String.raw`test[\\/]db[\\/].+\.db\.test\.[jt]s$`,
   testPathIgnorePatterns: ['/node_modules/'],
+  testEnvironment: '<rootDir>/test/db/environment.js',
   setupFilesAfterEnv: ['<rootDir>/test/db/setup.js'],
   testTimeout: 120000,
 };

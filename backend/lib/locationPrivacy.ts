@@ -8,6 +8,9 @@
  * admins always see the exact pin. See project-brain/DECISIONS.md
  * ("Business location: exact pin only when the address is public") and
  * docs/decisions/platform-model-decisions.md §2.3.
+ *
+ * People never get coordinates at all, only a distance from
+ * roundedDistanceKm (project-brain/DECISIONS.md 2026-11-12).
  */
 
 /** Two decimal places of a degree is about 1.1 km of latitude. */
@@ -21,12 +24,22 @@ export function coarseCoordinate(value: unknown): number | null {
   return Math.round(n * f) / f;
 }
 
-/** A distance rounded to 0.5 km steps, never below 0.5 km. Null when unknown. */
+/** Distances are reported in buckets of this size, in kilometres. */
+export const DISTANCE_BUCKET_KM = 0.5;
+
+/**
+ * Rounds an exact distance up to the next 0.5 km bucket, so a value means
+ * "within X km" (people and hidden-address businesses alike; see
+ * project-brain/DECISIONS.md 2026-11-12). The smallest value is 0.5, which
+ * the UI shows as "< 0.5 km". Accepts numbers or numeric strings (SQL
+ * NUMERIC). Returns null for a missing, negative or non-finite distance, and
+ * for 999 or more, the placeholder routes use for "no pin".
+ */
 export function roundedDistanceKm(km: unknown): number | null {
   if (km === null || km === undefined || km === '') return null;
   const n = Number(km);
   if (!Number.isFinite(n) || n < 0 || n >= 999) return null;
-  return Math.max(0.5, Math.round(n * 2) / 2);
+  return Math.max(DISTANCE_BUCKET_KM, Math.ceil(n / DISTANCE_BUCKET_KM) * DISTANCE_BUCKET_KM);
 }
 
 /** Whether the owner chose to show the business address (and so the exact pin). */

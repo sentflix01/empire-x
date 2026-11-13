@@ -1,5 +1,6 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import Link from 'next/link';
 import React, { useState } from "react";
 import client from "@/api/client";
@@ -21,7 +22,7 @@ function ResetPassword() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (newPassword !== confirmPassword) {
@@ -33,7 +34,7 @@ function ResetPassword() {
       await client.post('/api/auth/reset-password', { token: resetToken, password: newPassword }, { headers: { 'X-Account-Mode': 'real' } });
       window.location.href = '/login';
     } catch (err) {
-      setError(err.error || err.message || "Failed to reset password");
+      setError(apiErrorMessage(err, "Failed to reset password"));
     } finally {
       setLoading(false);
     }

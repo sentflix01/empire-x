@@ -12,7 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 function HashtagFeed() {
   const { user } = useAuth();
   const { name } = useParams();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Array<React.ComponentProps<typeof PostCard>["post"]>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

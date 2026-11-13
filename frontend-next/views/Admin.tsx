@@ -640,7 +640,7 @@ function Admin() {
                     <CartesianGrid strokeDasharray="3 3" stroke={HEX.border} />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d?.slice(5)} />
                     <YAxis tick={{ fontSize: 10 }} width={48} tickFormatter={v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v} />
-                    <Tooltip formatter={(v: any, n: string) => [Number(v).toLocaleString(), n === 'revenue' ? 'Revenue' : 'Orders']} />
+                    <Tooltip formatter={(v, n) => [Number(v).toLocaleString(), n === 'revenue' ? 'Revenue' : 'Orders']} />
                     <Area type="monotone" dataKey="revenue" stroke={HEX.primary} fill="url(#revGrad)" strokeWidth={2} dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -656,7 +656,7 @@ function Admin() {
                   </p>
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
-                      <Pie data={orderDonut} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                      <Pie data={orderDonut} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
                         {orderDonut.map((entry: any) => (
                           <Cell key={entry.name} fill={(ORDER_COLORS as any)[entry.name] ?? HEX.muted} />
                         ))}

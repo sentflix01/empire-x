@@ -20,7 +20,7 @@ Command.displayName = CommandPrimitive.displayName
 const CommandDialog = ({
   children,
   ...props
-}) => {
+}: React.ComponentProps<typeof Dialog>) => {
   return (
     (<Dialog {...props}>
       <DialogContent className="overflow-hidden p-0">
@@ -95,7 +95,7 @@ CommandItem.displayName = CommandPrimitive.Item.displayName
 const CommandShortcut = ({
   className,
   ...props
-}) => {
+}: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     (<span
       className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)}

@@ -1,5 +1,6 @@
 ﻿'use client';
 import React, { useState, useEffect } from "react";
+import { TEXT_LIMITS } from "@/lib/textLimits";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/api/entities";
@@ -125,7 +126,8 @@ function ProductCreate() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.id]);
 
-  const loadProduct = async (currentUser) => {
+  const loadProduct = async (currentUser: { id?: string; role?: string } | null | undefined) => {
+    if (!id) return;
     setLoading(true);
     try {
       const p = await entities.Product.get(id);
@@ -195,7 +197,7 @@ function ProductCreate() {
       ...(unit ? { unit } : {}),
     };
     try {
-      if (isEdit) {
+      if (isEdit && id) {
         await entities.Product.update(id, payload);
         toast.success("Product updated");
       } else {
@@ -281,7 +283,7 @@ function ProductCreate() {
           </div>
           <div>
             <Label htmlFor="product-title">Title</Label>
-            <Input id="product-title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Product name" className="mt-1" />
+            <Input id="product-title" maxLength={TEXT_LIMITS.title} value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Product name" className="mt-1" />
           </div>
           <div>
             <div className="flex items-center justify-between">
@@ -292,7 +294,7 @@ function ProductCreate() {
                 </button>
               )}
             </div>
-            <Textarea id="product-description" value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your product..." className="mt-1 min-h-[100px]" />
+            <Textarea id="product-description" maxLength={TEXT_LIMITS.description} value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="Describe your product..." className="mt-1 min-h-[100px]" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

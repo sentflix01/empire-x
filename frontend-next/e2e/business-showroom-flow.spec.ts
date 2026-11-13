@@ -57,6 +57,14 @@ async function mockShowroomApi(page: Page, options: { signedIn?: boolean; publis
       await route.fulfill({ status: 201, json: { ...publishedShowroom, ...body, id: publishedShowroom.id, slug: publishedShowroom.slug } });
       return;
     }
+    // The Business feed is built on the server; the published site is its only item.
+    if (path === '/api/feed/businesses') {
+      const items = isPublished || options.publishedByDefault
+        ? [{ type: 'showroom', record: publishedShowroom, distance_km: null, relationship: null, rating_avg: null, rating_count: 0 }]
+        : [];
+      await route.fulfill({ json: { items, owners: {}, next_offset: null } });
+      return;
+    }
     if (path === '/api/showrooms' && request.method() === 'GET') {
       await route.fulfill({ json: (isPublished || options.publishedByDefault) && url.searchParams.get('status') === 'published' ? [publishedShowroom] : [] });
       return;

@@ -6,9 +6,10 @@ import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
 
+// Unset on the group means each item's own variant/size applies.
 const ToggleGroupContext = React.createContext<{
-  size: "default" | "sm" | "lg"
-  variant: "default" | "outline"
+  size?: "default" | "sm" | "lg"
+  variant?: "default" | "outline"
 }>({
   size: "default",
   variant: "default",
@@ -34,9 +35,9 @@ const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(({ classN
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
-type ToggleGroupItemProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+type ToggleGroupItemProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "value"> & {
   className?: string
-  value?: string
+  value: string
   variant?: "default" | "outline"
   size?: "default" | "sm" | "lg"
 }

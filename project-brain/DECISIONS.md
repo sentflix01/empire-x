@@ -973,17 +973,54 @@ items in the open list until confirmed.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`) and are referenced only through `lib/promoAssets.ts`. Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
 
+### 2026-11-12 — A failed sign-in check is a 503, not a 401
+
+- **Status:** Accepted (owner, 12 Nov 2026: "Yes, 503 AUTH_UNAVAILABLE")
+- **Decision owner:** Project owner
+- **Decision:** `requireAuth` answers 401 only for token problems (`INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`, `UNAUTHORIZED`). When the check fails on our side, such as a database error or an exhausted connection pool, it logs the error and answers `503 AUTH_UNAVAILABLE`.
+- **Why:** Every error used to become `401 INVALID_TOKEN`. The web client answers a 401 by refreshing and signing out, so a database outage signed people out. It also hid the real cause of the flaky `devopsVersions.db.test.js` (Postgres "too many clients already").
+- **Consequences:** `backend/middleware/auth.ts`. Test: `backend/test/authMiddleware.test.js`. Docs: `docs/backend/API_REFERENCE.md`. Investigation: `note/2026-11-12-devops-versions-flake.md`.
+
+### 2026-11-12 — `optionalAuth` also answers 503 on a failed sign-in check
+
+- **Status:** Accepted (owner asked to extend the 503 rule above to `optionalAuth` and to record the choice, 12 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** Follows "A failed sign-in check is a 503, not a 401" above. `optionalAuth` still continues as a guest for a missing, invalid, expired, revoked or banned token, but when a token was sent and the check fails on our side it **answers `503 AUTH_UNAVAILABLE` instead of continuing as a guest**. Token errors are any `jwt.JsonWebTokenError`; everything else counts as our failure. In both middlewares `next()` now runs outside the `try`, so an error from a later handler is never reported as a sign-in failure.
+- **Why:** As a guest, a signed-in person would hit guest-only routes that answer `401 SIGN_IN_REQUIRED`, which the web client treats as an expired session (refresh, then sign out), and could be served or cached a guest response.
+- **Consequences:** `backend/middleware/auth.ts` (`isTokenError`, `authUnavailable`). The web client needs no change: it refreshes only on 401, `AUTH_UNAVAILABLE` is not a Demo-ended code, and `AuthContext` keeps the session on errors other than 401. Tests: `backend/__tests__/authUnavailable.test.ts`, `frontend-next/test/demoEnded.test.tsx`. Docs: `docs/backend/API.md`, `docs/backend/SECURITY.md`, `docs/backend/API_REFERENCE.md`. Not covered: `POST /api/auth/refresh` and Socket.IO handshake auth during an outage.
+
+### 2026-11-12 — Maximum lengths for text sent to the API
+
+- **Status:** Accepted (owner, 12 Nov 2026: "yes … fix the text limits first", approving the proposed limits)
+- **Decision owner:** Project owner
+- **Decision:** Every JSON request body is checked after parsing: product name 200, description 5,000, post and comment 5,000, business name 100, website sections 200,000 characters, and 10,000 for any other text field (full list in `backend/lib/textLimits.ts`). Longer text is refused with `422 TEXT_TOO_LONG`; bodies over 2 MB with `413`. The forms use the same limits as `maxLength`.
+- **Why:** Re-audit F-058: one member saved 900,000-character products, and every visitor's marketplace list became 2.2 MB and about 20 times slower.
+- **Consequences:** `backend/middleware/textLimits.ts` (mounted in `index.ts` after the body parsers), `backend/lib/textLimits.ts`, `frontend-next/lib/textLimits.ts` (kept in step by `backend/__tests__/textLimits.test.ts`), `docs/backend/API.md`, `docs/backend/SECURITY.md`. Rows already longer than a limit stay as they are; editing them requires shortening the text.
+
+### 2026-11-12 — People on the map show a rounded distance, never coordinates
+
+- **Status:** Accepted (owner task, 12 Nov 2026: people on maps get a rounded distance only; hidden and blocked people are left out; pick the simplest clear map option)
+- **Decision owner:** Project owner
+- **Decision:** `GET /api/maps/nearby` returns people without `latitude`/`longitude`. Each person has `distance_km` rounded **up** to the next 0.5 km (`roundedDistanceKm` in `backend/lib/locationPrivacy.ts`; the smallest value, 0.5, reads "< 0.5 km") and `distance_approx: true`. People who are not searchable, the viewer, and anyone blocked in either direction are left out, as in `/api/search`. The map shows **no pins for people**: people appear only in the result list with their distance ("< 0.5 km away", "≈ 2.5 km away"; never metres).
+- **Why:** The endpoint sent every located person's exact coordinates to any signed-in user, ignoring "appear in search" and blocks. Dropping pins was the simplest clear option: people pins on the Home map were built from `/api/search` results, which never include coordinates, so they never rendered; a pin at a coarse position would suggest a real location.
+- **Consequences:**
+  - The radius filter and the nearest-first order use the exact distance on the server; the rounding only applies to what is sent.
+  - Known limit: a signed-in user can still narrow someone's position to about 0.5 km by querying from several chosen points. Accepted for now.
+  - Follow-up done (12 Nov 2026): `/api/search` people results now use the same rule: `distance_km` from `roundedDistanceKm` plus `distance_approx: true`, with radius and distance sort still on the exact distance. Products were unchanged (0.1 km) until "Business location" merged on 13 Nov 2026; since then every search distance, products included, is rounded up to 0.5 km. The search viewer id is now a bound `$3` parameter instead of text in the SQL.
+  - Fixed (12 Nov 2026): `/api/search` wrote `lat`/`lon` into its distance SQL as `col-${lat}`, so a negative coordinate became a `--` comment and the search failed with 500. Coordinates and `radius_km` are now bound parameters. A `radius_km` that is not a positive finite number is ignored, and a coordinate of exactly 0 now counts as given. The DB test uses negative coordinates.
+  - Code: `backend/routes/maps.ts`, `backend/routes/search.ts`, `backend/lib/locationPrivacy.ts`, `frontend-next/components/map/HomeMapTab.tsx`, `frontend-next/lib/personDistance.ts`. Tests: `backend/test/db/mapsPeoplePrivacy.db.test.js`, `backend/test/db/searchPeoplePrivacy.db.test.js`, `backend/test/integration/search.test.js`, `backend/test/locationPrivacy.test.js`, `backend/test/integration/maps.test.js`, `frontend-next/test/personDistance.test.ts`. Docs: `docs/backend/API.md` (Maps, Search).
+
 ### 2026-11-12 — Business location: exact pin only when the address is public
 
 - **Status:** Accepted (owner, 12 Nov 2026: "Pin + distance only", while planning the features shown in the promo video)
 - **Decision owner:** Project owner
 - **Decision:**
   1. A business owner sets a map pin in the business editor (tap the map, drag the pin, or "Use my location").
-  2. Other people see the exact pin only when the owner made the address public. Otherwise they get coordinates rounded to about 1 km (enough for a neighbourhood pin on a map) and distances rounded to 0.5 km steps, never below 0.5 km.
+  2. Other people see the exact pin only when the owner made the address public. Otherwise they get coordinates rounded to about 1 km (enough for a neighbourhood pin on a map) and distances rounded **up** to the next 0.5 km, never below 0.5 km (the same `roundedDistanceKm` rule as people; aligned when this work merged with "People on the map show a rounded distance, never coordinates").
   3. Product coordinates are always rounded the same way for non-owners, because a product's pin can reveal the shop.
   4. Owners and admins always see the exact pin.
 - **Why:** "Nearest first" needs every business to have a location, but decision §2.3 keeps a private address hidden until an order. Exact coordinates were already leaking through `GET /api/businesses` and `/api/maps/*` even when the address was private; this closes that leak.
-- **Consequences:** `backend/lib/locationPrivacy.ts` (used by `lib/contactPrivacy.ts`, `routes/maps.ts`, `routes/products.ts`); pin validation on business create/update. Frontend: `components/map/LocationPinPicker.tsx`, `components/map/leafletLoader.tsx`, `hooks/useViewerLocation.ts` (one Addis Ababa fallback), the business editor (`views/BusinessCreate.tsx`). Tests: `backend/__tests__/locationPrivacy.test.ts`, `backend/test/db/businessLocation.db.test.js`, `frontend-next/test/map/useViewerLocation.test.tsx`, `frontend-next/e2e/business-location.spec.ts`. People's coordinates on the maps endpoint are a separate follow-up.
+- **Consequences:** `backend/lib/locationPrivacy.ts` (used by `lib/contactPrivacy.ts`, `routes/maps.ts`, `routes/products.ts`); pin validation on business create/update. Frontend: `components/map/LocationPinPicker.tsx`, `components/map/leafletLoader.tsx`, `hooks/useViewerLocation.ts` (one Addis Ababa fallback), the business editor (`views/BusinessCreate.tsx`). Tests: `backend/__tests__/locationPrivacy.test.ts`, `backend/test/db/businessLocation.db.test.js`, `frontend-next/test/map/useViewerLocation.test.tsx`, `frontend-next/e2e/business-location.spec.ts`. People's coordinates on the maps endpoint: done in "People on the map show a rounded distance, never coordinates".
 
 ### 2026-11-12 — Business reviews: verified customers only
 

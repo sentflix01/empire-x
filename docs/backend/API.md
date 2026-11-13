@@ -1,10 +1,15 @@
 # Nodbusiness — API Documentation
 
+Last reviewed: 2026-11-12
+
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
 > All endpoints return JSON. All protected endpoints require `Authorization: Bearer <token>`.
 > Errors follow `{ "error": "message" }` format.
+> Last reviewed: 2026-11-12
 > An ID in the path that is not a UUID answers `404` (the route is skipped; see `backend/lib/uuidParams.ts`). A request body in a format the API does not read (for example `text/plain`) is treated as empty, so validation answers `400`/`422`, not `500`.
+> **Text limits** (audit F-058, `backend/lib/textLimits.ts`): JSON bodies are at most 2 MB, and every text field has a maximum length — product `title` 200, `description` 5,000, post/comment `content` 5,000, `business_name` 100, website `sections` 200,000, any other text 10,000 characters. Longer text answers `422 { "code": "TEXT_TOO_LONG", "field", "max", "error" }` before the route runs; a larger body answers `413`.
+> **Last updated:** 2026-11-13
 
 ---
 
@@ -502,6 +507,39 @@ Signed-in users, owners and admins see private businesses as usual.
 
 For everyone, an announcement post is hidden once its site is unpublished, expired or hidden by a lapsed subscription.
 
+## Maps
+
+### GET /api/maps/nearby?lat=9.0&lon=38.75&type=all|products|businesses|people&radius=10&limit=50
+
+`lat` and `lon` are required (`400` otherwise). `radius` is in km (default 10);
+`limit` is per type (default 50, at most 200). The response has one array per
+requested type: `products`, `businesses`, `people`. Products and businesses
+carry `latitude`, `longitude` and `distance_km`, protected as described in
+Business location (map pin) below.
+
+**People** are returned to signed-in users only (guests get no `people` key)
+and never with coordinates:
+
+```json
+{ "people": [{ "user_id": "uuid", "display_name": "Abebe", "avatar_url": null,
+  "headline": "Designer", "is_verified": false,
+  "distance_km": 0.5, "distance_approx": true }] }
+```
+
+- `distance_km` is rounded **up** to the next 0.5 km, so it means "within this
+  distance". The smallest value is `0.5`, shown as "< 0.5 km". Results are
+  sorted nearest first and filtered by `radius` on the server.
+- Left out: the viewer, people who turned off "appear in search"
+  (`user_profiles.searchable = false`), and anyone the viewer blocked or who
+  blocked the viewer — the same rules as people in `/api/search`.
+
+See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
+
+### GET /api/maps/nearby/product-search?q=coffee&lat=9.0&lon=38.75&radius_km=10&category=
+
+Active products matching `q` (2–120 characters) within `radius_km`, plus the
+businesses that sell them: `{ businesses, geo_products, products_matched, total_matches }`.
+
 ## Business location (map pin)
 
 Owners set the pin with `latitude` and `longitude` on `POST /api/businesses`
@@ -626,7 +664,9 @@ Optional auth. `q` needs at least 2 characters.
 - `sort`: `relevance` (default), `recent`, `distance`, `price_asc`, `price_desc`. Unknown values mean `relevance`.
 - With `lat`/`lon`, `sort=distance` puts the nearest first and `radius_km` (0–200; anything else is ignored) keeps results within that distance. Businesses and sites use the business's map pin; products and people their own location.
 - `businesses` finds businesses on a paid plan by name, category or description (guests: public businesses only), returning `id, owner_id, business_name, business_category, business_description, business_logo_url, created_at, distance_km`.
-- Every `distance_km` is rounded to 0.5 km (never below 0.5) or `null`; no coordinates are returned.
+- Every `distance_km` is rounded **up** to the next 0.5 km (never below 0.5) or `null`; no coordinates are returned. `radius_km` and `sort=distance` use the exact distance on the server; the rounding only applies to what is sent.
+- `lat` (−90 to 90) and `lon` (−180 to 180) may be negative or 0; values out of range are ignored. They and `radius_km` are bound as query parameters.
+- **People** (`users`) also get `distance_approx: true` when they have a distance. Left out: people who turned off "appear in search" (the viewer still finds their own profile) and anyone the viewer blocked or who blocked the viewer. See [DECISIONS.md](../../project-brain/DECISIONS.md) (2026-11-12).
 - Guests get no people or posts, and no private businesses.
 
 ## Scheduled jobs (internal)
@@ -956,14 +996,14 @@ All errors follow this format:
 | Status | Meaning |
 |---|---|
 | 400 | Bad request — missing or invalid fields |
-| 401 | Unauthenticated — no token or expired token |
+| 401 | Unauthenticated — a problem with the token or account: `UNAUTHORIZED` (no token), `INVALID_TOKEN`, `TOKEN_EXPIRED`, `TOKEN_REVOKED`, `USER_NOT_FOUND`. The web app refreshes the session once on a 401. |
 | 403 | Forbidden — authenticated but not authorized |
 | 404 | Not found |
 | 409 | Conflict — duplicate (e.g., email already registered) |
 | 413 | File too large |
 | 429 | Rate limited |
 | 500 | Server error — check Sentry |
-| 503 | Service unavailable — Stripe/AI not configured |
+| 503 | Service unavailable — Stripe/AI not configured, or `AUTH_UNAVAILABLE`: the server could not check the token's account (for example the database is unreachable). The session is still valid; retry later and do not sign the person out. Sent by `requireAuth` and by `optionalAuth` when a token was sent. |
 
 ---
 

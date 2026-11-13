@@ -1,0 +1,145 @@
+{
+  "ran_at": "2026-11-11T17:10:20.001Z",
+  "axe": "4.12.1",
+  "scheme": "dark",
+  "tags": "wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa",
+  "base": "http://localhost:3002",
+  "results": [
+    {
+      "path": "/showroom/abeba-coffee-roasters-1794416954650",
+      "url": "/showroom/abeba-coffee-roasters-1794416954650",
+      "status": 200,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".text-white\\/80.text-xs"
+          ]
+        }
+      ],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Abeba Coffee Roasters | Nodbusiness",
+      "small_targets": 4,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "url": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Yirgacheffe beans 500 g | Nodbusiness",
+      "small_targets": 4,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showrooms/b7b372e9-aa1f-4818-9878-e00d06267061",
+      "url": "/showrooms/b7b372e9-aa1f-4818-9878-e00d06267061",
+      "status": 200,
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "wcag": [
+            "wcag2aa",
+            "wcag143"
+          ],
+          "nodes": 1,
+          "sample": [
+            ".text-white\\/80.text-xs"
+          ]
+        }
+      ],
+      "incomplete": 2,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 4,
+      "role": "guest",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showroom/abeba-coffee-roasters-1794416954650",
+      "url": "/showroom/abeba-coffee-roasters-1794416954650",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Abeba Coffee Roasters | Nodbusiness",
+      "small_targets": 3,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "url": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "status": 200,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "wcag": [
+            "wcag22aa",
+            "wcag258"
+          ],
+          "nodes": 5,
+          "sample": [
+            "button[aria-label=\"Rate 1 star\"]",
+            "button[aria-label=\"Rate 2 stars\"]"
+          ]
+        }
+      ],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Yirgacheffe beans 500 g | Nodbusiness",
+      "small_targets": 10,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    },
+    {
+      "path": "/showrooms/b7b372e9-aa1f-4818-9878-e00d06267061",
+      "url": "/showrooms/b7b372e9-aa1f-4818-9878-e00d06267061",
+      "status": 200,
+      "violations": [],
+      "incomplete": 1,
+      "lang": "en",
+      "title": "Nodbusiness",
+      "small_targets": 3,
+      "role": "member",
+      "reflow_320": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "horizontal_scroll": false
+      }
+    }
+  ]
+}

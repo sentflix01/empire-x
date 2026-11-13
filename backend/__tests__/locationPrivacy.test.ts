@@ -9,9 +9,10 @@ describe('location privacy', () => {
     expect(coarseCoordinate('x')).toBeNull();
   });
 
-  it('rounds distances to 0.5 km steps with a 0.5 km floor', () => {
+  it('rounds distances up to 0.5 km steps with a 0.5 km floor', () => {
     expect(roundedDistanceKm(0.12)).toBe(0.5);
-    expect(roundedDistanceKm(1.6)).toBe(1.5);
+    expect(roundedDistanceKm(1.6)).toBe(2);
+    expect(roundedDistanceKm('1.4')).toBe(1.5);
     expect(roundedDistanceKm(1.8)).toBe(2);
     expect(roundedDistanceKm(999)).toBeNull();
     expect(roundedDistanceKm(null)).toBeNull();

@@ -1,0 +1,119 @@
+{
+  "ran_at": "2026-11-11T17:10:49.076Z",
+  "report": [
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 375,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 375,
+      "scheme": "light",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 768,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 768,
+      "scheme": "light",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 1440,
+      "scheme": "light",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 375,
+      "scheme": "dark",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 768,
+      "scheme": "dark",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    },
+    {
+      "screen": "/showroom/abeba-coffee-roasters-1794416954650",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/showroom/abeba-coffee-roasters-1794416954650",
+      "overflow_px": 0,
+      "logs": []
+    },
+    {
+      "screen": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "width": 1440,
+      "scheme": "dark",
+      "final": "/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+      "overflow_px": 0,
+      "logs": [
+        "http 400: /api/products/11d27024-b166-4479-a9f4-7f8b54accad7",
+        "error: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ]
+    }
+  ]
+}
