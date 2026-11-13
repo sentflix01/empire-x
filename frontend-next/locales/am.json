@@ -668,8 +668,8 @@
     "guideTitle": "ኖድቢዝነስ እንዴት እንደሚሰራ",
     "bannerDescription": "አኒሜሽን፦ አንድ ሰው የድረ-ገጽ አብነት መርጦ ፎቶና ሊንክ ያክላል፣ ያትመዋል፣ ድረ-ገጹም ከምርቶቹ ጋር በቢዝነስ ፊድ ላይ ይታያል።",
     "guideDescription": "ቃል የሌለው አኒሜሽን በስድስት ደረጃዎች፦ ሕይወትዎን በግል ፊድ ላይ ያጋሩ፤ ድረ-ገጽ ከተዘጋጀ አብነት ወይም ከባዶ ክፍሎች ይጀምሩ፤ ፎቶ በማከል፣ ሊንክ በመለጠፍ እና ቀላል ቅጾችን በመሙላት ያዘጋጁት፤ ቀለም መርጠው በኮምፒውተር፣ በታብሌት እና በስልክ ይመልከቱት፤ በቢዝነስ ፊድ ላይ ያትሙት፣ ሰዎችም ያገኙታል እና የQR ኮዱን ይቃኛሉ፤ ደንበኞች ያዝዛሉ፣ መልእክት ይልካሉ እና በቀጥታ ይከፍሉዎታል። አንድ መለያ የግል ሕይወትዎንም ቢዝነስዎንም ይይዛል።",
-    "showAnimation": "Show animation",
-    "showText": "Show text"
+    "textLevel": "Show the text over the animation",
+    "textLevelValue": "{{n}}% text"
   },
   "reviews": {
     "title": "Customer reviews",
