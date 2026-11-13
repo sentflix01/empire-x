@@ -4,11 +4,13 @@
  * A business's exact map pin is shown to other people only when its owner
  * made the address public (public_contact_fields includes business_address).
  * Otherwise viewers get coordinates rounded to about 1 km (enough to place a
- * pin in the right neighbourhood) and distances rounded up to 0.5 km steps.
- * People never get coordinates at all, only the rounded distance. Owners and
+ * pin in the right neighbourhood) and distances rounded to 0.5 km. Owners and
  * admins always see the exact pin. See project-brain/DECISIONS.md
  * ("Business location: exact pin only when the address is public") and
  * docs/decisions/platform-model-decisions.md §2.3.
+ *
+ * People never get coordinates at all, only a distance from
+ * roundedDistanceKm (project-brain/DECISIONS.md 2026-11-12).
  */
 
 /** Two decimal places of a degree is about 1.1 km of latitude. */
@@ -27,11 +29,11 @@ export const DISTANCE_BUCKET_KM = 0.5;
 
 /**
  * Rounds an exact distance up to the next 0.5 km bucket, so a value means
- * "within X km" and never shows a place as closer than it is. The smallest
- * value is 0.5, which the UI shows as "< 0.5 km". Returns null for a missing,
- * non-finite or negative distance, and for 999+ (the "no pin" placeholder some
- * queries use). Used for people (maps, search) and for businesses whose
- * address is private.
+ * "within X km" (people and hidden-address businesses alike; see
+ * project-brain/DECISIONS.md 2026-11-12). The smallest value is 0.5, which
+ * the UI shows as "< 0.5 km". Accepts numbers or numeric strings (SQL
+ * NUMERIC). Returns null for a missing, negative or non-finite distance, and
+ * for 999 or more, the placeholder routes use for "no pin".
  */
 export function roundedDistanceKm(km: unknown): number | null {
   if (km === null || km === undefined || km === '') return null;

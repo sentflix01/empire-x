@@ -141,13 +141,12 @@ describe('products in search', () => {
   const searchProducts = (extra = '') =>
     `/api/search?q=${NAME}&type=products&lat=${ORIGIN.lat}&lon=${ORIGIN.lon}${extra}`;
 
-  it('works with negative coordinates; the distance is rounded up to 0.5 km', async () => {
+  it('works with negative coordinates and rounds the distance up to 0.5 km', async () => {
     const res = await request(app).get(searchProducts()).set(auth(viewer));
     expect(res.status).toBe(200);
     const found = res.body.products.find((p) => p.id === product);
     expect(found).toBeDefined();
-    // About 1.1 km. A product's location is its shop's, so it is rounded up
-    // like a business's (DECISIONS.md "Business location …"); not marked approximate.
+    // About 1.1 km, sent rounded up to 1.5 km (DECISIONS.md "Business location", item 3).
     expect(found.distance_km).toBe(1.5);
     expect(found).not.toHaveProperty('distance_approx');
   });

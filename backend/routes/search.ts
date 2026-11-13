@@ -114,30 +114,26 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       R.products = rows;
     }
     if (type==='all'||type==='showrooms') {
-      // Distance comes from the site's business pin. The full-text query binds
-      // $1 tsquery, $2 pattern, $3 limit; the fallbacks $1 pattern, $2 limit.
-      const geoFrom=(first: number)=>geoSql('sb.latitude','sb.longitude',sL,sLon,radius,first);
-      const orderFor=(g: GeoSql)=>sort==='distance'&&g.expr ? `sb.latitude IS NULL,${g.expr} ASC` : sort==='recent'?'s.created_at DESC':'s.view_count DESC';
+      // Distance comes from the site's business pin.
+      // The full-text query binds $1-$3, the fallbacks $1-$2; the distance params follow.
+      const geoFts=geoSql('sb.latitude','sb.longitude',sL,sLon,radius,4);
+      const geo=geoSql('sb.latitude','sb.longitude',sL,sLon,radius,3);
+      const showroomOrder = (g: GeoSql) => sort==='distance'&&g.expr ? oBy('s.view_count DESC','sb.latitude',g.expr,null,sort) : sort==='recent'?'s.created_at DESC':'s.view_count DESC';
+      const ob=showroomOrder(geo), obFts=showroomOrder(geoFts);
       const from = 'FROM showrooms s LEFT JOIN businesses sb ON sb.id=s.business_id';
-      const ownerNameMatch = (param: string) => `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE ${param})`;
-      const fallback = async () => {
-        const g=geoFrom(3);
-        return pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${g.sel} ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${g.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${orderFor(g)} LIMIT $2`,[ilike,lim,...g.params]);
-      };
       let rows;
-      if (useFTS) {
-        const g=geoFrom(4);
-        try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${g.sel},ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch('$2')}) ${g.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':orderFor(g)} LIMIT $3`,[tsQ,ilike,lim,...g.params])); }
-        catch { ({rows}=await fallback()); }
-      } else ({rows}=await fallback());
+      // The ILIKE pattern is $2 in the full-text query and $1 in the fallbacks.
+      const ownerNameMatch = (param: string) => `EXISTS (SELECT 1 FROM user_profiles up WHERE up.user_id=s.owner_id AND up.display_name ILIKE ${param})`;
+      if (useFTS) { try { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geoFts.sel},ts_rank(to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,'')),to_tsquery('english',$1)) AS rank ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (to_tsvector('english',coalesce(s.title,'')||' '||coalesce(s.description,''))@@to_tsquery('english',$1) OR s.title ILIKE $2 OR s.description ILIKE $2 OR ${ownerNameMatch('$2')}) ${geoFts.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${sort==='relevance'?'rank DESC,s.view_count DESC':obFts} LIMIT $3`,[tsQ,ilike,lim,...geoFts.params])); } catch { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geo.sel} ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${geo.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...geo.params])); } }
+      else { ({rows}=await pool.query(`SELECT s.id,s.owner_id,s.business_id,s.slug,s.title,s.description,s.category,s.cover_image,s.logo_url,s.view_count${geo.sel} ${from} WHERE s.status='published' AND (s.expires_at IS NULL OR s.expires_at > NOW()) AND (s.title ILIKE $1 OR s.description ILIKE $1 OR ${ownerNameMatch('$1')}) ${geo.flt} ${realShowroomFilter} ${guestShowroomFilter} ORDER BY ${ob} LIMIT $2`,[ilike,lim,...geo.params])); }
       R.showrooms = rows;
     }
     if (type==='all'||type==='businesses') {
       // Businesses on a paid plan, found by name, category or description; distance from their pin.
-      // $1 pattern, $2 limit; the distance params follow.
+      // $1 is the pattern, $2 the limit; the distance params follow.
       const geo=geoSql('b.latitude','b.longitude',sL,sLon,radius,3);
       const ds=geo.sel, df=geo.flt;
-      const ob=sort==='distance'&&geo.expr ? `b.latitude IS NULL,${geo.expr} ASC` : sort==='recent'?'b.created_at DESC':'(b.business_name ILIKE $1) DESC,b.created_at DESC';
+      const ob=sort==='distance'&&geo.expr ? oBy('b.created_at DESC','b.latitude',geo.expr,null,sort) : sort==='recent'?'b.created_at DESC':'(b.business_name ILIKE $1) DESC,b.created_at DESC';
       const realBizFilter=req.realOnly?'AND b.owner_id IN (SELECT id FROM users WHERE is_seed=FALSE AND is_demo=FALSE)':'';
       const guestBizFilter=guest?"AND b.visibility='public'":'';
       const { rows } = await pool.query(
