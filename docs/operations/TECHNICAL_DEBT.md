@@ -143,7 +143,7 @@
 ---
 
 ### TD-029: ~~Backend runs on Node 20, which is past end of life~~ ✅ Node 22
-**Status:** Resolved 2026-11-13 (owner: "yes upgrade to Node 22"). `backend/Dockerfile` (which Render builds), `docker-compose.yml` and every Node-20 `setup-node` in `.github/workflows/` now use Node 22 LTS; `backend/package.json` declares `engines.node >=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for. Still open: re-open the two upgrades below.
+**Status:** Resolved 2026-11-13 (owner: "yes upgrade to Node 22"). `backend/Dockerfile` (which Render builds), `docker-compose.yml` and every Node-20 `setup-node` in `.github/workflows/` now use Node 22 LTS; `backend/package.json` declares `engines.node >=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for. Follow-ups: google-auth-library 11 done (2026-11-13, with an unmocked token-verification test); web-push 4 still open.
 **Problem:** The backend image (`backend/Dockerfile`, `node:20-alpine`) and CI (`setup-node` 20) use Node 20, whose maintenance ended on 30 April 2026, so it no longer gets security fixes. Two dependency majors are waiting on a newer Node:
 - google-auth-library 11 (and its `gaxios` 8, `gcp-metadata` 9) needs Node 22 or later. Its PR #215 was closed.
 - web-push 4 is an ES module only. The backend loads it with `require()` inside a try/catch in `routes/push.ts`, so a load failure would turn push notifications off silently. Its PR #216 was closed. Node 22 loads ES modules with `require()`; adopt it together with a test that push loads.
