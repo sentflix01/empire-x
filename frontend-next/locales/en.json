@@ -7,7 +7,136 @@
     "changeLanguage": "Change language",
     "tryDemo": "Try the demo",
     "openingDemo": "Opening demo…",
-    "demoUnavailable": "Demo access is temporarily unavailable. Please try again later."
+    "demoUnavailable": "Demo access is temporarily unavailable. Please try again later.",
+    "navLabel": "Main",
+    "signIn": "Sign in",
+    "startFree": "Start free",
+    "eyebrow": "Showroom Studio · Social · Commerce",
+    "heroLine1": "Build your business showroom.",
+    "heroLine2": "Change any part, any time.",
+    "heroLine3": "Publish and sell, no code.",
+    "lead": "Choose a template or start from scratch, fill in simple forms, and your website is live. Customers book, buy and pay you directly.",
+    "audience": "For shops, hotels, companies, government offices and creators.",
+    "explore": "Explore as guest",
+    "videoDescription": "How Nodbusiness works, as an animation: a person shares a photo on the Personal feed, builds a website from a template or from sections by adding photos, pasting links and filling forms, publishes it to the Business feed, and customers order, message and pay them directly.",
+    "watch": "Watch",
+    "guideLength": "3 min",
+    "builderLength": "2 min",
+    "builtFor": "Built for every kind of organisation",
+    "howEyebrow": "How it works",
+    "howTitle": "From idea to a website that sells, in three steps.",
+    "howLead": "Your website is made of sections you can touch. Change any of them whenever your business changes, without a developer.",
+    "stepLabel": "Step",
+    "templatesNote": "{{n}} ready templates, one for each kind of business.",
+    "startBuilding": "Start building",
+    "platformEyebrow": "One connected platform",
+    "platformTitle": "Everything your business needs, connected.",
+    "platformLead": "Your website, your customers and your orders live in one account, next to the social feed where people discover you.",
+    "trustEyebrow": "Built for trust",
+    "trustTitle": "From showroom to payment, in one place.",
+    "trustLead": "Customers find you nearby, see your showroom, message you, pay you directly and leave a review once their order is complete.",
+    "dash": {
+      "title": "Business dashboard",
+      "showroom": "Showroom",
+      "live": "Live",
+      "orders": "Orders",
+      "messages": "Messages",
+      "rating": "Rating",
+      "tipTitle": "New booking request",
+      "tip": "Deluxe room · 2 nights · confirm to hold the dates."
+    },
+    "ctaTitle": "Start your showroom today.",
+    "ctaLead": "Build it in minutes, change it whenever you want, and sell to customers who find you.",
+    "footerAbout": "Business showrooms, social discovery and direct orders in one place.",
+    "rights": "All rights reserved.",
+    "audiences": {
+      "shops": {
+        "title": "Shops & restaurants",
+        "desc": "Menus, products and orders"
+      },
+      "hotels": {
+        "title": "Hotels & services",
+        "desc": "Rooms, bookings and prices"
+      },
+      "companies": {
+        "title": "Companies",
+        "desc": "Teams, branches and catalogues"
+      },
+      "government": {
+        "title": "Government offices",
+        "desc": "Services, hours and contacts"
+      },
+      "creators": {
+        "title": "Creators & schools",
+        "desc": "Portfolios, courses and events"
+      }
+    },
+    "steps": {
+      "build": {
+        "title": "Build",
+        "desc": "Pick a ready template for your kind of business, or start from scratch. Add the sections you need with one tap."
+      },
+      "edit": {
+        "title": "Edit any part, any time",
+        "desc": "Fill simple forms with photos, words and prices. Add, move, update or delete any section whenever you want. No code."
+      },
+      "sell": {
+        "title": "Publish and sell",
+        "desc": "Go live in one tap. Customers order products, book services and rooms, message you and pay you directly."
+      }
+    },
+    "modules": {
+      "showrooms": {
+        "title": "Showroom websites",
+        "desc": "A mini website for every business, built from sections you control."
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "desc": "Products, services and room bookings from local sellers."
+      },
+      "payments": {
+        "title": "Direct payments",
+        "desc": "Customers pay the seller directly. Nodbusiness never holds the money."
+      },
+      "social": {
+        "title": "Social feed",
+        "desc": "Posts, stories and a Business feed that shows what is near you first."
+      },
+      "messaging": {
+        "title": "Messaging",
+        "desc": "Direct chat, groups, channels and notifications."
+      },
+      "assistant": {
+        "title": "AI assistant",
+        "desc": "Help writing descriptions, finding things and answering questions."
+      }
+    },
+    "trust": {
+      "reviews": "Verified customer reviews",
+      "direct": "Direct payment to sellers",
+      "private": "Private contact details",
+      "nearby": "Nearby discovery"
+    },
+    "assurance": {
+      "free": "Free to start",
+      "noCode": "No code",
+      "direct": "Customers pay you directly"
+    },
+    "footer": {
+      "product": "Product",
+      "account": "Account",
+      "legal": "Legal",
+      "links": {
+        "marketplace": "Marketplace",
+        "showrooms": "Showrooms",
+        "businesses": "Businesses",
+        "login": "Sign in",
+        "register": "Create account",
+        "feed": "Explore as guest",
+        "service-agreement": "Service agreement"
+      }
+    },
+    "tryDemoShort": "Try demo"
   },
   "nav": {
     "home": "Home",
@@ -667,9 +796,9 @@
     "guideDescription": "An animation with subtitles, in eight steps: post your life on the Personal feed; explore the feeds, zoom into photos and peek at a friend's business without leaving the page; search for what you need near you, such as a hotel room, compare the closest places by price and reviews, and book; start a website from a ready-made template or from blank sections; fill it by adding photos, pasting links and filling simple forms; pick a colour and see it on computer, tablet and phone; publish it to the Business feed, where people find it and scan its QR code; customers order, message you and pay you directly. One account holds your personal life and your business.",
     "textLevel": "Show the text over the animation",
     "textLevelValue": "{{n}}% text",
-    "watchBuilder": "Build and change a website",
-    "builderTitle": "Build and change your website, no code",
-    "builderDescription": "An animation with subtitles, in seven steps. Many website makers build a site quickly, but changing it later needs code. On Nodbusiness a website is made of pieces: choose what you are building, such as a hotel, a shop, a city office or a company; start from a ready template or from scratch; add pieces such as a cover, rooms, photos and prices with +; tap a piece to fill a simple form with photos, words and prices while the preview updates; edit, move up or down, delete or add any piece at any time; pick a colour and see it on computer, tablet and phone; publish, and later change a photo and tap Update. A city office, a company, a child and a grandmother build their own sites the same way."
+    "watchBuilder": "Build, edit & sell your way",
+    "builderTitle": "Build, edit & sell your way, no code",
+    "builderDescription": "An animation with subtitles, in seven steps. Many website makers build a site quickly, but changing it later needs code. On Nodbusiness a website is made of pieces: choose what you are building, such as a hotel, a shop, a city office or a company; start from a ready template or from scratch; add pieces such as a cover, rooms, photos and prices with +; tap a piece to fill a simple form with photos, words and prices while the preview updates; edit, move up or down, delete or add any piece at any time; pick a colour and see it on computer, tablet and phone; publish and sell, as booking requests and orders arrive; later change a photo and tap Update. A city office, a company, a child and a grandmother build their own sites the same way."
   },
   "reviews": {
     "title": "Customer reviews",

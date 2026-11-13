@@ -8,7 +8,8 @@ import client, { storeToken } from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
-export default function TryDemoButton() {
+/** className replaces the default look and label the default text (the landing hero uses both). */
+export default function TryDemoButton({ className, label = 'Try Demo' }: { className?: string; label?: string } = {}) {
   const router = useRouter();
   const { user, isAuthenticated, authChecked, completeLogin } = useAuth();
   const [starting, setStarting] = useState(false);
@@ -45,10 +46,10 @@ export default function TryDemoButton() {
       onClick={() => void enterDemo()}
       disabled={!authChecked || starting}
       aria-busy={starting}
-      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-7 text-sm font-extrabold text-white transition hover:bg-white/20 disabled:cursor-wait disabled:opacity-70 sm:w-auto"
+      className={className ?? "inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-7 text-sm font-extrabold text-white transition hover:bg-white/20 disabled:cursor-wait disabled:opacity-70 sm:w-auto"}
     >
       {starting ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FlaskConical className="h-4 w-4" aria-hidden="true" />}
-      Try Demo
+      {label}
     </button>
   );
 }

@@ -36,14 +36,14 @@ export const PROMO = {
     captions: '/promo/guide-v4.en.vtt',
   },
   /**
-   * 111 s, 9:16, English titles and subtitles: how anyone builds a website from
-   * pieces and edits, moves, deletes or adds any piece later with no code. The
-   * landing page's second button; loads only when opened.
+   * 114 s, 9:16, English titles and subtitles: how anyone builds a website from
+   * pieces, edits, moves, deletes or adds any piece later with no code, then
+   * publishes and sells. The landing page's second video; loads only when opened.
    */
   builder: {
-    small: rendition('builder', 480, 854, 'v1'),
-    large: rendition('builder', 720, 1280, 'v1'),
-    captions: '/promo/builder-v1.en.vtt',
+    small: rendition('builder', 480, 854, 'v2'),
+    large: rendition('builder', 720, 1280, 'v2'),
+    captions: '/promo/builder-v2.en.vtt',
   },
 } as const satisfies Record<string, PromoClip>;
 

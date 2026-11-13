@@ -1,0 +1,364 @@
+'use client';
+/**
+ * The landing page (decision "Landing page: showroom-first hero and one type
+ * scale", project-brain/DECISIONS.md). It is the first thing investors,
+ * enterprises, offices and small sellers see, so it follows one type scale
+ * and one call-to-action order:
+ *
+ *   eyebrow  text-xs semibold uppercase, wide tracking
+ *   h1       4xl → 5xl → 6xl extrabold, tight
+ *   h2       3xl → 4xl bold, tight
+ *   lead     lg → xl, relaxed, at most 36rem wide
+ *   body     base, leading-7
+ *   actions  h-12 rounded-xl: one solid primary, one outline, one text link
+ *
+ * Every word goes through t('landing.*') with the English text as default, so
+ * the server HTML is English and the language switch in the nav changes the
+ * page. Only facts the product supports are stated (no invented numbers).
+ */
+import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
+import {
+  ArrowRight,
+  BedDouble,
+  Bot,
+  Building2,
+  Check,
+  CreditCard,
+  GraduationCap,
+  Landmark,
+  LayoutGrid,
+  LayoutTemplate,
+  Lock,
+  MapPin,
+  MessageCircle,
+  Package,
+  PencilRuler,
+  Rocket,
+  ShoppingBag,
+  Star,
+  Store,
+  Users,
+} from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { HEX } from '@/lib/colorTokens';
+import { BRAND } from '@/lib/brandAssets';
+import { PROMO } from '@/lib/promoAssets';
+import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
+import BrandLogo from '@/components/brand/BrandLogo';
+import Wordmark from '@/components/brand/Wordmark';
+import PromoGuide from '@/components/promo/PromoGuide';
+import PromoVideo from '@/components/promo/PromoVideo';
+import { LandingPreferences } from './LandingControls';
+import TryDemoButton from './TryDemoButton';
+import DemoEndedNotice from './DemoEndedNotice';
+
+const CONTAINER = 'mx-auto w-full max-w-6xl px-5 sm:px-8';
+const EYEBROW = 'text-xs font-semibold uppercase tracking-[0.14em]';
+const H2 = 'text-3xl font-bold tracking-tight sm:text-4xl';
+// bg-primary-foreground is white in both themes (.dark remaps bg-white to the card colour), and the
+// inline brand blue avoids the dark theme's lighter .text-primary: 5.2:1 on white either way.
+const PRIMARY = 'inline-flex h-12 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary-foreground px-6 text-base font-semibold shadow-lg shadow-black/10 transition hover:bg-primary-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary';
+const ON_WHITE = { color: HEX.primary };
+const OUTLINE = 'inline-flex h-12 whitespace-nowrap items-center justify-center gap-2 rounded-xl border border-white/40 px-6 text-base font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-wait disabled:opacity-70';
+
+type Item = { key: string; title: string; desc: string; Icon: LucideIcon };
+
+const AUDIENCES: Item[] = [
+  { key: 'shops', title: 'Shops & restaurants', desc: 'Menus, products and orders', Icon: Store },
+  { key: 'hotels', title: 'Hotels & services', desc: 'Rooms, bookings and prices', Icon: BedDouble },
+  { key: 'companies', title: 'Companies', desc: 'Teams, branches and catalogues', Icon: Building2 },
+  { key: 'government', title: 'Government offices', desc: 'Services, hours and contacts', Icon: Landmark },
+  { key: 'creators', title: 'Creators & schools', desc: 'Portfolios, courses and events', Icon: GraduationCap },
+];
+
+const STEPS: Item[] = [
+  { key: 'build', title: 'Build', desc: 'Pick a ready template for your kind of business, or start from scratch. Add the sections you need with one tap.', Icon: LayoutTemplate },
+  { key: 'edit', title: 'Edit any part, any time', desc: 'Fill simple forms with photos, words and prices. Add, move, update or delete any section whenever you want. No code.', Icon: PencilRuler },
+  { key: 'sell', title: 'Publish and sell', desc: 'Go live in one tap. Customers order products, book services and rooms, message you and pay you directly.', Icon: Rocket },
+];
+
+const MODULES: Item[] = [
+  { key: 'showrooms', title: 'Showroom websites', desc: 'A mini website for every business, built from sections you control.', Icon: Store },
+  { key: 'marketplace', title: 'Marketplace', desc: 'Products, services and room bookings from local sellers.', Icon: ShoppingBag },
+  { key: 'payments', title: 'Direct payments', desc: 'Customers pay the seller directly. Nodbusiness never holds the money.', Icon: CreditCard },
+  { key: 'social', title: 'Social feed', desc: 'Posts, stories and a Business feed that shows what is near you first.', Icon: Users },
+  { key: 'messaging', title: 'Messaging', desc: 'Direct chat, groups, channels and notifications.', Icon: MessageCircle },
+  { key: 'assistant', title: 'AI assistant', desc: 'Help writing descriptions, finding things and answering questions.', Icon: Bot },
+];
+
+const TRUST: Item[] = [
+  { key: 'reviews', title: 'Verified customer reviews', desc: '', Icon: Star },
+  { key: 'direct', title: 'Direct payment to sellers', desc: '', Icon: CreditCard },
+  { key: 'private', title: 'Private contact details', desc: '', Icon: Lock },
+  { key: 'nearby', title: 'Nearby discovery', desc: '', Icon: MapPin },
+];
+
+export default function LandingContent({ templateCount }: { templateCount: number }) {
+  const { t } = useTranslation();
+  const year = new Date().getFullYear();
+  const tr = (key: string, fallback: string) => String(t(`landing.${key}`, fallback));
+
+  return (
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+      {/* ── Navigation ── */}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-inverse/85 backdrop-blur-xl">
+        <nav data-page-guide="landing-nav" aria-label={tr('navLabel', 'Main')} className={`${CONTAINER} flex h-16 items-center justify-between gap-3`}>
+          <Link href="/landing" aria-label="Nodbusiness" className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+            <Wordmark tone="dark" className="text-lg sm:text-2xl" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <LandingPreferences />
+            <Link data-page-guide="landing-signin" href="/login" className="hidden h-9 items-center rounded-lg px-3 text-sm font-semibold text-white transition hover:bg-white/10 sm:inline-flex">
+              {tr('signIn', 'Sign in')}
+            </Link>
+            <Link data-page-guide="landing-register" href="/register" style={ON_WHITE} className="inline-flex h-9 items-center whitespace-nowrap rounded-lg bg-primary-foreground px-3 text-sm font-semibold transition hover:bg-primary-foreground/90 sm:px-4">
+              {tr('startFree', 'Start free')}
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      <main id="main-content" tabIndex={-1} className="outline-none">
+      {/* ── Hero ── */}
+      <section aria-labelledby="landing-title" className="relative overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16 text-white">
+        <div aria-hidden="true" className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
+        <div className={`${CONTAINER} relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12 lg:py-24`}>
+          <div data-page-guide="landing-actions">
+            <div className="flex items-center gap-3">
+              <span
+                className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-white/25"
+                style={{ backgroundColor: HEX.primary, backgroundImage: `url(${BRAND.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+              >
+                <BrandIntroVideo />
+              </span>
+              <p className={`${EYEBROW} text-white/85`}>{tr('eyebrow', 'Showroom Studio · Social · Commerce')}</p>
+            </div>
+            <h1 id="landing-title" className="mt-6 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">
+              <span className="block">{tr('heroLine1', 'Build your business showroom.')}</span>
+              <span className="block text-white/80">{tr('heroLine2', 'Change any part, any time.')}</span>
+              <span className="block">{tr('heroLine3', 'Publish and sell, no code.')}</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85 sm:text-xl">
+              {tr('lead', 'Choose a template or start from scratch, fill in simple forms, and your website is live. Customers book, buy and pay you directly.')}
+            </p>
+            <p className="mt-3 max-w-xl text-base text-white/75">
+              {tr('audience', 'For shops, hotels, companies, government offices and creators.')}
+            </p>
+            <DemoEndedNotice />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/register" className={PRIMARY} style={ON_WHITE}>
+                {tr('startFree', 'Start free')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <TryDemoButton className={OUTLINE} label={tr('tryDemoShort', 'Try demo')} />
+              <Link data-page-guide="landing-guest" href="/feed" className="inline-flex h-12 items-center justify-center gap-1.5 rounded-xl px-3 text-base font-semibold text-white underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                {tr('explore', 'Explore as guest')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-white/85">
+              {[['free', 'Free to start'], ['noCode', 'No code'], ['direct', 'Customers pay you directly']].map(([k, v]) => (
+                <li key={k} className="inline-flex items-center gap-2">
+                  <Check className="h-4 w-4 text-white" aria-hidden="true" />
+                  {tr(`assurance.${k}`, v)}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mx-auto w-full max-w-[300px] lg:max-w-none">
+            <div className="rounded-[2.5rem] bg-inverse p-2.5 shadow-2xl shadow-black/40 ring-1 ring-white/15">
+              <PromoVideo
+                clip={PROMO.landing}
+                className="aspect-[9/16] w-full rounded-[2rem] bg-white"
+                sizes="300px"
+                buttonClassName="bottom-3 right-3"
+                description={tr('videoDescription', 'How Nodbusiness works, as an animation: a person shares a photo on the Personal feed, builds a website from a template or from sections by adding photos, pasting links and filling forms, publishes it to the Business feed, and customers order, message and pay them directly.')}
+              />
+            </div>
+            {/* Two full videos, each downloaded only when its button is pressed. */}
+            <div className="mt-5 space-y-2">
+              <p className={`${EYEBROW} text-white/75`}>{tr('watch', 'Watch')}</p>
+              <PromoGuide variant="row" meta={tr('guideLength', '3 min')} />
+              <PromoGuide variant="row" video="builder" meta={tr('builderLength', '2 min')} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Built for ── */}
+      <section aria-labelledby="landing-audience" className="border-b border-border bg-card py-12">
+        <div className={CONTAINER}>
+          <h2 id="landing-audience" className={`${EYEBROW} text-center text-muted-foreground`}>
+            {tr('builtFor', 'Built for every kind of organisation')}
+          </h2>
+          <ul data-page-guide="landing-stats" className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {AUDIENCES.map(({ key, title, desc, Icon }) => (
+              <li key={key} className="flex flex-col items-center gap-2 rounded-xl px-2 py-3 text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-subtle text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <span className="text-sm font-semibold">{tr(`audiences.${key}.title`, title)}</span>
+                <span className="text-xs leading-5 text-muted-foreground">{tr(`audiences.${key}.desc`, desc)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ── How it works ── */}
+      <section aria-labelledby="landing-how" className="bg-background py-20 sm:py-24">
+        <div className={CONTAINER}>
+          <div className="max-w-2xl">
+            <p className={`${EYEBROW} text-primary`}>{tr('howEyebrow', 'How it works')}</p>
+            <h2 id="landing-how" className={`mt-3 ${H2}`}>{tr('howTitle', 'From idea to a website that sells, in three steps.')}</h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              {tr('howLead', 'Your website is made of sections you can touch. Change any of them whenever your business changes, without a developer.')}
+            </p>
+          </div>
+          <ol className="mt-12 grid gap-6 md:grid-cols-3">
+            {STEPS.map(({ key, title, desc, Icon }, i) => (
+              <li key={key} className="relative rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                  <span className="text-sm font-semibold text-muted-foreground">{tr('stepLabel', 'Step')} {i + 1}</span>
+                </div>
+                <h3 className="mt-5 text-lg font-semibold">{tr(`steps.${key}.title`, title)}</h3>
+                <p className="mt-2 text-base leading-7 text-muted-foreground">{tr(`steps.${key}.desc`, desc)}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-8 text-base text-muted-foreground">
+            {tr('templatesNote', '{{n}} ready templates, one for each kind of business.').replace('{{n}}', String(templateCount))}{' '}
+            <Link href="/register" className="font-semibold text-primary underline-offset-4 hover:underline">{tr('startBuilding', 'Start building')}</Link>
+          </p>
+        </div>
+      </section>
+
+      {/* ── Platform ── */}
+      <section aria-labelledby="landing-platform" className="bg-secondary py-20 sm:py-24">
+        <div className={CONTAINER}>
+          <div className="max-w-2xl">
+            <p className={`${EYEBROW} text-primary`}>{tr('platformEyebrow', 'One connected platform')}</p>
+            <h2 id="landing-platform" className={`mt-3 ${H2}`}>{tr('platformTitle', 'Everything your business needs, connected.')}</h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              {tr('platformLead', 'Your website, your customers and your orders live in one account, next to the social feed where people discover you.')}
+            </p>
+          </div>
+          <div data-page-guide="landing-modules" className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {MODULES.map(({ key, title, desc, Icon }) => (
+              <article key={key} className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-subtle text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <h3 className="mt-5 text-lg font-semibold">{tr(`modules.${key}.title`, title)}</h3>
+                <p className="mt-2 text-base leading-7 text-muted-foreground">{tr(`modules.${key}.desc`, desc)}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Trust ── */}
+      <section aria-labelledby="landing-trust" className="bg-background py-20 sm:py-24">
+        <div className={`${CONTAINER} grid gap-12 lg:grid-cols-2 lg:items-center`}>
+          <div>
+            <p className={`${EYEBROW} text-brand-secondary`}>{tr('trustEyebrow', 'Built for trust')}</p>
+            <h2 id="landing-trust" className={`mt-3 ${H2}`}>{tr('trustTitle', 'From showroom to payment, in one place.')}</h2>
+            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+              {tr('trustLead', 'Customers find you nearby, see your showroom, message you, pay you directly and leave a review once their order is complete.')}
+            </p>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+              {TRUST.map(({ key, title, Icon }) => (
+                <li key={key} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold">
+                  <Icon className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                  {tr(`trust.${key}`, title)}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div aria-hidden="true" className="relative overflow-hidden rounded-3xl bg-inverse p-6 shadow-2xl shadow-primary/20 sm:p-10">
+            <div className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.16)_1px,transparent_1px)] [background-size:36px_36px]" />
+            <div className="relative mx-auto max-w-sm rounded-[2rem] bg-inverse/70 p-3 shadow-2xl ring-1 ring-white/20">
+              <div className="rounded-[1.5rem] bg-card p-4 text-card-foreground">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <BrandLogo size={40} className="h-10 w-10 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">Nodbusiness</p>
+                      <p className="text-xs text-muted-foreground">{tr('dash.title', 'Business dashboard')}</p>
+                    </div>
+                  </div>
+                  <LayoutGrid className="h-5 w-5 text-primary" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { Icon: Store, label: tr('dash.showroom', 'Showroom'), value: tr('dash.live', 'Live'), bg: 'bg-primary' },
+                    { Icon: Package, label: tr('dash.orders', 'Orders'), value: '128', bg: 'bg-success' },
+                    { Icon: MessageCircle, label: tr('dash.messages', 'Messages'), value: '12', bg: 'bg-brand-secondary' },
+                    { Icon: Star, label: tr('dash.rating', 'Rating'), value: '4.8', bg: 'bg-inverse ring-1 ring-border' },
+                  ].map(({ Icon, label, value, bg }) => (
+                    <div key={label} className={`rounded-2xl p-4 text-white ${bg}`}>
+                      <Icon className="mb-5 h-5 w-5" />
+                      <p className="text-xs text-white/80">{label}</p>
+                      <p className="text-lg font-bold">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 rounded-2xl border border-border bg-background p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-semibold">{tr('dash.tipTitle', 'New booking request')}</p>
+                    <BedDouble className="h-5 w-5 text-brand-secondary" />
+                  </div>
+                  <p className="text-sm leading-6 text-muted-foreground">{tr('dash.tip', 'Deluxe room · 2 nights · confirm to hold the dates.')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Final call to action ── */}
+      <section data-page-guide="landing-cta-section" aria-labelledby="landing-cta" className="bg-[linear-gradient(135deg,#1d4ed8_0%,#7c3aed_100%)] py-20 text-white sm:py-24">
+        <div className={`${CONTAINER} text-center`}>
+          <h2 id="landing-cta" className={H2}>{tr('ctaTitle', 'Start your showroom today.')}</h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-white/85">
+            {tr('ctaLead', 'Build it in minutes, change it whenever you want, and sell to customers who find you.')}
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/register" className={PRIMARY} style={ON_WHITE}>
+              {tr('startFree', 'Start free')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link href="/login" className={OUTLINE}>{tr('signIn', 'Sign in')}</Link>
+          </div>
+        </div>
+      </section>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer className="bg-inverse py-12 text-sm text-white/75">
+        <div className={`${CONTAINER} grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]`}>
+          <div>
+            <Wordmark tone="dark" className="text-xl" />
+            <p className="mt-3 max-w-xs leading-6">{tr('footerAbout', 'Business showrooms, social discovery and direct orders in one place.')}</p>
+          </div>
+          {[
+            { key: 'product', title: 'Product', links: [['/marketplace', 'Marketplace'], ['/showrooms', 'Showrooms'], ['/businesses', 'Businesses']] },
+            { key: 'account', title: 'Account', links: [['/login', 'Sign in'], ['/register', 'Create account'], ['/feed', 'Explore as guest']] },
+            { key: 'legal', title: 'Legal', links: [['/service-agreement', 'Service agreement']] },
+          ].map((col) => (
+            <nav key={col.key} aria-label={tr(`footer.${col.key}`, col.title)}>
+              <p className="font-semibold text-white">{tr(`footer.${col.key}`, col.title)}</p>
+              <ul className="mt-3 space-y-2">
+                {col.links.map(([href, label]) => (
+                  <li key={href}><Link href={href} className="hover:text-white hover:underline">{tr(`footer.links.${href.slice(1)}`, label)}</Link></li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
+        <div className={`${CONTAINER} mt-10 border-t border-white/10 pt-6 text-xs`}>
+          © {year} Nodbusiness. {tr('rights', 'All rights reserved.')}
+        </div>
+      </footer>
+    </div>
+  );
+}
