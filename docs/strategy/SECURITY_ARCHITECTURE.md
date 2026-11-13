@@ -2,7 +2,7 @@
 
 > **Classification:** Confidential — Internal Use Only
 > **Version:** 1.0
-> **Last Updated:** August 2026
+> **Last Updated:** 2026-11-13
 
 ---
 
@@ -316,7 +316,7 @@ Tenant Request
 
 | Control | Implementation |
 |---------|----------------|
-| **Base Image** | `node:20-alpine` (minimal) |
+| **Base Image** | `node:22-alpine` (minimal) |
 | **Non-root** | `USER node` |
 | **Read-only FS** | `readonlyRootFilesystem: true` |
 | **Dropped Capabilities** | `ALL` except `NET_BIND_SERVICE` |

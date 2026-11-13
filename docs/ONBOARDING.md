@@ -2,6 +2,7 @@
 
 > If five developers joined tomorrow, this is how they'd get productive in a week.
 > Welcome to Nodbusiness. Read this first.
+> Last reviewed: 2026-11-13
 
 ---
 
@@ -35,7 +36,7 @@
 ## Local Development Setup
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22 LTS
 - Git
 - Access to Supabase project (or local PostgreSQL 15+)
 

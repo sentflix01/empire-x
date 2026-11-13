@@ -17,7 +17,7 @@ nodbusiness/
 
 ## Quick Start
 
-**Prerequisites:** Node.js 20.9+ (required by Next.js 16), PostgreSQL 14+ running locally.
+**Prerequisites:** Node.js 22 LTS (the backend image, CI and Render run Node 22; Next.js 16 itself needs 20.9+), PostgreSQL 14+ running locally.
 
 ### 0. Install dependencies
 
