@@ -6,7 +6,7 @@ import MarketplacePage from '@/views/Marketplace';
 const api = vi.hoisted(() => ({ get: vi.fn() }));
 let intersectionCallback: IntersectionObserverCallback | null = null;
 
-vi.mock('@/api/client', () => ({ default: api }));
+vi.mock('@/lib/api/client', () => ({ default: api }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key === 'marketplace.categories.all' ? 'All' : key }) }));
 vi.mock('@/components/marketplace/ProductCard', () => ({
   default: ({ product }: { product: { title: string } }) => <div data-testid="marketplace-product">{product.title}</div>,

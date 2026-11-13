@@ -8,11 +8,11 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http }));
+vi.mock('@/lib/api/client', () => ({ default: http }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'seller-1' } }) }));
 const products = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn(), get: vi.fn() }));
 const businesses = vi.hoisted(() => ({ filter: vi.fn().mockResolvedValue([{ id: 'biz-a', business_name: 'Shop A' }]) }));
-vi.mock('@/api/entities', () => ({ entities: { Product: products, Business: businesses } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Product: products, Business: businesses } }));
 vi.mock('next/navigation', () => ({ useParams: () => ({}), useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn(), back: vi.fn() }) }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }));

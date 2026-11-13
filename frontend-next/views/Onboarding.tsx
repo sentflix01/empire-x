@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities } from "@/api/entities";
+import { entities } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { User, ArrowLeft, Check } from "lucide-react";

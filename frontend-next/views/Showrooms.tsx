@@ -2,8 +2,8 @@
 import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import React, { useState, useEffect } from "react";
-import { entities, type Showroom } from "@/api/entities";
-import { apiFetch } from "@/api/client";
+import { entities, type Showroom } from "@/lib/api/entities";
+import { apiFetch } from "@/lib/api/client";
 import { Search, Plus, Eye } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";

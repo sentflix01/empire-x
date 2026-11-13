@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import client, { clearToken, ensureFreshToken, getAccessToken, DEMO_ENDED_EVENT } from '@/api/client';
+import client, { clearToken, ensureFreshToken, getAccessToken, DEMO_ENDED_EVENT } from '@/lib/api/client';
 
 /** Where a visitor goes when their Demo practice session has ended. */
 export const DEMO_ENDED_REDIRECT = '/landing?demo=ended';

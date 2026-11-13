@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     get: vi.fn().mockResolvedValue({ data: { balance: 0, currency: 'ETB', transactions: [] } }),
     post: vi.fn(),

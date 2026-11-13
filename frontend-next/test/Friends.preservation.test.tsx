@@ -49,8 +49,8 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// ─── Mock @/api/client ────────────────────────────────────────────────────────
-vi.mock('@/api/client', () => {
+// ─── Mock @/lib/api/client ────────────────────────────────────────────────────────
+vi.mock('@/lib/api/client', () => {
   const client = {
     get: vi.fn().mockResolvedValue({ data: [] }),
     post: vi.fn().mockResolvedValue({ data: {} }),
@@ -61,15 +61,15 @@ vi.mock('@/api/client', () => {
   return { default: client, storeToken: vi.fn(), clearToken: vi.fn() };
 });
 
-// ─── Mock @/api/friends ───────────────────────────────────────────────────────
-vi.mock('@/api/friends', () => ({
+// ─── Mock @/lib/api/friends ───────────────────────────────────────────────────────
+vi.mock('@/lib/api/friends', () => ({
   friendsApi: {
     getMutual: vi.fn().mockResolvedValue([]),
   },
 }));
 
-// ─── Mock @/api/suggestions ───────────────────────────────────────────────────
-vi.mock('@/api/suggestions', () => ({
+// ─── Mock @/lib/api/suggestions ───────────────────────────────────────────────────
+vi.mock('@/lib/api/suggestions', () => ({
   suggestionsApi: {
     getPeople: vi.fn().mockResolvedValue([]),
     dismiss: vi.fn().mockResolvedValue(undefined),
@@ -119,9 +119,9 @@ vi.mock('@/components/ErrorBoundary', () => ({
 }));
 
 // ─── Import API mocks so we can configure them per-test ──────────────────────
-import client from '@/api/client';
-import { friendsApi } from '@/api/friends';
-import { suggestionsApi } from '@/api/suggestions';
+import client from '@/lib/api/client';
+import { friendsApi } from '@/lib/api/friends';
+import { suggestionsApi } from '@/lib/api/suggestions';
 
 // ─── Import component under test ─────────────────────────────────────────────
 import FriendsPage from '@/views/Friends';

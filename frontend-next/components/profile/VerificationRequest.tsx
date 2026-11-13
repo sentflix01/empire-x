@@ -16,7 +16,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, Clock, XCircle, ShieldCheck, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 type DocumentKind = 'selfie' | 'id';
 

@@ -138,7 +138,7 @@ verifies (for example after `DEMO_SESSION_SECRET` changes), the API answers
 every request with `401 DEMO_SESSION_EXPIRED` or `401 DEMO_SESSION_INVALID`,
 and with `503 DEMO_DISABLED` when Demo is switched off. The web app treats
 these codes as the end of Demo (`isDemoEndedResponse` in
-`frontend-next/api/client.ts`). It signs the browser out of the Demo session
+`frontend-next/lib/api/client.ts`). It signs the browser out of the Demo session
 and opens `/landing?demo=ended`, which explains what happened; Try Demo starts
 a fresh session. `503 DEMO_UNAVAILABLE` (the Demo database briefly
 unreachable) is not the end of Demo: pages show a "try again in a moment"

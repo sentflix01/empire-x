@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { TEXT_LIMITS } from "@/lib/textLimits";
 import NextImage from 'next/image';
-import { entities, type Post } from "@/api/entities";
+import { entities, type Post } from "@/lib/api/entities";
 import type { AuthUser } from "@/lib/AuthContext";
 import { Image, Send, X } from "lucide-react";
 import { uploadFile } from "@/lib/uploadFile";

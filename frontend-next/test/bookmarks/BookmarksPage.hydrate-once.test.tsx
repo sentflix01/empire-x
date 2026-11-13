@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('@/lib/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'user-1' }, authChecked: true, isAuthenticated: true }),
 }));
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useAppStore } from '@/store';
 import Bookmarks from '@/views/Bookmarks';
 

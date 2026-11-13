@@ -7,8 +7,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const api = vi.hoisted(() => ({ showrooms: vi.fn(), get: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { Showroom: { filter: api.showrooms } } }));
-vi.mock('@/api/client', () => ({ default: { get: api.get } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Showroom: { filter: api.showrooms } } }));
+vi.mock('@/lib/api/client', () => ({ default: { get: api.get } }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 
 import WebsiteStatusBanner, { websiteStatus } from '@/components/profile/WebsiteStatusBanner';

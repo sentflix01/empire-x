@@ -9,7 +9,7 @@ const { api, route } = vi.hoisted(() => ({
   route: { searchParams: new URLSearchParams() },
 }));
 
-vi.mock('@/api/client', () => ({ default: api }));
+vi.mock('@/lib/api/client', () => ({ default: api }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'owner-1' } }) }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),

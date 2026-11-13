@@ -21,7 +21,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/AuthContext';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { apiErrorBody } from '@/lib/apiErrorMessage';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';

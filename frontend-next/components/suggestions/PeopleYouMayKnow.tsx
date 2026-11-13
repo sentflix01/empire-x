@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { suggestionsApi, Suggestion } from '@/api/suggestions';
-import client from '@/api/client';
+import { suggestionsApi, Suggestion } from '@/lib/api/suggestions';
+import client from '@/lib/api/client';
 import { SuggestionCard } from './SuggestionCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/AuthContext';

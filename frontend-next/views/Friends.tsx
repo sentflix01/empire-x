@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, UserCheck, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
-import { friendsApi } from '@/api/friends';
-import {  suggestionsApi } from '@/api/suggestions';
+import client from '@/lib/api/client';
+import { friendsApi } from '@/lib/api/friends';
+import {  suggestionsApi } from '@/lib/api/suggestions';
 import { useCollapse } from '@/hooks/useCollapse';
 import { UserCard } from '@/components/friends/UserCard';
 import ErrorBoundary from '@/components/ErrorBoundary';

@@ -3,7 +3,7 @@ import { CHART_SERIES, HEX } from '@/lib/colorTokens';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { entities, fetchMyProductSaves, type Business, type Order, type Product, type ProductSave, type UserProfile } from "@/api/entities";
+import { entities, fetchMyProductSaves, type Business, type Order, type Product, type ProductSave, type UserProfile } from "@/lib/api/entities";
 import { formatAmount, isRevenueOrder, sumAmounts } from "@/lib/money";
 import { useAuth } from "@/lib/AuthContext";
 

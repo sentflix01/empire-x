@@ -17,12 +17,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PhotoField from '@/components/showroom/PhotoField';
-import { entities, type Business } from '@/api/entities';
+import { entities, type Business } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import {
   createRoom, fetchAvailability, fetchRoomBookings, listRooms, removeRoom, setBlockedRooms, updateRoom,
   type NightAvailability, type RoomBooking, type RoomInput, type RoomType,
-} from '@/api/rooms';
+} from '@/lib/api/rooms';
 import { addDays, formatDay, todayDay } from '@/lib/roomDates';
 
 const EMPTY_FORM = { name: '', description: '', photo_url: '', price_per_night: '', max_guests: '2', units: '1' };

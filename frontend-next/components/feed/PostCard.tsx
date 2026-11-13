@@ -2,9 +2,9 @@
 import { CHART_SERIES, token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { entities } from '@/api/entities';
-import client from '@/api/client';
-import { auth } from '@/api/auth';
+import { entities } from '@/lib/api/entities';
+import client from '@/lib/api/client';
+import { auth } from '@/lib/api/auth';
 import { useAuth } from '@/lib/AuthContext';
 
 import {
@@ -58,7 +58,7 @@ interface Post {
   is_pinned?: boolean | null;
 }
 
-import { UserProfile } from '@/api/entities';
+import { UserProfile } from '@/lib/api/entities';
 import PhotoViewer from '@/components/feed/PhotoViewer';
 import PostMoreMenu from '@/components/feed/PostMoreMenu';
 import CommentMenu from '@/components/feed/CommentMenu';

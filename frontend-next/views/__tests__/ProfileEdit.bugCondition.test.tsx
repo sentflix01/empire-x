@@ -34,8 +34,8 @@ vi.mock('react-i18next', () => ({
   initReactI18next: { type: '3rdParty', init: vi.fn() },
 }));
 
-// ─── Mock @/api/auth ─────────────────────────────────────────────────────────
-vi.mock('@/api/auth', () => ({
+// ─── Mock @/lib/api/auth ─────────────────────────────────────────────────────────
+vi.mock('@/lib/api/auth', () => ({
   auth: {
     me: vi.fn().mockResolvedValue({ id: 'user-1', full_name: 'Test User', email: 'test@example.com' }),
   },
@@ -55,8 +55,8 @@ vi.mock('@/lib/AuthContext', () => ({
   }),
 }));
 
-// ─── Mock @/api/entities ────────────────────────────────────────────────────
-vi.mock('@/api/entities', () => ({
+// ─── Mock @/lib/api/entities ────────────────────────────────────────────────────
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     UserProfile: {
       filter: vi.fn().mockResolvedValue([]),

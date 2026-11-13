@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn() },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('@/api/client', () => ({
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import VerificationRequest from '@/components/profile/VerificationRequest';
 
 const photo = (name: string, type = 'image/png') => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], name, { type });

@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http, apiFetch: vi.fn() }));
+vi.mock('@/lib/api/client', () => ({ default: http, apiFetch: vi.fn() }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 import { StarRating, RatingSummary } from '@/components/ui/Stars';

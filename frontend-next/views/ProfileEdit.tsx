@@ -13,7 +13,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/lib/AuthContext';
-import { entities, type UserProfile } from '@/api/entities';
+import { entities, type UserProfile } from '@/lib/api/entities';
 import { ArrowLeft, User, Store, Radio, Plus, X, Globe, MapPin, Phone, Mail, GraduationCap, Briefcase, Award, Star, Languages as LangIcon, Building2, ChevronDown, ChevronUp, Camera, CheckCircle, ExternalLink, AtSign, Share2, Rss, Link2 } from 'lucide-react';
 
 // Social platform icon stubs (lucide-react v1 doesn't include brand icons)

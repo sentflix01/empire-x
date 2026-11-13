@@ -13,14 +13,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
   getAccessToken: vi.fn().mockReturnValue(null),
 }));
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import TelegramSettings from '@/components/settings/TelegramSettings';
 import Referral from '@/views/Referral';
 import Wallet from '@/views/Wallet';

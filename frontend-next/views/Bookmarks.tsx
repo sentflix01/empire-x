@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import NextImage from 'next/image';
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Bookmark, ShoppingBag, FileText, Bell, Trash2 } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { toast } from "sonner";

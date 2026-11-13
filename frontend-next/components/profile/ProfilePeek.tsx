@@ -15,8 +15,8 @@ import SafeImage from '@/components/ui/SafeImage';
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import { createPortal } from "react-dom";
-import { entities } from "@/api/entities";
-import { auth } from "@/api/auth";
+import { entities } from "@/lib/api/entities";
+import { auth } from "@/lib/api/auth";
 import { useAuth } from "@/lib/AuthContext";
 
 import { motion, AnimatePresence } from "framer-motion";

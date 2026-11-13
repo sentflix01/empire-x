@@ -1,6 +1,6 @@
 ﻿'use client'
 import React, { useState, useEffect } from "react";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Tag, Plus, Trash2, Copy, Check, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

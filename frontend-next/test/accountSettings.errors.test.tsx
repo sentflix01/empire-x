@@ -9,13 +9,13 @@ import React from 'react';
 
 const { put, toastError } = vi.hoisted(() => ({ put: vi.fn(), toastError: vi.fn() }));
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: { get: vi.fn(), post: vi.fn(), put },
   storeToken: vi.fn(),
   clearToken: vi.fn(),
   getAccessToken: vi.fn().mockReturnValue('test-token'),
 }));
-vi.mock('@/api/entities', () => ({
+vi.mock('@/lib/api/entities', () => ({
   entities: { UserProfile: { filter: vi.fn().mockResolvedValue([]) } },
 }));
 vi.mock('@/lib/AuthContext', () => ({

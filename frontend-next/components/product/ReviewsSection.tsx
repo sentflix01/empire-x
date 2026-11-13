@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { StarRating } from "@/components/ui/Stars";
 
 import { toast } from "sonner";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 
 // ─── Types ────────────────────────────────────────────────────────────────────

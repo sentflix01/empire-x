@@ -137,9 +137,9 @@ docker compose up
 | `frontend-next/lib/AuthContext.tsx` | Auth state — single source of truth; handles silent refresh; skips refresh on auth pages |
 | `frontend-next/lib/ProfileViewContext.tsx` | Independent Personal/Business mode for feed (`homeFeedMode`) and profile (`profileViewMode`) |
 | `frontend-next/lib/CartContext.tsx` | Cart state — syncs with backend |
-| `frontend-next/api/entities.ts` | Typed API layer for all entities |
-| `frontend-next/api/client.ts` | Axios client — auto-attaches JWT, handles 401 + silent refresh, incognito-safe |
-| `frontend-next/api/mewacho.ts` | Typed Mewacho API client |
+| `frontend-next/lib/api/entities.ts` | Typed API layer for all entities |
+| `frontend-next/lib/api/client.ts` | Axios client — auto-attaches JWT, handles 401 + silent refresh, incognito-safe |
+| `frontend-next/lib/api/mewacho.ts` | Typed Mewacho API client |
 | `frontend-next/lib/googleAuth.ts` | Google Sign-In — pure OAuth2 popup flow (no GIS script, COOP-safe) |
 | `frontend-next/components/layout/AppLayout.tsx` | Main authenticated layout + sidebar nav with Personal/Business pills |
 | `frontend-next/app/(auth)/auth/google/callback/page.tsx` | OAuth2 popup callback — receives id_token, posts to opener via BroadcastChannel |

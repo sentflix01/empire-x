@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { TEXT_LIMITS } from "@/lib/textLimits";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { entities } from "@/api/entities";
+import { entities } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { ArrowLeft, Store } from "lucide-react";

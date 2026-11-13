@@ -1075,3 +1075,11 @@ items in the open list until confirmed.
 - **Decision:** The backend image (`backend/Dockerfile`, which Render builds), `docker-compose.yml` and CI use Node 22 LTS. `backend/package.json` declares `engines.node` `>=22.12`. The frontend unit-test job stays on Node 24, which `@zxing/library` asks for.
 - **Why:** Node 20 left maintenance on 30 April 2026 and gets no more security fixes (TD-029). google-auth-library 11 needs Node 22, and Node 22 can `require()` ES-module-only packages such as web-push 4.
 - **Consequences:** Developers need Node 22 (README, `docs/ONBOARDING.md`). The two blocked upgrades (#215, #216) can be redone on Node 22 as separate changes; web-push 4 needs a test that push actually loads. Vercel's Node version is a project setting outside the repository.
+
+### 2026-11-13 — The frontend API client lives in `lib/api/`, not a root `api/` folder
+
+- **Status:** Accepted (owner approved the fix for #207's failing Vercel preview, 13 Nov 2026)
+- **Decision owner:** Project owner
+- **Decision:** `frontend-next/api/` moves to `frontend-next/lib/api/` and imports become `@/lib/api/...`. No top-level `api/` folder may exist in `frontend-next`.
+- **Why:** Vercel deploys every file in a project-root `api/` folder as a serverless function. The client modules (`client.ts`, `entities.ts`, …) were each deployed as a useless function (7 on `main`). With #207's three new client files the preview had 14 functions, above the Hobby plan's 12, and failed at "Deploying outputs". `vercel build` on the branch confirmed the count. Moving the folder drops the deployment to the Next.js app's own 4 functions.
+- **Consequences:** about 170 imports changed. The `lint` script and the colour and CSS checks no longer list `api`. The guard test is `frontend-next/test/noRootApiFolder.test.ts`. The generated `docs/Production/frontend-next/api*` pages are refreshed by the docs-sync bot.

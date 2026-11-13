@@ -163,7 +163,7 @@ Change password while logged in. Requires auth.
 **Response 200:** `{ "message": "Password changed successfully" }`
 
 ### POST /api/auth/refresh
-Silently refresh the access token using the HttpOnly `refresh_token` cookie. Called automatically by the axios interceptor in `api/client.ts` on any 401 — no manual call needed from application code.
+Silently refresh the access token using the HttpOnly `refresh_token` cookie. Called automatically by the axios interceptor in `frontend-next/lib/api/client.ts` on any 401 — no manual call needed from application code.
 
 **Response 200:** `{ "access_token": "eyJhbG..." }`
 **Errors:** 401 (no cookie, invalid, or expired refresh token)

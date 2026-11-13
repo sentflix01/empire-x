@@ -2,11 +2,11 @@
 import { token } from '@/lib/colorTokens';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { HomeMapTabDynamic as HomeMapTab } from "@/components/map/DynamicMap";
 import PostCard from "@/components/feed/PostCard";
-import type { Post } from "@/api/entities";
+import type { Post } from "@/lib/api/entities";
 import CreatePostForm from "@/components/feed/CreatePostForm";
 import Stories from "@/views/Stories";
 import { motion, AnimatePresence } from "framer-motion";

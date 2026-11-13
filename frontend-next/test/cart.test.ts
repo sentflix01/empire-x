@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock client before importing store
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -19,14 +19,14 @@ vi.mock('@/api/client', () => ({
 }));
 
 // Mock auth module used by authSlice
-vi.mock('@/api/auth', () => ({
+vi.mock('@/lib/api/auth', () => ({
   auth: {
     logout: vi.fn(),
     loginViaEmailPassword: vi.fn(),
   },
 }));
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { createCartSlice } from '@/store/cartSlice';
 import { createStore } from 'zustand';
 

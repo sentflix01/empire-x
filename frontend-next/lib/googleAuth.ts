@@ -7,7 +7,7 @@
  * COOP-safe: never reads popup.closed or window.opener across origins.
  * BroadcastChannel works even when COOP isolates the browsing context.
  */
-import client, { storeToken } from '@/api/client';
+import client, { storeToken } from '@/lib/api/client';
 
 const GOOGLE_AUTH   = 'https://accounts.google.com/o/oauth2/v2/auth';
 const CALLBACK_PATH = '/auth/google/callback';

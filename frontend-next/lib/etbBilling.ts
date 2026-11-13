@@ -3,7 +3,7 @@
  * (backend: routes/subscriptionsEtb.ts, docs/backend/SUBSCRIPTIONS.md).
  * Amounts and periods always come from the server's quote.
  */
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 export type PaidTier = 'normal' | 'premium' | 'pro';
 export type PaymentKind = 'new' | 'renewal' | 'upgrade';

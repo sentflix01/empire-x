@@ -3,9 +3,9 @@ import BusinessReviews from '@/components/business/BusinessReviews';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { entities, type Product, type Showroom } from "@/api/entities";
+import { entities, type Product, type Showroom } from "@/lib/api/entities";
 import { sectionList } from "@/lib/showroomSectionsCodec";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { useAuth } from "@/lib/AuthContext";
 
 import { ArrowLeft, QrCode, X, Send, Loader2, Check } from "lucide-react";

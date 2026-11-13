@@ -8,7 +8,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import BrandLogo from "@/components/brand/BrandLogo";
-import { entities } from "@/api/entities";
+import { entities } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 import { serializeShowroomSections } from "@/lib/showroomSectionsCodec";
 import { siteFontFamily } from "@/lib/siteFonts";

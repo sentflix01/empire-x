@@ -3,7 +3,7 @@
  * Registers the service worker, fetches the VAPID key, and
  * subscribes/unsubscribes the browser from push notifications.
  */
-import client from "@/api/client";
+import client from "@/lib/api/client";
 
 const SW_PATH = "/sw.js";
 

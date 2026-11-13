@@ -13,7 +13,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import SafeImage from '@/components/ui/SafeImage';
 import { SPOTLIGHT_LABELS, isCatalogueSection, resolveSpotlight, type SpotlightSection } from '@/lib/spotlight';
 import { spotlightTiles, type SpotlightTile } from '@/lib/spotlightTiles';

@@ -9,7 +9,7 @@
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Bot, Send, Loader2, Trash2, ChevronUp, ChevronDown, Sparkles } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 interface Msg { role: 'user' | 'assistant'; text: string; action?: string; at: number }
 

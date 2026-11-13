@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from "react";
-import { entities } from "@/api/entities";
-import client from "@/api/client";
+import { entities } from "@/lib/api/entities";
+import client from "@/lib/api/client";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";

@@ -2,7 +2,7 @@
 /** Pick a chat to forward a message to. */
 import React, { useEffect, useRef, useState } from 'react';
 import { Forward, X, Users, Radio } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { chatTitle, chatAvatar, type ChatSummary } from '@/lib/chatDisplay';
 import { messagePreview, type ChatMessage } from '@/lib/chatRules';
 

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 
 interface OwnProduct { id: string; title: string; price?: number | string; currency?: string; status?: string }

@@ -7,7 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pencil, Plus, X, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 
 const MAX = 20;

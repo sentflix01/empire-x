@@ -3,9 +3,9 @@ import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { entities, type Order } from "@/api/entities";
+import { entities, type Order } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import {
   ShoppingBag, Package, Clock, CheckCircle, XCircle,
   Truck, FileDown, RotateCcw, MapPin, ChevronDown, ChevronUp,

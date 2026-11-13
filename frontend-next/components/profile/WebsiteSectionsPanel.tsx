@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ExternalLink, Loader2, Save, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import BuilderForm from '@/components/showroom/BuilderForm';
 import BrandLogo from '@/components/brand/BrandLogo';

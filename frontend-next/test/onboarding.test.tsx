@@ -14,7 +14,7 @@ vi.mock('next/link', () => ({
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'user-1', full_name: 'Sent Reader' } }) }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 const profiles = vi.hoisted(() => ({ filter: vi.fn(), update: vi.fn(), create: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { UserProfile: profiles } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { UserProfile: profiles } }));
 
 import Onboarding from '@/views/Onboarding';
 

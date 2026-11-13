@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 

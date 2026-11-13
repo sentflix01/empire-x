@@ -2,7 +2,7 @@
 import SafeImage from '@/components/ui/SafeImage';
 import React, { useState } from 'react';
 import { X, MapPin, Users } from 'lucide-react';
-import { Suggestion } from '@/api/suggestions';
+import { Suggestion } from '@/lib/api/suggestions';
 import { DemoBadge } from '@/components/profile/DemoBadge';
 
 interface SuggestionCardProps {

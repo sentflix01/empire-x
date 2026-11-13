@@ -26,7 +26,7 @@ describe('API client: Demo session ended', () => {
   beforeEach(() => { vi.resetModules(); handlers.rejected = undefined; vi.mocked(axios.post).mockReset(); });
 
   it('recognises only the Demo-ended codes', async () => {
-    const { isDemoEndedResponse } = await import('@/api/client');
+    const { isDemoEndedResponse } = await import('@/lib/api/client');
     expect(isDemoEndedResponse(401, { code: 'DEMO_SESSION_INVALID' })).toBe(true);
     expect(isDemoEndedResponse(401, { code: 'DEMO_SESSION_EXPIRED' })).toBe(true);
     expect(isDemoEndedResponse(503, { code: 'DEMO_DISABLED' })).toBe(true);
@@ -37,7 +37,7 @@ describe('API client: Demo session ended', () => {
   });
 
   it('announces the end once and does not try to refresh', async () => {
-    const { DEMO_ENDED_EVENT } = await import('@/api/client');
+    const { DEMO_ENDED_EVENT } = await import('@/lib/api/client');
     const heard = vi.fn();
     window.addEventListener(DEMO_ENDED_EVENT, heard);
     for (const url of ['/api/businesses', '/api/showrooms']) {
@@ -50,14 +50,14 @@ describe('API client: Demo session ended', () => {
   });
 
   it('still refreshes on an ordinary expired token', async () => {
-    await import('@/api/client');
+    await import('@/lib/api/client');
     vi.mocked(axios.post).mockRejectedValue(new Error('no session'));
     await expect(handlers.rejected!(failure(401, { code: 'TOKEN_EXPIRED' }))).rejects.toMatchObject({ status: 401 });
     expect(axios.post).toHaveBeenCalledWith('/api/auth/refresh', {}, { withCredentials: true });
   });
 
   it('keeps the session on 503 AUTH_UNAVAILABLE (backend outage): no refresh, no Demo exit', async () => {
-    const { DEMO_ENDED_EVENT } = await import('@/api/client');
+    const { DEMO_ENDED_EVENT } = await import('@/lib/api/client');
     const heard = vi.fn();
     window.addEventListener(DEMO_ENDED_EVENT, heard);
     await expect(handlers.rejected!(failure(503, { code: 'AUTH_UNAVAILABLE', error: 'Sign-in check is temporarily unavailable. Try again shortly.' })))

@@ -6,8 +6,8 @@ import { markerLabelHtml } from "@/lib/mapLabel";
 import Image from 'next/image';
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import client from "@/api/client";
-import { entities, type Post, type UserProfile } from "@/api/entities";
+import client from "@/lib/api/client";
+import { entities, type Post, type UserProfile } from "@/lib/api/entities";
 import { useAuth } from "@/lib/AuthContext";
 
 import { MapPin, ShoppingBag, Navigation, Loader2 } from "lucide-react";

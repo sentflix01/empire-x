@@ -38,8 +38,8 @@ vi.mock('react-i18next', () => ({
   initReactI18next: { type: '3rdParty', init: vi.fn() },
 }));
 
-// ─── Mock @/api/auth ─────────────────────────────────────────────────────────
-vi.mock('@/api/auth', () => ({
+// ─── Mock @/lib/api/auth ─────────────────────────────────────────────────────────
+vi.mock('@/lib/api/auth', () => ({
   auth: {
     me: vi.fn().mockResolvedValue({ id: 'user-1', full_name: 'Test User', email: 'test@example.com' }),
   },
@@ -59,8 +59,8 @@ vi.mock('@/lib/AuthContext', () => ({
   }),
 }));
 
-// ─── Mock @/api/entities ────────────────────────────────────────────────────
-vi.mock('@/api/entities', () => ({
+// ─── Mock @/lib/api/entities ────────────────────────────────────────────────────
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     UserProfile: {
       filter: vi.fn().mockResolvedValue([]),
@@ -610,7 +610,7 @@ describe('Preservation: PBT — Basic Information and Contact sections render co
           // Mock auth.me to return a user whose full_name matches display_name
           // so the component's loadData populates the field from the profile.
           // We supply profile data via entities.UserProfile.filter mock.
-          const { entities } = await import('@/api/entities');
+          const { entities } = await import('@/lib/api/entities');
           (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockResolvedValueOnce([{
             id: 'p1',
             display_name: state.display_name,
@@ -675,7 +675,7 @@ describe('Preservation: PBT — Basic Information and Contact sections render co
       fc.asyncProperty(
         fc.string({ minLength: 1, maxLength: 60 }).filter(s => s.trim().length > 0),
         async (displayName) => {
-          const { entities } = await import('@/api/entities');
+          const { entities } = await import('@/lib/api/entities');
           (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockResolvedValueOnce([{
             id: 'p1',
             display_name: displayName,
@@ -717,11 +717,11 @@ describe('Preservation: PBT — Basic Information and Contact sections render co
    * Validates: Requirements 3.4
    */
   it('Save Profile button is disabled when no display_name can be resolved', async () => {
-    const { auth } = await import('@/api/auth');
+    const { auth } = await import('@/lib/api/auth');
     (auth.me as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       id: 'user-1', full_name: '', email: 'test@example.com',
     });
-    const { entities } = await import('@/api/entities');
+    const { entities } = await import('@/lib/api/entities');
     (entities.UserProfile.filter as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
 
     let unmount: (() => void) | null = null;

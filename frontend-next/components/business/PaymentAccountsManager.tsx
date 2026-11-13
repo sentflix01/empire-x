@@ -8,7 +8,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { CreditCard, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

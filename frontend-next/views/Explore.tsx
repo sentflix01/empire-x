@@ -3,7 +3,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import React, { useState, useEffect } from "react";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { TrendingUp, ShoppingBag, Users, Hash } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +11,7 @@ import PostCard from "@/components/feed/PostCard";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from "react-i18next";
 import ErrorBoundary from '@/components/ErrorBoundary';
-import type { Showroom } from "@/api/entities";
+import type { Showroom } from "@/lib/api/entities";
 import { firstImage } from "@/lib/spotlightTiles";
 import { formatAmount } from "@/lib/money";
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
-import { entities } from '@/api/entities';
+import { entities } from '@/lib/api/entities';
 import { useAuth } from '@/lib/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -23,7 +23,7 @@ import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusine
 import { useTranslation } from 'react-i18next';
 import { RatingSummary } from '@/components/ui/Stars';
 import DistanceRange from '@/components/ui/DistanceRange';
-import { fetchBusinessFeed, type BusinessFeedSort, type FeedRelationship } from '@/api/feed';
+import { fetchBusinessFeed, type BusinessFeedSort, type FeedRelationship } from '@/lib/api/feed';
 import { useViewerLocation, type ViewerLocation } from '@/hooks/useViewerLocation';
 import { DemoBadge } from '@/components/profile/DemoBadge';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';

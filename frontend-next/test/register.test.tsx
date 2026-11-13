@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     post: vi.fn().mockResolvedValue({ data: { message: 'Registration successful.' } }),
     get: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('@/lib/googleAuth', () => ({
 }));
 
 import Register from '@/views/Register';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { renderGoogleSignInButton } from '@/lib/googleAuth';
 import { setSearchParams, clearSearchParams } from './setup';
 

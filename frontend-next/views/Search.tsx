@@ -5,7 +5,7 @@ import { RatingSummary } from '@/components/ui/Stars';
 import DistanceRange from '@/components/ui/DistanceRange';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Search as SearchIcon, Users, ShoppingBag, FileText, Loader2, Mic, MicOff, MapPin, SlidersHorizontal, Calendar, DollarSign, X, Navigation, Filter, Store } from "lucide-react";
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Input } from "@/components/ui/input";

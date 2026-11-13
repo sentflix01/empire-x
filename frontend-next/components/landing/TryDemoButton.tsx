@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FlaskConical, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import client, { storeToken } from '@/api/client';
+import client, { storeToken } from '@/lib/api/client';
 import { useAuth } from '@/lib/AuthContext';
 import { apiErrorMessage } from '@/lib/apiErrorMessage';
 

@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const client = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: client }));
+vi.mock('@/lib/api/client', () => ({ default: client }));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), info: vi.fn() }));
 vi.mock('sonner', () => ({ toast }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'seller-1' } }) }));

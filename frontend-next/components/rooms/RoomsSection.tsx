@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { BedDouble, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import SafeImage from '@/components/ui/SafeImage';
-import { listRooms, type RoomType } from '@/api/rooms';
+import { listRooms, type RoomType } from '@/lib/api/rooms';
 import { useAuth } from '@/lib/AuthContext';
 import { fillForWhiteText } from '@/lib/contrast';
 import BookingSheet from './BookingSheet';

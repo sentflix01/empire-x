@@ -14,7 +14,7 @@ const { installRequestInterceptor, ejectRequestInterceptor, handlers } = vi.hois
   };
 });
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     interceptors: {
       request: {

@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { StarRating } from '@/components/ui/Stars';
 import { Button } from '@/components/ui/button';
-import { fetchMyBusinessReview, saveBusinessReview } from '@/api/businessReviews';
+import { fetchMyBusinessReview, saveBusinessReview } from '@/lib/api/businessReviews';
 
 export default function RateBusinessPrompt({ businessId, businessName }: { businessId: string; businessName?: string | null }) {
   const { t } = useTranslation();

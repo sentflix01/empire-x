@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useEffectEvent, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
-import { entities } from "@/api/entities";
-import { apiFetch } from "@/api/client";
+import { entities } from "@/lib/api/entities";
+import { apiFetch } from "@/lib/api/client";
 import { useTranslation } from 'react-i18next';
 
 import { ArrowLeft, Check, CheckCircle, Eye, Layers, PenLine, RotateCcw, RotateCw, X } from "lucide-react";

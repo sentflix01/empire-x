@@ -19,7 +19,7 @@ import { isGetQuote, sectionItemBuyPayload, type SectionItem } from "@/lib/secti
 interface StepItem { name?: string; title?: string; desc?: string }
 interface ReviewItem { name?: string; author?: string; role?: string; quote?: string; review?: string; text?: string }
 interface FaqItem { question?: string; title?: string; answer?: string; desc?: string }
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import LiveLocationSection from "@/components/showroom/LiveLocationSection";
 import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";

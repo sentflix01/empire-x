@@ -6,8 +6,8 @@
  */
 import React, { useEffect, useState } from 'react';
 import { Search, Check, X } from 'lucide-react';
-import client from '@/api/client';
-import { entities } from '@/api/entities';
+import client from '@/lib/api/client';
+import { entities } from '@/lib/api/entities';
 import { cn } from '@/lib/utils';
 import { uniquePeople } from '@/lib/chatDisplay';
 

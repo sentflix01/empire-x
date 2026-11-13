@@ -9,11 +9,11 @@ import { render, screen, fireEvent, waitFor, cleanup as cleanupAll } from '@test
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http, apiFetch: vi.fn() }));
+vi.mock('@/lib/api/client', () => ({ default: http, apiFetch: vi.fn() }));
 vi.mock('@/lib/socket', () => ({ getIO: () => null }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'owner-1' } }) }));
 const productsApi = vi.hoisted(() => ({ filterPage: vi.fn() }));
-vi.mock('@/api/entities', () => ({ entities: { Product: productsApi } }));
+vi.mock('@/lib/api/entities', () => ({ entities: { Product: productsApi } }));
 vi.mock('@/components/ui/BookmarkButton', () => ({ default: ({ targetId }: { targetId: string }) => <button type="button">Save {targetId}</button> }));
 const upload = vi.hoisted(() => ({ uploadFile: vi.fn() }));
 vi.mock('@/lib/uploadFile', () => upload);

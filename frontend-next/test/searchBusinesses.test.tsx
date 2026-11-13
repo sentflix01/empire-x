@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http, apiFetch: vi.fn() }));
+vi.mock('@/lib/api/client', () => ({ default: http, apiFetch: vi.fn() }));
 vi.mock('next/link', () => ({ default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => <a href={href} {...rest}>{children}</a> }));
 vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('q=hotel') }));
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { fmtTime } from '@/lib/date';
 import { parseISO } from 'date-fns';
 

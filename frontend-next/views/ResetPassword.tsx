@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import Link from 'next/link';
 import React, { useState } from "react";
-import client from "@/api/client";
+import client from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 export interface FeedSlice {
   posts: any[];

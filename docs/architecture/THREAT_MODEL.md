@@ -3,7 +3,7 @@
 > Security is part of the design, not an afterthought.
 > This document identifies threats, current mitigations, and remaining work.
 > **Statuses verified against code on 2026-08-23** (post security-hardening pass).
-> Last updated: 2026-08-23
+> Last updated: 2026-11-13
 
 ---
 
@@ -135,7 +135,7 @@
 ### High
 1. ~~**Access token still mirrored to localStorage + JS-readable cookie**~~ — **resolved by
    TD-014** (noted 2026-11-07, audit F-008): the access token lives in memory only and the edge
-   proxy routes on a non-secret `nb_auth=1` hint cookie (`frontend-next/api/client.ts`).
+   proxy routes on a non-secret `nb_auth=1` hint cookie (`frontend-next/lib/api/client.ts`).
 2. **TLS verification disabled** — `rejectUnauthorized: false` on Neon and Upstash connections
    (`db/pool.ts`, `lib/redis.ts`, socket Redis adapter). Encrypts but does not authenticate;
    switch to certificate validation / CA pinning.

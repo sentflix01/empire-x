@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { fetchAvailability, requestBooking, type RoomType } from '@/api/rooms';
+import { fetchAvailability, requestBooking, type RoomType } from '@/lib/api/rooms';
 import { addDays, formatDay, nightsBetween, todayDay } from '@/lib/roomDates';
 
 const PHONE_RE = /^\+?[0-9\s-]{7,20}$/;

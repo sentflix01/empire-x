@@ -5,7 +5,7 @@
  *   import { uploadFile } from '@/lib/uploadFile';
  *   const url = await uploadFile(file);  // returns e.g. "http://localhost:3001/uploads/abc123.jpg"
  */
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 /**
  * @param {File} file - Browser File object

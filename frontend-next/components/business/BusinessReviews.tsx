@@ -8,7 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StarRating, RatingSummary } from '@/components/ui/Stars';
 import { Button } from '@/components/ui/button';
-import { fetchBusinessReviews, type BusinessReview } from '@/api/businessReviews';
+import { fetchBusinessReviews, type BusinessReview } from '@/lib/api/businessReviews';
 
 export default function BusinessReviews({ businessId }: { businessId: string }) {
   const { t } = useTranslation();

@@ -17,7 +17,7 @@ import { CheckCircle2, Loader2, Package, HardDrive, AlertTriangle, X } from 'luc
 import BrandLogo from '@/components/brand/BrandLogo';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/lib/AuthContext';

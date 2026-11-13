@@ -22,8 +22,8 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-// ─── Mock @/api/client ────────────────────────────────────────────────────────
-vi.mock('@/api/client', () => {
+// ─── Mock @/lib/api/client ────────────────────────────────────────────────────────
+vi.mock('@/lib/api/client', () => {
   const client = {
     get: vi.fn(),
     post: vi.fn().mockResolvedValue({ data: {} }),
@@ -34,15 +34,15 @@ vi.mock('@/api/client', () => {
   return { default: client, storeToken: vi.fn(), clearToken: vi.fn() };
 });
 
-// ─── Mock @/api/auth ──────────────────────────────────────────────────────────
-vi.mock('@/api/auth', () => ({
+// ─── Mock @/lib/api/auth ──────────────────────────────────────────────────────────
+vi.mock('@/lib/api/auth', () => ({
   auth: {
     me: vi.fn(),
   },
 }));
 
-// ─── Mock @/api/entities ─────────────────────────────────────────────────────
-vi.mock('@/api/entities', () => ({
+// ─── Mock @/lib/api/entities ─────────────────────────────────────────────────────
+vi.mock('@/lib/api/entities', () => ({
   entities: {
     Product: {
       get: vi.fn().mockResolvedValue(null),
@@ -99,8 +99,8 @@ vi.mock('lucide-react', () => ({
 }));
 
 // ─── Import modules after mocking ────────────────────────────────────────────
-import client from '@/api/client';
-import { auth } from '@/api/auth';
+import client from '@/lib/api/client';
+import { auth } from '@/lib/api/auth';
 import ProductDetail from '@/views/ProductDetail';
 
 // ─── Seed product fixture ─────────────────────────────────────────────────────

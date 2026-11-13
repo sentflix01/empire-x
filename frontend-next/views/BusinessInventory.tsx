@@ -23,7 +23,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { toast } from 'sonner';
 import TierGatedSection from '@/components/subscription/TierGatedSection';
 import ErrorBoundary from '@/components/ErrorBoundary';

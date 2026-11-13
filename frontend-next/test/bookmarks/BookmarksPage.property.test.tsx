@@ -16,7 +16,7 @@ import { createBookmarksSlice, SavedItem } from '@/store/bookmarksSlice';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@/api/client', () => ({
+vi.mock('@/lib/api/client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -34,7 +34,7 @@ vi.mock('sonner', () => ({
 
 // ─── Import after mocks ───────────────────────────────────────────────────────
 
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 // ─── Filtering contract extracted from views/Bookmarks.tsx ───────────────────
 //

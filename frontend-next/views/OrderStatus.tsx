@@ -10,7 +10,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Clock, Loader2, MapPin, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import client, { apiFetch } from '@/api/client';
+import client, { apiFetch } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

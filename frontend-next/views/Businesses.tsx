@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {  Star, Eye, Users, Building2, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import client from '@/api/client';
+import client from '@/lib/api/client';
 import { useCollapse } from '@/hooks/useCollapse';
 import ErrorBoundary from '@/components/ErrorBoundary';
 

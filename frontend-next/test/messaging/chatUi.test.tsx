@@ -9,8 +9,8 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import React from 'react';
 
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() }));
-vi.mock('@/api/client', () => ({ default: http, getAccessToken: () => 't' }));
-vi.mock('@/api/entities', () => ({ entities: { UserProfile: { list: vi.fn().mockResolvedValue([]) } } }));
+vi.mock('@/lib/api/client', () => ({ default: http, getAccessToken: () => 't' }));
+vi.mock('@/lib/api/entities', () => ({ entities: { UserProfile: { list: vi.fn().mockResolvedValue([]) } } }));
 vi.mock('@/lib/AuthContext', () => ({ useAuth: () => ({ user: { id: 'me', full_name: 'Me' } }) }));
 vi.mock('@/lib/useChatPresence', () => ({ useChatPresence: () => undefined }));
 vi.mock('@/lib/socket', () => ({ getSocket: () => ({ on: vi.fn(), off: vi.fn(), emit: vi.fn() }), connectSocket: vi.fn() }));

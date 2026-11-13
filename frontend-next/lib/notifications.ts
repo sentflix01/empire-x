@@ -1,4 +1,4 @@
-import client from '@/api/client';
+import client from '@/lib/api/client';
 
 /**
  * Creates a notification for a specific user.
