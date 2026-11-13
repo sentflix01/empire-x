@@ -1,5 +1,5 @@
 /** Add per-showroom expiry for Demo-published sites. */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const pool = require('./poolJsShim.cjs');
 
 async function migrate() {

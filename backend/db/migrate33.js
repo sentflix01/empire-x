@@ -30,7 +30,7 @@
  * Run standalone: node db/migrate33.js
  * Auto-run:       node db/migrate-all.js
  */
-require('dotenv').config({ quiet: true, path: require('path').join(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 async function migrate33(trackPool) {
   const pool = trackPool ?? require('./poolJsShim.cjs');
