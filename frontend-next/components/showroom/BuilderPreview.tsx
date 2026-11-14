@@ -106,7 +106,7 @@ export default function BuilderPreview({ formData: d, activeSections, mode, show
       )}
       {showWhatsapp && whatsapp && (
         <div className="flex justify-end px-3 py-2">
-          <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25d366] text-white shadow-md">
+          <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#127a45] text-white shadow-md">
             <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z" /></svg>
           </span>
         </div>
@@ -133,7 +133,7 @@ export default function BuilderPreview({ formData: d, activeSections, mode, show
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#e74c3c", display: "inline-block" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f39c12", display: "inline-block" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#27ae60", display: "inline-block" }} />
-        <span style={{ flex: 1, background: "#fff", borderRadius: 8, padding: "2px 8px", fontSize: 10, color: "#888", textAlign: "center", marginLeft: 4 }}>
+        <span style={{ flex: 1, background: "#fff", borderRadius: 8, padding: "2px 8px", fontSize: 10, color: "#64748b", textAlign: "center", marginLeft: 4 }}>
           nodbusiness.vercel.app/showroom/{title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "your-site"}
         </span>
       </div>

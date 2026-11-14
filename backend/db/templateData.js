@@ -131,7 +131,6 @@ function rideServiceSections(biz) {
     ]},
     { type: 'services', title: 'By the Numbers', items: [
       { name: '500,000+ Rides', description: 'Completed across Addis Ababa since launch' },
-      { name: '4.8 ★ Rating', description: 'Average customer satisfaction score' },
       { name: '2 Min Avg Wait', description: 'Our driver network keeps pickups fast' },
       { name: '3,000+ Drivers', description: 'Verified, trained, and ready to serve' },
     ]},
@@ -237,11 +236,6 @@ function hotelSections(biz) {
       { name: 'Wedding & Gala Venue', description: 'Full wedding packages with catering, décor, and coordination', price: 'From 80,000 ETB' },
       { name: 'Business Meeting Rooms', description: 'Private meeting rooms for 8–20 people with AV and catering', price: 'From 5,000 ETB / day' },
     ]},
-    { type: 'testimonials', title: 'Guest Reviews', items: [
-      { name: 'Tigist A.', text: 'Exceptional service and beautiful rooms. The breakfast buffet is the best in Addis Ababa. Will definitely come back!' },
-      { name: 'Daniel K.', text: 'We hosted our corporate gala here and everything was perfect. The team handled every detail professionally.' },
-      { name: 'Sarah M.', text: 'Stayed for a week on a business trip. The airport shuttle and room service made everything so convenient.' },
-    ]},
     { type: 'contact', title: 'Reservations & Enquiries', email: biz.email || 'reservations@hotel.et', phone: biz.phone || '+251 115 171 717', location: biz.address || 'Kirkos, Addis Ababa, Ethiopia' },
   ];
 }
@@ -263,11 +257,6 @@ function restaurantSections(biz) {
       { title: 'Family & Group Seating', desc: 'Private mesob tables for groups up to 20 — reservations recommended' },
       { title: 'Catering Available', desc: 'We cater events, weddings, and corporate functions across Addis' },
       { title: 'Home Delivery', desc: 'Fresh meals delivered within 10km of our restaurant' },
-    ]},
-    { type: 'testimonials', title: 'What Our Guests Say', items: [
-      { name: 'Abebe G.', text: 'Best kitfo in the entire city. The coffee ceremony at the end was the perfect finish to an incredible meal.' },
-      { name: 'Sara J.', text: 'Brought international guests here and they were blown away by the flavours and the cultural performance. Highly recommended!' },
-      { name: 'Mekdes T.', text: 'The beyayenet is incredible — so many flavours and all fresh. The staff are warm and attentive. We come every weekend.' },
     ]},
     { type: 'contact', title: 'Visit Us or Order', email: biz.email || 'hello@restaurant.et', phone: biz.phone || '+251 911 234 567', location: biz.address || 'Bole, Addis Ababa, Ethiopia' },
   ];
@@ -320,11 +309,6 @@ function ecommerceSections(biz) {
       { title: 'Cash on Delivery', desc: 'Pay when your order arrives — no card required' },
       { title: '7-Day Returns', desc: 'Not satisfied? Return within 7 days for a full refund' },
       { title: 'Verified Sellers', desc: 'Every seller is checked, rated, and accountable on our platform' },
-    ]},
-    { type: 'testimonials', title: 'Customer Reviews', items: [
-      { name: 'Hana T.', text: 'Ordered a habesha dress for Timkat and it arrived the next day, perfectly packaged. Amazing service!' },
-      { name: 'Natnael B.', text: 'Great prices and fast delivery. The return process was smooth when I needed a different size.' },
-      { name: 'Kalkidan A.', text: 'Found exactly what I needed and the seller was responsive. Will definitely shop here again.' },
     ]},
     { type: 'contact', title: 'Customer Support', email: biz.email || 'support@shop.et', phone: biz.phone || '+251 115 500 000', location: biz.address || 'Bole, Addis Ababa, Ethiopia' },
   ];
@@ -383,11 +367,6 @@ function schoolSections(biz) {
       { title: 'Certificate Provided', desc: 'Receive a verified certificate on completing any course' },
       { title: 'Flexible Schedule', desc: 'Morning, afternoon, and evening classes to fit your lifestyle' },
     ]},
-    { type: 'testimonials', title: 'Student Success Stories', items: [
-      { name: 'Yonas B.', text: 'I joined the English business communication course and landed a job at an international NGO three months later. Worth every birr.' },
-      { name: 'Meron K.', text: 'The Arabic course here is structured and practical. My instructor was patient and the small class size made a huge difference.' },
-      { name: 'Biruk G.', text: 'Completed the IT skills bootcamp and immediately started freelancing. Highly recommend for anyone who wants to upskill fast.' },
-    ]},
     { type: 'contact', title: 'Register or Enquire', email: biz.email || 'info@academy.et', phone: biz.phone || '+251 116 600 000', location: biz.address || 'Bole, Addis Ababa, Ethiopia' },
   ];
 }
@@ -442,11 +421,6 @@ function beautySections(biz) {
       { title: 'Private Rooms', desc: 'Private treatment rooms available for massages and bridal prep sessions' },
       { title: 'Easy Appointment Booking', desc: 'Book via Nodbusiness, WhatsApp, or walk in — we accommodate same-day appointments' },
     ]},
-    { type: 'testimonials', title: 'Client Reviews', items: [
-      { name: 'Lidya M.', text: 'My go-to salon in Addis. The hair stylists here actually listen to what you want and deliver. Never disappointed.' },
-      { name: 'Selamawit G.', text: 'Booked the bridal package for my wedding and it was absolutely perfect. Every guest was asking about my makeup and hair.' },
-      { name: 'Hiwot B.', text: 'The traditional massage here is therapeutic. The staff are professional and the space is so clean and calming.' },
-    ]},
     { type: 'contact', title: 'Book Your Session', email: biz.email || 'hello@beautylounge.et', phone: biz.phone || '+251 911 900 100', location: biz.address || 'Bole, Addis Ababa, Ethiopia' },
   ];
 }
@@ -499,10 +473,6 @@ function genericServiceSections(biz) {
       { title: 'Fast Response', desc: 'We reply within 2 hours and deliver on time — every time' },
       { title: 'Quality Guaranteed', desc: 'Every job is checked before delivery. Not satisfied? We fix it free.' },
     ]},
-    { type: 'testimonials', title: 'What Clients Say', items: [
-      { name: 'Satisfied Client', text: 'Professional service and clear communication from start to finish. Will use again.' },
-      { name: 'Repeat Customer', text: 'The team helped me choose the right option and delivered exactly as promised.' },
-    ]},
     { type: 'faq', title: 'Common Questions', items: [
       { question: 'How do I get started?', answer: 'Contact us through this showroom or send a message on Nodbusiness. We respond within 2 hours.' },
       { question: 'Do you deliver or come to my location?', answer: 'Yes — we offer both on-site service and delivery depending on the job type. Ask us for details.' },
@@ -524,10 +494,6 @@ function genericShopSections(biz) {
       { title: 'Verified Quality', desc: 'Every product is checked before it leaves our store' },
       { title: 'Fast Delivery', desc: 'Same-day delivery available within Addis Ababa' },
       { title: 'Easy Returns', desc: '7-day return policy — no questions asked' },
-    ]},
-    { type: 'testimonials', title: 'Customer Reviews', items: [
-      { name: 'Hana B.', text: 'Great quality and fast delivery. Exactly what I needed and well packaged.' },
-      { name: 'Dawit K.', text: 'Ordered in bulk for my shop. Good price and reliable stock. Recommended.' },
     ]},
     { type: 'contact', title: 'Order or Visit', email: biz.email || 'shop@business.et', phone: biz.phone || '+251 911 234 567', location: biz.address || 'Addis Ababa, Ethiopia' },
   ];

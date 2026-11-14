@@ -132,17 +132,6 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
 
     // ── All other section types: renderers for chosen-mode spotlight ────────
 
-    case 'testimonials': {
-      const reviews = [...list(section.testimonials), ...list(section.items)]
-        .filter((r) => text(r.quote, r.text, r.review));
-      return reviews.map((r, i) => ({
-        key: `rev-${i}`, kind: 'wide' as const,
-        title: text(r.author, r.name) ?? 'Customer',
-        subtitle: text(r.quote, r.text, r.review),
-        image: text(r.image),
-      }));
-    }
-
     case 'team': {
       const members = list(section.members).filter((m) => text(m.name));
       return members.map((m, i) => ({

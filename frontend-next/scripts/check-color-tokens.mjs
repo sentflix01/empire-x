@@ -28,7 +28,8 @@ function walk(dir, out = []) {
 // Arbitrary colour classes (bg-[#f59e0b]) bypass the tokens too. Allowed:
 // other companies' brand colours, which must stay exact.
 const ARBITRARY = /(?<![\w-])(?:[\w-]+(?:\[[^\]]*\])?:)*(?:bg|text|border|from|to|via|ring|fill|stroke|shadow|outline|decoration|caret)-\[#([0-9a-fA-F]{3,8})\]/g;
-const THIRD_PARTY_HEX = new Set(['2ca5e0', '1a94d2', /* Telegram */ '25d366', /* WhatsApp */]);
+// WhatsApp: a darker brand green so white text and icons meet WCAG AA (5.4:1; #25d366 is 2:1).
+const THIRD_PARTY_HEX = new Set(['2ca5e0', '1a94d2', /* Telegram */ '25d366', '127a45', /* WhatsApp */]);
 
 // Hex colour literals belong in the token module. These files hold colours
 // that are not the app's own and are exempt:

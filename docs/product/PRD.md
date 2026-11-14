@@ -1,5 +1,7 @@
 # Nodbusiness — Product Requirement Documents (PRDs)
 
+Last reviewed: 2026-11-14
+
 > A PRD defines what to build and why, before writing any code.
 > Engineers, designers, and product managers all work from the same specification.
 > Use this template for every new major feature.
@@ -106,7 +108,7 @@ Small businesses in Ethiopia have no affordable, easy way to build a professiona
 
 ### Technical Notes
 - 27 templates across 9 categories (already built)
-- Sections: hero, products, services, gallery, contact, testimonials
+- Sections: hero, products, services, gallery, contact and more (lib/builderSections.ts). Customer reviews are not a section: every published site shows verified customer reviews, added by the platform (decision 2026-11-14).
 - Slug-based URLs: `/showrooms/[id]` or future `/s/my-business`
 - Template data in `frontend-next/lib/showroomTemplates.ts`
 

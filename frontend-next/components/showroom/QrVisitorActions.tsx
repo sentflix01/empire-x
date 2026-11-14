@@ -22,7 +22,7 @@ export default function QrVisitorActions() {
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to Landing
       </Link>
-      <TryDemoButton />
+      <TryDemoButton className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 text-sm font-semibold text-foreground transition hover:bg-secondary disabled:cursor-wait disabled:opacity-70" />
     </nav>
   );
 }

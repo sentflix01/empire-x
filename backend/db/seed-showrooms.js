@@ -61,7 +61,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 123 4567',
     email: 'info@selamkitchen.et',
     description: 'Authentic Ethiopian cuisine served fresh daily in the heart of Bole.',
-    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'contact', 'social'],
     products: [
       { title: 'Special Tibs Combo',       price: 280, currency: 'ETB', desc: 'Tender beef tibs with injera, salad, and ayib — a full Ethiopian feast.' },
       { title: 'Kitfo with Gomen',          price: 320, currency: 'ETB', desc: 'Freshly minced beef seasoned with mitmita and niter kibbeh, served warm.' },
@@ -77,7 +77,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 234 5678',
     email: 'hello@kaldiscoffee.et',
     description: 'Specialty single-origin Ethiopian coffee roasted fresh in Kazanchis.',
-    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'contact', 'social'],
     products: [
       { title: 'Yirgacheffe Filter Bag (250g)', price: 180, currency: 'ETB', desc: 'Light roast, floral and citrus notes. Freshly roasted to order.' },
       { title: 'Harrar Dark Roast (250g)',      price: 160, currency: 'ETB', desc: 'Bold dry-process beans with wine and blueberry notes.' },
@@ -93,7 +93,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 345 6789',
     email: 'orders@alembakery.et',
     description: 'Freshly baked bread, cakes, and pastries made every morning in Piassa.',
-    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'contact', 'social'],
     products: [
       { title: 'Doro Dabo (Spiced Bread)',    price: 60,  currency: 'ETB', desc: 'Traditional Ethiopian spiced bread baked fresh each morning.' },
       { title: 'Honey Cake (Slice)',          price: 55,  currency: 'ETB', desc: 'Moist layer cake with Ethiopian honey glaze.' },
@@ -109,7 +109,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 456 7890',
     email: 'events@yenemigib.et',
     description: 'Full-service Ethiopian catering for weddings, corporate events, and family gatherings.',
-    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'contact', 'social'],
     products: [
       { title: 'Wedding Buffet Package (50 pax)',   price: 18000, currency: 'ETB', desc: 'Full injera buffet with 10 wots, salad, and dessert for 50 guests.' },
       { title: 'Corporate Lunch Box (per person)',  price: 180,   currency: 'ETB', desc: 'Individual lunch box: main, side, salad, and water. Minimum 20 boxes.' },
@@ -125,7 +125,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 567 8901',
     email: 'info@bluenilejuice.et',
     description: 'Fresh avocado, mango, and papaya juices and smoothie bowls in Sarbet.',
-    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'menu', 'gallery', 'delivery', 'offer', 'contact', 'social'],
     products: [
       { title: 'Layered Avocado Juice (Large)', price: 90,  currency: 'ETB', desc: 'Three-layer Ethiopian avocado juice with mango and papaya.' },
       { title: 'Green Detox Smoothie',         price: 110, currency: 'ETB', desc: 'Spinach, cucumber, pineapple, and ginger blend.' },
@@ -143,7 +143,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 678 9012',
     email: 'rx@medapharmacy.et',
     description: 'Licensed community pharmacy with delivery across Addis Ababa, serving since 2015.',
-    sectionKeys: ['hero', 'services', 'certifications', 'testimonials', 'team', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'team', 'contact'],
     products: [
       { title: 'Prescription Dispensing',       price: 20,  currency: 'ETB', desc: 'Same-day prescription filling with licensed pharmacist review.' },
       { title: 'Home Delivery (per order)',      price: 50,  currency: 'ETB', desc: 'Medications delivered to your door within 2 hours in Addis.' },
@@ -159,7 +159,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 789 0123',
     email: 'appointments@hayatmedical.et',
     description: 'Full-service general clinic offering consultations, lab tests, and specialist referrals.',
-    sectionKeys: ['hero', 'services', 'certifications', 'testimonials', 'team', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'team', 'contact'],
     products: [
       { title: 'General Consultation',        price: 300, currency: 'ETB', desc: 'Walk-in or scheduled visit with a licensed physician. Prescription included.' },
       { title: 'Full Blood Panel',            price: 650, currency: 'ETB', desc: 'CBC, liver function, and kidney function. Results in 24 hours.' },
@@ -175,7 +175,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 890 1234',
     email: 'smile@fitsumdental.et',
     description: 'Modern dental clinic providing cleaning, fillings, and orthodontics in Gerji.',
-    sectionKeys: ['hero', 'services', 'certifications', 'testimonials', 'team', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'team', 'contact'],
     products: [
       { title: 'Dental Cleaning + Checkup',   price: 600,  currency: 'ETB', desc: 'Professional scaling, polishing, and full examination.' },
       { title: 'Tooth Filling (Composite)',   price: 800,  currency: 'ETB', desc: 'Tooth-colored composite filling, same-day appointment.' },
@@ -191,7 +191,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 901 2345',
     email: 'members@greenlifegym.et',
     description: 'Modern gym with personal training, yoga classes, and sauna facilities in Ayat.',
-    sectionKeys: ['hero', 'services', 'certifications', 'testimonials', 'team', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'team', 'contact'],
     products: [
       { title: 'Monthly Gym Membership',      price: 800,  currency: 'ETB', desc: 'Unlimited gym access, locker, and one group class per week.' },
       { title: 'Personal Training (10 sessions)', price: 3500, currency: 'ETB', desc: '10 one-hour personal training sessions with certified trainer.' },
@@ -207,7 +207,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 012 3456',
     email: 'lab@tikurdiagnostics.et',
     description: 'Accredited diagnostic laboratory offering 150+ tests with same-day results in Lideta.',
-    sectionKeys: ['hero', 'services', 'certifications', 'testimonials', 'team', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'team', 'contact'],
     products: [
       { title: 'Complete Blood Count (CBC)',   price: 200, currency: 'ETB', desc: 'Full blood cell count and differential. Results in 4 hours.' },
       { title: 'Thyroid Panel (T3/T4/TSH)',   price: 550, currency: 'ETB', desc: 'Comprehensive thyroid hormone test. Results in 24 hours.' },
@@ -225,7 +225,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 123 9876',
     email: 'sales@destaelectronics.et',
     description: 'Authorised dealer of Tecno, Samsung, and itel electronics at Merkato\'s best prices.',
-    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'contact', 'social'],
     products: [
       { title: 'Tecno Camon 30 (8GB/256GB)',  price: 18500, currency: 'ETB', desc: 'Latest Tecno flagship with 64MP camera, 5000mAh battery.' },
       { title: 'Samsung Galaxy A15',          price: 14900, currency: 'ETB', desc: 'Samsung mid-range with AMOLED screen and 6000mAh battery.' },
@@ -241,7 +241,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 234 8765',
     email: 'shop@hailefashion.et',
     description: 'Contemporary Ethiopian and imported fashion for men and women in Bole.',
-    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'contact', 'social'],
     products: [
       { title: 'Habesha Kemis (Ladies)',      price: 1800, currency: 'ETB', desc: 'Hand-woven traditional dress with modern tilet embroidery. All sizes.' },
       { title: "Men's Linen Suit Set",        price: 2500, currency: 'ETB', desc: 'Two-piece linen suit with traditional collar detail, slim fit.' },
@@ -257,7 +257,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 345 7654',
     email: 'orders@abyssiniahw.et',
     description: 'Full hardware supply store for contractors and homeowners in Gofa — open 7 days.',
-    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'contact', 'social'],
     products: [
       { title: 'Makita Drill 13mm (DF483)',    price: 5800,  currency: 'ETB', desc: 'Brushless 18V cordless drill driver with 2 batteries.' },
       { title: 'Portland Cement (50kg bag)',   price: 550,   currency: 'ETB', desc: 'OPC Grade 42.5 Portland cement for construction work.' },
@@ -273,7 +273,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 456 6543',
     email: 'info@edensupermarket.et',
     description: 'Modern supermarket stocking local and imported groceries, fresh produce, and household items.',
-    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'contact', 'social'],
     products: [
       { title: 'Fresh Vegetable Box (Weekly)', price: 450,  currency: 'ETB', desc: 'Seasonal vegetables for a family of 4, sourced from Bishoftu farms.' },
       { title: 'Imported Cooking Oil (5L)',    price: 680,  currency: 'ETB', desc: 'Premium imported sunflower oil in 5-litre bottle.' },
@@ -289,7 +289,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 567 5432',
     email: 'beauty@lilycosmetics.et',
     description: 'Premium cosmetics, skin care, and beauty supplies for all skin tones at Friendship.',
-    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'items', 'brands', 'gallery', 'contact', 'social'],
     products: [
       { title: 'Fenty Beauty Foundation (30ml)', price: 1200, currency: 'ETB', desc: 'Pro Filt\'r foundation in 50 shades, suitable for Ethiopian skin tones.' },
       { title: 'Shea Butter Body Lotion (500ml)', price: 380, currency: 'ETB', desc: 'Pure shea butter lotion for dry skin, unscented and skin-safe.' },
@@ -307,7 +307,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 678 4321',
     email: 'contracts@yohannesplc.et',
     description: 'Licensed general contractor delivering residential and commercial builds across Addis Ababa.',
-    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'contact'],
     products: [
       { title: 'Residential House Build (per sqm)', price: 8500,  currency: 'ETB', desc: 'Full construction cost per square metre including labour and materials.' },
       { title: 'Villa Renovation (full)',           price: 350000, currency: 'ETB', desc: 'Complete renovation of a 3-bedroom villa: plastering, tiling, painting.' },
@@ -323,7 +323,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 789 3210',
     email: 'install@addissolar.et',
     description: 'Solar panel installation and electrical contracting for homes and businesses in Lebu.',
-    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'contact'],
     products: [
       { title: 'Solar Home System (3kW)',      price: 95000,  currency: 'ETB', desc: '3kW solar PV system with inverter, battery, and 5-year warranty.' },
       { title: 'Solar Water Heater (200L)',    price: 28000,  currency: 'ETB', desc: 'Evacuated tube solar water heater, installed on rooftop.' },
@@ -339,7 +339,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 890 2109',
     email: 'sales@habeshatiles.et',
     description: 'Supply and installation of floor and wall tiles, marble, and epoxy flooring in Mekanisa.',
-    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'contact'],
     products: [
       { title: 'Porcelain Floor Tile (per m²)',   price: 380, currency: 'ETB', desc: '60×60cm polished porcelain tile, imported Italian design.' },
       { title: 'Marble Countertop (per m)',       price: 2200, currency: 'ETB', desc: 'White Carrara marble countertop, cut and installed per linear metre.' },
@@ -355,7 +355,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 901 0987',
     email: 'fab@ahahimetalworks.et',
     description: 'Custom metal fabrication, gates, doors, and structural steelwork based in Akaki.',
-    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'contact'],
     products: [
       { title: 'Security Door (Steel, Custom)', price: 8500,  currency: 'ETB', desc: 'Heavy-gauge steel security door, custom size, powder-coated finish.' },
       { title: 'Compound Gate (Double Leaf)',   price: 22000, currency: 'ETB', desc: 'Motorised or manual double-leaf compound gate with welded design.' },
@@ -371,7 +371,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 012 9876',
     email: 'book@genetcleaning.et',
     description: 'Professional commercial and residential deep cleaning using eco-friendly products in Bole.',
-    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'before_after', 'certifications', 'portfolio', 'contact'],
     products: [
       { title: 'Office Deep Clean (per session)', price: 2500, currency: 'ETB', desc: 'Full office cleaning for up to 100 sqm, including toilets.' },
       { title: 'Residential Deep Clean (3BR)',    price: 1800, currency: 'ETB', desc: 'Full house deep clean — kitchen, bathrooms, bedrooms, living room.' },
@@ -471,7 +471,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 678 3210',
     email: 'enroll@kiduslanguage.et',
     description: 'English, French, Arabic, and Chinese language courses for all levels in Gerji.',
-    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'contact'],
     products: [
       { title: 'English Course (3 months)',   price: 3500, currency: 'ETB', desc: 'Beginner to advanced English, 5 days/week, 2 hours/day.' },
       { title: 'French Beginner (1 month)',   price: 1800, currency: 'ETB', desc: 'Intensive French A1 course. 4 hours daily, small classes.' },
@@ -487,7 +487,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 789 2109',
     email: 'drive@selamdriving.et',
     description: 'Accredited driving school for cars and motorcycles with Ethiopian driving licence prep.',
-    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'contact'],
     products: [
       { title: 'Standard Car Licence Package',   price: 4500, currency: 'ETB', desc: '30 practical + 10 theory lessons. Includes licence test fees.' },
       { title: 'Motorcycle Licence Course',      price: 2800, currency: 'ETB', desc: '15 practical lessons for Category A motorcycle licence.' },
@@ -503,7 +503,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 890 0987',
     email: 'learn@ethiomusic.et',
     description: 'One-on-one and group lessons in krar, masinko, guitar, piano, and voice in Kazanchis.',
-    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'contact'],
     products: [
       { title: 'Krar Lessons (monthly)',      price: 1200, currency: 'ETB', desc: 'Traditional Ethiopian krar — 8 one-hour lessons per month.' },
       { title: 'Guitar Beginner Course (3mo)', price: 3000, currency: 'ETB', desc: '12-week acoustic or electric guitar course for absolute beginners.' },
@@ -519,7 +519,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 901 9876',
     email: 'enroll@futurecoders.et',
     description: 'Practical coding and software development bootcamps for youth and professionals in Ayat.',
-    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'contact'],
     products: [
       { title: 'Web Dev Bootcamp (3 months)',  price: 8500,  currency: 'ETB', desc: 'HTML, CSS, JavaScript, and React. Project-based, job-ready.' },
       { title: 'Python for Beginners (6 wks)', price: 4500,  currency: 'ETB', desc: '6-week Python basics course: syntax, data, automation, and projects.' },
@@ -535,7 +535,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 012 8765',
     email: 'admin@sunrisekinder.et',
     description: 'Nurturing bilingual (Amharic/English) kindergarten for ages 2–6 in a safe CMC environment.',
-    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'event_schedule', 'features', 'contact'],
     products: [
       { title: 'Nursery (Age 2–3) Monthly Fee',  price: 2200, currency: 'ETB', desc: 'Half-day nursery program, Mon–Fri 7:30am–12:30pm.' },
       { title: 'Kindergarten (Age 4–6) Monthly', price: 2800, currency: 'ETB', desc: 'Full-day KG program with lunch, Mon–Fri 7:30am–4:00pm.' },
@@ -553,7 +553,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 123 7654',
     email: 'hello@addisdigital.et',
     description: 'Full-service digital marketing and web development agency serving Ethiopian businesses.',
-    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'contact'],
     products: [
       { title: 'Website Design Package',         price: 12000, currency: 'ETB', desc: '5-page responsive website with CMS, mobile optimized, 1-month support.' },
       { title: 'Social Media Management (1mo)',  price: 6000,  currency: 'ETB', desc: '20 posts across 2 platforms, content creation, scheduling, and analytics.' },
@@ -569,7 +569,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 234 6543',
     email: 'legal@habtamulaw.et',
     description: 'Business law, real estate, employment, and litigation services from Piassa.',
-    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'contact'],
     products: [
       { title: 'Business Registration',          price: 2500,  currency: 'ETB', desc: 'Full company registration with MoTRI — certificate in 2 weeks.' },
       { title: 'Contract Drafting (standard)',   price: 3000,  currency: 'ETB', desc: 'Professionally drafted commercial contract reviewed by senior counsel.' },
@@ -585,7 +585,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 345 5432',
     email: 'tax@tsehayaccounting.et',
     description: 'ICPAE-certified accounting, tax filing, and payroll services for SMEs in Kazanchis.',
-    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'contact'],
     products: [
       { title: 'Annual Tax Return (SME)',        price: 3500, currency: 'ETB', desc: 'ERCA-compliant annual business tax return filing. VAT included.' },
       { title: 'Monthly Bookkeeping',            price: 2500, currency: 'ETB', desc: 'Monthly books: income, expenses, invoices, and bank reconciliation.' },
@@ -601,7 +601,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 456 4321',
     email: 'hr@nilehr.et',
     description: 'End-to-end HR consulting and executive recruitment for Ethiopian companies.',
-    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'contact'],
     products: [
       { title: 'Recruitment (per hire, junior)',  price: 5000,  currency: 'ETB', desc: 'Sourcing, screening, and shortlisting for entry-level positions.' },
       { title: 'Executive Search (per placement)', price: 25000, currency: 'ETB', desc: 'Retained search for C-suite and director-level roles.' },
@@ -617,7 +617,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 567 3210',
     email: 'support@techfix.et',
     description: 'On-site and remote IT support, networking, and device repair for offices in Addis.',
-    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'testimonials', 'contact'],
+    sectionKeys: ['hero', 'services', 'certifications', 'portfolio', 'team', 'contact'],
     products: [
       { title: 'On-Site IT Support (per hour)', price: 500,   currency: 'ETB', desc: 'Certified technician on-site for troubleshooting and repairs.' },
       { title: 'Monthly IT Retainer (up to 5 devices)', price: 4500, currency: 'ETB', desc: 'Proactive monthly IT support: patches, backups, and helpdesk.' },
@@ -717,7 +717,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 123 7543',
     email: 'reservations@addisviewguesthouse.et',
     description: 'Quiet, clean guesthouse with garden and free breakfast, walking distance from Bole airport.',
-    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'contact', 'social'],
     products: [
       { title: 'Standard Room (per night)',    price: 1800, currency: 'ETB', desc: 'En-suite standard room with Wi-Fi, breakfast, and garden view.' },
       { title: 'Deluxe Room (per night)',      price: 2800, currency: 'ETB', desc: 'Spacious deluxe room with AC, safe, and city view. Breakfast included.' },
@@ -733,7 +733,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 94 234 6432',
     email: 'tours@ethiopiaheritagetours.et',
     description: 'Licensed tour operator specialising in cultural, historical, and adventure tours across Ethiopia.',
-    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'contact', 'social'],
     products: [
       { title: 'Lalibela Rock Churches Tour (3D)', price: 15000, currency: 'ETB', desc: '3-day guided Lalibela tour: flights, hotel, guide, and entrance fees.' },
       { title: 'Addis Ababa City Tour (1 day)',    price: 1500,  currency: 'ETB', desc: 'Full-day Addis tour: museums, markets, monuments, and lunch.' },
@@ -749,7 +749,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 91 345 5321',
     email: 'events@lalibelawedding.et',
     description: 'Elegant indoor and outdoor wedding and event venue for up to 500 guests in CMC.',
-    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'contact', 'social'],
     products: [
       { title: 'Full Wedding Package (200 pax)', price: 180000, currency: 'ETB', desc: 'Venue, catering, decoration, DJ, photography, and video for 200 guests.' },
       { title: 'Venue Hire Only (per day)',       price: 45000,  currency: 'ETB', desc: 'Venue rental from 8am to midnight, chairs, tables, and lighting.' },
@@ -765,7 +765,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 92 456 4210',
     email: 'stay@entotoecolodge.et',
     description: 'Sustainable eco-lodge nestled in Entoto forest — fresh air, hiking trails, and city views.',
-    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'contact', 'social'],
     products: [
       { title: 'Forest Cabin (per night)',     price: 3500, currency: 'ETB', desc: 'Private eco-cabin with log fire, solar power, and forest view.' },
       { title: 'Glamping Tent (per night)',    price: 2200, currency: 'ETB', desc: 'Furnished safari tent with real bed and shared eco-bathroom.' },
@@ -781,7 +781,7 @@ const SHOWROOM_CONFIGS = [
     phone: '+251 93 567 3109',
     email: 'info@capitalhoteladdis.et',
     description: 'Business hotel with 60 rooms, rooftop restaurant, pool, and conference facilities in Kazanchis.',
-    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'testimonials', 'contact', 'social'],
+    sectionKeys: ['hero', 'gallery', 'services', 'event_schedule', 'contact', 'social'],
     products: [
       { title: 'Standard Room (per night)',    price: 3200, currency: 'ETB', desc: 'Comfortable standard room with Wi-Fi, TV, and continental breakfast.' },
       { title: 'Executive Suite (per night)',  price: 7500, currency: 'ETB', desc: 'Spacious executive suite with lounge area, minibar, and city views.' },
@@ -899,8 +899,6 @@ function buildSections(config) {
         return { type, servTitle: 'Our Services', services: config.products.map(p => ({ name: p.title, desc: p.desc, price: `${p.price} ETB`, product_id: null })) };
       case 'gallery':
         return { type, galleryTitle: 'Gallery', galleryImages: [] };
-      case 'testimonials':
-        return { type, testTitle: 'What People Say', testimonials: [] };
       case 'contact':
         return { type, location: config.address, phone: config.phone, email: config.email, hours: config.hours || 'Mon-Sat 8am-6pm', whatsapp: config.phone };
       case 'social':
@@ -964,7 +962,6 @@ function getSpotlightConfig(index, config) {
   const sectionKeys = config.sectionKeys;
   const hasContent      = sectionKeys.includes(contentKey);
   const hasContact      = sectionKeys.includes('contact');
-  const hasTestimonials = sectionKeys.includes('testimonials');
 
   switch (pos) {
     case 0:
@@ -989,10 +986,10 @@ function getSpotlightConfig(index, config) {
         carouselCount: 2,
       };
     case 3:
-      // single — contact or testimonials
+      // single — contact
       return {
         mode: 'single',
-        sectionIds: [hasContact ? 'contact' : (hasTestimonials ? 'testimonials' : sectionKeys[0] || 'hero')],
+        sectionIds: [hasContact ? 'contact' : (sectionKeys[0] || 'hero')],
         carouselCount: 1,
       };
     case 4:

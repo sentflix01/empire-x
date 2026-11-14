@@ -21,7 +21,6 @@ const EXPECTED: Record<string, string> = {
   items: "299 ETB",
   gallery: "Photo A",
   services: "Web Design",
-  testimonials: "Everything renders!",
   contact: "qa@nodbusiness.app",
   social: "Telegram",
   pricing: "999 ETB",
@@ -42,9 +41,9 @@ const EXPECTED: Record<string, string> = {
   industries: "Healthcare",
 };
 
-describe("SectionRenderer — all 24 builder section types", () => {
+describe("SectionRenderer — all 23 builder section types (testimonials retired)", () => {
   it("renders builder-shape content for every registered type", () => {
-    expect(builderSections.length).toBe(24);
+    expect(builderSections.length).toBe(23);
     builderSections.forEach((section: any, i: number) => {
       const { container } = render(
         <SectionRenderer section={section} sectionIndex={i} themeColor="#7C3AED" profile={{}} />
@@ -98,7 +97,6 @@ describe("SectionRenderer — legacy business-template shapes unchanged", () => 
       { type: "about", title: "Our Story", content: "Legacy about content" },
       { type: "services", title: "Menu", items: [{ name: "Macchiato", description: "Coffee drink", price: "35 ETB" }] },
       { type: "features", title: "Process", items: [{ title: "Brew", desc: "We brew fresh" }] },
-      { type: "testimonials", title: "Reviews", items: [{ text: "Great coffee!", name: "Abebe" }] },
       { type: "faq", title: "FAQ", items: [{ question: "Open Sundays?", answer: "Yes" }] },
       { type: "instructor", title: "Your Instructor" },
     ];
@@ -112,8 +110,14 @@ describe("SectionRenderer — legacy business-template shapes unchanged", () => 
     const svc = render(<SectionRenderer section={legacy[1]} sectionIndex={1} profile={{}} />);
     expect(svc.container.textContent).toContain("Macchiato");
     expect(svc.container.textContent).toContain("35 ETB");
-    const testi = render(<SectionRenderer section={legacy[3]} sectionIndex={3} profile={{}} />);
-    expect(testi.container.textContent).toContain("Great coffee!");
-    expect(testi.container.textContent).toContain("Abebe");
+  });
+});
+
+describe("SectionRenderer — retired section types", () => {
+  it("renders nothing for an old owner-written testimonials section (reviews are platform-owned)", () => {
+    const { container } = render(
+      <SectionRenderer section={{ type: "testimonials", title: "Reviews", items: [{ text: "Great coffee!", name: "Abebe" }] } as any} sectionIndex={0} />
+    );
+    expect(container.textContent).toBe("");
   });
 });

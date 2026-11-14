@@ -974,6 +974,30 @@ items in the open list until confirmed.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`, builder `-v2`) and are referenced only through `lib/promoAssets.ts`. The builder video's shots are in `scripts/promo/scenes/builderShots.js` (`builder.html`). Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide; `video="builder"` for the builder video). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
 
+### 2026-11-14 — Reviews are platform-owned and mandatory on every website
+
+- **Status:** Accepted (owner, 14 Nov 2026: "remove customer rating and testimonial from builder sections, then when any user publishes, the app itself adds this to each website, because each website's trust is determined by user feedback, so these two things are mandatory"; reviews from **verified customers only**; old owner-written quotes **removed everywhere**).
+- **Decision owner:** Project owner
+- **Decision:**
+  1. Owners can no longer add customer quotes or ratings. The `testimonials` section ("What customers say", each quote shown with five stars) is retired. It is out of the builder, every category default, template and sample, the spotlight, the external-source mapper and the seeds. Invented ratings in templates ("4.8 Customer rating") are gone too.
+  2. Every published website and business profile shows the platform's **Customer reviews** block, which is not a section and cannot be removed. It shows the average and count (also in the site header), each review marked **Verified customer**, "No reviews yet" when empty, the rating form for a signed-in customer with a completed order, and a reason for everyone else.
+  3. Only customers with a completed order can review, once per business (decision "Business reviews: verified customers only").
+  4. `migrate91.js` removes the retired sections and rating claims from saved sites. Old payloads that still contain them are accepted and the key is dropped, so no site breaks.
+- **Why:** Trust must come from real customers. Owner-written testimonials and ratings are unverifiable and, when invented, deceptive (FTC final rule on fake reviews and testimonials, in force since 21 Oct 2024; EU UCPD Annex I point 23b).
+- **Consequences:**
+  - The `RETIRED_SECTION_TYPES` (frontend) / `RETIRED_SECTIONS` (backend) lists.
+  - `components/business/BusinessReviews.tsx`, plus the explain mode in `RateBusinessPrompt.tsx`.
+  - `ShowroomView` header rating.
+  - Tests: `test/showroom/platformReviewsOnly.test.ts`, `test/reviews/businessReviews.test.tsx`, `backend/__tests__/showroomInput.test.ts`, `backend/test/db/showroomLifecycle.db.test.js`.
+  - The same change hardens the create-showroom flow after the builder audit (`note/2026-11-14-showroom-audit/README.md`):
+    - a field allowlist, length limits, and no script or data URLs in sections
+    - stable addresses
+    - no duplicate on publish
+    - owner Unpublish and Delete
+    - unfilled sections hidden from visitors
+    - no stock photos, no invented opening hours, and sample contact details block publishing
+    - contrast fixes
+
 ### 2026-11-14 — Landing page: showroom-first hero and one type scale
 
 - **Status:** Accepted (owner, 14 Nov 2026: the landing page is the first impression for investors, enterprises, leaders, experts and small sellers alike, so it must look professional to a global standard; chose the "Showroom-first" headline and the "Build, edit & sell your way" video wording).

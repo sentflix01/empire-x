@@ -16,7 +16,7 @@ export const SECTION_GROUPS = [
     title: 'Middle of the page',
     desc: 'What you sell, proof, and details',
     keys: [
-      'about', 'features', 'items', 'menu', 'gallery', 'testimonials', 'team', 'faq', 'pricing', 'services', 'portfolio',
+      'about', 'features', 'items', 'menu', 'gallery', 'team', 'faq', 'pricing', 'services', 'portfolio',
       'stats', 'process', 'caseStudies', 'partners', 'awards', 'booking', 'industries', 'inventory_catalog',
       'live_location_tracking',
     ],

@@ -116,21 +116,6 @@ export const SECTION_TYPES: SectionType[] = [
     ],
   },
   {
-    key: "testimonials", label: "What customers say", icon: "MessageSquareQuote", tier: "freemium",
-    purpose: "Kind words your customers told you, in their words.",
-    fields: [
-      { ...TITLE("What People Say"), key: "testTitle" },
-      {
-        key: "testimonials", label: "Quotes", type: "repeater",
-        itemFields: [
-          { key: "quote",  label: "What they said", type: "textarea", placeholder: "Amazing experience!" },
-          { key: "author", label: "Their name",     type: "text",     placeholder: "Selam T." },
-          { key: "role",   label: "Who they are (optional)", type: "text", placeholder: "Regular customer" },
-        ],
-      },
-    ],
-  },
-  {
     key: "contact", label: "Contact", icon: "Mail", tier: "freemium",
     purpose: "How to reach you. Visitors tap to call, message or email.",
     fields: [
@@ -607,17 +592,26 @@ export const SECTION_TYPES: SectionType[] = [
   },
 ];
 
+/**
+ * Section types owners can no longer add (decision "Reviews are platform-owned
+ * and mandatory"). "testimonials" let owners type their own customer quotes,
+ * shown with 5 stars each; every published site now gets real, verified
+ * customer reviews from the platform instead (components/showroom/SiteReviews).
+ * Stored sections of these types are dropped when loaded, saved or rendered.
+ */
+export const RETIRED_SECTION_TYPES: ReadonlySet<string> = new Set(["testimonials"]);
+
 // Default sections per category
 export const CATEGORY_DEFAULT_SECTIONS: Record<string, string[]> = {
-  "Business & Commerce":    ["hero", "items", "brands", "gallery", "testimonials", "contact", "social"],
-  "Health & Medical":       ["hero", "services", "certifications", "testimonials", "team", "contact"],
-  "Food & Beverage":        ["hero", "menu", "gallery", "delivery", "offer", "testimonials", "contact", "social"],
-  "Construction & Trade":   ["hero", "services", "before_after", "certifications", "portfolio", "testimonials", "contact"],
+  "Business & Commerce":    ["hero", "items", "brands", "gallery", "contact", "social"],
+  "Health & Medical":       ["hero", "services", "certifications", "team", "contact"],
+  "Food & Beverage":        ["hero", "menu", "gallery", "delivery", "offer", "contact", "social"],
+  "Construction & Trade":   ["hero", "services", "before_after", "certifications", "portfolio", "contact"],
   "Transport & Logistics":  ["hero", "services", "pricing", "contact"],
-  "Education":              ["hero", "services", "event_schedule", "features", "testimonials", "contact"],
-  "Professional Services":  ["hero", "services", "certifications", "portfolio", "team", "testimonials", "contact"],
+  "Education":              ["hero", "services", "event_schedule", "features", "contact"],
+  "Professional Services":  ["hero", "services", "certifications", "portfolio", "team", "contact"],
   "Agriculture & Farming":  ["hero", "items", "about", "contact"],
-  "Hospitality & Tourism":  ["hero", "rooms", "gallery", "services", "event_schedule", "testimonials", "contact", "social"],
+  "Hospitality & Tourism":  ["hero", "rooms", "gallery", "services", "event_schedule", "contact", "social"],
   "Beauty & Personal Care": ["hero", "services", "gallery", "before_after", "pricing", "contact", "social"],
 };
 

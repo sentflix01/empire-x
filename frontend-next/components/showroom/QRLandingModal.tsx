@@ -89,7 +89,8 @@ export default function QRLandingModal({
           >
             ← Back to Landing
           </Link>
-          <TryDemoButton />
+          {/* Light surface: the default look is white text for the dark landing hero. */}
+          <TryDemoButton className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold text-foreground transition-colors hover:bg-secondary/60 disabled:cursor-wait disabled:opacity-70" />
           <Link
             href={`/login?return=${returnParam}`}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl border-2 border-border hover:border-primary hover:bg-primary-subtle/50 transition-all"

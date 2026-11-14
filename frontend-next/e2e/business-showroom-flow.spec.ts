@@ -130,8 +130,10 @@ test('a scratch showroom publishes without sample content and appears to other v
   expect(publishedBody).toMatchObject({
     title: 'Fresh Roots Cooperative',
     status: 'published',
-    owner_id: 'e2e-owner-id',
   });
+  // The server sets the owner and makes the address once (audit 2026-11-14).
+  expect(publishedBody).not.toHaveProperty('owner_id');
+  expect(publishedBody).not.toHaveProperty('slug');
   const publishedSections = JSON.parse(String(publishedBody?.sections)) as Array<Record<string, unknown>>;
   expect(publishedSections.some(section => JSON.stringify(section).includes('Signature Dish'))).toBeFalsy();
   expect(publishedSections.some(section => JSON.stringify(section).includes('Product One'))).toBeFalsy();

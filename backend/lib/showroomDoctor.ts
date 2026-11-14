@@ -44,16 +44,16 @@ const BASELINE = {
   recommended: ['about'] as string[],
 };
 const SECTOR_EXPECTATIONS: Record<string, { required: string[]; recommended: string[] }> = {
-  restaurant: { required: ['menu', 'contact', 'location'], recommended: ['about', 'testimonials', 'gallery'] },
-  cafe:       { required: ['menu', 'contact'],             recommended: ['gallery', 'about', 'testimonials'] },
-  clinic:     { required: ['services', 'contact', 'about'],recommended: ['testimonials', 'team', 'faq'] },
-  hotel:      { required: ['rooms', 'contact', 'location'],recommended: ['gallery', 'testimonials', 'amenities'] },
-  gym:        { required: ['services', 'contact'],         recommended: ['pricing', 'testimonials', 'schedule'] },
-  salon:      { required: ['services', 'contact'],         recommended: ['gallery', 'pricing', 'testimonials'] },
-  boutique:   { required: ['products', 'contact'],         recommended: ['gallery', 'about', 'testimonials'] },
+  restaurant: { required: ['menu', 'contact', 'location'], recommended: ['about', 'gallery'] },
+  cafe:       { required: ['menu', 'contact'],             recommended: ['gallery', 'about'] },
+  clinic:     { required: ['services', 'contact', 'about'],recommended: ['team', 'faq'] },
+  hotel:      { required: ['rooms', 'contact', 'location'],recommended: ['gallery', 'amenities'] },
+  gym:        { required: ['services', 'contact'],         recommended: ['pricing', 'schedule'] },
+  salon:      { required: ['services', 'contact'],         recommended: ['gallery', 'pricing'] },
+  boutique:   { required: ['products', 'contact'],         recommended: ['gallery', 'about'] },
   grocery:    { required: ['products', 'contact', 'location'], recommended: ['about', 'delivery'] },
   realestate: { required: ['listings', 'contact'],         recommended: ['gallery', 'about', 'faq'] },
-  education:  { required: ['courses', 'contact'],          recommended: ['about', 'testimonials', 'faq'] },
+  education:  { required: ['courses', 'contact'],          recommended: ['about', 'faq'] },
 };
 
 const CONTACT_KEYS = ['phone', 'whatsapp', 'email', 'telegram', 'contact_phone', 'contact_email'];

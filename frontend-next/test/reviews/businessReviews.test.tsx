@@ -9,12 +9,14 @@ import React from 'react';
 const http = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 vi.mock('@/lib/api/client', () => ({ default: http, apiFetch: vi.fn() }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+const auth = vi.hoisted(() => ({ value: { user: { id: 'u1' } as unknown, authChecked: true } }));
+vi.mock('@/lib/AuthContext', () => ({ useAuth: () => auth.value }));
 
 import { StarRating, RatingSummary } from '@/components/ui/Stars';
 import RateBusinessPrompt from '@/components/orders/RateBusinessPrompt';
 import BusinessReviews from '@/components/business/BusinessReviews';
 
-beforeEach(() => { http.get.mockReset(); http.post.mockReset(); });
+beforeEach(() => { http.get.mockReset(); http.post.mockReset(); auth.value = { user: { id: 'u1' }, authChecked: true }; });
 
 describe('Stars', () => {
   it('summary is hidden without reviews and shows "4.5 · 2 reviews" with them', () => {
@@ -68,17 +70,48 @@ describe('RateBusinessPrompt', () => {
 
 describe('BusinessReviews', () => {
   it('lists reviews with the average', async () => {
-    http.get.mockResolvedValue({ data: { reviews: [{ id: 'r1', business_id: 'b1', reviewer_id: 'u1', rating: 5, comment: 'Lovely', created_at: '2026-11-01T00:00:00Z', reviewer_name: 'Hana' }], average_rating: 5, review_count: 1, next_offset: null } });
+    http.get.mockImplementation((url: string) => Promise.resolve(url.endsWith('/mine')
+      ? { data: { can_review: false, reason: 'no_completed_order', review: null } }
+      : { data: { reviews: [{ id: 'r1', business_id: 'b1', reviewer_id: 'u1', rating: 5, comment: 'Lovely', created_at: '2026-11-01T00:00:00Z', reviewer_name: 'Hana' }], average_rating: 5, review_count: 1, next_offset: null } }));
     render(<BusinessReviews businessId="b1" />);
     expect(await screen.findByText('Lovely')).toBeTruthy();
     expect(screen.getByText('Hana')).toBeTruthy();
     expect(screen.getAllByTestId('business-review')).toHaveLength(1);
   });
 
-  it('renders nothing for a business without reviews', async () => {
+  // Decision "Reviews are platform-owned and mandatory on every website".
+  it('is always shown: an empty state when there are no reviews yet', async () => {
+    http.get.mockImplementation((url: string) => Promise.resolve(url.endsWith('/mine')
+      ? { data: { can_review: false, reason: 'no_completed_order', review: null } }
+      : { data: { reviews: [], average_rating: 0, review_count: 0, next_offset: null } }));
+    render(<BusinessReviews businessId="b1" />);
+    expect(await screen.findByTestId('site-reviews-empty')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Customer reviews' })).toBeTruthy();
+    expect(await screen.findByTestId('rate-business-reason')).toHaveTextContent('after your order with them is completed');
+  });
+
+  it('marks every review as from a verified customer and reports the summary', async () => {
+    const onSummary = vi.fn();
+    http.get.mockImplementation((url: string) => Promise.resolve(url.endsWith('/mine')
+      ? { data: { can_review: false, reason: 'owner', review: null } }
+      : { data: { reviews: [{ id: 'r1', business_id: 'b1', reviewer_id: 'u2', rating: 4, comment: 'Good', created_at: '2026-11-01T00:00:00Z' }], average_rating: 4, review_count: 1, next_offset: null } }));
+    render(<BusinessReviews businessId="b1" onSummary={onSummary} />);
+    expect(await screen.findByText('Verified customer')).toBeTruthy();
+    expect(onSummary).toHaveBeenCalledWith({ average: 4, count: 1 });
+    expect(await screen.findByTestId('rate-business-reason')).toHaveTextContent('This is your business');
+  });
+
+  it('asks a signed-out visitor to sign in, without calling the server for eligibility', async () => {
+    auth.value = { user: null, authChecked: true };
     http.get.mockResolvedValue({ data: { reviews: [], average_rating: 0, review_count: 0, next_offset: null } });
-    const { container } = render(<BusinessReviews businessId="b1" />);
-    await waitFor(() => expect(http.get).toHaveBeenCalled());
-    expect(container.textContent).toBe('');
+    render(<BusinessReviews businessId="b1" />);
+    expect(await screen.findByRole('link', { name: 'Sign in to leave a review' })).toBeTruthy();
+    expect(http.get).not.toHaveBeenCalledWith('/api/businesses/b1/reviews/mine');
+  });
+
+  it('says reviews are not available for a website without a business', () => {
+    render(<BusinessReviews businessId={null} />);
+    expect(screen.getByTestId('site-reviews-unavailable')).toBeTruthy();
+    expect(http.get).not.toHaveBeenCalled();
   });
 });

@@ -16,16 +16,35 @@ const titleCase = (value = "") =>
     .trim()
     .replace(/\b\w/g, c => c.toUpperCase());
 
+// Sample contact details are placeholders to show the layout. Publishing is
+// blocked while any of them is still in place (findSamplePlaceholders), so a
+// live site never shows a made-up phone number, email or address.
 const baseContact = {
   location: "City, Country",
   phone: "+251 911 234 567",
   email: "hello@example.com",
-  hours: "Mon-Sat 9AM-6PM",
+  hours: "",
   whatsapp: "+251911234567",
   facebook: "https://facebook.com/",
   instagram: "https://instagram.com/",
   telegram: "https://t.me/",
 };
+
+const PLACEHOLDER_LABELS: Record<string, string> = {
+  location: "Address", phone: "Phone", email: "Email", whatsapp: "WhatsApp",
+  facebook: "Facebook", instagram: "Instagram", telegram: "Telegram",
+};
+
+/** Field names (for the owner) still holding a sample placeholder. Empty means ready to publish. */
+export function findSamplePlaceholders(formData: Record<string, unknown>): string[] {
+  const norm = (v: unknown) => String(v ?? "").trim().toLowerCase().replace(/\s+/g, "");
+  return Object.entries(PLACEHOLDER_LABELS)
+    .filter(([key]) => {
+      const v = norm(formData[key]);
+      return v !== "" && v === norm((baseContact as Record<string, string>)[key]);
+    })
+    .map(([, label]) => label);
+}
 
 const sampleBase = (templateName: string) => {
   const name = titleCase(templateName) || "Business";
@@ -57,11 +76,6 @@ const sampleBase = (templateName: string) => {
       { name: "Fast Response", desc: "Quick replies through phone, chat, and WhatsApp", icon: "fa-bolt" },
       { name: "Quality First", desc: "Products and services checked before delivery", icon: "fa-check" },
     ],
-    testTitle: "Customer Reviews",
-    testimonials: [
-      { quote: "Professional service and clear communication from start to finish.", author: "Satisfied Customer", role: "Verified Buyer" },
-      { quote: "The team helped me choose the right option and delivered on time.", author: "Repeat Client", role: "Business Customer" },
-    ],
     pricingTitle: "Packages",
     plans: [
       { name: "Basic", price: "$10", period: "", features: "Consultation, Basic support, Standard delivery" },
@@ -72,7 +86,7 @@ const sampleBase = (templateName: string) => {
     stats: [
       { value: "500+", label: "Customers served" },
       { value: "24h", label: "Average response" },
-      { value: "4.8", label: "Customer rating" },
+      { value: "3", label: "Ways to reach us" },
     ],
     faqTitle: "Questions",
     faqs: [
@@ -192,14 +206,14 @@ export function getShowroomTemplateSamples(templateName: string, category: strin
       id: "starter",
       name: "Starter sample",
       desc: "Clean practical layout with ready-to-edit content.",
-      activeSections: ["hero", "items", "services", "features", "testimonials", "contact", "social"],
+      activeSections: ["hero", "items", "services", "features", "contact", "social"],
       formData: starter,
     },
     {
       id: "premium",
       name: "Premium sample",
       desc: "More complete business layout with packages, proof, and CTA.",
-      activeSections: ["hero", "about", "items", "services", "pricing", "stats", "faq", "testimonials", "contact", "social"],
+      activeSections: ["hero", "about", "items", "services", "pricing", "stats", "faq", "contact", "social"],
       formData: premium,
     },
   ];

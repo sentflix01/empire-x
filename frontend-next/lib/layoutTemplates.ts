@@ -23,14 +23,6 @@ export const LAYOUT_TEMPLATES = [
             { title: "Customer Focused", desc: "Your satisfaction is our priority" },
           ],
         },
-        {
-          type: "testimonials",
-          title: "What People Say",
-          items: [
-            { name: "Sarah K.", text: "Absolutely love the experience — exceeded my expectations!" },
-            { name: "Daniel M.", text: "Professional, reliable, and genuinely caring. Highly recommend." },
-          ],
-        },
         { type: "contact", title: "Get in Touch" },
       ],
     },
@@ -45,14 +37,6 @@ export const LAYOUT_TEMPLATES = [
         { type: "gallery", title: "Gallery" },
         { type: "story", title: "Our Heritage" },
         { type: "featured_products", title: "Signature Collection" },
-        {
-          type: "testimonials",
-          title: "Client Reflections",
-          items: [
-            { name: "Abebe T.", text: "Elegance in every detail — a truly refined experience." },
-            { name: "Lily H.", text: "Premium quality that speaks for itself." },
-          ],
-        },
         {
           type: "faq",
           title: "Questions",
@@ -89,14 +73,6 @@ export const LAYOUT_TEMPLATES = [
             { name: "Strategy Session", description: "Define your bold direction", price: "From 2,000 ETB" },
             { name: "Creative Sprint", description: "Rapid, high-impact delivery", price: "From 8,000 ETB" },
             { name: "Full Campaign", description: "End-to-end bold transformation", price: "From 25,000 ETB" },
-          ],
-        },
-        {
-          type: "testimonials",
-          title: "Happy Clients",
-          items: [
-            { name: "Marcus B.", text: "They brought energy and vision to our brand. Incredible!" },
-            { name: "Nadia A.", text: "Bold, creative, and delivered beyond what we imagined." },
           ],
         },
         { type: "contact", title: "Let's Talk" },

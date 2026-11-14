@@ -1,0 +1,554 @@
+[
+  {
+    "site": "hotel",
+    "check": "room type created through the API",
+    "ok": true,
+    "detail": "201"
+  },
+  {
+    "site": "shop",
+    "check": "publishes through the API",
+    "ok": true,
+    "detail": "201  "
+  },
+  {
+    "site": "shop",
+    "check": "no sideways scroll on a 375 px phone",
+    "ok": true,
+    "detail": "scrollWidth 375"
+  },
+  {
+    "site": "shop",
+    "check": "page loads (200)",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "shop",
+    "check": "h1 is the site name",
+    "ok": true,
+    "detail": "Habesha Threads a72ed8"
+  },
+  {
+    "site": "shop",
+    "check": "platform reviews block present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "no owner-written testimonials section",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "phone link works (tel:)",
+    "ok": true,
+    "detail": "1 links"
+  },
+  {
+    "site": "shop",
+    "check": "WhatsApp link is wa.me with digits",
+    "ok": true,
+    "detail": "https://wa.me/251911000001"
+  },
+  {
+    "site": "shop",
+    "check": "email link (mailto:)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "FAQ answer shows",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "order/book buttons on priced items",
+    "ok": true,
+    "detail": "1"
+  },
+  {
+    "site": "shop",
+    "check": "order dialog opens",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "no console or page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "shop",
+    "check": "accessibility: no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "publishes through the API",
+    "ok": true,
+    "detail": "201  "
+  },
+  {
+    "site": "restaurant",
+    "check": "no sideways scroll on a 375 px phone",
+    "ok": true,
+    "detail": "scrollWidth 375"
+  },
+  {
+    "site": "restaurant",
+    "check": "page loads (200)",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "restaurant",
+    "check": "h1 is the site name",
+    "ok": true,
+    "detail": "Selam Kitchen a72ed8"
+  },
+  {
+    "site": "restaurant",
+    "check": "platform reviews block present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "no owner-written testimonials section",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "phone link works (tel:)",
+    "ok": true,
+    "detail": "1 links"
+  },
+  {
+    "site": "restaurant",
+    "check": "WhatsApp link is wa.me with digits",
+    "ok": true,
+    "detail": "https://wa.me/251911000002"
+  },
+  {
+    "site": "restaurant",
+    "check": "map embeds",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "opening hours shown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "order/book buttons on priced items",
+    "ok": true,
+    "detail": "1"
+  },
+  {
+    "site": "restaurant",
+    "check": "order dialog opens",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "no console or page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "restaurant",
+    "check": "accessibility: no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "publishes through the API",
+    "ok": true,
+    "detail": "201  "
+  },
+  {
+    "site": "hotel",
+    "check": "no sideways scroll on a 375 px phone",
+    "ok": true,
+    "detail": "scrollWidth 375"
+  },
+  {
+    "site": "hotel",
+    "check": "page loads (200)",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "hotel",
+    "check": "h1 is the site name",
+    "ok": true,
+    "detail": "Lake View Hotel a72ed8"
+  },
+  {
+    "site": "hotel",
+    "check": "platform reviews block present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "no owner-written testimonials section",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "phone link works (tel:)",
+    "ok": true,
+    "detail": "1 links"
+  },
+  {
+    "site": "hotel",
+    "check": "email link (mailto:)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "map embeds",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "video embeds (YouTube)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "FAQ answer shows",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "rooms listed with Check availability",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "booking sheet opens with dates",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "no console or page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "hotel",
+    "check": "accessibility: no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "publishes through the API",
+    "ok": true,
+    "detail": "201  "
+  },
+  {
+    "site": "salon",
+    "check": "no sideways scroll on a 375 px phone",
+    "ok": true,
+    "detail": "scrollWidth 375"
+  },
+  {
+    "site": "salon",
+    "check": "page loads (200)",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "salon",
+    "check": "h1 is the site name",
+    "ok": true,
+    "detail": "Lula Hair Studio a72ed8"
+  },
+  {
+    "site": "salon",
+    "check": "platform reviews block present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "no owner-written testimonials section",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "phone link works (tel:)",
+    "ok": true,
+    "detail": "1 links"
+  },
+  {
+    "site": "salon",
+    "check": "WhatsApp link is wa.me with digits",
+    "ok": true,
+    "detail": "https://wa.me/251911000004"
+  },
+  {
+    "site": "salon",
+    "check": "opening hours shown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "order/book buttons on priced items",
+    "ok": true,
+    "detail": "1"
+  },
+  {
+    "site": "salon",
+    "check": "order dialog opens",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "booking section call to action",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "no console or page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "salon",
+    "check": "accessibility: no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "publishes through the API",
+    "ok": true,
+    "detail": "201  "
+  },
+  {
+    "site": "government",
+    "check": "no sideways scroll on a 375 px phone",
+    "ok": true,
+    "detail": "scrollWidth 375"
+  },
+  {
+    "site": "government",
+    "check": "page loads (200)",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "government",
+    "check": "h1 is the site name",
+    "ok": true,
+    "detail": "City Services Office a72ed8"
+  },
+  {
+    "site": "government",
+    "check": "platform reviews block present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "no owner-written testimonials section",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "phone link works (tel:)",
+    "ok": true,
+    "detail": "1 links"
+  },
+  {
+    "site": "government",
+    "check": "email link (mailto:)",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "map embeds",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "FAQ answer shows",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "opening hours shown",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "no console or page errors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "government",
+    "check": "accessibility: no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "reviews",
+    "check": "visitor without an order sees why they cannot review",
+    "ok": true,
+    "detail": "You can review this business after your order with them is completed."
+  },
+  {
+    "site": "reviews",
+    "check": "empty state before any review",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "reviews",
+    "check": "verified customer sees the rating form on the site",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "reviews",
+    "check": "review saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "reviews",
+    "check": "review listed with Verified customer badge",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "reviews",
+    "check": "rating summary in the site header",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "visitor",
+    "check": "welcome modal Try Demo button is readable (not white on white)",
+    "ok": true,
+    "detail": "rgb(15, 23, 41) on rgba(0, 0, 0, 0)"
+  },
+  {
+    "site": "reviews",
+    "check": "signed-out visitor is invited to sign in to review",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "Studio opens on the template",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "accessibility: Studio has no serious or critical WCAG 2.2 AA issues",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "Publish goes to the live site",
+    "ok": true,
+    "detail": "http://localhost:3002/showrooms/4fc456f2-0737-46aa-9a25-06873d768df4"
+  },
+  {
+    "site": "studio",
+    "check": "exactly one website (no duplicate on publish)",
+    "ok": true,
+    "detail": "1"
+  },
+  {
+    "site": "studio",
+    "check": "status published, readable address",
+    "ok": true,
+    "detail": "published studio-bakery-a72ed8"
+  },
+  {
+    "site": "studio",
+    "check": "no testimonials in the template",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "a template site with unfilled forms shows no empty sections to visitors",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "owner actions visible on the site",
+    "ok": true,
+    "detail": "http://localhost:3002/showrooms/4fc456f2-0737-46aa-9a25-06873d768df4"
+  },
+  {
+    "site": "studio",
+    "check": "reviews block on the new site",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "unpublished site is not shown to visitors",
+    "ok": true,
+    "detail": "200"
+  },
+  {
+    "site": "studio",
+    "check": "published again: visitors see it, same address",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "site": "studio",
+    "check": "editing keeps the address (QR codes keep working)",
+    "ok": true,
+    "detail": "studio-bakery-a72ed8 / Studio Bakery Renamed a72ed8"
+  },
+  {
+    "site": "studio",
+    "check": "Delete removes the site after confirmation",
+    "ok": true,
+    "detail": "0"
+  }
+]
