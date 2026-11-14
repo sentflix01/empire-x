@@ -19,7 +19,7 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/internal/jobs/:name` | public | 45 |
+| `POST` | `/api/internal/jobs/:name` | public | 55 |
 
 ## 4. What does it touch?
 

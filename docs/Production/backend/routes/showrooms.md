@@ -15,18 +15,18 @@ Showroom CRUD: draft/publish lifecycle, layout template selection, section conte
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | optional | 18 |
-| `GET` | `/api/showrooms/slug/:slug` | optional | 46 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 64 |
-| `GET` | `/api/showrooms/:id/doctor` | auth | 89 |
-| `GET` | `/api/showrooms/sitemap-data` | public | 146 |
-| `POST` | `/api/showrooms/:id/newsletter` | optional | 166 |
-| `GET` | `/api/showrooms/:id/newsletter` | auth | 184 |
-| `PATCH` | `/api/showrooms/:id/spotlight` | auth | 197 |
-| `GET` | `/api/showrooms/:id` | optional | 235 |
-| `POST` | `/api/showrooms/` | auth | 248 |
-| `PUT` | `/api/showrooms/:id` | auth | 314 |
-| `DELETE` | `/api/showrooms/:id` | auth | 375 |
+| `GET` | `/api/showrooms/` | optional | 22 |
+| `GET` | `/api/showrooms/slug/:slug` | optional | 50 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | auth | 70 |
+| `GET` | `/api/showrooms/:id/doctor` | auth | 95 |
+| `GET` | `/api/showrooms/sitemap-data` | public | 152 |
+| `POST` | `/api/showrooms/:id/newsletter` | optional | 172 |
+| `GET` | `/api/showrooms/:id/newsletter` | auth | 190 |
+| `PATCH` | `/api/showrooms/:id/spotlight` | auth | 203 |
+| `GET` | `/api/showrooms/:id` | optional | 241 |
+| `POST` | `/api/showrooms/` | auth | 254 |
+| `PUT` | `/api/showrooms/:id` | auth | 325 |
+| `DELETE` | `/api/showrooms/:id` | auth | 396 |
 
 ## 4. What does it touch?
 

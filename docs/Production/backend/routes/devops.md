@@ -11,32 +11,28 @@ Developer Operations hub: devops_items board CRUD (column-allowlisted), error_ev
 ## 3. What does it do?
 
 
-### Endpoints (20)
+### Endpoints (18)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/devops/` | admin | 15 |
-| `POST` | `/api/devops/` | admin | 22 |
-| `PUT` | `/api/devops/:id` | admin | 39 |
-| `DELETE` | `/api/devops/:id` | admin | 58 |
-| `GET` | `/api/devops/errors` | admin | 75 |
-| `GET` | `/api/devops/errors/stats` | admin | 103 |
-| `PATCH` | `/api/devops/errors/:id/resolve` | admin | 136 |
-| `PUT` | `/api/devops/errors/:id/resolve` | admin | 137 |
-| `PATCH` | `/api/devops/errors/resolve-all` | admin | 139 |
-| `POST` | `/api/devops/errors/:id/to-ticket` | admin | 155 |
-| `POST` | `/api/devops/errors/report` | optional | 194 |
-| `GET` | `/api/devops/versions` | admin | 210 |
-| `PUT` | `/api/devops/versions` | admin | 217 |
-| `PUT` | `/api/devops/versions/:version` | admin | 230 |
-| `GET` | `/api/devops/health-summary` | admin | 253 |
-| `GET` | `/api/devops/telemetry` | admin | 288 |
-| `POST` | `/api/devops/copilot` | admin | 427 |
-| `GET` | `/api/devops/scorecard` | admin | 450 |
-
-- Error triage (audit F-006): `GET /errors` takes `resolved`, `level`, `since` (ISO time), `limit` (max 200) and `offset`, and returns the resolver's name and any linked ticket; `GET /errors/stats` returns the header counts; `PATCH /errors/resolve-all` takes an optional `{ level }` and returns `{ resolved }`; `POST /errors/:id/to-ticket` creates one bug ticket per error (a second call returns the same ticket).
-- `PUT /versions/:version` saves one version status (`not_started`, `in_progress`, `completed`, `paused`) and keeps the others.
-- Non-UUID `:id` values fall through to 404 (`uuidParams`).
+| `GET` | `/api/devops/` | admin | 14 |
+| `POST` | `/api/devops/` | admin | 21 |
+| `PUT` | `/api/devops/:id` | admin | 38 |
+| `DELETE` | `/api/devops/:id` | admin | 57 |
+| `GET` | `/api/devops/errors` | admin | 74 |
+| `GET` | `/api/devops/errors/stats` | admin | 102 |
+| `PATCH` | `/api/devops/errors/:id/resolve` | admin | 135 |
+| `PUT` | `/api/devops/errors/:id/resolve` | admin | 136 |
+| `PATCH` | `/api/devops/errors/resolve-all` | admin | 138 |
+| `POST` | `/api/devops/errors/:id/to-ticket` | admin | 154 |
+| `POST` | `/api/devops/errors/report` | optional | 193 |
+| `GET` | `/api/devops/versions` | admin | 209 |
+| `PUT` | `/api/devops/versions` | admin | 216 |
+| `PUT` | `/api/devops/versions/:version` | admin | 229 |
+| `GET` | `/api/devops/health-summary` | admin | 252 |
+| `GET` | `/api/devops/telemetry` | admin | 287 |
+| `POST` | `/api/devops/copilot` | admin | 426 |
+| `GET` | `/api/devops/scorecard` | admin | 449 |
 
 ## 4. What does it touch?
 

@@ -15,22 +15,23 @@ Newly introduced as part of recent development; see source and git history for t
 ## 3. What does it do?
 
 
-### Endpoints (12)
+### Endpoints (13)
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/direct-orders/checkout-info` | optional | 144 |
-| `POST` | `/api/direct-orders/requests` | optional | 238 |
-| `POST` | `/api/direct-orders/` | optional | 310 |
-| `GET` | `/api/direct-orders/link/:token` | public | 422 |
-| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 457 |
-| `POST` | `/api/direct-orders/:id/report-payment` | auth | 465 |
-| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 475 |
-| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 492 |
-| `POST` | `/api/direct-orders/:id/set-price` | auth | 511 |
-| `POST` | `/api/direct-orders/:id/decline-request` | auth | 540 |
-| `GET` | `/api/direct-orders/link/:token/receipt` | public | 564 |
-| `GET` | `/api/direct-orders/:id/receipt` | auth | 572 |
+| `GET` | `/api/direct-orders/checkout-info` | optional | 150 |
+| `POST` | `/api/direct-orders/requests` | optional | 244 |
+| `POST` | `/api/direct-orders/bookings` | optional | 323 |
+| `POST` | `/api/direct-orders/` | optional | 403 |
+| `GET` | `/api/direct-orders/link/:token` | public | 515 |
+| `POST` | `/api/direct-orders/link/:token/report-payment` | public | 550 |
+| `POST` | `/api/direct-orders/:id/report-payment` | auth | 558 |
+| `POST` | `/api/direct-orders/:id/confirm-payment` | auth | 568 |
+| `POST` | `/api/direct-orders/:id/reject-payment` | auth | 585 |
+| `POST` | `/api/direct-orders/:id/set-price` | auth | 604 |
+| `POST` | `/api/direct-orders/:id/decline-request` | auth | 633 |
+| `GET` | `/api/direct-orders/link/:token/receipt` | public | 657 |
+| `GET` | `/api/direct-orders/:id/receipt` | auth | 665 |
 
 ## 4. What does it touch?
 

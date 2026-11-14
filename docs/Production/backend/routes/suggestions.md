@@ -15,8 +15,8 @@ People-you-may-know: suggestionScore-ranked candidate list excluding existing fo
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/suggestions/people` | auth | 9 |
-| `POST` | `/api/suggestions/dismiss/:targetUserId` | auth | 74 |
+| `GET` | `/api/suggestions/people` | auth | 10 |
+| `POST` | `/api/suggestions/dismiss/:targetUserId` | auth | 75 |
 
 ## 4. What does it touch?
 

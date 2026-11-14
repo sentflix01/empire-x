@@ -15,25 +15,25 @@ The social feed engine: smart ranked feed (recency + engagement + social boost) 
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/posts/` | optional | 59 |
-| `GET` | `/api/posts/:id` | optional | 144 |
-| `POST` | `/api/posts/` | auth | 155 |
-| `PUT` | `/api/posts/:id` | auth | 222 |
-| `DELETE` | `/api/posts/:id` | auth | 256 |
-| `GET` | `/api/posts/:id/like` | optional | 277 |
-| `POST` | `/api/posts/:id/like` | auth | 285 |
-| `PUT` | `/api/posts/:id/reaction` | auth | 332 |
-| `DELETE` | `/api/posts/:id/reaction` | auth | 362 |
-| `GET` | `/api/posts/:id/reactions` | auth | 372 |
-| `POST` | `/api/posts/:id/hide` | auth | 392 |
-| `DELETE` | `/api/posts/:id/hide` | auth | 399 |
-| `PUT` | `/api/posts/:id/settings` | auth | 408 |
-| `GET` | `/api/posts/:id/comments` | optional | 447 |
-| `POST` | `/api/posts/:id/comments` | auth | 472 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 527 |
-| `PUT` | `/api/posts/:postId/comments/:commentId` | auth | 542 |
-| `PUT` | `/api/posts/:postId/comments/:commentId/reaction` | auth | 555 |
-| `DELETE` | `/api/posts/:postId/comments/:commentId/reaction` | auth | 573 |
+| `GET` | `/api/posts/` | optional | 63 |
+| `GET` | `/api/posts/:id` | optional | 148 |
+| `POST` | `/api/posts/` | auth | 159 |
+| `PUT` | `/api/posts/:id` | auth | 226 |
+| `DELETE` | `/api/posts/:id` | auth | 260 |
+| `GET` | `/api/posts/:id/like` | optional | 281 |
+| `POST` | `/api/posts/:id/like` | auth | 289 |
+| `PUT` | `/api/posts/:id/reaction` | auth | 336 |
+| `DELETE` | `/api/posts/:id/reaction` | auth | 366 |
+| `GET` | `/api/posts/:id/reactions` | auth | 376 |
+| `POST` | `/api/posts/:id/hide` | auth | 396 |
+| `DELETE` | `/api/posts/:id/hide` | auth | 403 |
+| `PUT` | `/api/posts/:id/settings` | auth | 412 |
+| `GET` | `/api/posts/:id/comments` | optional | 451 |
+| `POST` | `/api/posts/:id/comments` | auth | 476 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId` | auth | 531 |
+| `PUT` | `/api/posts/:postId/comments/:commentId` | auth | 546 |
+| `PUT` | `/api/posts/:postId/comments/:commentId/reaction` | auth | 559 |
+| `DELETE` | `/api/posts/:postId/comments/:commentId/reaction` | auth | 577 |
 
 ## 4. What does it touch?
 

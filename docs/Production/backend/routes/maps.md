@@ -15,8 +15,8 @@ Map data: nearby products, businesses, and people within radius via Haversine SQ
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/maps/nearby/product-search` | optional | 26 |
-| `GET` | `/api/maps/nearby` | optional | 104 |
+| `GET` | `/api/maps/nearby/product-search` | optional | 39 |
+| `GET` | `/api/maps/nearby` | optional | 119 |
 
 ## 4. What does it touch?
 

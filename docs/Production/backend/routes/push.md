@@ -15,9 +15,9 @@ Web Push: stores browser push_subscriptions, dispatches sendPushToUser used by o
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/push/vapid-public-key` | public | 52 |
-| `POST` | `/api/push/subscribe` | auth | 57 |
-| `DELETE` | `/api/push/unsubscribe` | auth | 72 |
+| `GET` | `/api/push/vapid-public-key` | public | 54 |
+| `POST` | `/api/push/subscribe` | auth | 59 |
+| `DELETE` | `/api/push/unsubscribe` | auth | 74 |
 
 ## 4. What does it touch?
 

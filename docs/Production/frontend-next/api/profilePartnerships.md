@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL** — corresponding source file was removed from the codebase on 2026-11-14. Kept for reference.
+
 # frontend-next/api/profilePartnerships
 
 <!-- AUTO-STUB  2026-10-08 — curate narrative below -->
