@@ -123,7 +123,9 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
           <div data-page-guide="landing-actions">
             {/* Hero copy follows the common pattern of top product sites: a headline of
                 about six words, one sentence under it, one primary action. */}
-            <SpinningGlobeIcon className="h-16 w-16 drop-shadow-xl sm:h-20 sm:w-20" />
+            {/* Centred in the hero column; grows with the screen: 36% of the viewport
+                width, at least 8.5rem (136 px) and at most 17rem (272 px). */}
+            <SpinningGlobeIcon className="mx-auto aspect-square w-[clamp(8.5rem,36vw,17rem)] drop-shadow-2xl" />
             <h1 id="landing-title" className="mt-7 text-balance text-[2rem] font-extrabold leading-[1.08] tracking-tight min-[400px]:text-[2.4rem] sm:text-6xl lg:text-[4rem]">
               <span className="block">{tr('heroBuild', 'Build it.')}</span>{' '}
               <span className="block">{tr('heroConnect', 'Connect & share it.')}</span>{' '}

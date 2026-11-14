@@ -30,7 +30,8 @@ describe('LandingContent', () => {
     render(<LandingContent templateCount={20} />);
     const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
     const icon = within(hero).getByTestId('spinning-globe');
-    expect(icon.parentElement).toHaveClass('h-16', 'w-16', 'sm:h-20', 'sm:w-20');
+    // Centred, and sized as a share of the screen width with a floor and a cap.
+    expect(icon.parentElement).toHaveClass('mx-auto', 'aspect-square', 'w-[clamp(8.5rem,36vw,17rem)]');
     expect(within(hero).queryByText('Social + commerce in one app')).toBeNull();
   });
 

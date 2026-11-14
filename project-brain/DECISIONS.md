@@ -1102,8 +1102,8 @@ items in the open list until confirmed.
 
 ### 2026-11-14 — Landing hero logo: larger icon alone, globe turns 720° on load and on hover
 
-- **Status:** Accepted (owner, 14 Nov 2026: "make it big and bold and make the globe circulate 720 degree"; chose "720° on load, again on hover"; then "only i need the logo. not the text beside the logo")
+- **Status:** Accepted (owner, 14 Nov 2026: "make it big and bold and make the globe circulate 720 degree"; chose "720° on load, again on hover"; then "only i need the logo. not the text beside the logo"; then centred and larger, growing by percent from phone to desktop)
 - **Decision owner:** Project owner
-- **Decision:** Above the hero headline the on-blue brand icon stands alone at 64 px (80 px from `sm`); the "Social + commerce in one app" badge text is removed. The icon turns two full turns (720°, 2.4 s) when the page opens and again when someone hovers or taps it, then rests; it never restarts mid-turn. It replaces the small badge with the intro video.
+- **Decision:** Above the hero headline the on-blue brand icon stands alone, centred in the hero column and sized to the screen: 36% of the viewport width, between 8.5rem (136 px) and 17rem (272 px); the "Social + commerce in one app" badge text is removed. The icon turns two full turns (720°, 2.4 s) when the page opens and again when someone hovers or taps it, then rests; it never restarts mid-turn. It replaces the small badge with the intro video.
 - **Why:** At 28 px the logo was hard to see. An endless spin would need a pause control under WCAG 2.2.2 (the re-audit flagged endless floating-button motion, F-061); turning once and on request needs none. Reduced-motion users see it still (global rule in `app/globals.css`).
 - **Consequences:** `frontend-next/components/brand/SpinningGlobeIcon.tsx`, `.animate-globe-spin` in `app/globals.css` (its duration must match `GLOBE_SPIN_MS`), `components/landing/LandingContent.tsx`. Tests: `test/brand/spinningGlobeIcon.test.tsx`, `test/landing/landingContent.test.tsx`.
