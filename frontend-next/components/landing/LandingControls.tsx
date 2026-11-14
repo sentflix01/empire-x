@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Languages, Moon, Sun } from 'lucide-react';
 import { toggleLanguage } from '@/lib/i18n';
 
-// Follows the theme: a light control on the light header, glass on the dark one.
-const CONTROL = 'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-2 text-xs min-[400px]:px-2.5 font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:ring-white/70';
+// Glass on the landing header, which is dark in both themes (owner, 2026-11-14).
+const CONTROL = 'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-2 text-xs min-[400px]:px-2.5 font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
 export function LandingPreferences() {
   const { resolvedTheme, setTheme } = useTheme();

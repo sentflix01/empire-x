@@ -1124,7 +1124,7 @@ items in the open list until confirmed.
 - **Why:** Vercel deploys every file in a project-root `api/` folder as a serverless function. The client modules (`client.ts`, `entities.ts`, …) were each deployed as a useless function (7 on `main`). With #207's three new client files the preview had 14 functions, above the Hobby plan's 12, and failed at "Deploying outputs". `vercel build` on the branch confirmed the count. Moving the folder drops the deployment to the Next.js app's own 4 functions.
 - **Consequences:** about 170 imports changed. The `lint` script and the colour and CSS checks no longer list `api`. The guard test is `frontend-next/test/noRootApiFolder.test.ts`. The generated `docs/Production/frontend-next/api*` pages are refreshed by the docs-sync bot.
 
-### 2026-11-14 — Landing hero: one screen tall on every device, a real turning globe, theme-aware
+### 2026-11-14 — Landing hero: one screen tall on every device, a dark hero, a slowly turning globe
 
 - **Status:** Accepted (owner, 14 Nov 2026, in steps:
   - "make it big and bold and make the globe circulate 720 degree", choosing "720° on load, again on hover";
@@ -1134,17 +1134,33 @@ items in the open list until confirmed.
   - "let put everything that should place in the hero section in a proper and professional way";
   - "the hero background not exceed above 100% view point";
   - "fix the button 'start free' theme toggle is not working";
-  - "make sure everything work in all devices".)
+  - "make sure everything work in all devices";
+  - then "move the logo to the red circle" (left, over the headline), show the lead text on phones, "the size of the logo make it increase with percent";
+  - "during theme toggle don't remove the hero previous background … only toggle the 'start free' buttons", choosing a white button in dark and brand blue with a white ring in light, and a header that stays dark;
+  - "when the globe rotate make it slow and not stop", "make the lines feel connected and interchange connection through them", and "make the globe rotate too much slow and only rotate 720 degree then repeat it";
+  - "remove the play and pause button and make it rotate with some time interval. play pause is not good practice for logo".)
 - **Decision owner:** Project owner
 - **Decision:**
-  1. **Logo.** The hero opens with the brand logo alone, centred over the text column and sized by the screen's width and height: `clamp(3.5rem, min(28vw, 20svh), 13rem)`. The badge text is removed.
-  2. **Globe.** The Earth inside the logo turns like the real planet, west to east: two full turns (720°, 3.2 s) on load and again on hover or tap, then it rests. It never restarts mid-turn and never loops (WCAG 2.2.2), and it stays still with reduced motion. The ring, network lines and boxes never move.
+  1. **Logo.**
+     - The hero opens with the brand logo alone, at the left of the text column, in line with the headline.
+     - It grows with the screen width, capped by the screen height and at 16rem: `clamp(4.5rem, min(30vw, 24svh), 16rem)`.
+     - The badge text is removed.
+  2. **Globe.**
+     - The Earth inside the logo turns like the real planet, west to east, very slowly: 720° over 60 s with a gentle sine ease, then an 8 s rest, then the same turn again. 720° brings the view back to its start, so every turn starts and ends on the still logo.
+     - While it turns, signals run along the network lines from box to box, and a box glows when one arrives (CSS only). They disappear while the globe rests.
+     - The turn also rests off screen or in a hidden tab, and paints at most 30 times a second.
+     - With reduced motion it is the still logo, with no signals.
+     - **Accepted accessibility exception.** The logo has no pause/play button: the owner judged a player control wrong for a logo. WCAG 2.2.2 (Pause, Stop, Hide) asks for a way to pause motion that starts by itself and lasts more than 5 s, so the repeating turn does not meet it. What mitigates it: the motion is slow and decorative, it rests between turns, it stops off screen, it carries no information, and anyone who turns on reduced motion in their device settings sees a still logo. Revisit this if an accessibility review or a customer requires full 2.2.2 conformance; the fix would be one turn on load, or a site-wide "reduce motion" setting.
   3. **One screen.** The hero is exactly one screen tall (`100svh`, header included) on every device, and every size in it follows both width and height. On phones and tablets the phone video and the "Watch" rows move to the section right under the hero; on desktop they sit beside the text, sized by the screen height.
-  4. **Theme.** The header and hero follow the theme: light (a light gradient with dark text and brand-blue buttons) or dark (the deep blue gradient with white text). The theme button visibly changes the first screen.
+  4. **Theme.**
+     - The header and hero are dark in both themes: the deep blue → violet gradient with white text, and a `--hero-ink` header that is the same in both themes.
+     - Only the "Start free" buttons (hero and header) follow the theme: brand blue with a white ring and white text in light, white with brand-blue text in dark.
+     - The sections below the hero follow the theme.
+     - The lead text shows on every portrait screen; only screens under 420 px tall (landscape phones) drop it.
   5. **Header.** Below `sm` the header shows the wordmark, theme, language and Sign in; "Start free" is the hero's main button, and the header adds it from `sm`.
   6. **Nothing covers the hero.** The page guide never opens by itself on the landing page; on production its auto-open flag is on (F-059), and its backdrop covered "Start free". Clicking the guide's backdrop closes it. The floating guide and assistant buttons stay out of the hero and appear once you scroll past it (F-061 on phones).
   7. **Language.** Switching language sets `<html lang>`. The hero's Amharic text is still English in `locales/am.json` (F-062): it needs a fluent translator.
 - **Why:** On laptops the width-only logo pushed the headline down and clipped the phone video; at 320 px the header overflowed; the theme toggle changed nothing visible above the fold; on a first visit the guide's backdrop blocked every button.
 - **Consequences:**
-  - Code: `components/brand/GlobeLogo.tsx` (vector still logo plus a canvas that draws the turning Earth pixel by pixel from an equirectangular map, so continents crossing the edge are always correct), `lib/brand/orthographic.ts` (same projection as `scripts/brand/build-logo.mjs`), `lib/brand/globeLand.json` (built by `scripts/brand/build-globe-data.mjs`, Natural Earth, public domain), `lib/brand/logoColors.ts`, `components/landing/LandingContent.tsx`, `LandingControls.tsx`, `DemoEndedNotice.tsx`, `components/promo/PromoGuide.tsx`, `components/PageGuide.tsx`, `components/AiAssistant.tsx`, `lib/i18n.ts`, and the `--brand-blue` token in `app/globals.css`.
+  - Code: `components/brand/GlobeLogo.tsx` (vector still logo plus a canvas that draws the turning Earth pixel by pixel from an equirectangular map, so continents crossing the edge are always correct), `lib/brand/orthographic.ts` (same projection as `scripts/brand/build-logo.mjs`), `lib/brand/globeLand.json` (built by `scripts/brand/build-globe-data.mjs`, Natural Earth, public domain), `lib/brand/logoColors.ts`, `components/landing/LandingContent.tsx`, `LandingControls.tsx`, `DemoEndedNotice.tsx`, `components/promo/PromoGuide.tsx`, `components/PageGuide.tsx`, `components/AiAssistant.tsx`, `lib/i18n.ts`, the `--brand-blue` and `--hero-ink` tokens, and the `globe-signal` keyframes in `app/globals.css`.
   - Tests: `test/brand/globeLogo.test.tsx`, `test/landing/landingContent.test.tsx`, `test/PageGuide*.test.tsx`, and `e2e/landing-hero-fit.spec.ts`. The E2E runs 15 device profiles in light and dark, English and Amharic, checking fit, clipping, covering, contrast against the gradient, axe, the clicks, the globe and the floating buttons. It runs in Chromium, and in WebKit in CI (the `landing-webkit` project; screenshots are uploaded as the `landing-hero-screenshots` artifact).

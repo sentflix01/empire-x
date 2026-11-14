@@ -82,6 +82,7 @@
   --color-rating:                     hsl(var(--rating));
   --color-inverse:                    hsl(var(--inverse));
   --color-brand-blue:                 hsl(var(--brand-blue));
+  --color-hero-ink:                   hsl(var(--hero-ink));
   --color-inverse-foreground:         hsl(var(--inverse-foreground));
   --color-border:               hsl(var(--border));
   --color-input:                hsl(var(--input));
@@ -166,6 +167,7 @@
     --rating:                          32 95% 44%;    /* #d97706: star icons 3.2:1 */
     --inverse:                         222 47% 11%;   /* #0f172a: dark panels */
     --brand-blue:                      221 83% 53%;   /* #2563eb in both themes: brand-blue text on white buttons */
+    --hero-ink:                        222 47% 11%;   /* #0f172a in both themes: the landing header over the dark hero */
     --inverse-foreground:              0 0% 100%;
 
     /* ── Borders & inputs ── */
@@ -229,6 +231,7 @@
     --rating:                          43 96% 56%;    /* #fbbf24 */
     --inverse:                         222 39% 13%;   /* same as --card */
     --brand-blue:                      221 83% 53%;   /* unchanged in dark mode on purpose */
+    --hero-ink:                        222 47% 11%;   /* unchanged in dark mode on purpose */
     --inverse-foreground:              210 20% 95%;
 
     --border:              224 20% 20%;
@@ -498,4 +501,36 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Landing globe signals (components/brand/GlobeLogo.tsx): a short dash runs the length of a
+   network line in the first 70% of its period, then waits; a box glows as one arrives.
+   pathLength=1, so dash 0.14 + gap 1.14 keeps a single dash on the line. They disappear and
+   stop whenever the globe rests (between turns, off screen, tab hidden) and are absent with
+   reduced motion. */
+@keyframes globe-signal {
+  0% { stroke-dashoffset: 0.14; }
+  70%, 100% { stroke-dashoffset: -1; }
+}
+@keyframes globe-glow {
+  0%, 62%, 88%, 100% { opacity: 0; }
+  70% { opacity: 0.55; }
+}
+.globe-signal {
+  stroke-dasharray: 0.14 1.14;
+  stroke-dashoffset: 0.14;
+  animation-name: globe-signal;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+.globe-glow {
+  opacity: 0;
+  animation-name: globe-glow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+[data-spinning='false'] .globe-signal,
+[data-spinning='false'] .globe-glow { animation-play-state: paused; visibility: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .globe-signal, .globe-glow { animation: none; display: none; }
 }
