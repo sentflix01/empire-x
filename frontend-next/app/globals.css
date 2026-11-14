@@ -303,6 +303,16 @@
   82%, 100% { transform: rotateY(360deg); }
 }
 
+/* Brand icon on the landing badge: two full turns, then rest (SpinningGlobeIcon). */
+@keyframes globe-spin-720 {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(720deg); }
+}
+
+.animate-globe-spin {
+  animation: globe-spin-720 2.4s cubic-bezier(0.45, 0.05, 0.25, 1) both;
+}
+
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
