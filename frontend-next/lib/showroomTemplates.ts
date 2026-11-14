@@ -29,7 +29,7 @@ export interface SectionField {
 // ── Section Types ─────────────────────────────────────────────────────────────
 export type SectionType =
   | 'hero' | 'about' | 'services' | 'items' | 'team'
-  | 'gallery' | 'testimonials' | 'faq' | 'contact' | 'hours'
+  | 'gallery' | 'faq' | 'contact' | 'hours'
   | 'locations' | 'pricing' | 'process' | 'social' | 'cta' | 'stats';
 
 export interface SectionTemplate {
@@ -73,14 +73,6 @@ const ABOUT_FIELDS: SectionField[] = [
   { key: 'title',   label: 'Section Title',   type: 'text',     required: false, placeholder: 'About Us' },
   { key: 'content', label: 'Your Story',      type: 'richtext', required: true,  placeholder: 'Tell visitors who you are, what you do, and what makes you different...', maxLength: 1000 },
   { key: 'image',   label: 'Photo (optional)',type: 'image',    required: false, hint: 'A photo of your team, shop, or workspace.' },
-];
-
-const TESTIMONIALS_FIELDS: SectionField[] = [
-  { key: 'name',    label: 'Customer Name',  type: 'text',     required: true,  placeholder: 'Abebe Girma' },
-  { key: 'role',    label: 'Title / Role',   type: 'text',     required: false, placeholder: 'Business Owner' },
-  { key: 'quote',   label: 'Their Review',   type: 'textarea', required: true,  placeholder: 'What did they say about your business?', maxLength: 300 },
-  { key: 'rating',  label: 'Star Rating',    type: 'select',   required: false, options: ['5', '4', '3'] },
-  { key: 'avatar',  label: 'Photo',          type: 'image',    required: false },
 ];
 
 const FAQ_FIELDS: SectionField[] = [
@@ -139,15 +131,6 @@ function aboutSection(overrides?: Partial<SectionTemplate>): SectionTemplate {
 }
 function contactSection(overrides?: Partial<SectionTemplate>): SectionTemplate {
   return { type: 'contact', title: 'Contact Us', icon: 'Phone', required: true, layout: 'cards', fields: CONTACT_FIELDS, ...overrides };
-}
-function testimonialsSection(overrides?: Partial<SectionTemplate>): SectionTemplate {
-  return { type: 'testimonials', title: 'What Our Customers Say', icon: 'Quote', required: false, layout: 'carousel',
-    fields: TESTIMONIALS_FIELDS,
-    defaultItems: [
-      { name: 'Abebe Girma', role: 'Customer', quote: 'Excellent service! I highly recommend them to everyone.', rating: '5' },
-      { name: 'Tigist Haile', role: 'Regular Customer', quote: 'Best quality in the area. Always satisfied!', rating: '5' },
-    ],
-    ...overrides };
 }
 function faqSection(overrides?: Partial<SectionTemplate>): SectionTemplate {
   return { type: 'faq', title: 'Frequently Asked Questions', icon: 'HelpCircle', required: false, layout: 'accordion', fields: FAQ_FIELDS, ...overrides };
@@ -237,7 +220,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       gallerySection('Photos'),
       hoursSection(),
       aboutSection({ title: 'Our Story' }),
-      testimonialsSection(),
       contactSection(),
       socialSection(),
     ],
@@ -259,7 +241,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       gallerySection('Shop Photos'),
       aboutSection(),
       hoursSection(),
-      testimonialsSection(),
       contactSection(),
       socialSection(),
     ],
@@ -273,7 +254,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       processSection('How It Works'),
       teamSection('Our Team', 'Staff'),
       gallerySection('Our Work'),
-      testimonialsSection(),
       faqSection(),
       hoursSection(),
       contactSection(),
@@ -289,7 +269,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       aboutSection({ title: 'About Our Clinic' }),
       processSection('How to Book an Appointment'),
       hoursSection(),
-      testimonialsSection(),
       faqSection({ defaultItems: [
         { question: 'Do I need an appointment?', answer: 'Walk-ins are welcome, but booking in advance is recommended to reduce waiting time.' },
         { question: 'Which insurance plans do you accept?', answer: 'We accept CBE Insurance, CBHI, and most major private insurers. Contact us for details.' },
@@ -308,7 +287,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       pricingSection('Treatment Prices'),
       teamSection('Meet Our Stylists', 'Stylist'),
       hoursSection(),
-      testimonialsSection(),
       faqSection(),
       contactSection(),
       socialSection(),
@@ -324,7 +302,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       teamSection('Our Instructors', 'Instructor'),
       processSection('Enrollment Process'),
       aboutSection({ title: 'Our Mission' }),
-      testimonialsSection({ title: 'Student Success Stories' }),
       faqSection(),
       contactSection(),
     ],
@@ -347,7 +324,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       aboutSection({ title: 'About Our Agency' }),
       teamSection('Our Agents', 'Agent'),
       processSection('How We Work'),
-      testimonialsSection({ title: 'Client Stories' }),
       contactSection(),
     ],
   },
@@ -361,7 +337,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       pricingSection('Our Plans'),
       teamSection('Our Team', 'Developer'),
       gallerySection('Our Projects'),
-      testimonialsSection({ title: 'Client Reviews' }),
       faqSection(),
       ctaSection({ defaultItems: [{ heading: 'Ready to build your digital future?', cta_text: 'Get a Free Quote', cta_link: '#contact' }] }),
       contactSection(),
@@ -377,7 +352,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       pricingSection('Packages'),
       processSection('Our Process'),
       teamSection('The Creative Team', 'Designer'),
-      testimonialsSection({ title: 'Client Feedback' }),
       contactSection(),
       socialSection(),
     ],
@@ -391,7 +365,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       teamSection('Our Attorneys', 'Attorney'),
       aboutSection({ title: 'About the Firm' }),
       processSection('How We Work'),
-      testimonialsSection({ title: 'Client Testimonials' }),
       faqSection({ defaultItems: [
         { question: 'What is your consultation fee?', answer: 'Initial consultations are free. We will discuss our fees at the first meeting.' },
         { question: 'How long does a typical case take?', answer: 'It depends on the complexity. Simple cases can resolve in weeks; complex ones may take months.' },
@@ -408,7 +381,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       aboutSection({ title: 'About Us' }),
       teamSection('Our Advisors', 'Advisor'),
       processSection('How to Apply'),
-      testimonialsSection(),
       faqSection(),
       ctaSection(),
       contactSection(),
@@ -424,7 +396,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       processSection('Our Process'),
       teamSection('Our Team', 'Engineer'),
       aboutSection({ title: 'About the Company' }),
-      testimonialsSection({ title: 'Client Reviews' }),
       contactSection(),
     ],
   },
@@ -445,7 +416,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       servicesSection('Our Services'),
       gallerySection('Gallery'),
       hoursSection(),
-      testimonialsSection(),
       contactSection(),
     ],
   },
@@ -465,7 +435,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       aboutSection({ title: 'About Our Farm' }),
       processSection('Our Process'),
       gallerySection('Farm Photos'),
-      testimonialsSection({ title: 'Buyer Reviews' }),
       contactSection(),
     ],
   },
@@ -479,7 +448,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       processSection('Our Manufacturing Process'),
       gallerySection('Factory & Products'),
       teamSection('Leadership Team', 'Executive'),
-      testimonialsSection({ title: 'Partner Reviews' }),
       ctaSection({ defaultItems: [{ heading: 'Looking for a manufacturing partner?', cta_text: 'Request a Quote', cta_link: '#contact' }] }),
       contactSection(),
     ],
@@ -493,7 +461,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       processSection('How We Deliver'),
       aboutSection(),
       gallerySection('Our Fleet'),
-      testimonialsSection(),
       faqSection({ defaultItems: [
         { question: 'What areas do you serve?', answer: 'We serve your city and surrounding regions. Contact us for specific coverage details.' },
         { question: 'How do I track my shipment?', answer: 'You can track your shipment in real-time by calling us or via our WhatsApp updates.' },
@@ -517,7 +484,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
         { key: 'image',       label: 'Event Photo',     type: 'image',    required: false },
       ]),
       teamSection('Our Team', 'Staff'),
-      testimonialsSection({ title: 'What People Say' }),
       hoursSection(),
       contactSection(),
       socialSection(),
@@ -533,7 +499,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       teamSection('Our Team', 'Staff'),
       processSection('How We Work'),
       gallerySection('Our Impact'),
-      testimonialsSection({ title: 'Stories of Change' }),
       ctaSection({ defaultItems: [{ heading: 'Join us in creating change', cta_text: 'Support Our Mission', cta_link: '#contact' }] }),
       faqSection(),
       contactSection(),
@@ -555,7 +520,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
       servicesSection('Hotel Amenities'),
       gallerySection('Hotel Photos'),
       aboutSection({ title: 'About the Hotel' }),
-      testimonialsSection({ title: 'Guest Reviews' }),
       contactSection(),
     ],
   },
@@ -573,7 +537,6 @@ export const SHOWROOM_TEMPLATES: Record<string, ShowroomTemplate> = {
         { key: 'badge',       label: 'Badge',           type: 'select',   required: false, options: ['New', 'Sale', 'Best Seller', 'Limited'] },
       ]),
       aboutSection(),
-      testimonialsSection(),
       faqSection({ defaultItems: [
         { question: 'How do I order?', answer: 'Click any product, then contact us via WhatsApp or phone to place your order.' },
         { question: 'What payment methods do you accept?', answer: 'We accept major credit/debit cards, mobile payments, and bank transfers.' },

@@ -15,7 +15,7 @@ import { MoreMenu, StyleMenu, type PreviewMode } from "@/components/showroom/stu
 import { useStudioLayout } from "@/hooks/useStudioLayout";
 import { useDragResize } from "@/hooks/useDragResize";
 import { parseShowroomSections, serializeShowroomSections } from "@/lib/showroomSectionsCodec";
-import { getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
+import { findSamplePlaceholders, getShowroomTemplateSample } from "@/lib/showroomTemplateSamples";
 import BuilderForm from "@/components/showroom/BuilderForm";
 import BuilderPreview from "@/components/showroom/BuilderPreview";
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -54,7 +54,6 @@ function getSmartDefaults(templateName: string, category: string): Record<string
     heroBg: "#b8860b", heroBg2: "#d4a843",
     aboutTitle: "About Us", aboutDesc: "",
     galleryTitle: "Gallery", galleryImages: [],
-    testTitle: "What People Say", testimonials: [],
     teamTitle: "Our Team", members: [],
     faqTitle: "Frequently Asked Questions", faqs: [],
     featTitle: "Why Choose Us", features: [],
@@ -72,7 +71,8 @@ function getSmartDefaults(templateName: string, category: string): Record<string
     awardsTitle: "Awards & Recognition", awards: [],
     resourcesTitle: "Resources", resources: [],
     industriesTitle: "Industries We Serve", industries: [],
-    location: "", phone: "", email: "", hours: "Mon–Sat 9AM–6PM",
+    // Never a fact the owner did not give (audit 2026-11-14): no default opening hours.
+    location: "", phone: "", email: "", hours: "",
     whatsapp: "", facebook: "", instagram: "", telegram: "",
     youtube: "", tiktok: "", twitter: "", linkedin: "",
   };
@@ -124,7 +124,7 @@ function getDefaultFormData(templateName: string, category: string, sampleId = "
 
 function getDefaultSections(templateName: string, category: string, sampleId = ""): string[] {
   if (sampleId) return getShowroomTemplateSample(templateName, category, sampleId).activeSections;
-  return CATEGORY_DEFAULT_SECTIONS[category] || ["hero", "services", "testimonials", "contact", "social"];
+  return CATEGORY_DEFAULT_SECTIONS[category] || ["hero", "services", "contact", "social"];
 }
 
 export interface ShowroomCreateProps {
@@ -407,9 +407,12 @@ function ShowroomCreate({
   const moveSection = (key: string, dir: number) => {
     pushUndo();
     setActiveSections(prev => {
+      // Move among the sections the panel shows: an unknown or retired key
+      // (e.g. from an old draft) must not swallow the move.
       const i = prev.indexOf(key);
       if (i === -1) return prev;
-      const ni = i + dir;
+      let ni = i + dir;
+      while (ni >= 0 && ni < prev.length && !getSectionType(prev[ni])) ni += dir;
       if (ni < 0 || ni >= prev.length) return prev;
       const a = [...prev];
       [a[i], a[ni]] = [a[ni], a[i]];
@@ -417,16 +420,25 @@ function ShowroomCreate({
     });
   };
 
-  const buildShowroomPayload = (status: 'draft' | 'published') => {
+  // One payload for drafts and publishing (audit 2026-11-14: publish used to
+  // build sections a second way, sent a new slug on every edit, and never set
+  // the colour or share image). The server makes the address from the title
+  // once and keeps it, so shared links and QR codes keep working.
+  const buildShowroomPayload = (status: 'draft' | 'published', businessId: string | null = selectedBusinessId) => {
     const title = String(formData.title ?? '').trim();
     const sections = serializeShowroomSections(activeSections, formData);
+    const hex = typeof formData.heroBg === 'string' && /^#[0-9a-fA-F]{6}$/.test(formData.heroBg) ? formData.heroBg : undefined;
+    const gallery = Array.isArray(formData.galleryImages) ? formData.galleryImages as Array<{ url?: unknown }> : [];
+    const cover = [formData.aboutImage, ...gallery.map((g) => g?.url)]
+      .find((u): u is string => typeof u === 'string' && /^(https:\/\/|\/(?!\/))/.test(u));
     return {
       title,
-      description: formData.subtitle || '',
-      slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      description: String(formData.subtitle || '').slice(0, 1000),
       category: categoryParam || 'business',
       sections: JSON.stringify(sections),
-      ...(selectedBusinessId ? { business_id: selectedBusinessId } : {}),
+      ...(businessId ? { business_id: businessId } : {}),
+      ...(hex ? { theme_color: hex } : {}),
+      ...(cover ? { cover_image: cover } : {}),
       status,
     };
   };
@@ -551,6 +563,13 @@ function ShowroomCreate({
     if (editId && loadedDraftKey !== draftKey) { toast.error("Your site is still loading. Try again in a moment."); return; }
     const title = String(formData.title ?? "").trim();
     if (!title) { toast.error("Add your business name in the Hero section"); return; }
+    // A sample's made-up contact details must never go live (audit 2026-11-14).
+    const publishedKeys = new Set(activeSections.flatMap((key) => getSectionType(key)?.fields.map((f) => f.key) ?? []));
+    const placeholders = findSamplePlaceholders(Object.fromEntries(Object.entries(formData).filter(([k]) => publishedKeys.has(k))));
+    if (placeholders.length) {
+      toast.error(`Replace the sample ${placeholders.join(', ')} with your own before publishing, or clear ${placeholders.length === 1 ? 'it' : 'them'}.`);
+      return;
+    }
     const businessId = businessIdOverride ?? selectedBusinessId;
     // Every live site belongs to a Business profile: create or choose it here
     // rather than failing and sending the owner out of Studio.
@@ -560,30 +579,29 @@ function ShowroomCreate({
     }
     setSaving(true);
     // Keep an up-to-date local copy before any billing redirect or API error.
-    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections }));
+    const createdAt = (() => {
+      try { return Number(JSON.parse(localStorage.getItem(draftKey) ?? '{}').createdAt) || Date.now(); }
+      catch { return Date.now(); }
+    })();
+    localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections, createdAt, businessId }));
     try {
-      const sections = activeSections.map(key => {
-        const sec = getSectionType(key);
-        if (!sec) return null;
-        const data: Record<string, any> = { type: key };
-        sec.fields.forEach(f => { if (formData[f.key] !== undefined) data[f.key] = formData[f.key]; });
-        return data;
-      }).filter(Boolean);
-
-      const showroomData = {
-        owner_id: user.id,
-        ...(businessId ? { business_id: businessId } : {}),
-        title,
-        description: formData.subtitle || "",
-        slug: title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
-        category: categoryParam || "business",
-        sections: JSON.stringify(sections),
-        status: "published",
-      };
-      const showroom = editId
-        ? await entities.Showroom.update(editId, showroomData)
-        : await entities.Showroom.create(showroomData);
+      const showroomData = buildShowroomPayload('published', businessId ?? null);
+      // Publishing a saved draft updates that draft instead of creating a
+      // second website next to it; an expired draft (410) starts a new one.
+      const targetId = editId || serverDraftId;
+      let showroom;
+      if (targetId) {
+        try { showroom = await entities.Showroom.update(targetId, showroomData); }
+        catch (err) {
+          if (!editId && (err as { status?: number } | null)?.status === 410) showroom = await entities.Showroom.create(showroomData);
+          else throw err;
+        }
+      } else {
+        showroom = await entities.Showroom.create(showroomData);
+      }
       localStorage.removeItem(draftKey);
+      localStorage.removeItem(serverDraftKey);
+      setServerDraftId(null);
       toast.success("Your showroom is live and visible in the Business feed.");
       router.push(`/showrooms/${showroom.id}`);
     } catch (error) {

@@ -239,7 +239,7 @@ const copy = {
       showroomsEnd:         ['Showrooms done',               'Create your own showroom from the Feed banner or Showroom Studio.'],
       // showroom view
       showroomHero:         ['Business showroom',            "This is the business's public mini website — logo, cover, and headline section."],
-      showroomSections:     ['Showroom sections',            'Scroll down to see products, services, team, testimonials, and contact details.'],
+      showroomSections:     ['Showroom sections',            'Scroll down to see products, services, team, customer reviews and contact details.'],
       showroomProducts:     ['Products section',             'Tap any product to open its detail page and buy directly.'],
       showroomContact:      ['Contact the business',         'Tap Message to chat with the seller, or use their listed phone and address.'],
       showroomViewEnd:      ['Showroom done',                'Browse more showrooms in the Showrooms directory.'],
@@ -247,7 +247,7 @@ const copy = {
       showroomCreateName:   ['Name your showroom',           "This becomes your business's public web address on Nodbusiness."],
       showroomCreateCategory:['Choose a category',           'Select the category that best describes your business type.'],
       showroomTemplates:    ['Pick a template',              'Templates give you a ready-made layout. Choose the one closest to your business.'],
-      showroomBuilder:      ['Customise sections',           'Add, remove, or reorder sections — hero, products, team, testimonials, and more.'],
+      showroomBuilder:      ['Customise sections',           'Add, remove, or reorder sections — hero, products, team, FAQ and more.'],
       showroomSectionEditor:['Edit a section',               'Tap any section to edit its text, images, and layout. Changes preview instantly.'],
       showroomPreview:      ['Live preview',                 'This panel shows exactly how your showroom looks to visitors.'],
       showroomPublish:      ['Publish your showroom',        'Tap Publish to make your showroom live. You can edit it any time after.'],

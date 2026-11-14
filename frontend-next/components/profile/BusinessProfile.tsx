@@ -176,7 +176,7 @@ export default function BusinessProfile({ profile, business, user, isOwner }: Bu
             );
           })}
 
-          {business?.id && <BusinessReviews businessId={String(business.id)} />}
+          {business?.id && <BusinessReviews businessId={String(business.id)} businessName={typeof business.name === "string" ? business.name : null} />}
 
           {/* Contact Section (a Studio site with its own contact section skips it) */}
           {siteContactIdx < 0 && <div id="section-contact" className="px-5 py-10 bg-secondary/30 border-t border-border/30">

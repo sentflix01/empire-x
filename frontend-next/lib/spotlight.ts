@@ -36,7 +36,7 @@ export const SPOTLIGHT_LABELS: Record<string, string> = {
   products: 'Products', featured_products: 'Featured', inventory_catalog: 'Catalogue',
   items: 'Items', menu: 'Menu', services: 'Services', pricing: 'Packages', offer: 'Offer',
   event_schedule: 'Events', gallery: 'Gallery', portfolio: 'Portfolio', about: 'About', story: 'Our story',
-  testimonials: 'Reviews', team: 'Team', faq: 'FAQ', features: 'Why us', stats: 'Numbers',
+  team: 'Team', faq: 'FAQ', features: 'Why us', stats: 'Numbers',
   before_after: 'Before & After', job_openings: 'Hiring', delivery: 'Delivery',
   certifications: 'Certified', brands: 'Brands', caseStudies: 'Case studies',
   partners: 'Partners', awards: 'Awards', industries: 'Industries', process: 'Process',
@@ -66,7 +66,6 @@ export function sectionHasContent(s: SpotlightSection, productCount: number, now
     case 'portfolio': return list(s.portfolio).length > 0;
     case 'about': case 'story': return Boolean(s.aboutImage) && Boolean(s.aboutDesc || s.content);
     // Extended sections — show if they have any content
-    case 'testimonials': return list(s.testimonials).length > 0 || list(s.items).length > 0;
     case 'team': return list(s.members).length > 0;
     case 'faq': return list(s.faqs).length > 0 || list(s.items).length > 0;
     case 'features': return list(s.features).length > 0 || list(s.items).length > 0;

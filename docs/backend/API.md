@@ -1,6 +1,6 @@
 # Nodbusiness — API Documentation
 
-Last reviewed: 2026-11-13
+Last reviewed: 2026-11-14
 
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
@@ -578,9 +578,28 @@ Response:
 - `distance_km` is rounded to 0.5 km (never below 0.5) and `null` without a pin. Exact pins never leave the server (see Business location).
 - `relationship`: `"friend"` when the viewer and the owner follow each other, `"following"` when only the viewer follows, otherwise `null` (always `null` for guests).
 
+## Websites (showrooms): create, update, unpublish, delete
+
+Audit 2026-11-14 (`note/2026-11-14-showroom-audit/README.md`).
+
+### POST /api/showrooms · PUT /api/showrooms/:id
+Owner (or admin for PUT). Only these fields are written: `title` (≤ 120), `description` (≤ 1000), `category`, `template`, `sections`, `status` (`draft` · `published` · `archived`), `business_id`, `theme_color` (hex), `cover_image` and `logo_url` (`https://` or `/uploads/…`), and `slug` (`^[a-z0-9-]{3,80}$`). Anything else in the body (`view_count`, `spotlight_*`, `expires_at`, `owner_id`, …) is ignored.
+
+- `sections`: a JSON array of objects, at most 40, each ≤ 64 KB, the whole ≤ 512 KB, each text ≤ 5000 characters. No string may be a `javascript:`, `vbscript:`, `data:`, `file:` or `blob:` URL. Retired types (`testimonials`) are dropped.
+- Errors: `400 { error, message, field }` with `error` one of `invalid_field`, `field_too_long`, `invalid_status`, `invalid_slug`, `invalid_showroom_sections`; `field` names the place, e.g. `sections[2].facebook`.
+- The address (`slug`) is made from the title on create (non-Latin titles: `site…`) and never changes on update unless a different free `slug` is sent; a taken one is `409 { error: 'slug_taken', field: 'slug' }`.
+- Publishing needs a Business profile (`409 business_profile_required` / `business_selection_required`) and a plan covering the sections (`402 subscription_required`).
+- **Unpublish:** `PUT { status: 'archived' }`; visitors get 404, the owner still sees it, nothing expires. **Publish again:** `PUT { status: 'published' }`, with the same plan check.
+
+### GET /api/showrooms/slug/:slug
+Published, unexpired sites only. Counts a view for visitors, not for the owner.
+
+### DELETE /api/showrooms/:id
+Owner or admin; permanent.
+
 ## Business reviews (verified customers)
 
-Mounted at `/api/businesses/:businessId/reviews`. Decision "Business reviews: verified customers only".
+Mounted at `/api/businesses/:businessId/reviews`. Decision "Business reviews: verified customers only". Since 2026-11-14 every published website and business profile shows these reviews in a block owners cannot remove (decision "Reviews are platform-owned and mandatory on every website").
 
 ### GET /api/businesses/:businessId/reviews?limit=20&offset=0
 Visible reviews, newest first. Optional auth; same visibility as the business (guests: public businesses only).

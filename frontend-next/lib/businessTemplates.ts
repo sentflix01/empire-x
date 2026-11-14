@@ -31,7 +31,6 @@ import {
             { type: "hero", title: "Premium Collection", subtitle: "Curated for you", cta: "Shop Now" },
             { type: "products", title: "Our Collection" },
             { type: "story", title: "Our Story" },
-            { type: "testimonials", title: "Customer Love" },
             { type: "contact", title: "Visit Us" }
           ]
         },
@@ -74,7 +73,6 @@ import {
             { type: "hero", title: "Learn New Skills", subtitle: "Expert-led courses for growth", cta: "Browse Courses" },
             { type: "courses", title: "Available Courses" },
             { type: "instructor", title: "Meet Your Instructor" },
-            { type: "testimonials", title: "Student Success Stories" },
             { type: "faq", title: "Frequently Asked Questions" },
             { type: "contact", title: "Get in Touch" }
           ]
@@ -87,7 +85,6 @@ import {
             { type: "hero", title: "Transform Your Life", subtitle: "1-on-1 coaching sessions", cta: "Book a Session" },
             { type: "instructor", title: "Your Coach" },
             { type: "services", title: "Coaching Programs", items: [{ name: "1-on-1 Session", description: "60-minute private coaching call", price: "From 2,000 ETB" }, { name: "Group Workshop", description: "Join a cohort of motivated learners", price: "From 1,000 ETB" }, { name: "Mentorship Package", description: "12-week transformation program", price: "From 15,000 ETB" }] },
-            { type: "testimonials", title: "Client Transformations" },
             { type: "contact", title: "Start Your Journey" }
           ]
         },
@@ -98,7 +95,6 @@ import {
           sections: [
             { type: "hero", title: "Master a New Skill", subtitle: "Step-by-step video course", cta: "Enroll Now" },
             { type: "features", title: "What You'll Learn", items: [{ title: "Module 1", desc: "Foundations" }, { title: "Module 2", desc: "Core Skills" }, { title: "Module 3", desc: "Advanced Techniques" }, { title: "Module 4", desc: "Real-World Projects" }] },
-            { type: "testimonials", title: "What Students Say" },
             { type: "contact", title: "Questions?" }
           ]
         }
@@ -119,7 +115,6 @@ import {
             { type: "hero", title: "Professional Services", subtitle: "Expert solutions for your needs", cta: "Book a Service" },
             { type: "services", title: "What We Offer" },
             { type: "process", title: "How It Works", items: [{ title: "Consult", desc: "Tell us your needs" }, { title: "Plan", desc: "We create a plan" }, { title: "Deliver", desc: "We execute flawlessly" }] },
-            { type: "testimonials", title: "Client Testimonials" },
             { type: "contact", title: "Book a Consultation" }
           ]
         },
@@ -131,7 +126,6 @@ import {
             { type: "hero", title: "We Build Brands", subtitle: "Creative agency for ambitious businesses", cta: "Get a Quote" },
             { type: "services", title: "Our Expertise", items: [{ name: "Branding", description: "Identity design and brand strategy", price: "From 10,000 ETB" }, { name: "Web Design", description: "Beautiful, fast websites", price: "From 25,000 ETB" }, { name: "Digital Marketing", description: "Growth-focused campaigns", price: "From 5,000 ETB/mo" }, { name: "Content Creation", description: "Photos, videos, and copy", price: "From 3,000 ETB" }] },
             { type: "process", title: "Our Process", items: [{ title: "Discover", desc: "We learn about your business" }, { title: "Design", desc: "We craft the solution" }, { title: "Deploy", desc: "We launch and optimize" }, { title: "Deliver", desc: "We measure and grow" }] },
-            { type: "testimonials", title: "Trusted By" },
             { type: "team", title: "Meet the Team" },
             { type: "contact", title: "Start a Project" }
           ]
@@ -144,7 +138,6 @@ import {
             { type: "hero", title: "Hi, I'm Your Expert", subtitle: "Freelance services done right", cta: "Hire Me" },
             { type: "instructor", title: "About Me" },
             { type: "services", title: "Services & Rates", items: [{ name: "Quick Fix", description: "Small tasks, 24h turnaround", price: "From 500 ETB" }, { name: "Standard Project", description: "Most popular, 1-week delivery", price: "From 3,000 ETB" }, { name: "Full Project", description: "End-to-end solution", price: "From 10,000 ETB" }] },
-            { type: "testimonials", title: "Client Reviews" },
             { type: "contact", title: "Let's Talk" }
           ]
         }
@@ -224,7 +217,6 @@ import {
             { type: "gallery", title: "Selected Work" },
             { type: "services", title: "What We Do", items: [{ name: "Brand Identity", description: "Logo, colors, guidelines", price: "From 8,000 ETB" }, { name: "Web Design", description: "Responsive, beautiful sites", price: "From 20,000 ETB" }, { name: "Photography", description: "Product & lifestyle shoots", price: "From 3,000 ETB" }] },
             { type: "process", title: "How We Work", items: [{ title: "Brief", desc: "Understanding your vision" }, { title: "Concept", desc: "Creative exploration" }, { title: "Refine", desc: "Polishing the details" }, { title: "Deliver", desc: "Final assets ready" }] },
-            { type: "testimonials", title: "Happy Clients" },
             { type: "contact", title: "Let's Create Together" }
           ]
         },
@@ -267,7 +259,6 @@ import {
             { type: "hero", title: "Your Perfect Event Space", subtitle: "Elegant venues for unforgettable moments", cta: "Book a Tour" },
             { type: "gallery", title: "Our Venue" },
             { type: "services", title: "Event Packages", items: [{ name: "Intimate Gathering", description: "Up to 50 guests", price: "From 25,000 ETB" }, { name: "Grand Celebration", description: "Up to 200 guests", price: "From 75,000 ETB" }, { name: "Corporate Event", description: "Conferences & meetings", price: "From 40,000 ETB" }] },
-            { type: "testimonials", title: "Happy Hosts" },
             { type: "contact", title: "Check Availability" }
           ]
         },
@@ -299,7 +290,6 @@ import {
             { type: "hero", title: "Find Your Dream Home", subtitle: "Premium properties", cta: "View Listings" },
             { type: "products", title: "Featured Properties" },
             { type: "about", title: "About Our Agency" },
-            { type: "testimonials", title: "Client Reviews" },
             { type: "contact", title: "Contact Agent" }
           ]
         },
@@ -311,7 +301,6 @@ import {
             { type: "hero", title: "Your Trusted Property Advisor", subtitle: "Helping you find the perfect home", cta: "Contact Me" },
             { type: "instructor", title: "About the Agent" },
             { type: "products", title: "My Listings" },
-            { type: "testimonials", title: "Client Stories" },
             { type: "contact", title: "Schedule a Viewing" }
           ]
         },
@@ -356,7 +345,6 @@ import {
             { type: "services", title: "Membership Plans", items: [{ name: "Monthly", description: "Full gym access", price: "1,500 ETB/mo" }, { name: "Personal Training", description: "1-on-1 sessions", price: "From 500 ETB/session" }, { name: "Group Classes", description: "Yoga, HIIT, and more", price: "From 300 ETB/class" }] },
             { type: "gallery", title: "Our Facility" },
             { type: "team", title: "Meet the Trainers" },
-            { type: "testimonials", title: "Member Transformations" },
             { type: "hours", title: "Gym Hours" },
             { type: "contact", title: "Start Your Free Trial" }
           ]
@@ -400,7 +388,6 @@ import {
           sections: [
             { type: "hero", title: "Your Big Idea Starts Here", subtitle: "Let's make it happen together", cta: "Get Started" },
             { type: "features", title: "What Sets Us Apart", items: [{ title: "Innovation", desc: "Fresh approaches" }, { title: "Quality", desc: "No compromises" }, { title: "Support", desc: "Here to help" }] },
-            { type: "testimonials", title: "What People Say" },
             { type: "contact", title: "Let's Connect" }
           ]
         },

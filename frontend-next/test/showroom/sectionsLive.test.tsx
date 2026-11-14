@@ -31,7 +31,6 @@ const FILLED: Record<string, unknown> = {
   itemsTitle: 'Bread', items: [{ name: 'Sourdough', desc: 'Slow risen', price: '120 ETB' }],
   galleryTitle: 'Photos', galleryImages: [{ url: 'https://cdn.example.test/oven.jpg', caption: 'Our oven' }],
   servTitle: 'Services', services: [{ name: 'Cake orders', desc: 'Birthdays', price: 'From 900 ETB' }],
-  testTitle: 'Customers say', testimonials: [{ quote: 'Best bread in Bole', author: 'Hana' }],
   location: 'Bole, near Medhanialem', phone: '+251 91 234 5678', email: 'hi@selam.test', hours: 'Mon–Sat 7–19', whatsapp: '+251 91 234 5678',
   facebook: 'https://facebook.com/selam', telegram: 'https://t.me/selam',
   pricingTitle: 'Packages', plans: [{ name: 'Weekly box', price: '700 ETB', features: 'Delivery, 7 loaves' }],
@@ -71,7 +70,7 @@ const FILLED: Record<string, unknown> = {
 /** Text each section must show on the live site once filled. */
 const SHOWS: Record<string, string> = {
   hero: 'Fresh bread every morning', about: 'Baking since 2010', items: '120 ETB', gallery: 'Our oven', services: 'Cake orders',
-  testimonials: 'Best bread in Bole', contact: 'hi@selam.test', social: 'Telegram', pricing: '700 ETB', team: 'Abebe',
+  contact: 'hi@selam.test', social: 'Telegram', pricing: '700 ETB', team: 'Abebe',
   faq: 'Do you deliver?', features: 'Baked daily', stats: 'Loaves a week', portfolio: 'Wedding cake', newsletter: 'Get our news',
   video: 'How we bake', map: 'Bole Road, Addis Ababa', cta: 'Message us', process: 'Pick your bread', booking: 'Request a booking', rooms: 'Breakfast included',
   caseStudies: 'Daily order since 2024', partners: 'Hotel Lalibela', awards: 'Best Bakery 2025', industries: 'Cafés',

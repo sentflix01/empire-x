@@ -2,7 +2,7 @@
 
 > How to safely create, run, and roll back database migrations.
 > Every schema change goes through this process — no direct ALTER TABLE in production.
-> Last updated: 2026-11-13
+> Last updated: 2026-11-14
 
 ---
 
@@ -31,7 +31,8 @@ backend/db/migrate.js        ← Core schema (initial)
 backend/db/migrate2.js       ← Second migration
 backend/db/migrate3.js       ← Third migration
 ...
-backend/db/migrate90.js      ← Current latest (November 2026)
+backend/db/migrate90.js
+backend/db/migrate91.js      ← Current latest (November 2026)
 backend/db/migrate-all.js    ← Runs pending migrations in order, once each
 ```
 

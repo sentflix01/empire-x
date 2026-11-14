@@ -1,5 +1,7 @@
 'use client';
 import BusinessReviews from '@/components/business/BusinessReviews';
+import OwnerSiteActions from '@/components/showroom/OwnerSiteActions';
+import { RatingSummary } from '@/components/ui/Stars';
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -158,6 +160,8 @@ function ShowroomView() {
   const [loading, setLoading] = useState(true);
   const [signInRequired, setSignInRequired] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [rating, setRating] = useState({ average: 0, count: 0 });
+  const onRatingSummary = useCallback((r: { average: number; count: number }) => setRating(r), []);
   const { user } = useAuth();
   const [authResolved] = useState(true); // auth state from useAuth is synchronous
   const [purchaseItem, setPurchaseItem] = useState<PurchaseItem | null>(null);
@@ -324,13 +328,18 @@ function ShowroomView() {
             <ArrowLeft className="w-4 h-4" /> Go back
           </button>
           <div className="flex items-center gap-2">
-            {!user && <TryDemoButton />}
+            {!user && <TryDemoButton className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-secondary disabled:cursor-wait disabled:opacity-70" />}
             {showroom.status !== "published" && isOwner && (
               <Badge variant="outline" className="text-primary border-primary/50">Draft preview</Badge>
             )}
+            {rating.count > 0 && (
+              <a href="#section-reviews" className="rounded-full px-1 hover:underline" aria-label={`Rated ${rating.average.toFixed(1)} out of 5 from ${rating.count} verified reviews. Go to reviews.`}>
+                <RatingSummary average={rating.average} count={rating.count} />
+              </a>
+            )}
             {isOwner && (
               <>
-                <Badge variant="outline">{showroom.status}</Badge>
+                <Badge variant="outline">{showroom.status === 'archived' ? 'unpublished' : showroom.status}</Badge>
                 <Button size="sm" variant="outline" className="rounded-full h-8" onClick={() => setShowQr(v => !v)}>
                   <QrCode className="w-3 h-3 mr-1" /> QR Code
                 </Button>
@@ -345,6 +354,16 @@ function ShowroomView() {
             )}
           </div>
         </div>
+
+        {isOwner && (
+          <div className="mb-4">
+            <OwnerSiteActions
+              site={{ id: String(showroom.id), title: showroom.title, status: showroom.status, slug: showroom.slug }}
+              publicUrl={showroomUrl}
+              onStatusChange={(status) => setShowroom((prev) => (prev ? { ...prev, status } as Showroom : prev))}
+            />
+          </div>
+        )}
 
         {showQr && (
           <div className="bg-card rounded-2xl border border-border/50 p-6 mb-4 flex flex-col items-center gap-3">
@@ -385,7 +404,7 @@ function ShowroomView() {
               businessId={showroom.business_id ?? null}
             />
           ))}
-          {showroom.business_id && <BusinessReviews businessId={String(showroom.business_id)} />}
+          <BusinessReviews businessId={showroom.business_id ? String(showroom.business_id) : null} businessName={showroom.title} onSummary={onRatingSummary} />
           {!sections.some(s => s.type === "contact") && (
             <SectionRenderer section={{ type: "contact", title: "Get in Touch" }} sectionIndex={sections.length} themeColor={themeColor} profile={profile} />
           )}

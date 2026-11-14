@@ -4,15 +4,21 @@
  * the business (decision "Business reviews: verified customers only").
  * Asks the server first (GET …/reviews/mine) and renders nothing unless the
  * viewer may review; a buyer who already reviewed can edit their stars.
+ * With `explain` (the reviews block on every website), a viewer who may not
+ * review sees why: signed out, the owner, or no completed order yet.
  */
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { StarRating } from '@/components/ui/Stars';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { useAuth } from '@/lib/AuthContext';
 import { fetchMyBusinessReview, saveBusinessReview } from '@/lib/api/businessReviews';
 
-export default function RateBusinessPrompt({ businessId, businessName }: { businessId: string; businessName?: string | null }) {
+type Reason = 'signed_out' | 'owner' | 'no_completed_order' | null;
+
+export default function RateBusinessPrompt({ businessId, businessName, explain = false, onSaved }: { businessId: string; businessName?: string | null; explain?: boolean; onSaved?: () => void }) {
   const { t } = useTranslation();
   const [eligible, setEligible] = useState(false);
   const [rating, setRating] = useState(0);
@@ -20,22 +26,44 @@ export default function RateBusinessPrompt({ businessId, businessName }: { busin
   const [hadReview, setHadReview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [reason, setReason] = useState<Reason>(null);
+  const { user, authChecked } = useAuth();
 
   useEffect(() => {
     let live = true;
+    if (!authChecked) return () => { live = false; };
+    // Signed out: nothing to ask the server (and no refresh-token round trip).
+    if (!user) { setEligible(false); setReason('signed_out'); return () => { live = false; }; }
     fetchMyBusinessReview(businessId).then((mine) => {
-      if (!live || !mine?.can_review) return;
+      if (!live) return;
+      if (!mine?.can_review) { setReason(mine?.reason === 'owner' ? 'owner' : 'no_completed_order'); return; }
       setEligible(true);
       if (mine.review) {
         setHadReview(true);
         setRating(mine.review.rating);
         setComment(mine.review.comment ?? '');
       }
-    }).catch(() => { /* signed out or offline: no prompt */ });
+    }).catch((err: { status?: number; response?: { status?: number } } | null) => {
+      // 401: signed out. Anything else (offline): show nothing.
+      const status = err?.status ?? err?.response?.status;
+      if (live && status === 401) setReason('signed_out');
+    });
     return () => { live = false; };
-  }, [businessId]);
+  }, [businessId, user, authChecked]);
 
-  if (!eligible) return null;
+  if (!eligible) {
+    if (!explain || !reason) return null;
+    const next = typeof window !== 'undefined' ? encodeURIComponent(window.location.pathname) : '';
+    return (
+      <p data-testid="rate-business-reason" className="text-xs text-muted-foreground">
+        {reason === 'owner'
+          ? t('reviews.ownerNote', 'This is your business. Reviews come from your customers after a completed order.')
+          : reason === 'signed_out'
+            ? <>{t('reviews.signInNote', 'Bought from this business?')} <Link href={`/login?return=${next}`} className="font-medium text-primary underline-offset-4 hover:underline">{t('reviews.signInLink', 'Sign in to leave a review')}</Link></>
+            : t('reviews.notEligible', 'You can review this business after your order with them is completed.')}
+      </p>
+    );
+  }
   if (done) {
     return <p data-testid="rate-business-done" role="status" className="text-sm text-success">{t('reviews.thanks', 'Thanks — your review helps other customers.')}</p>;
   }
@@ -46,6 +74,7 @@ export default function RateBusinessPrompt({ businessId, businessName }: { busin
     try {
       await saveBusinessReview(businessId, rating, comment);
       setDone(true);
+      onSaved?.();
     } catch {
       toast.error(t('reviews.saveFailed', 'Could not save your review. Please try again.'));
     } finally { setSaving(false); }

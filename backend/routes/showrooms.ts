@@ -4,7 +4,7 @@ import logger from '../lib/logger';
 import { cacheMiddleware } from '../middleware/cache';
 import pool from '../db/pool';
 import { requireAuth, optionalAuth } from '../middleware/auth';
-import { listRecords, getRecord, createRecord, updateRecord, deleteRecord, withoutProtectedFields } from '../utils/crud';
+import { listRecords, getRecord, createRecord, updateRecord, deleteRecord } from '../utils/crud';
 import { runDoctor } from '../lib/showroomDoctor';
 import { recordEvent } from '../lib/telemetry';
 import { canPublishBusinessSite, getBusinessSubscriptionAccess, getRequiredBusinessTier, isBusinessOwnerBlocked } from '../lib/businessSubscriptionPolicy';
@@ -13,6 +13,7 @@ import { businessViewGate, notPrivateBusinessSql, rejectViewGate } from '../lib/
 import rateLimit from 'express-rate-limit';
 import { addSignup, hasNewsletterSection, listSignups, normaliseSignupEmail } from '../lib/newsletterSignups';
 import { uuidParams } from '../lib/uuidParams';
+import { checkShowroomInput, slugBase } from '../lib/showroomInput';
 
 const router = Router();
 
@@ -57,6 +58,8 @@ router.get('/slug/:slug', optionalAuth, async (req: Request, res: Response) => {
     const access = rows[0].business_id ? await getBusinessSubscriptionAccess(String(rows[0].business_id)) : null;
     const isOwner = rows[0].owner_id === req.user?.id;
     if (!isOwner && rejectViewGate(res, businessViewGate(access, req), 'Showroom not found')) return;
+    // The owner looking at their own site is not a visitor.
+    if (isOwner) { res.json(rows[0]); return; }
     await pool.query('UPDATE showrooms SET view_count=view_count+1 WHERE id=$1', [rows[0].id]);
     res.json({ ...rows[0], view_count: rows[0].view_count + 1 });
   } catch { res.status(500).json({ error: 'Failed to fetch showroom' }); }
@@ -250,15 +253,18 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response) => {
 
 router.post('/', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { title, category } = req.body as Record<string, string>;
+    const checked = checkShowroomInput(req.body);
+    if (!checked.ok) { res.status(checked.status).json({ error: checked.error, message: checked.message, field: checked.field }); return; }
+    const input = checked.fields;
+    const title = typeof input.title === 'string' ? input.title : '';
+    const category = typeof input.category === 'string' ? input.category : '';
     if (!title || !category) { res.status(400).json({ error: 'title and category are required' }); return; }
     if (!req.user!.is_demo && await isBusinessOwnerBlocked(req.user!.id)) {
       res.status(423).json({ error: 'business_creation_blocked', message: 'You can create a new business profile after the restriction period ends.' });
       return;
     }
-    const requestedStatus = typeof req.body.status === 'string' ? req.body.status : 'draft';
-    if (!['draft', 'published', 'archived'].includes(requestedStatus)) { res.status(400).json({ error: 'Invalid showroom status' }); return; }
-    const requestedBusinessId = typeof req.body.business_id === 'string' ? req.body.business_id : undefined;
+    const requestedStatus = typeof input.status === 'string' ? input.status : 'draft';
+    const requestedBusinessId = typeof input.business_id === 'string' ? input.business_id : undefined;
     let businessId = requestedBusinessId;
     let businessSelectionRequired = false;
     if (!req.user!.is_demo && !businessId) {
@@ -271,7 +277,7 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       if (!owned.rowCount && req.user!.role !== 'admin') { res.status(403).json({ error: 'You can only link a website to your own Business profile.' }); return; }
     }
     const businessProfileRequired = requestedStatus === 'published' && !req.user!.is_demo && !businessId && !businessSelectionRequired;
-    const requestedSections = (req.body as Record<string, unknown>).sections;
+    const requestedSections = input.sections;
     const requiredTier = getRequiredBusinessTier(requestedSections);
     if (requestedStatus === 'published' && !req.user!.is_demo && !requiredTier) {
       res.status(400).json({ error: 'invalid_showroom_sections', message: 'Website sections must be a valid JSON array before publishing.' });
@@ -279,12 +285,14 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     }
     const subscriptionRequired = requestedStatus === 'published' && !req.user!.is_demo && !!businessId
       && !await canPublishBusinessSite(businessId, req.user!.id, requestedSections);
-    const base = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const slug = (req.body as Record<string, string>).slug ?? `${base}-${Date.now()}`;
+    // Readable and stable: the title (or "site" for non-Latin titles), with a
+    // short random suffix only when that address is taken.
+    const base = slugBase(title);
+    const slug = typeof input.slug === 'string' ? input.slug : base;
     const { rows: existing } = await pool.query('SELECT id FROM showrooms WHERE slug=$1', [slug]);
-    const finalSlug = existing.length ? `${base}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` : slug;
-    const fields = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
-    delete fields.expires_at;
+    const finalSlug = existing.length ? `${base}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}` : slug;
+    const fields: Record<string, unknown> = { ...input };
+    delete fields.slug;
     fields.business_id = businessId ?? null;
     const saveAsDraft = businessProfileRequired || businessSelectionRequired || subscriptionRequired;
     fields.status = saveAsDraft ? 'draft' : requestedStatus;
@@ -324,8 +332,19 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       res.status(410).json({ error: 'draft_expired', message: 'This website draft expired after three days. Start a new draft to continue.' });
       return;
     }
-    const updates = withoutProtectedFields(req.body as Record<string, unknown>, 'owner_id');
-    delete updates.expires_at;
+    const checked = checkShowroomInput(req.body);
+    if (!checked.ok) { res.status(checked.status).json({ error: checked.error, message: checked.message, field: checked.field }); return; }
+    const updates: Record<string, unknown> = { ...checked.fields };
+    // A site's address never changes by accident (shared links and QR codes
+    // keep working); a different slug is only taken when it is free.
+    if (typeof updates.slug === 'string') {
+      const { rows: slugRows } = await pool.query<{ slug: string | null }>('SELECT slug FROM showrooms WHERE id=$1', [req.params.id]);
+      if (updates.slug === slugRows[0]?.slug) delete updates.slug;
+      else {
+        const { rowCount } = await pool.query('SELECT 1 FROM showrooms WHERE slug=$1 AND id<>$2', [updates.slug, req.params.id]);
+        if (rowCount) { res.status(409).json({ error: 'slug_taken', field: 'slug', message: 'That web address is already used by another website.' }); return; }
+      }
+    }
     const currentAccess = existing.business_id ? await getBusinessSubscriptionAccess(existing.business_id) : null;
     let businessId = typeof updates.business_id === 'string' ? updates.business_id : existing.business_id ?? undefined;
     if (!businessId && !req.user!.is_demo) {
@@ -338,7 +357,6 @@ router.put('/:id', requireAuth, async (req: Request, res: Response) => {
       if (!owned.rowCount && req.user!.role !== 'admin') { res.status(403).json({ error: 'You can only link a website to your own Business profile.' }); return; }
     }
     updates.business_id = businessId ?? null;
-    if (updates.status !== undefined && !['draft', 'published', 'archived'].includes(String(updates.status))) { res.status(400).json({ error: 'Invalid showroom status' }); return; }
     // Re-check entitlements whenever the result is a published site with new
     // sections, not only when status:'published' is sent: otherwise a live
     // site could be edited to add sections above its plan.

@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **384** across **56** mounted modules · Generated: 2026-11-13
+> Endpoints: **384** across **56** mounted modules · Generated: 2026-11-14
 
 | Legend | Meaning |
 |---|---|
@@ -588,18 +588,18 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:21 |
-| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:49 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:67 |
-| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:92 |
-| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:149 |
-| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:169 |
-| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:187 |
-| `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:200 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:238 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:251 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:317 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:378 |
+| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:22 |
+| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:50 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:70 |
+| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:95 |
+| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:152 |
+| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:172 |
+| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:190 |
+| `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:203 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:241 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:254 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:325 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:396 |
 
 ## social — how you relate to another person, and your privacy.
 

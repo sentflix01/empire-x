@@ -118,25 +118,6 @@ export const SECTION_DEFINITIONS: SectionDefinition[] = [
     ],
   },
 
-  // ── testimonials ──────────────────────────────────────────────────────────
-  {
-    type: "testimonials",
-    label: "Testimonials",
-    icon: "MessageSquareQuote",
-    skeletonType: "text",
-    fields: [
-      { key: "title", label: "Section Title", type: "text", placeholder: "What people say" },
-      {
-        key: "items", label: "Testimonials", type: "repeater",
-        itemFields: [
-          { key: "quote",  label: "Quote",        type: "textarea", placeholder: "Amazing experience!" },
-          { key: "author", label: "Author Name",  type: "text",     placeholder: "Jane Doe" },
-          { key: "role",   label: "Role / Title", type: "text",     placeholder: "CEO, Company" },
-        ],
-      },
-    ],
-  },
-
   // ── pricing ───────────────────────────────────────────────────────────────
   {
     type: "pricing",

@@ -25,7 +25,6 @@ export default function TemplateCard({ template, selected, onSelect }: TemplateC
     if (t === "products" || t === "featured_products" || t === "courses" || t === "menu") return { h: "h-6", w: "w-full", label: "Grid", grid: true };
     if (t === "gallery") return { h: "h-6", w: "w-full", label: "Gallery", grid: true };
     if (t === "features" || t === "process") return { h: "h-5", w: "w-full", label: "Steps", row: true };
-    if (t === "testimonials") return { h: "h-4", w: "w-3/4", label: "Quote" };
     if (t === "faq") return { h: "h-4", w: "w-5/6", label: "FAQ" };
     if (t === "contact") return { h: "h-6", w: "w-full", label: "Contact", dark: true };
     if (t === "about" || t === "story") return { h: "h-4", w: "w-2/3", label: "Text" };

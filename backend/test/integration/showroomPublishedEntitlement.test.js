@@ -53,10 +53,10 @@ beforeEach(() => {
 describe('editing a published showroom re-checks section entitlements', () => {
   it('rejects adding sections above the plan without sending status', async () => {
     publishedShowroom();
-    const res = await request(buildApp()).put('/api/showrooms/4a811d8f-8886-4844-824b-84f15dacebe9').send({ sections: '["hero","liveLocation"]' });
+    const res = await request(buildApp()).put('/api/showrooms/4a811d8f-8886-4844-824b-84f15dacebe9').send({ sections: JSON.stringify([{ type: 'hero' }, { type: 'live_location_tracking' }]) });
     expect(res.status).toBe(402);
     expect(res.body.error).toBe('subscription_required');
-    expect(policy.canPublishBusinessSite).toHaveBeenCalledWith('biz-1', 'owner-1', '["hero","liveLocation"]');
+    expect(policy.canPublishBusinessSite).toHaveBeenCalledWith('biz-1', 'owner-1', JSON.stringify([{ type: 'hero' }, { type: 'live_location_tracking' }]));
     expect(crud.updateRecord).not.toHaveBeenCalled();
   });
 
@@ -70,7 +70,7 @@ describe('editing a published showroom re-checks section entitlements', () => {
   it('allows section edits the plan covers', async () => {
     publishedShowroom();
     policy.canPublishBusinessSite.mockResolvedValueOnce(true);
-    const res = await request(buildApp()).put('/api/showrooms/4a811d8f-8886-4844-824b-84f15dacebe9').send({ sections: '["hero"]' });
+    const res = await request(buildApp()).put('/api/showrooms/4a811d8f-8886-4844-824b-84f15dacebe9').send({ sections: JSON.stringify([{ type: 'hero' }]) });
     expect(res.status).toBe(200);
     expect(crud.updateRecord).toHaveBeenCalled();
   });

@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import Link from 'next/link';
 
 import {
-  Clock, ShoppingBag, Star, Mail, Phone, MapPin, PlayCircle, CalendarCheck, Search,
+  Clock, ShoppingBag, Mail, Phone, MapPin, PlayCircle, CalendarCheck, Search,
   Medal, Send, Share2, Bookmark, Truck, BadgeCheck, Tag, CalendarDays, ArrowLeftRight, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import { isGetQuote, sectionItemBuyPayload, type SectionItem } from "@/lib/secti
 
 /** Free-form section entries stored as JSON; only the fields shown here are read. */
 interface StepItem { name?: string; title?: string; desc?: string }
-interface ReviewItem { name?: string; author?: string; role?: string; quote?: string; review?: string; text?: string }
 interface FaqItem { question?: string; title?: string; answer?: string; desc?: string }
 import client from "@/lib/api/client";
 import { apiErrorMessage } from "@/lib/apiErrorMessage";
@@ -25,10 +24,41 @@ import LiveLocationSection from "@/components/showroom/LiveLocationSection";
 import { MenuSection, OfferSection, OpeningHoursSection, PaymentInfoSection } from "@/components/showroom/NewPieces";
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 import { formatAmount } from '@/lib/money';
+import { RETIRED_SECTION_TYPES, getSectionType } from '@/lib/builderSections';
 
 /** Sections that list the business's real products (search, categories, Order). */
 export const CATALOGUE_TYPES = ["products", "featured_products", "inventory_catalog"];
 export const isCatalogueSection = (type: unknown) => CATALOGUE_TYPES.includes(String(type));
+
+/**
+ * Sections whose whole content is what the owner types. Left unfilled, they
+ * are hidden from visitors (audit 2026-11-14: a template published without
+ * filling it showed empty blocks); the owner still sees them, to fill in.
+ * Sections that show server data (products, rooms, payment accounts, hours,
+ * contact with the profile's details, newsletter and booking forms) are not
+ * in this list.
+ */
+const OWNER_CONTENT_TYPES = new Set([
+  "about", "gallery", "services", "menu", "delivery", "pricing", "team", "faq", "features", "stats",
+  "portfolio", "before_after", "job_openings", "process", "caseStudies", "partners", "awards",
+  "industries", "certifications", "brands", "event_schedule", "social", "offer", "video",
+]);
+
+const filled = (v: unknown): boolean =>
+  typeof v === "string" ? v.trim().length > 0
+    : Array.isArray(v) ? v.some(filled)
+      : !!v && typeof v === "object" && Object.values(v as Record<string, unknown>).some(filled);
+
+/** Whether a section has anything the owner wrote besides its heading. */
+export function sectionHasOwnerContent(s: Record<string, any>): boolean {
+  const def = getSectionType(String(s.type));
+  const keys = def
+    ? def.fields.filter((f) => f.type !== "hidden" && f.type !== "color" && f.type !== "toggle" && f.key !== "title" && !/Title$/.test(f.key)).map((f) => f.key)
+    : [];
+  // Legacy business-template shapes keep their content in items/content/description.
+  for (const key of [...keys, "items", "content", "description", "subtitle"]) if (filled(s[key])) return true;
+  return false;
+}
 
 /** A YouTube link in any common shape (watch, youtu.be, shorts, live, embed) → privacy-friendly embed URL. */
 export function youtubeEmbedUrl(raw: unknown): string | null {
@@ -139,6 +169,10 @@ export default function SectionRenderer({
 }: SectionRendererProps) {
   const s = section;
   const biz = (profile ?? {}) as Record<string, any>;
+  // Retired types (owner-typed testimonials) never render: reviews come from the platform.
+  if (RETIRED_SECTION_TYPES.has(String(s.type))) return null;
+  if (!isOwner && !preview && OWNER_CONTENT_TYPES.has(String(s.type)) && !sectionHasOwnerContent(s)
+    && !(s.type === "gallery" && parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image).length)) return null;
 
   if (s.type === "hero" || s.type === "banner") {
     // Builder heroes may carry their own gradient colors (heroBg/heroBg2);
@@ -370,26 +404,6 @@ export default function SectionRenderer({
     );
   }
 
-  if (s.type === "testimonials") {
-    // Builder shape: testTitle + testimonials[]{quote,author,role}; legacy: title + items[]{text|review,name|author}.
-    const testTitle = s.testTitle || s.title;
-    const reviews: ReviewItem[] = s.testimonials || s.items || [];
-    return (
-      <div id={`section-${sectionIndex}`} className="px-5 py-10">
-        {testTitle && <h2 className="font-display text-lg font-bold mb-4">{testTitle}</h2>}
-        <div className="space-y-3">
-          {reviews.map((item, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border/40" style={{ backgroundColor: themeColor + "08" }}>
-              <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(star => <Star key={star} className="w-3 h-3 fill-rating text-rating" />)}</div>
-              <p className="text-sm italic">"{item.quote || item.text || item.review}"</p>
-              <p className="text-xs font-semibold mt-2">— {item.author || item.name}{item.role ? `, ${item.role}` : ""}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (s.type === "faq") {
     // Builder shape: faqTitle + faqs[]{question,answer}; legacy: title + items[].
     const faqTitle = s.faqTitle || s.title;
@@ -425,19 +439,23 @@ export default function SectionRenderer({
             {builderImages.map((img, i) => (
               <figure key={i} className="relative">
                 <SafeImage fill={false} width={800} height={600} loading="lazy" src={img.url} alt={img.caption || ""} className="w-full aspect-square object-cover rounded-lg" />
-                {img.caption && <figcaption className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-b-lg truncate">{img.caption}</figcaption>}
+                {img.caption && <figcaption className="absolute bottom-0 inset-x-0 bg-black/75 text-white text-[11px] px-1.5 py-0.5 rounded-b-lg truncate">{img.caption}</figcaption>}
               </figure>
             ))}
           </div>
         </div>
       );
     }
-    const images: string[] = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
-    const galleryImages = images.length ? images : [
-      `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-1/400/400`,
-      `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-2/400/400`,
-      `https://picsum.photos/seed/${biz.business_name || biz.title || 'gallery'}-3/400/400`,
-    ];
+    // Only the business's own pictures: never stock photos that look like theirs.
+    const galleryImages: string[] = parseImages(biz.business_cover_url || biz.cover_url || biz.cover_image);
+    if (!galleryImages.length) {
+      return (
+        <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
+          {galleryTitle && <h2 className="font-display text-lg font-bold mb-2">{galleryTitle}</h2>}
+          <p className="text-sm text-muted-foreground">Add your photos in Studio. Visitors do not see this section until it has photos.</p>
+        </div>
+      );
+    }
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/20">
         {galleryTitle && <h2 className="font-display text-lg font-bold mb-4">{galleryTitle}</h2>}
@@ -485,6 +503,19 @@ export default function SectionRenderer({
   }
 
   if (s.type === "contact") {
+    const hasContact = [s.email, biz.business_contact_email, s.phone, biz.business_contact_phone, s.location, biz.business_address, s.hours].some(filled) || !!digits(s.whatsapp);
+    if (!hasContact) {
+      if (!isOwner && !preview) return null;
+      return (
+        <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/30 border-t border-border/30">
+          <span id="section-contact" className="sr-only" aria-hidden="true" />
+          <div className="max-w-md mx-auto text-center">
+            <h2 className="font-display text-xl font-bold mb-2">{s.title || "Get in Touch"}</h2>
+            <p className="text-sm text-muted-foreground">Add a phone number, email, WhatsApp or address in Studio. Visitors do not see this section until it has one.</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div id={`section-${sectionIndex}`} className="px-5 py-10 bg-secondary/30 border-t border-border/30">
         <span id="section-contact" className="sr-only" aria-hidden="true" />
@@ -497,7 +528,7 @@ export default function SectionRenderer({
             {s.hours && <p className="flex items-center justify-center gap-2"><Clock className="w-4 h-4" /> {s.hours}</p>}
             {digits(s.whatsapp) && (
               <a href={`https://wa.me/${digits(s.whatsapp)}`} target="_blank" rel="noopener noreferrer"
-                className="mx-auto mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#25d366] px-5 text-sm font-semibold text-white">
+                className="mx-auto mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#127a45] px-5 text-sm font-semibold text-white">
                 <WhatsAppIcon /> Chat on WhatsApp
               </a>
             )}

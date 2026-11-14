@@ -75,9 +75,9 @@ const CENTER = { lat: 9.0192, lon: 38.7525 }; // Addis Ababa center
 const BIZ_TEMPLATES = [
   { category: 'restaurant', template: 'restaurant_menu', cta: 'View Menu', sectionTypes: ['hero', 'menu', 'gallery', 'hours', 'contact'], names: ['Yod Abyssinia', 'Kategna Kitchen', 'Totot Kitfo', 'Sunbird Cafe', 'Habesha Grill', 'Tej House'] },
   { category: 'shop', template: 'shop_grid', cta: 'Browse Products', sectionTypes: ['hero', 'featured_products', 'products', 'about', 'features', 'contact'], names: ['Bole Fashion', 'Shiro Meda Textiles', 'Addis Electronics', 'Style Ethiopia', 'Habesha Crafts', 'Tech Zone'] },
-  { category: 'service', template: 'service_agency', cta: 'Get a Quote', sectionTypes: ['hero', 'services', 'process', 'testimonials', 'team', 'contact'], names: ['Sur Construction', 'Flintstone Engineering', 'Spark Electric', 'Saba Consulting', 'SIMBA Cleaning', 'EthioTech Solutions'] },
+  { category: 'service', template: 'service_agency', cta: 'Get a Quote', sectionTypes: ['hero', 'services', 'process', 'team', 'contact'], names: ['Sur Construction', 'Flintstone Engineering', 'Spark Electric', 'Saba Consulting', 'SIMBA Cleaning', 'EthioTech Solutions'] },
   { category: 'health', template: 'health_clinic', cta: 'Book Appointment', sectionTypes: ['hero', 'services', 'team', 'hours', 'contact'], names: ['Bole Medical Center', 'Addis Wellness Clinic', 'Family Health Hub', 'Bethzatha Clinic', 'Tikur Anbessa Pharmacy'] },
-  { category: 'realestate', template: 'realestate_listings', cta: 'View Properties', sectionTypes: ['hero', 'products', 'about', 'testimonials', 'contact'], names: ['Addis Property Group', 'Bole Realty', 'Sunshine Real Estate', 'Capital Homes', 'Gold Key Properties'] },
+  { category: 'realestate', template: 'realestate_listings', cta: 'View Properties', sectionTypes: ['hero', 'products', 'about', 'contact'], names: ['Addis Property Group', 'Bole Realty', 'Sunshine Real Estate', 'Capital Homes', 'Gold Key Properties'] },
   { category: 'portfolio', template: 'portfolio_gallery', cta: 'View Portfolio', sectionTypes: ['hero', 'gallery', 'about', 'services', 'contact'], names: ['Addis Creative Studio', 'EthioDesign Lab', 'Pixel Ethiopia', 'Vision Media', 'Habesha Films'] },
 ];
 
