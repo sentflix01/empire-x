@@ -51,20 +51,22 @@ import DemoEndedNotice from './DemoEndedNotice';
 const CONTAINER = 'mx-auto w-full max-w-6xl px-5 sm:px-8';
 const EYEBROW = 'text-xs font-semibold uppercase tracking-[0.14em]';
 const H2 = 'text-3xl font-bold tracking-tight sm:text-4xl';
-// bg-primary-foreground is white in both themes (.dark remaps bg-white to the card colour), and the
-// inline brand blue avoids the dark theme's lighter .text-primary: 5.2:1 on white either way.
-// Theme-aware buttons. Light: solid brand blue with white text. Dark: white with brand blue
-// text (bg-primary-foreground stays white in both themes; the exact brand blue keeps 5.2:1
-// where the dark theme's lighter text-primary would not).
-const PRIMARY_COLORS = 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary-foreground dark:text-brand-blue dark:hover:bg-primary-foreground/90';
-const CTA = 'inline-flex h-[clamp(2.75rem,6svh,3rem)] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-base font-semibold transition min-[360px]:px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:focus-visible:ring-white';
-const PRIMARY = `${CTA} shadow-lg shadow-primary/20 dark:shadow-black/10 ${PRIMARY_COLORS}`;
+// The hero and the header are dark in both themes (owner, 2026-11-14); "Start free" is the one
+// thing there that follows the theme. Light: solid brand blue, white ring, white text. Dark: white
+// with brand-blue text (bg-primary-foreground stays white in both themes; the exact brand blue
+// keeps 5.2:1 where the dark theme's lighter text-primary would not).
+const PRIMARY_COLORS = 'bg-brand-blue text-white ring-2 ring-white/85 hover:bg-brand-blue/90 dark:bg-primary-foreground dark:text-brand-blue dark:ring-0 dark:hover:bg-primary-foreground/90';
+// Every CTA sits on a dark or blue background, so the focus outline is white in both themes.
+const FOCUS_ON_DARK = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
+const CTA = `inline-flex h-[clamp(2.75rem,6svh,3rem)] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-base font-semibold transition min-[360px]:px-6 ${FOCUS_ON_DARK}`;
+const PRIMARY = `${CTA} shadow-lg shadow-black/20 ${PRIMARY_COLORS}`;
 // The closing call to action sits on brand blue in both themes.
-const ON_BLUE_PRIMARY = `${CTA} bg-primary-foreground text-brand-blue shadow-lg shadow-black/10 hover:bg-primary-foreground/90 focus-visible:ring-white`;
-const ON_BLUE_OUTLINE = `${CTA} border border-white/40 text-white hover:bg-white/10 focus-visible:ring-white`;
-// text-brand-blue, not text-primary: the dark theme lightens .text-primary with a stronger rule,
-// which would beat dark:text-white here.
-const OUTLINE = `${CTA} border border-primary/40 text-brand-blue hover:bg-primary-subtle disabled:cursor-wait disabled:opacity-70 dark:border-white/40 dark:text-white dark:hover:bg-white/10`;
+const ON_BLUE_PRIMARY = `${CTA} bg-primary-foreground text-brand-blue shadow-lg shadow-black/10 hover:bg-primary-foreground/90`;
+const ON_BLUE_OUTLINE = `${CTA} border border-white/40 text-white hover:bg-white/10`;
+// The hero's outline button: white on the dark hero in both themes.
+const OUTLINE = `${CTA} border border-white/40 text-white hover:bg-white/10 disabled:cursor-wait disabled:opacity-70`;
+// The "Watch" rows on the dark hero: glass in both themes (under the hero they follow the theme).
+const ROW_ON_DARK = 'border-white/20 bg-white/10 text-white shadow-none backdrop-blur hover:bg-white/20 focus-visible:ring-white';
 
 type Item = { key: string; title: string; desc: string; Icon: LucideIcon };
 
@@ -99,11 +101,11 @@ const TRUST: Item[] = [
 ];
 
 /** The phone promo video and the two full videos (each downloaded only when its button is pressed). */
-function HeroMedia({ tr }: { tr: (key: string, fallback: string) => string }) {
+function HeroMedia({ tr, onDark = false }: { tr: (key: string, fallback: string) => string; onDark?: boolean }) {
   return (
     // On desktop the phone is sized by the screen height (9:16), so the hero never grows past one screen.
     <div className="mx-auto w-full max-w-[300px] lg:w-[calc(min(54svh,520px)*9/16+1.25rem)] lg:max-w-none">
-      <div className="rounded-[2.5rem] bg-inverse p-2.5 shadow-2xl shadow-black/30 ring-1 ring-border dark:shadow-black/40 dark:ring-white/15">
+      <div className={`rounded-[2.5rem] bg-inverse p-2.5 shadow-2xl shadow-black/30 ring-1 ${onDark ? 'shadow-black/40 ring-white/15' : 'ring-border dark:shadow-black/40 dark:ring-white/15'}`}>
         <PromoVideo
           clip={PROMO.landing}
           className="aspect-[9/16] w-full rounded-[2rem] bg-white"
@@ -113,9 +115,9 @@ function HeroMedia({ tr }: { tr: (key: string, fallback: string) => string }) {
         />
       </div>
       <div className="mt-[clamp(0.75rem,2.5svh,1.25rem)] space-y-2">
-        <p className={`${EYEBROW} text-muted-foreground dark:text-white/75`}>{tr('watch', 'Watch')}</p>
-        <PromoGuide variant="row" meta={tr('guideLength', '3 min')} />
-        <PromoGuide variant="row" video="builder" meta={tr('builderLength', '2 min')} />
+        <p className={`${EYEBROW} ${onDark ? 'text-white/75' : 'text-muted-foreground dark:text-white/75'}`}>{tr('watch', 'Watch')}</p>
+        <PromoGuide variant="row" onDark={onDark} className={onDark ? ROW_ON_DARK : undefined} meta={tr('guideLength', '3 min')} />
+        <PromoGuide variant="row" onDark={onDark} className={onDark ? ROW_ON_DARK : undefined} video="builder" meta={tr('builderLength', '2 min')} />
       </div>
     </div>
   );
@@ -128,20 +130,19 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
 
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
-      {/* ── Navigation: follows the theme; fits 320 px (Sign in only below sm; "Start free" is the hero's main button) ── */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 text-foreground backdrop-blur-xl dark:border-white/10 dark:bg-inverse/85 dark:text-white">
+      {/* ── Navigation: dark in both themes, like the hero; fits 320 px (Sign in only below sm; "Start free" is the hero's main button) ── */}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-hero-ink/85 text-white backdrop-blur-xl">
         <nav data-page-guide="landing-nav" aria-label={tr('navLabel', 'Main')} className={`${CONTAINER} flex h-16 items-center justify-between gap-2`}>
-          <Link href="/landing" aria-label="Nodbusiness" className="shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <Wordmark tone="light" className="text-[clamp(0.9rem,4.4vw,1.05rem)] min-[360px]:text-lg sm:text-2xl dark:hidden" />
-            <Wordmark tone="dark" className="hidden text-[clamp(0.9rem,4.4vw,1.05rem)] min-[360px]:text-lg sm:text-2xl dark:inline-flex" />
+          <Link href="/landing" aria-label="Nodbusiness" className={`shrink-0 rounded-md ${FOCUS_ON_DARK}`}>
+            <Wordmark tone="dark" className="text-[clamp(0.9rem,4.4vw,1.05rem)] min-[360px]:text-lg sm:text-2xl" />
           </Link>
           {/* Below 360 px: tighter spacing so the header keeps room to spare on every phone. */}
           <div className="flex min-w-0 items-center gap-1 min-[360px]:gap-1.5 sm:gap-2">
             <LandingPreferences />
-            <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition hover:bg-muted min-[360px]:px-2.5 sm:px-3 dark:hover:bg-white/10">
+            <Link data-page-guide="landing-signin" href="/login" className={`inline-flex h-9 items-center whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition hover:bg-white/10 min-[360px]:px-2.5 sm:px-3 ${FOCUS_ON_DARK}`}>
               {tr('signIn', 'Sign in')}
             </Link>
-            <Link data-page-guide="landing-register" href="/register" className={`hidden h-9 items-center whitespace-nowrap rounded-lg px-4 text-sm font-semibold sm:inline-flex ${PRIMARY_COLORS}`}>
+            <Link data-page-guide="landing-register" data-testid="header-start" href="/register" className={`hidden h-9 items-center whitespace-nowrap rounded-lg px-4 text-sm font-semibold sm:inline-flex ${PRIMARY_COLORS} ${FOCUS_ON_DARK}`}>
               {tr('startFree', 'Start free')}
             </Link>
           </div>
@@ -149,26 +150,27 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
       </header>
 
       <main id="main-content" tabIndex={-1} className="outline-none">
-      {/* ── Hero: exactly one screen tall (100svh, header included) on every device.
-             Sizes follow both the width and the height of the screen, so nothing is
-             pushed out; below lg the phone video moves to the next section. ── */}
+      {/* ── Hero: exactly one screen tall (100svh, header included) on every device, and
+             dark in both themes (only "Start free" follows the theme). Sizes follow both the
+             width and the height of the screen, so nothing is pushed out; below lg the
+             phone video moves to the next section. ── */}
       <section
         aria-labelledby="landing-title"
         data-testid="landing-hero"
-        className="relative h-[100svh] overflow-hidden bg-[linear-gradient(160deg,hsl(var(--background))_0%,hsl(var(--primary-subtle))_55%,hsl(var(--brand-secondary-subtle))_100%)] pt-16 text-foreground dark:bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] dark:text-white"
+        className="relative h-[100svh] overflow-hidden bg-[linear-gradient(135deg,#0f172a_0%,#1d4ed8_47%,#7c3aed_100%)] pt-16 text-white"
       >
-        <div aria-hidden="true" className="absolute inset-0 opacity-60 [background-image:linear-gradient(hsl(var(--primary)/0.07)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--primary)/0.07)_1px,transparent_1px)] [background-size:48px_48px] dark:opacity-25 dark:[background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)]" />
+        <div aria-hidden="true" className="absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px]" />
         <DemoEndedNotice />
         <div className={`${CONTAINER} relative grid h-full items-center gap-8 py-[clamp(0.75rem,3svh,2.5rem)] lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-14`}>
           <div data-page-guide="landing-actions" className="min-w-0">
-            {/* Centred over the text column; sized by the screen's width and height. */}
-            <GlobeLogo className="mx-auto w-[clamp(3.5rem,min(28vw,20svh),13rem)] drop-shadow-2xl" />
+            {/* Left-aligned with the headline; grows with the screen width (capped by its height). */}
+            <GlobeLogo className="w-[clamp(4.5rem,min(30vw,24svh),16rem)] drop-shadow-2xl" />
             <h1 id="landing-title" className="mt-[clamp(0.75rem,3svh,2rem)] text-balance text-[clamp(1.5rem,min(8.5vw,7svh),4.25rem)] font-extrabold leading-[1.08] tracking-tight">
               <span className="block">{tr('heroBuild', 'Build it.')}</span>{' '}
               <span className="block">{tr('heroConnect', 'Connect & share it.')}</span>{' '}
-              <span className="block"><span className="underline decoration-primary/40 decoration-[0.09em] underline-offset-[0.14em] dark:decoration-white/45">{tr('heroSell', 'Buy or sell it.')}</span></span>
+              <span className="block"><span className="underline decoration-white/45 decoration-[0.09em] underline-offset-[0.14em]">{tr('heroSell', 'Buy or sell it.')}</span></span>
             </h1>
-            <p className="mt-[clamp(0.5rem,2.2svh,1.5rem)] max-w-xl text-[clamp(1rem,min(4.2vw,2.4svh),1.25rem)] leading-relaxed text-muted-foreground [@media(max-height:599px)]:hidden dark:text-white/85">
+            <p className="mt-[clamp(0.5rem,2.2svh,1.5rem)] max-w-xl text-[clamp(0.95rem,min(4.2vw,2.4svh),1.25rem)] leading-relaxed text-white/85 [@media(max-height:419px)]:hidden">
               {tr('heroLead', 'Share your moments, build your showroom, and buy or sell with anyone: people, creators and businesses, in one app.')}
             </p>
             <div className="mt-[clamp(0.75rem,3.5svh,2.25rem)] flex flex-wrap items-center gap-3">
@@ -178,7 +180,7 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
               </Link>
               <TryDemoButton className={OUTLINE} label={tr('tryDemoShort', 'Try demo')} />
             </div>
-            <Link data-page-guide="landing-guest" href="/feed" className="mt-[clamp(0.5rem,2svh,1.25rem)] inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-white/85 dark:hover:text-white">
+            <Link data-page-guide="landing-guest" href="/feed" className={`mt-[clamp(0.5rem,2svh,1.25rem)] inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-white/85 underline-offset-4 hover:text-white hover:underline ${FOCUS_ON_DARK}`}>
               {tr('exploreLink', 'Or explore as a guest')}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
@@ -186,7 +188,7 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
 
           {/* Desktop: the phone video, sized by the screen height, with the two full videos under it. */}
           <div className="hidden lg:block" data-testid="hero-media">
-            <HeroMedia tr={tr} />
+            <HeroMedia tr={tr} onDark />
           </div>
         </div>
       </section>

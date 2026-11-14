@@ -31,8 +31,16 @@ describe('LandingContent', () => {
     const hero = screen.getByTestId('landing-hero');
     // Exactly one screen tall, header included; never taller (owner, 2026-11-14).
     expect(hero).toHaveClass('h-[100svh]', 'overflow-hidden', 'pt-16');
+    // Dark in both themes: only "Start free" follows the theme (owner, 2026-11-14).
+    expect(hero.className).not.toMatch(/(^|\s)dark:/);
+    expect(hero).toHaveClass('text-white');
+    // Left-aligned with the headline; grows with the screen width.
     const logo = within(hero).getByTestId('globe-logo');
-    expect(logo).toHaveClass('mx-auto', 'w-[clamp(3.5rem,min(28vw,20svh),13rem)]');
+    expect(logo).not.toHaveClass('mx-auto');
+    expect(logo).toHaveClass('w-[clamp(4.5rem,min(30vw,24svh),16rem)]');
+    // The lead shows on phones; only very short (landscape) screens hide it.
+    const lead = within(hero).getByText(/Share your moments/);
+    expect(lead.className).toContain('[@media(max-height:419px)]:hidden');
     expect(within(hero).queryByText('Social + commerce in one app')).toBeNull();
   });
 

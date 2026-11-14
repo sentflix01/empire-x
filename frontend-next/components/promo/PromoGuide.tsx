@@ -28,6 +28,8 @@ type Props = {
   /** Which video the button opens. */
   video?: 'guide' | 'builder';
   className?: string;
+  /** A "row" on a dark background in both themes (the landing hero): white meta text and play circle. */
+  onDark?: boolean;
 };
 
 type Words = [key: string, fallback: string];
@@ -62,7 +64,7 @@ function prefersReducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 }
 
-export default function PromoGuide({ variant = 'pill', video = 'guide', meta, className }: Props) {
+export default function PromoGuide({ variant = 'pill', video = 'guide', meta, className, onDark = false }: Props) {
   const { t } = useTranslation();
   const [clip, setClip] = useState<PromoRendition | null>(null);
   const v = VIDEOS[video];
@@ -86,12 +88,12 @@ export default function PromoGuide({ variant = 'pill', video = 'guide', meta, cl
               className,
             )}
           >
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground dark:bg-primary-foreground dark:text-brand-blue">
+            <span className={cn('inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full', onDark ? 'bg-primary-foreground text-brand-blue' : 'bg-primary text-primary-foreground dark:bg-primary-foreground dark:text-brand-blue')}>
               <Play className="h-4 w-4 translate-x-px fill-current" aria-hidden="true" />
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-semibold leading-snug">{label}</span>
-              {meta && <span className="block text-xs text-muted-foreground dark:text-white/75">{meta}</span>}
+              {meta && <span className={cn('block text-xs', onDark ? 'text-white/75' : 'text-muted-foreground dark:text-white/75')}>{meta}</span>}
             </span>
           </button>
         ) : (
