@@ -45,7 +45,7 @@ test('sign-in pages use only the small video', async ({ page }) => {
 test('the landing hero loads no logo video and at most one promo clip', async ({ page, request }) => {
   const seen = media(page);
   await page.goto('/landing', { waitUntil: 'networkidle' });
-  // The hero logo is the vector icon turning 720° (SpinningGlobeIcon), so the
+  // The hero logo is the vector globe turning 720° (GlobeLogo), so the
   // intro video is never fetched here. Browsers fetch video in range
   // requests, so the same file can appear more than once.
   const loaded = paths(seen);

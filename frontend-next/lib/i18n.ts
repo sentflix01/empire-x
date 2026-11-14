@@ -45,6 +45,14 @@ i18n
     },
   });
 
+// Keep <html lang> in step with the chosen language, so screen readers read the
+// page in the right language (WCAG 3.1.1).
+if (typeof document !== 'undefined') {
+  const syncLang = (lng: string) => { document.documentElement.lang = (lng || 'en').split('-')[0]; };
+  i18n.on('languageChanged', syncLang);
+  if (i18n.language) syncLang(i18n.language);
+}
+
 export default i18n;
 
 export const getCurrentLang = () => i18n.language;

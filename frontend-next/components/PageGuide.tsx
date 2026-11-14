@@ -11,7 +11,10 @@ type GuideStep = { target: string; title: string; description: string };
 
 // ── Tour ID mapping ────────────────────────────────────────────────────────────
 /** Pages where the guide never opens by itself: it would cover the form (F-031). */
-const NO_AUTO_OPEN = new Set(['LOGIN', 'REGISTER', 'FORGOT', 'RESET']);
+// Never opened by itself on these pages: sign-in forms, and the landing page,
+// where a covering guide would block "Start free" and the header controls on a
+// first visit (owner, 2026-11-14). The "?" launcher still opens it on request.
+const NO_AUTO_OPEN = new Set(['LOGIN', 'REGISTER', 'FORGOT', 'RESET', 'LANDING']);
 
 function getTourId(pathname: string): string {
   if (pathname === '/landing' || pathname === '/') return 'LANDING';
@@ -1121,7 +1124,8 @@ export default function PageGuide() {
 
     {open && mounted && createPortal(
       <div className="fixed inset-0 z-guide" aria-label="Page guide">
-        <svg className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => event.preventDefault()}>
+        {/* Clicking the dimmed backdrop closes the guide, so it can never trap the page. */}
+        <svg data-testid="page-guide-backdrop" className="absolute inset-0 h-full w-full" aria-hidden="true" onClick={event => { event.preventDefault(); close(); }}>
           <defs>
             <mask id="page-guide-mask">
               <rect width="100%" height="100%" fill="white" />

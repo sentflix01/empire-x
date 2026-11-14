@@ -320,7 +320,8 @@ jobs:
 
       - name: Playwright browser
         working-directory: frontend-next
-        run: npx playwright install --with-deps chromium
+        # WebKit is Safari's engine (every iPhone browser uses it): the landing hero runs on it too.
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Journeys (blocking)
         working-directory: frontend-next
@@ -332,6 +333,21 @@ jobs:
       - name: No skipped journeys (blocking)
         working-directory: frontend-next
         run: node e2e/check-no-skips.mjs e2e-report.json
+
+      - name: Landing hero on every device, Safari engine (blocking)
+        working-directory: frontend-next
+        env:
+          NODE_ENV: development
+        run: npx playwright test --project=landing-webkit --reporter=list --output=test-results/webkit
+
+      - name: Landing hero screenshots (every device, light and dark)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: landing-hero-screenshots
+          path: frontend-next/test-results/**/*.png
+          retention-days: 14
+          if-no-files-found: warn
 
       - name: Keep the evidence when it fails
         if: failure()

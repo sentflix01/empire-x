@@ -1,7 +1,9 @@
 /**
  * Page guide defaults (audit F-031, owner decision 6 Nov 2026): the flag only
  * decides whether the guide opens by itself; the Page guide button always
- * works; the guide never opens by itself over a sign-in or password form.
+ * works; the guide never opens by itself over a sign-in or password form, nor on
+ * the landing page, where it covered "Start free" (owner, 14 Nov 2026); clicking
+ * the dimmed backdrop closes it.
  */
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -37,7 +39,7 @@ describe('page guide auto-open', () => {
     expect(screen.getByRole('dialog')).toBeTruthy();
   });
 
-  it.each(['/login', '/register', '/forgot-password', '/reset-password'])('never opens by itself on %s, even with the flag on', async (path) => {
+  it.each(['/login', '/register', '/forgot-password', '/reset-password', '/landing', '/'])('never opens by itself on %s, even with the flag on', async (path) => {
     nav.pathname = path;
     flag(true);
     render(<PageGuide />);
@@ -47,9 +49,20 @@ describe('page guide auto-open', () => {
   });
 
   it('opens by itself on a first visit to other pages when the flag is on', async () => {
-    nav.pathname = '/landing';
+    nav.pathname = '/feed';
     flag(true);
-    render(<><nav data-page-guide="landing-nav">Account</nav><PageGuide /></>);
+    render(<><main id="main-content">Feed</main><PageGuide /></>);
     expect(await screen.findByRole('dialog')).toBeTruthy();
+  });
+
+  it('closes when the dimmed backdrop is clicked, so it can never trap the page', async () => {
+    nav.pathname = '/landing';
+    flag(false);
+    render(<><nav data-page-guide="landing-nav">Account</nav><PageGuide /></>);
+    await waitFor(() => expect(http.get).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Page guide' }));
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('page-guide-backdrop'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });

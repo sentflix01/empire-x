@@ -26,13 +26,30 @@ describe('LandingContent', () => {
     expect(h1s[0]).not.toHaveTextContent('Merchant Commerce');
   });
 
-  it('opens with the large spinning brand icon alone, without badge text', () => {
+  it('fits the hero in one screen: the turning globe logo, sized by width and height', () => {
     render(<LandingContent templateCount={20} />);
-    const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
-    const icon = within(hero).getByTestId('spinning-globe');
-    // Centred, and sized as a share of the screen width with a floor and a cap.
-    expect(icon.parentElement).toHaveClass('mx-auto', 'aspect-square', 'w-[clamp(8.5rem,36vw,17rem)]');
+    const hero = screen.getByTestId('landing-hero');
+    // Exactly one screen tall, header included; never taller (owner, 2026-11-14).
+    expect(hero).toHaveClass('h-[100svh]', 'overflow-hidden', 'pt-16');
+    const logo = within(hero).getByTestId('globe-logo');
+    expect(logo).toHaveClass('mx-auto', 'w-[clamp(3.5rem,min(28vw,20svh),13rem)]');
     expect(within(hero).queryByText('Social + commerce in one app')).toBeNull();
+  });
+
+  it('shows the phone video in the hero on desktop and right under it on phones and tablets', () => {
+    render(<LandingContent templateCount={20} />);
+    expect(within(screen.getByTestId('landing-hero')).getByTestId('hero-media')).toHaveClass('hidden', 'lg:block');
+    const below = screen.getByTestId('landing-media-mobile');
+    expect(below).toHaveClass('lg:hidden');
+    expect(below.compareDocumentPosition(screen.getByTestId('landing-hero')) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+  });
+
+  it('keeps Sign in in the header at every width; header Start free from sm up', () => {
+    render(<LandingContent templateCount={20} />);
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
+    const start = within(nav).getByRole('link', { name: 'Start free' });
+    expect(start).toHaveClass('hidden', 'sm:inline-flex');
   });
 
   it('orders the actions: Start free, then Try demo, then Explore as guest', () => {
@@ -49,8 +66,9 @@ describe('LandingContent', () => {
 
   it('offers both full videos without loading either', () => {
     render(<LandingContent templateCount={20} />);
-    expect(screen.getByRole('button', { name: /Watch how it works/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Build, edit & sell your way/ })).toBeInTheDocument();
+    // One copy in the desktop hero, one in the section under it for phones and tablets.
+    expect(screen.getAllByRole('button', { name: /Watch how it works/ })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /Build, edit & sell your way/ })).toHaveLength(2);
     expect(screen.queryByTestId('promo-guide-video')).toBeNull();
   });
 

@@ -81,16 +81,17 @@ export default function PromoGuide({ variant = 'pill', video = 'guide', meta, cl
           <button
             type="button"
             className={cn(
-              'flex min-h-14 w-full items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-left text-white backdrop-blur transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+              // Follows the theme: card colours in light mode, glass on the dark hero.
+              'flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/20 dark:bg-white/10 dark:text-white dark:shadow-none dark:backdrop-blur dark:hover:bg-white/20',
               className,
             )}
           >
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground dark:bg-primary-foreground dark:text-brand-blue">
               <Play className="h-4 w-4 translate-x-px fill-current" aria-hidden="true" />
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-semibold leading-snug">{label}</span>
-              {meta && <span className="block text-xs text-white/75">{meta}</span>}
+              {meta && <span className="block text-xs text-muted-foreground dark:text-white/75">{meta}</span>}
             </span>
           </button>
         ) : (

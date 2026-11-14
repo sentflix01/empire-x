@@ -81,6 +81,7 @@
   --color-destructive-subtle-foreground: hsl(var(--destructive-subtle-foreground));
   --color-rating:                     hsl(var(--rating));
   --color-inverse:                    hsl(var(--inverse));
+  --color-brand-blue:                 hsl(var(--brand-blue));
   --color-inverse-foreground:         hsl(var(--inverse-foreground));
   --color-border:               hsl(var(--border));
   --color-input:                hsl(var(--input));
@@ -164,6 +165,7 @@
     --destructive-subtle-foreground:   0 74% 42%;     /* #b91c1c: 5.9:1 */
     --rating:                          32 95% 44%;    /* #d97706: star icons 3.2:1 */
     --inverse:                         222 47% 11%;   /* #0f172a: dark panels */
+    --brand-blue:                      221 83% 53%;   /* #2563eb in both themes: brand-blue text on white buttons */
     --inverse-foreground:              0 0% 100%;
 
     /* ── Borders & inputs ── */
@@ -226,6 +228,7 @@
     --destructive-subtle-foreground:   0 91% 71%;     /* #f87171 */
     --rating:                          43 96% 56%;    /* #fbbf24 */
     --inverse:                         222 39% 13%;   /* same as --card */
+    --brand-blue:                      221 83% 53%;   /* unchanged in dark mode on purpose */
     --inverse-foreground:              210 20% 95%;
 
     --border:              224 20% 20%;
@@ -301,16 +304,6 @@
   0%, 34% { transform: rotateY(0deg); }
   48%, 68% { transform: rotateY(180deg); }
   82%, 100% { transform: rotateY(360deg); }
-}
-
-/* Brand icon on the landing badge: two full turns, then rest (SpinningGlobeIcon). */
-@keyframes globe-spin-720 {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(720deg); }
-}
-
-.animate-globe-spin {
-  animation: globe-spin-720 2.4s cubic-bezier(0.45, 0.05, 0.25, 1) both;
 }
 
 @keyframes marquee {

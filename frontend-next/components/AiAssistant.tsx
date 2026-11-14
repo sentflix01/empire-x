@@ -155,6 +155,38 @@ function fmtTime(ts: number): string {
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${time}`;
 }
 
+/**
+ * On the landing page the floating Page guide and assistant buttons stay out of
+ * the hero (owner, 2026-11-14; audit F-061): on phones they covered "Try demo".
+ * They appear once less than 40% of the hero's height is on screen.
+ */
+export function useHiddenOverLandingHero(pathname: string | null): boolean {
+  const onLanding = pathname === '/landing' || pathname === '/';
+  const [hidden, setHidden] = useState(onLanding);
+  useEffect(() => {
+    if (!onLanding) { setHidden(false); return; }
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const hero = document.querySelector('[data-testid="landing-hero"]');
+      if (!hero) { setHidden(false); return; }
+      const r = hero.getBoundingClientRect();
+      const shown = Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0));
+      setHidden(shown >= r.height * 0.4);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [onLanding]);
+  return hidden;
+}
+
 function AiAssistantWidget() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
@@ -178,6 +210,7 @@ function AiAssistantWidget() {
   const [tourActive, setTourActive] = useState(false);
   const tourActiveRef = useRef(false);
   const previousPathname = useRef(pathname);
+  const hiddenOverHero = useHiddenOverLandingHero(pathname);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -508,7 +541,7 @@ function AiAssistantWidget() {
   return (
     <>
       {/* Page Guide floating button — stacked above the AI Assistant, shares drag position */}
-      {pageGuideEnabled && (
+      {pageGuideEnabled && !(hiddenOverHero && !open) && (
         <button
           type="button"
           onClick={() => {
@@ -527,8 +560,8 @@ function AiAssistantWidget() {
         </button>
       )}
 
-      {/* Floating button — draggable */}
-      <button
+      {/* Floating button — draggable (kept out of the landing hero, see useHiddenOverLandingHero) */}
+      {!(hiddenOverHero && !open) && <button
         ref={btnRef}
         onClick={() => {
           if (didDrag.current) { didDrag.current = false; return; }
@@ -546,7 +579,7 @@ function AiAssistantWidget() {
         {!open && visibleMessages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-background" />
         )}
-      </button>
+      </button>}
 
       {/* Chat panel */}
       {open && (

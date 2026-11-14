@@ -37,6 +37,8 @@ const HEX_EXEMPT = new Set([
   'lib/builderSections.ts', 'lib/showroomTaxonomy.ts', 'lib/businessTemplates.ts', 'lib/layoutTemplates.ts',
   'lib/showroomTemplateSamples.ts', 'views/ShowroomCreate.tsx', 'components/showroom/CategoryWizard.tsx',
   'components/showroom/BuilderPreview.tsx', 'views/ProfileEdit.tsx', 'views/BusinessCreate.tsx',
+  // The logo artwork's own colours, which must match public/brand/*-v3.svg.
+  'lib/brand/logoColors.ts',
   // Other companies' brand colours (Google sign-in, Telegram, WhatsApp).
   'lib/googleAuth.ts', 'components/GoogleIcon.tsx', 'app/(auth)/auth/google/callback/page.tsx',
   'components/settings/TelegramSettings.tsx', 'components/showroom/WhatsAppFloat.tsx',
