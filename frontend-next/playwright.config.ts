@@ -63,6 +63,9 @@ export default defineConfig({
       // The two-person messaging suite has its own device projects below.
       testIgnore: /messaging\.spec\.ts/,
     },
+    // Landing hero on every device profile (e2e/landing-hero-fit.spec.ts) in Safari's
+    // engine, which every iPhone browser uses. CI installs WebKit for this project.
+    { name: 'landing-webkit', testMatch: /landing-hero-fit\.spec\.ts/, use: { ...devices['Desktop Safari'] } },
     // Messaging M7: the same two-person flows on a phone, an iPhone, a tablet
     // and a computer. Chromium projects use the installed Chrome when
     // E2E_CHROME_PATH is set; the Apple devices run on WebKit.

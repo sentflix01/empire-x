@@ -18,8 +18,9 @@ describe('PageGuide', () => {
 
   afterEach(() => { cleanup(); });
 
-  it('starts on first visit and advances the page walkthrough', async () => {
-    // The landing tour now has 10 steps. Render the first two targets.
+  it('opens from the Page guide button and advances the page walkthrough', async () => {
+    // The landing tour has 10 steps. Render the first two targets. On the landing
+    // page it no longer opens by itself (owner, 14 Nov 2026): visitors open it.
     render(
       <>
         <nav data-page-guide="landing-nav">Account</nav>
@@ -29,6 +30,7 @@ describe('PageGuide', () => {
       </>
     );
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Page guide' }));
     expect(await screen.findByRole('dialog')).toBeTruthy();
     // Step 1: landing-nav → "Your account options"
     expect(screen.getByRole('heading', { name: 'Your account options' })).toBeTruthy();
