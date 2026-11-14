@@ -7,7 +7,7 @@ import { Languages, Moon, Sun } from 'lucide-react';
 import { toggleLanguage } from '@/lib/i18n';
 
 // Follows the theme: a light control on the light header, glass on the dark one.
-const CONTROL = 'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:ring-white/70';
+const CONTROL = 'inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-2 text-xs min-[400px]:px-2.5 font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:ring-white/70';
 
 export function LandingPreferences() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -42,7 +42,8 @@ export function LandingPreferences() {
         title={String(t('landing.changeLanguage'))}
         className={CONTROL}
       >
-        <Languages className="h-4 w-4" />
+        {/* Decorative; hidden below 400 px to save room. The button keeps its name and "EN" label. */}
+        <Languages className="hidden h-4 w-4 min-[400px]:block" aria-hidden="true" />
         <span>{i18n.language === 'am' ? 'አማ' : 'EN'}</span>
       </button>
     </div>

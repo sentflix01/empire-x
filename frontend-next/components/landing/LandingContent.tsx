@@ -132,12 +132,13 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
       <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 text-foreground backdrop-blur-xl dark:border-white/10 dark:bg-inverse/85 dark:text-white">
         <nav data-page-guide="landing-nav" aria-label={tr('navLabel', 'Main')} className={`${CONTAINER} flex h-16 items-center justify-between gap-2`}>
           <Link href="/landing" aria-label="Nodbusiness" className="shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <Wordmark tone="light" className="text-[1.05rem] min-[360px]:text-lg sm:text-2xl dark:hidden" />
-            <Wordmark tone="dark" className="hidden text-[1.05rem] min-[360px]:text-lg sm:text-2xl dark:inline-flex" />
+            <Wordmark tone="light" className="text-[clamp(0.9rem,4.4vw,1.05rem)] min-[360px]:text-lg sm:text-2xl dark:hidden" />
+            <Wordmark tone="dark" className="hidden text-[clamp(0.9rem,4.4vw,1.05rem)] min-[360px]:text-lg sm:text-2xl dark:inline-flex" />
           </Link>
-          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+          {/* Below 360 px: tighter spacing so the header keeps room to spare on every phone. */}
+          <div className="flex min-w-0 items-center gap-1 min-[360px]:gap-1.5 sm:gap-2">
             <LandingPreferences />
-            <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center whitespace-nowrap rounded-lg px-2.5 text-sm font-semibold transition hover:bg-muted sm:px-3 dark:hover:bg-white/10">
+            <Link data-page-guide="landing-signin" href="/login" className="inline-flex h-9 items-center whitespace-nowrap rounded-lg px-2 text-sm font-semibold transition hover:bg-muted min-[360px]:px-2.5 sm:px-3 dark:hover:bg-white/10">
               {tr('signIn', 'Sign in')}
             </Link>
             <Link data-page-guide="landing-register" href="/register" className={`hidden h-9 items-center whitespace-nowrap rounded-lg px-4 text-sm font-semibold sm:inline-flex ${PRIMARY_COLORS}`}>

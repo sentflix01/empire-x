@@ -141,10 +141,11 @@ function assertFits(f: Facts, where: string) {
     expect(b.right, `${where}: ${key} right on screen`).toBeLessThanOrEqual(f.vw + 1);
   }
   expect(f.clipped, `${where}: clipped text`).toEqual([]);
-  // 3. Header controls fully on screen, not overlapping.
+  // 3. Header controls fully on screen with room to spare (at least 8 px from each
+  //    edge: fonts render a little wider on some phones and browsers), not overlapping.
   for (const c of f.controls) {
-    expect(c.box!.left, `${where}: header "${c.name}" left`).toBeGreaterThanOrEqual(-1);
-    expect(c.box!.right, `${where}: header "${c.name}" right`).toBeLessThanOrEqual(f.vw + 1);
+    expect(c.box!.left, `${where}: header "${c.name}" left`).toBeGreaterThanOrEqual(8);
+    expect(c.box!.right, `${where}: header "${c.name}" right`).toBeLessThanOrEqual(f.vw - 8);
   }
   for (let i = 0; i < f.controls.length; i++) {
     for (let j = i + 1; j < f.controls.length; j++) {
@@ -237,6 +238,15 @@ for (const [name, profile] of Object.entries(PROFILES)) {
       await expect(page).toHaveURL(/\/register$/);
       await context.close();
     }
+
+    // Worst case: web fonts blocked, so text uses the wider system fallback font (as a
+    // phone shows while fonts load, or when they fail). Everything must still fit.
+    const fallback = await browser.newContext(contextOptions(profile));
+    const fallbackPage = await fallback.newPage();
+    await fallbackPage.route(/\.(woff2?|ttf|otf)(\?|$)/, (route) => route.abort());
+    await openLanding(fallbackPage, 'light');
+    assertFits(await measure(fallbackPage), `${name} fallback fonts`);
+    await fallback.close();
   });
 }
 
