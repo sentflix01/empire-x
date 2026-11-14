@@ -14,6 +14,9 @@ import rateLimit from 'express-rate-limit';
 import { addSignup, hasNewsletterSection, listSignups, normaliseSignupEmail } from '../lib/newsletterSignups';
 import { uuidParams } from '../lib/uuidParams';
 import { checkShowroomInput, slugBase } from '../lib/showroomInput';
+const { KNOWN_SECTIONS, RETIRED_SECTIONS } = require('../lib/builderSectionRequirements') as { KNOWN_SECTIONS: Set<string>; RETIRED_SECTIONS: Set<string> };
+/** Section types a spotlight may name: the builder's, plus older catalogue shapes still on sites. */
+const SPOTLIGHT_SECTION_TYPES = new Set<string>([...KNOWN_SECTIONS, 'products', 'featured_products', 'story']);
 
 const router = Router();
 
@@ -217,6 +220,16 @@ router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) 
          !(spotlight_section_ids as unknown[]).every(x => typeof x === 'string'))) {
       res.status(422).json({ error: 'spotlight_section_ids must be an array of strings' }); return;
     }
+    // Known section types only, each once, at most 20, in the owner's order
+    // (audit 2026-11-14). Retired types (old testimonials) are dropped.
+    let sectionIds: string[] = [];
+    if (Array.isArray(spotlight_section_ids)) {
+      const ids = [...new Set(spotlight_section_ids as string[])].filter((id) => !RETIRED_SECTIONS.has(id));
+      const unknown = ids.filter((id) => !SPOTLIGHT_SECTION_TYPES.has(id));
+      if (unknown.length) { res.status(422).json({ error: `Unknown section type: ${unknown[0].slice(0, 40)}` }); return; }
+      if (ids.length > 20) { res.status(422).json({ error: 'Choose at most 20 sections' }); return; }
+      sectionIds = ids;
+    }
     const count = spotlight_carousel_count !== undefined
       ? parseInt(String(spotlight_carousel_count), 10) : 1;
     if (isNaN(count) || count < 1) {
@@ -227,7 +240,7 @@ router.patch('/:id/spotlight', requireAuth, async (req: Request, res: Response) 
       // JSON text, not a JS array: node-pg sends arrays as Postgres array
       // syntax, so [] was stored as the object {} (which crashed the feed) and
       // ['menu'] as {"menu"}, which isn't JSON and failed with a 500.
-      spotlight_section_ids: JSON.stringify(spotlight_section_ids ?? []),
+      spotlight_section_ids: JSON.stringify(sectionIds),
       spotlight_carousel_count: count,
     };
     const updated = await updateRecord('showrooms', req.params.id, updates);

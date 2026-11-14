@@ -974,6 +974,20 @@ items in the open list until confirmed.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`, builder `-v2`) and are referenced only through `lib/promoAssets.ts`. The builder video's shots are in `scripts/promo/scenes/builderShots.js` (`builder.html`). Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide; `video="builder"` for the builder video). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
 
+### 2026-11-14 — Feed Spotlight: the owner's sections, in the owner's order; any site colours
+
+- **Status:** Accepted (owner, 14 Nov 2026, from testing Studio: the live preview could not be seen while choosing; ticked sections were missing from the spotlight and came in a different order; only fixed colours were offered). Amends point 599 of "Business Spotlight: one selling section, at its real size, on every card" (2026-10-24), which played chosen sections in priority order and only selling sections.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. In "Choose sections" mode, **every** chosen section the strip can draw (`SPOTLIGHT_TILE_TYPES`: selling sections plus team, FAQ, numbers, why us, process, delivery, certifications, brands, case studies, partners, awards, industries, before/after, jobs, booking, video) becomes a tab, **in the owner's order**. The owner reorders the tabs in the panel. A chosen section with no content yet is skipped until it has some (the panel and preview say which), so a tab is never blank. Automatic mode is unchanged: one best selling section.
+  2. The Spotlight settings and the live card preview show together: side by side from 768 px, and the preview pinned above the settings on phones. It is a dialog (Esc, focus kept inside and returned). Closing it saves a pending change at once, and a refused save shows an error with Try again.
+  3. The server keeps the order, de-duplicates, drops retired types, and refuses unknown types or more than 20 sections.
+  4. Owners can pick **any colours** (two colour pickers with hex codes, or one colour), besides the presets. The current colours always show as selected. Light colours are darkened only where white text sits on them, so sites stay WCAG AA. The hero button text follows the same rule, and the hero's call to action is one link styled as a button (no button inside a link).
+- **Consequences:**
+  - Code: `lib/spotlight.ts` (`chosenSlides`, `SPOTLIGHT_TILE_TYPES`), `components/feed/BusinessSpotlight.tsx` (keyboard tabs, tabpanel), `components/showroom/studio/FeedSpotlightPanel.tsx`, `FeedSpotlightPreview.tsx`, `StudioMenus.tsx`, `views/ShowroomCreate.tsx`, `components/showroom/SectionRenderer.tsx`, `backend/routes/showrooms.ts`.
+  - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
+  - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (16 checks).
+
 ### 2026-11-14 — Reviews are platform-owned and mandatory on every website
 
 - **Status:** Accepted (owner, 14 Nov 2026: "remove customer rating and testimonial from builder sections, then when any user publishes, the app itself adds this to each website, because each website's trust is determined by user feedback, so these two things are mandatory"; reviews from **verified customers only**; old owner-written quotes **removed everywhere**).

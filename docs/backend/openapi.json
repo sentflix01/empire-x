@@ -10523,7 +10523,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/showrooms.ts:22"
+        "x-source": "backend/routes/showrooms.ts:25"
       },
       "post": {
         "operationId": "post_showrooms",
@@ -10551,7 +10551,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:254"
+        "x-source": "backend/routes/showrooms.ts:267"
       }
     },
     "/api/showrooms/slug/{slug}": {
@@ -10589,7 +10589,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/showrooms.ts:50"
+        "x-source": "backend/routes/showrooms.ts:53"
       }
     },
     "/api/showrooms/{id}/recheck/{sectionKey}": {
@@ -10640,7 +10640,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:70"
+        "x-source": "backend/routes/showrooms.ts:73"
       }
     },
     "/api/showrooms/{id}/doctor": {
@@ -10680,7 +10680,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:95"
+        "x-source": "backend/routes/showrooms.ts:98"
       }
     },
     "/api/showrooms/sitemap-data": {
@@ -10700,7 +10700,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/showrooms.ts:152"
+        "x-source": "backend/routes/showrooms.ts:155"
       }
     },
     "/api/showrooms/{id}/newsletter": {
@@ -10741,7 +10741,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/showrooms.ts:172"
+        "x-source": "backend/routes/showrooms.ts:175"
       },
       "get": {
         "operationId": "get_showrooms_id_newsletter",
@@ -10779,7 +10779,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:190"
+        "x-source": "backend/routes/showrooms.ts:193"
       }
     },
     "/api/showrooms/{id}/spotlight": {
@@ -10822,7 +10822,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:203"
+        "x-source": "backend/routes/showrooms.ts:206"
       }
     },
     "/api/showrooms/{id}": {
@@ -10860,7 +10860,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/showrooms.ts:241"
+        "x-source": "backend/routes/showrooms.ts:254"
       },
       "put": {
         "operationId": "put_showrooms_id",
@@ -10901,7 +10901,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:325"
+        "x-source": "backend/routes/showrooms.ts:338"
       },
       "delete": {
         "operationId": "delete_showrooms_id",
@@ -10939,7 +10939,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:396"
+        "x-source": "backend/routes/showrooms.ts:409"
       }
     },
     "/api/social/relationship/{userId}": {

@@ -204,5 +204,17 @@ opens the full guide in a modal player and downloads nothing until pressed.
 sell your way": build a website from pieces, change any piece later with no
 code, publish and sell). `variant="row"` with `meta="2 min"` is the full-width
 row the landing hero uses under its phone.
+
+### Studio: Feed Spotlight and colours
+`FeedSpotlightPanel` (settings) and `FeedSpotlightPreview` (live card) open
+together as a dialog from Studio's More menu: side by side from 768 px, preview
+pinned on top on phones. The owner chooses any section the strip can draw
+(`SPOTLIGHT_TILE_TYPES` in `lib/spotlight.ts`) and orders the tabs with ↑ / ↓;
+`chosenSlides()` says which choices show and which are still empty. A change is
+saved 800 ms after the last edit, or at once when the dialog closes.
+`StyleMenu` has the colour presets plus **Your colours**: two colour pickers
+with hex fields and "Use one colour"; the site's current colours always show as
+selected (a preset or the Custom swatch). Light colours stay readable: the site
+darkens them behind white text with `fillForWhiteText` (`lib/contrast.ts`).
 Re-render clips with `node scripts/promo/render.mjs` after editing
 `scripts/promo/scenes/` (decision 2026-11-11 in `project-brain/DECISIONS.md`).

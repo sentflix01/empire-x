@@ -87,6 +87,18 @@ export function sectionHasContent(s: SpotlightSection, productCount: number, now
 }
 
 export const isSpotlightType = (type: unknown) => SPOTLIGHT_PRIORITY.includes(String(type));
+
+/**
+ * Every section type the Spotlight strip can draw (lib/spotlightTiles.ts has a
+ * card layout for each). An owner may choose any of these; Automatic mode
+ * still only picks selling types (SPOTLIGHT_PRIORITY).
+ */
+export const SPOTLIGHT_TILE_TYPES: readonly string[] = [
+  ...SPOTLIGHT_PRIORITY,
+  'team', 'faq', 'features', 'stats', 'before_after', 'certifications', 'brands', 'caseStudies',
+  'partners', 'awards', 'industries', 'process', 'delivery', 'job_openings', 'booking', 'video',
+];
+export const canSpotlight = (type: unknown) => SPOTLIGHT_TILE_TYPES.includes(String(type));
 const rank = (type: unknown) => {
   const idx = SPOTLIGHT_PRIORITY.indexOf(String(type));
   return idx === -1 ? 999 : idx; // unknown types sort last
@@ -113,30 +125,14 @@ export function resolveSpotlight(
 
   const allSections = Array.isArray(sections) ? sections : [];
 
-  // ── Chosen mode: show the owner's selected sections, sorted by priority ──
-  // Only SPOTLIGHT_PRIORITY types qualify. Non-selling types (contact, hero,
-  // etc.) are silently dropped and the mode falls back to automatic.
-  // Catalogue sections are excluded until products have loaded (productCount>0)
-  // so an empty products tab never replaces a working services tab.
+  // ── Chosen mode: every section the owner chose, in the owner's order ──
+  // (Studio audit 2026-11-14: chosen sections used to be limited to selling
+  // types and re-sorted by priority, so ticked tabs went missing.) A chosen
+  // section is skipped only while it has nothing to show, so a tab is never
+  // blank; catalogue sections wait for products.
   const chosenTypes = spotlightSectionIds(chosen);
   if ((mode === 'single' || mode === 'carousel') && chosenTypes.length > 0) {
-    const seen = new Set<string>();
-    const picked: Array<{ section: SpotlightSection; index: number }> = [];
-    // Filter to selling types only, then sort by priority rank.
-    const validChosen = chosenTypes
-      .filter((t) => isSpotlightType(t))
-      .sort((a, b) => rank(a) - rank(b));
-    for (const chosenType of validChosen) {
-      if (seen.has(chosenType)) continue;
-      seen.add(chosenType);
-      const idx = allSections.findIndex((s) => String(s?.type) === chosenType);
-      if (idx === -1) continue; // section was removed from the page
-      const section = allSections[idx];
-      // Exclude catalogue sections when no products have loaded yet so the
-      // strip falls back gracefully to the next selling section.
-      if (isCatalogueSection(String(section?.type)) && productCount === 0) continue;
-      picked.push({ section, index: idx });
-    }
+    const picked = chosenSlides(allSections, chosenTypes, productCount, now).shown;
     if (picked.length > 0) {
       const slides = mode === 'single' ? picked.slice(0, 1) : picked;
       return { slides, carousel: slides.length > 1 };
@@ -158,6 +154,29 @@ export function resolveSpotlight(
   if (candidates.length === 0) return { slides: [], carousel: false };
   // Automatic: single best section only — no tabs
   return { slides: candidates.slice(0, 1), carousel: false };
+}
+
+/**
+ * The chosen sections that will show (in the owner's order) and the ones that
+ * cannot show yet because they have no content (for the Studio panel).
+ */
+export function chosenSlides(sections: SpotlightSection[], chosen: unknown, productCount: number, now = new Date()) {
+  const all = Array.isArray(sections) ? sections : [];
+  const shown: Array<{ section: SpotlightSection; index: number }> = [];
+  const empty: string[] = [];
+  const seen = new Set<string>();
+  for (const type of spotlightSectionIds(chosen)) {
+    if (seen.has(type) || !canSpotlight(type)) continue;
+    seen.add(type);
+    const index = all.findIndex((s) => String(s?.type) === type);
+    if (index === -1) continue; // removed from the page
+    const s = all[index];
+    // Chosen on purpose: About may show with words only (Automatic wants a picture).
+    const aboutText = (type === 'about' || type === 'story') && Boolean(String(s.aboutDesc ?? s.content ?? '').trim());
+    if (sectionHasContent(s, productCount, now) || aboutText) shown.push({ section: s, index });
+    else empty.push(type);
+  }
+  return { shown, empty };
 }
 
 /** Section types the owner can choose for their spotlight, in priority order (Studio panel). */

@@ -4,7 +4,7 @@
  * same rules apply to every account (demo cards used to show nothing).
  */
 import { describe, it, expect } from 'vitest';
-import { resolveSpotlight, sectionHasContent, spotlightChoices } from '@/lib/spotlight';
+import { chosenSlides, resolveSpotlight, sectionHasContent, spotlightChoices } from '@/lib/spotlight';
 import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
 
 const hero = { type: 'hero', title: 'Welcome' };
@@ -49,10 +49,22 @@ describe('owner choices', () => {
     expect(resolveSpotlight([menu, services], 'off', '["menu"]', 0).slides).toEqual([]);
   });
 
-  it('plays several chosen sections in priority order, not the order chosen', () => {
+  // Owner, 14 Nov 2026: every chosen section shows, in the order the owner set.
+  it('plays several chosen sections in the order the owner chose', () => {
     const r = resolveSpotlight([about, services, menu], 'carousel', ['about', 'menu', 'services'], 0);
-    expect(types(r)).toEqual(['menu', 'services', 'about']);
+    expect(types(r)).toEqual(['about', 'menu', 'services']);
     expect(r.carousel).toBe(true);
+  });
+
+  it('shows chosen non-selling sections too (numbers, FAQ, team…), skipping only empty ones', () => {
+    const stats = { type: 'stats', stats: [{ number: '500+', label: 'Customers served' }] };
+    const faq = { type: 'faq', faqs: [{ question: 'Open Sundays?', answer: 'Yes' }] };
+    const emptyTeam = { type: 'team', members: [] };
+    const r = resolveSpotlight([services, stats, faq, emptyTeam, aboutNoPicture], 'carousel', ['about', 'stats', 'team', 'faq', 'services'], 0);
+    expect(types(r)).toEqual(['about', 'stats', 'faq', 'services']);
+    const status = chosenSlides([services, stats, faq, emptyTeam], ['stats', 'team', 'faq', 'contact'], 0);
+    expect(status.shown.map((s) => s.section.type)).toEqual(['stats', 'faq']);
+    expect(status.empty).toEqual(['team']);
   });
 
   it('shows a single chosen section on its own', () => {
@@ -62,8 +74,8 @@ describe('owner choices', () => {
   });
 
   it('falls back to automatic when the choices are empty or not selling sections', () => {
-    // Old demo seed data chose "contact" and "testimonials" (migrate76).
-    expect(types(resolveSpotlight([contact, services], 'single', ['contact'], 0))).toEqual(['services']);
+    // Old demo seed data chose "contact" and "testimonials" (migrate76): sections the strip cannot draw.
+    expect(types(resolveSpotlight([contact, services], 'single', ['contact', 'testimonials'], 0))).toEqual(['services']);
     expect(types(resolveSpotlight([menu], 'carousel', ['gallery'], 0))).toEqual(['menu']);
   });
 

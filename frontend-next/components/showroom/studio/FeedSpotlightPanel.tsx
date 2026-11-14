@@ -13,10 +13,10 @@
  * preview in the parent can update without waiting for the network.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { X } from 'lucide-react';
+import { ArrowDown, ArrowUp, X } from 'lucide-react';
 import { apiFetch } from '@/lib/api/client';
 import { getSectionType } from '@/lib/builderSections';
-import { SPOTLIGHT_LABELS } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS, canSpotlight, chosenSlides } from '@/lib/spotlight';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,6 +27,8 @@ export interface FeedSpotlightPanelProps {
   /** Showroom id to PATCH. Empty string = preview-only mode (demo / unsaved draft). */
   showroomId: string;
   activeSections: string[];
+  /** The page's sections with their content, to tell the owner which choices are still empty. */
+  sections?: Array<Record<string, unknown>>;
   initialMode: StoredMode;
   initialSectionIds: string[];
   initialCarouselCount: number;
@@ -71,13 +73,18 @@ function toStored(choice: Choice, ids: string[]): { mode: StoredMode; ids: strin
 export default function FeedSpotlightPanel({
   showroomId,
   activeSections,
+  sections = [],
   initialMode,
   initialSectionIds,
   onClose,
   onSaved,
   onPreviewChange,
 }: FeedSpotlightPanelProps) {
-  const options = activeSections.filter((t) => !SPOTLIGHT_EXCLUDED.has(t));
+  // Only sections the strip can draw (audit 2026-11-14: e.g. Rooms or an old
+  // testimonials key could be ticked and then never appeared).
+  const options = activeSections.filter((t, i, all) => !SPOTLIGHT_EXCLUDED.has(t) && canSpotlight(t) && all.indexOf(t) === i);
+  // Catalogue sections count as filled here: their products load on the card.
+  const emptyChoices = new Set(chosenSlides(sections as never, options, 1).empty);
 
   const [choice, setChoice] = useState<Choice>(
     choiceOf(initialMode, initialSectionIds),
@@ -99,34 +106,50 @@ export default function FeedSpotlightPanel({
     [onPreviewChange],
   );
 
-  // Persist to server with an 800 ms debounce after any user interaction.
+  const persist = useCallback(async (mode: StoredMode, ids: string[]) => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await apiFetch(`/api/showrooms/${showroomId}/spotlight`, {
+        method: 'PATCH',
+        credentials: 'include',
+        keepalive: true, // finishes even if the panel just closed
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spotlight_mode: mode, spotlight_section_ids: ids, spotlight_carousel_count: 1 }),
+      });
+      if (res && 'ok' in res && !res.ok) throw new Error(String(res.status));
+      onSaved(mode, ids, 1);
+    } catch {
+      setError('Could not save. Check your connection and try again.');
+    } finally {
+      setSaving(false);
+    }
+  }, [showroomId, onSaved]);
+
+  // Persist with an 800 ms debounce after any change; a change still waiting
+  // when the panel closes is saved straight away (it used to be dropped).
+  const pending = useRef<{ mode: StoredMode; ids: string[] } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flush = useCallback(() => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    const next = pending.current;
+    pending.current = null;
+    if (next && showroomId) void persist(next.mode, next.ids);
+  }, [persist, showroomId]);
+
   useEffect(() => {
     if (!showroomId || !dirty.current) return;
-    const { mode, ids } = toStored(choice, sectionIds);
-    const timer = setTimeout(async () => {
-      setSaving(true);
-      setError('');
-      try {
-        await apiFetch(`/api/showrooms/${showroomId}/spotlight`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            spotlight_mode: mode,
-            spotlight_section_ids: ids,
-            spotlight_carousel_count: 1,
-          }),
-        });
-        onSaved(mode, ids, 1);
-      } catch {
-        setError('Could not save. Check your connection and try again.');
-      } finally {
-        setSaving(false);
-      }
-    }, 800);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [choice, sectionIds, showroomId]);
+    pending.current = toStored(choice, sectionIds);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(flush, 800);
+  }, [choice, sectionIds, showroomId, flush]);
+
+  // Unmount (closing Studio's overlay any way): save what is still waiting.
+  const flushRef = useRef(flush);
+  flushRef.current = flush;
+  useEffect(() => () => flushRef.current(), []);
+
+  const close = () => { flush(); onClose(); };
 
   const pick = (next: Choice) => {
     dirty.current = true;
@@ -136,15 +159,25 @@ export default function FeedSpotlightPanel({
     notifyPreview(next, next === 'chosen' ? sectionIds : nextIds);
   };
 
+  // Compute the next list first, then update this panel and the preview: the
+  // preview (in ShowroomCreate) must not be updated from inside a state
+  // updater, which React reports as "update while rendering".
   const toggle = (type: string) => {
     dirty.current = true;
-    setSectionIds((prev) => {
-      const next = prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type];
-      notifyPreview(choice, next);
-      return next;
-    });
+    const next = sectionIds.includes(type) ? sectionIds.filter((t) => t !== type) : [...sectionIds, type];
+    setSectionIds(next);
+    notifyPreview(choice, next);
+  };
+
+  const move = (type: string, dir: -1 | 1) => {
+    dirty.current = true;
+    const i = sectionIds.indexOf(type);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= sectionIds.length) return;
+    const next = [...sectionIds];
+    [next[i], next[j]] = [next[j], next[i]];
+    setSectionIds(next);
+    notifyPreview(choice, next);
   };
 
   const labelFor = (type: string) =>
@@ -164,10 +197,10 @@ export default function FeedSpotlightPanel({
     <div className="flex flex-col bg-card">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
-        <h2 className="text-base font-bold">Feed Spotlight Preview</h2>
+        <h2 id="feed-spotlight-title" className="text-base font-bold">Feed Spotlight</h2>
         <button
           type="button"
-          onClick={onClose}
+          onClick={close}
           aria-label="Close Feed Spotlight Preview"
           className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary transition-colors"
         >
@@ -239,10 +272,23 @@ export default function FeedSpotlightPanel({
                     onChange={() => toggle(type)}
                     className="accent-primary h-4 w-4 shrink-0"
                   />
-                  <span className="text-sm font-medium">{labelFor(type)}</span>
+                  <span className="min-w-0 flex-1 text-sm font-medium">
+                    {labelFor(type)}
+                    {emptyChoices.has(type) && (
+                      <span className="block text-[11px] font-normal text-muted-foreground">No content yet: add it in Studio to show this tab.</span>
+                    )}
+                  </span>
                   {sectionIds.includes(type) && sectionIds.length > 1 && (
-                    <span className="ml-auto text-[10px] text-muted-foreground">
-                      Tab {sectionIds.indexOf(type) + 1}
+                    <span className="flex shrink-0 items-center gap-1">
+                      <span className="text-[11px] text-muted-foreground">Tab {sectionIds.indexOf(type) + 1}</span>
+                      <button type="button" onClick={(e) => { e.preventDefault(); move(type, -1); if (sectionIds.indexOf(type) <= 1) (e.currentTarget.nextElementSibling as HTMLElement | null)?.focus(); }} disabled={sectionIds.indexOf(type) === 0}
+                        aria-label={`Move ${labelFor(type)} earlier`} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary disabled:opacity-30">
+                        <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={(e) => { e.preventDefault(); move(type, 1); if (sectionIds.indexOf(type) >= sectionIds.length - 2) (e.currentTarget.previousElementSibling as HTMLElement | null)?.focus(); }} disabled={sectionIds.indexOf(type) === sectionIds.length - 1}
+                        aria-label={`Move ${labelFor(type)} later`} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-secondary disabled:opacity-30">
+                        <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
                     </span>
                   )}
                 </label>
@@ -270,6 +316,12 @@ export default function FeedSpotlightPanel({
           aria-live="polite"
         >
           {statusText}
+          {error && showroomId && (
+            <button type="button" onClick={() => { const { mode, ids } = toStored(choice, sectionIds); void persist(mode, ids); }}
+              className="ml-2 font-semibold underline underline-offset-2">
+              Try again
+            </button>
+          )}
         </p>
       </div>
     </div>

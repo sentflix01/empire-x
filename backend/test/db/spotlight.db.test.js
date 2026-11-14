@@ -44,6 +44,29 @@ describe('PATCH /api/showrooms/:id/spotlight', () => {
     expect(res.status).toBe(200);
     expect(await stored(biz.siteId)).toEqual({ ids: [], kind: 'array' });
   });
+
+  // Studio audit 2026-11-14: every chosen section, in the owner's order, checked.
+  const patch = (user, body) => request(app).patch(`/api/showrooms/${biz.siteId}/spotlight`).set(auth(user)).send(body);
+
+  it("keeps the owner's order, drops duplicates and retired types", async () => {
+    const res = await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['about', 'stats', 'faq', 'about', 'testimonials', 'items'] });
+    expect(res.status).toBe(200);
+    expect(await stored(biz.siteId)).toEqual({ ids: ['about', 'stats', 'faq', 'items'], kind: 'array' });
+  });
+
+  it('refuses unknown section types and more than 20 sections', async () => {
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['about', '<script>'] })).status).toBe(422);
+    const many = ['hero', 'about', 'items', 'gallery', 'services', 'contact', 'social', 'pricing', 'team', 'faq', 'features', 'stats',
+      'payment_info', 'hours', 'menu', 'offer', 'delivery', 'certifications', 'brands', 'event_schedule', 'portfolio'];
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: many })).status).toBe(422);
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['products', 'story'] })).status).toBe(200);
+  });
+
+  it('refuses anyone but the owner', async () => {
+    const stranger = await createUser();
+    expect((await patch(stranger, { spotlight_mode: 'off', spotlight_section_ids: [] })).status).toBe(403);
+    await deleteUser(stranger.id);
+  });
 });
 
 describe('migrate78', () => {

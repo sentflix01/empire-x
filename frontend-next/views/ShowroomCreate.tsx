@@ -181,6 +181,27 @@ function ShowroomCreate({
   const [fullPreview, setFullPreview] = useState(false);
   // Feed Spotlight config
   const [spotlightOpen, setSpotlightOpen] = useState(false);
+  // Dialog focus: into the Spotlight dialog on open, back to what opened it on close.
+  const spotlightDialogRef = useRef<HTMLDivElement | null>(null);
+  const spotlightOpener = useRef<HTMLElement | null>(null);
+  const closeSpotlight = useCallback(() => {
+    setSpotlightOpen(false);
+    const opener = spotlightOpener.current;
+    if (opener) requestAnimationFrame(() => opener.focus());
+  }, []);
+  useEffect(() => {
+    if (!spotlightOpen) return;
+    const dialog = spotlightDialogRef.current;
+    dialog?.focus();
+    // Esc closes from anywhere: a button that just became disabled (e.g. "Move
+    // earlier" on the first tab) drops focus to <body>, outside the dialog.
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); closeSpotlight(); } };
+    // Keep focus inside the dialog while it is open (aria-modal).
+    const onFocus = (e: FocusEvent) => { if (dialog && e.target instanceof Node && !dialog.contains(e.target)) dialog.focus(); };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('focusin', onFocus);
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('focusin', onFocus); };
+  }, [spotlightOpen, closeSpotlight]);
   const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
   const [spotlightCarouselCount, setSpotlightCarouselCount] = useState(1);
@@ -479,6 +500,7 @@ function ShowroomCreate({
   // already exists, open immediately. Otherwise auto-save the draft first
   // so spotlight config has a showroom to attach to — never block the user.
   const openFeedSpotlight = async () => {
+    spotlightOpener.current = typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
     if (serverDraftId || editId) {
       // Mirror the persisted values so the preview starts correct on open.
       setLiveSpotlightMode(spotlightMode);
@@ -1080,22 +1102,44 @@ function ShowroomCreate({
       </div>
 
       {/* ── Feed Spotlight overlay ──────────────────────────────────────────
-           Layout: fixed full-screen overlay split into two halves.
-           Top half (auto-height, scrollable): panel settings.
-           Bottom half (remaining space): live business card preview.
+           A dialog over Studio (audit 2026-11-14: the preview used to sit
+           under the settings and was hard to see). From 768 px: settings on
+           the left, live preview on the right, always in view. On phones:
+           the preview is pinned at the top and the settings scroll below.
            Works in demo mode (showroomId='') — settings are preview-only. ── */}
       {spotlightOpen && (
-        <div className="absolute inset-0 z-60 flex flex-col bg-card">
-          {/* Settings panel — shrinks to content, scrolls if needed */}
-          <div className="shrink-0 overflow-y-auto border-b border-border max-h-[55%]">
+        <div
+          ref={spotlightDialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="feed-spotlight-title"
+          tabIndex={-1}
+          className="absolute inset-0 z-60 flex flex-col bg-card outline-none md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:grid-rows-1"
+        >
+          {/* Live preview: first on phones (pinned), right column from 768 px */}
+          <div className="order-first max-h-[46%] shrink-0 overflow-y-auto border-b border-border bg-muted/30 md:order-last md:max-h-none md:border-b-0 md:border-l" data-testid="spotlight-preview-pane">
+            <FeedSpotlightPreview
+              sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
+              spotlightMode={liveSpotlightMode}
+              spotlightSectionIds={liveSpotlightIds}
+              themeColor={String(formData.heroBg ?? '#2563EB')}
+              themeColor2={String(formData.heroBg2 ?? formData.heroBg ?? '#2563EB')}
+              businessName={String(formData.title ?? 'Your Business')}
+              ownerId={String(user?.id ?? '')}
+              businessId={selectedBusinessId ?? null}
+            />
+          </div>
+          {/* Settings */}
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <FeedSpotlightPanel
               showroomId={serverDraftId || editId}
               activeSections={activeSections}
+              sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, unknown>>}
               initialMode={spotlightMode}
               initialSectionIds={spotlightSectionIds}
               initialCarouselCount={spotlightCarouselCount}
               themeColor={String(formData.heroBg ?? '#2563EB')}
-              onClose={() => setSpotlightOpen(false)}
+              onClose={closeSpotlight}
               onSaved={(mode, ids, count) => {
                 setSpotlightMode(mode);
                 setSpotlightSectionIds(ids);
@@ -1108,18 +1152,6 @@ function ShowroomCreate({
                 setLiveSpotlightMode(mode);
                 setLiveSpotlightIds(ids);
               }}
-            />
-          </div>
-          {/* Live preview — fills remaining space, always visible */}
-          <div className="min-h-0 flex-1 overflow-y-auto bg-muted/30">
-            <FeedSpotlightPreview
-              sections={serializeShowroomSections(activeSections, formData) as Array<Record<string, any>>}
-              spotlightMode={liveSpotlightMode}
-              spotlightSectionIds={liveSpotlightIds}
-              themeColor={String(formData.heroBg ?? '#2563EB')}
-              businessName={String(formData.title ?? 'Your Business')}
-              ownerId={String(user?.id ?? '')}
-              businessId={selectedBusinessId ?? null}
             />
           </div>
         </div>

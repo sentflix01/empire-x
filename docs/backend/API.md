@@ -597,6 +597,9 @@ Published, unexpired sites only. Counts a view for visitors, not for the owner.
 ### DELETE /api/showrooms/:id
 Owner or admin; permanent.
 
+### PATCH /api/showrooms/:id/spotlight
+Owner or admin. Body: `spotlight_mode` (`single` · `carousel` · `off` · `null` for Automatic), `spotlight_section_ids` (section types, **in the owner's tab order**), `spotlight_carousel_count`. The ids are de-duplicated, retired types (`testimonials`) are dropped, unknown types and more than 20 ids are refused with `422`. On the card, every chosen section that has content becomes a tab, in this order (decision "Feed Spotlight: the owner's sections, in the owner's order", 2026-11-14).
+
 ## Business reviews (verified customers)
 
 Mounted at `/api/businesses/:businessId/reviews`. Decision "Business reviews: verified customers only". Since 2026-11-14 every published website and business profile shows these reviews in a block owners cannot remove (decision "Reviews are platform-owned and mandatory on every website").

@@ -189,15 +189,16 @@ export default function SectionRenderer({
           {(s.subtitle || biz.description || biz.business_description) && (
             <p className={`text-sm mb-4 ${hasCustomBg ? "text-white/85" : "text-muted-foreground"}`}>{s.subtitle || biz.description || biz.business_description}</p>
           )}
-          {s.cta && ctaTarget && (
-            <a href={ctaTarget}>
-              {hasCustomBg ? (
-                <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
-              ) : (
-                <Button className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{s.cta}</Button>
-              )}
-            </a>
-          )}
+          {/* One link styled as a button (a button inside a link is invalid and confuses screen readers). */}
+          {s.cta && ctaTarget && (hasCustomBg ? (
+            <Button asChild className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: fillForWhiteText(s.heroBg) }}>
+              <a href={ctaTarget}>{s.cta}</a>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
+              <a href={ctaTarget}>{s.cta}</a>
+            </Button>
+          ))}
         </div>
       </div>
     );
