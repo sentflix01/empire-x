@@ -26,12 +26,12 @@ describe('LandingContent', () => {
     expect(h1s[0]).not.toHaveTextContent('Merchant Commerce');
   });
 
-  it('shows a large, bold badge with the spinning on-blue brand icon', () => {
+  it('opens with the large spinning brand icon alone, without badge text', () => {
     render(<LandingContent templateCount={20} />);
-    const badge = screen.getByText('Social + commerce in one app');
-    expect(badge).toHaveClass('font-bold');
-    const icon = within(badge).getByTestId('spinning-globe');
-    expect(icon.parentElement).toHaveClass('h-12', 'w-12', 'sm:h-14', 'sm:w-14');
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
+    const icon = within(hero).getByTestId('spinning-globe');
+    expect(icon.parentElement).toHaveClass('h-16', 'w-16', 'sm:h-20', 'sm:w-20');
+    expect(within(hero).queryByText('Social + commerce in one app')).toBeNull();
   });
 
   it('orders the actions: Start free, then Try demo, then Explore as guest', () => {
