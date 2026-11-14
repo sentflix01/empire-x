@@ -11,7 +11,6 @@ import React from 'react';
 vi.mock('@/components/landing/TryDemoButton', () => ({ default: ({ className, label }: { className?: string; label?: string }) => <button type="button" className={className}>{label}</button> }));
 vi.mock('@/components/landing/LandingControls', () => ({ LandingPreferences: () => <div data-testid="prefs" /> }));
 vi.mock('@/components/promo/PromoVideo', () => ({ default: () => <div data-testid="landing-loop" /> }));
-vi.mock('@/components/brand/BrandIntroVideo', () => ({ default: () => null }));
 
 import i18n from '@/lib/i18n';
 import LandingContent from '@/components/landing/LandingContent';
@@ -25,6 +24,15 @@ describe('LandingContent', () => {
     expect(h1s).toHaveLength(1);
     expect(h1s[0]).toHaveTextContent('Build it. Connect & share it. Buy or sell it.');
     expect(h1s[0]).not.toHaveTextContent('Merchant Commerce');
+  });
+
+  it('opens with the large spinning brand icon alone, without badge text', () => {
+    render(<LandingContent templateCount={20} />);
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section')!;
+    const icon = within(hero).getByTestId('spinning-globe');
+    // Centred, and sized as a share of the screen width with a floor and a cap.
+    expect(icon.parentElement).toHaveClass('mx-auto', 'aspect-square', 'w-[clamp(8.5rem,36vw,17rem)]');
+    expect(within(hero).queryByText('Social + commerce in one app')).toBeNull();
   });
 
   it('orders the actions: Start free, then Try demo, then Explore as guest', () => {

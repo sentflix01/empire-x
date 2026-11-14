@@ -39,9 +39,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { HEX } from '@/lib/colorTokens';
-import { BRAND } from '@/lib/brandAssets';
 import { PROMO } from '@/lib/promoAssets';
-import BrandIntroVideo from '@/components/brand/BrandIntroVideo';
+import SpinningGlobeIcon from '@/components/brand/SpinningGlobeIcon';
 import BrandLogo from '@/components/brand/BrandLogo';
 import Wordmark from '@/components/brand/Wordmark';
 import PromoGuide from '@/components/promo/PromoGuide';
@@ -124,15 +123,9 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
           <div data-page-guide="landing-actions">
             {/* Hero copy follows the common pattern of top product sites: a headline of
                 about six words, one sentence under it, one primary action. */}
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pl-1 pr-3.5 text-sm font-medium text-white backdrop-blur">
-              <span
-                className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full"
-                style={{ backgroundColor: HEX.primary, backgroundImage: `url(${BRAND.icon})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-              >
-                <BrandIntroVideo />
-              </span>
-              {tr('heroBadge', 'Social + commerce in one app')}
-            </p>
+            {/* Centred in the hero column; grows with the screen: 36% of the viewport
+                width, at least 8.5rem (136 px) and at most 17rem (272 px). */}
+            <SpinningGlobeIcon className="mx-auto aspect-square w-[clamp(8.5rem,36vw,17rem)] drop-shadow-2xl" />
             <h1 id="landing-title" className="mt-7 text-balance text-[2rem] font-extrabold leading-[1.08] tracking-tight min-[400px]:text-[2.4rem] sm:text-6xl lg:text-[4rem]">
               <span className="block">{tr('heroBuild', 'Build it.')}</span>{' '}
               <span className="block">{tr('heroConnect', 'Connect & share it.')}</span>{' '}
