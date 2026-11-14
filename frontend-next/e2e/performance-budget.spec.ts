@@ -2,9 +2,9 @@ import { test, expect, type APIRequestContext, type Page } from '@playwright/tes
 
 /**
  * Mobile load budget (audit F-045, amended by "Promo videos load when
- * visible"): the 1 MB intro video is never downloaded; the landing hero and
- * the sign-in logo use the small version (once, then the vector logo) only
- * when motion is allowed; the only video on app pages is the feed banner's
+ * visible"): the 1 MB intro video is never downloaded; the sign-in logo uses
+ * the small version (once, then the vector logo) only when motion is allowed,
+ * and the landing hero logo is the vector icon (no video); the only video on app pages is the feed banner's
  * promo clip, under 400 KB; the landing promo clip stays under 2 MB; with
  * reduced motion no page loads any video; the splash shows once per session
  * and briefly.
@@ -42,18 +42,16 @@ test('sign-in pages use only the small video', async ({ page }) => {
   expect([...new Set(seen.map((m) => new URL(m.url).pathname))]).toEqual(['/brand/nodbusiness-intro-288-v2.mp4']);
 });
 
-test('the landing hero uses the small logo video and one promo clip', async ({ page, request }) => {
+test('the landing hero loads no logo video and at most one promo clip', async ({ page, request }) => {
   const seen = media(page);
   await page.goto('/landing', { waitUntil: 'networkidle' });
-  // Browsers fetch video in range requests, so the same file can appear more than once.
+  // The hero logo is the vector icon turning 720° (SpinningGlobeIcon), so the
+  // intro video is never fetched here. Browsers fetch video in range
+  // requests, so the same file can appear more than once.
   const loaded = paths(seen);
-  expect(loaded).toContain('/brand/nodbusiness-intro-288-v2.mp4');
-  const intro = await sizeOf(request, '/brand/nodbusiness-intro-288-v2.mp4');
-  expect(intro).toBeGreaterThan(0);
-  expect(intro).toBeLessThan(200 * KB);
-  const promo = loaded.filter((p) => p !== '/brand/nodbusiness-intro-288-v2.mp4');
-  expect(promo.length).toBeLessThanOrEqual(1);
-  for (const path of promo) {
+  expect(loaded).not.toContain('/brand/nodbusiness-intro-288-v2.mp4');
+  expect(loaded.length).toBeLessThanOrEqual(1);
+  for (const path of loaded) {
     expect(path).toMatch(/^\/promo\/landing-\d+x\d+-v\d+\.mp4$/);
     expect(await sizeOf(request, path)).toBeLessThan(2000 * KB);
   }
