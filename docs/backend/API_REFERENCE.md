@@ -588,18 +588,18 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 
 | Method | Path | Auth | Source |
 |---|---|---|---|
-| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:25 |
-| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:53 |
-| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:73 |
-| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:98 |
-| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:155 |
-| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:175 |
-| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:193 |
-| `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:206 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:254 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:267 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:338 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:409 |
+| `GET` | `/api/showrooms/` | ⚪ optional | routes/showrooms.ts:22 |
+| `GET` | `/api/showrooms/slug/:slug` | ⚪ optional | routes/showrooms.ts:50 |
+| `POST` | `/api/showrooms/:id/recheck/:sectionKey` | 🔒 auth | routes/showrooms.ts:70 |
+| `GET` | `/api/showrooms/:id/doctor` | 🔒 auth | routes/showrooms.ts:95 |
+| `GET` | `/api/showrooms/sitemap-data` | 🌐 public | routes/showrooms.ts:152 |
+| `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:172 |
+| `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:190 |
+| `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:203 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:236 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:249 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:320 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:391 |
 
 ## social — how you relate to another person, and your privacy.
 

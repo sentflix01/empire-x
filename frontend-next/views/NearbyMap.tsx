@@ -344,7 +344,7 @@ function NearbyMap() {
             size="sm"
             onClick={handleLocate}
             disabled={locating}
-            className="rounded-full bg-primary hover:bg-primary/90"
+            className="rounded-full bg-primary hover:bg-primary-hover"
           >
             {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
             <span className="ml-1.5 hidden sm:inline">Locate Me</span>

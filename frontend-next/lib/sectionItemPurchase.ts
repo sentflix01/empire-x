@@ -40,6 +40,7 @@ export function sectionItemBuyPayload(item: SectionItem, fallbackTitle = 'Item')
   if (typeof item.product_id === 'string' && UUID.test(item.product_id)) {
     return { id: item.product_id, title, description, price, currency: 'ETB' };
   }
-  if (!priceText || isGetQuote(item)) return null;
+  // A price without a number ("Free", "Included") is information, not something to order (audit 2026-11-14).
+  if (!priceText || isGetQuote(item) || !/\d/.test(priceText)) return null;
   return { title, description, price, currency: 'ETB', listed_price: priceText };
 }

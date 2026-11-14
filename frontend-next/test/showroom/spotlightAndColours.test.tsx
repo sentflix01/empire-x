@@ -57,28 +57,72 @@ describe('FeedSpotlightPanel', () => {
     expect(onPreviewChange).toHaveBeenLastCalledWith('carousel', ['items', 'about']);
   });
 
-  it('saves a change straight away when the panel closes before the delay', async () => {
-    const onClose = vi.fn();
-    renderPanel({ onClose });
-    fireEvent.click(screen.getAllByRole('checkbox').find((c) => /Our numbers/.test(c.closest('label')?.textContent ?? ''))!);
-    fireEvent.click(screen.getByRole('button', { name: 'Close Feed Spotlight Preview' }));
-    await act(async () => { await Promise.resolve(); });
-    expect(onClose).toHaveBeenCalled();
+  const tick = (label: RegExp) => fireEvent.click(screen.getAllByRole('checkbox').find((c) => label.test(c.closest('label')?.textContent ?? ''))!);
+
+  it('saves only when the owner presses Save, then closes', async () => {
+    const onClose = vi.fn(); const onSaved = vi.fn();
+    renderPanel({ onClose, onSaved });
+    const save = screen.getByRole('button', { name: /^Save$/ });
+    expect((save as HTMLButtonElement).disabled).toBe(true); // nothing changed yet
+    tick(/Our numbers/);
+    expect(api.apiFetch).not.toHaveBeenCalled(); // no auto-save
+    expect(screen.getByTestId('spotlight-status').textContent).toMatch(/not saved yet/);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Save$/ })); });
     expect(api.apiFetch).toHaveBeenCalledTimes(1);
     const body = JSON.parse(String(api.apiFetch.mock.calls[0][1].body));
     expect(body.spotlight_section_ids).toEqual(['about', 'items', 'stats']);
+    expect(onSaved).toHaveBeenCalledWith('carousel', ['about', 'items', 'stats'], 1);
+    expect(onClose).toHaveBeenCalled();
   });
 
-  it('reports a refused save instead of saying it was saved', async () => {
-    vi.useFakeTimers();
+  it('Cancel restores the saved choice in the preview and saves nothing', () => {
+    const onClose = vi.fn(); const onPreviewChange = vi.fn();
+    renderPanel({ onClose, onPreviewChange });
+    tick(/Our numbers/);
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onPreviewChange).toHaveBeenLastCalledWith('carousel', ['about', 'items']);
+    expect(api.apiFetch).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('asks before closing with unsaved changes, and closes at once when there are none', () => {
+    const onClose = vi.fn();
+    const { unmount } = renderPanel({ onClose });
+    fireEvent.click(screen.getByRole('button', { name: 'Close Feed Spotlight' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    unmount(); onClose.mockClear();
+    renderPanel({ onClose });
+    tick(/Our numbers/);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('alertdialog', { name: /Save your changes/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Close Feed Spotlight' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(api.apiFetch).not.toHaveBeenCalled();
+  });
+
+  it('keeps the choice in Studio when the site is not saved yet', async () => {
+    const onSaved = vi.fn(); const onClose = vi.fn();
+    renderPanel({ showroomId: undefined, onSaved, onClose });
+    tick(/Our numbers/);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Save/ })); });
+    expect(api.apiFetch).not.toHaveBeenCalled();
+    expect(onSaved).toHaveBeenCalledWith('carousel', ['about', 'items', 'stats'], 1);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('reports a refused save, stays open, and offers Try again', async () => {
     api.apiFetch.mockResolvedValue({ ok: false, status: 422 });
-    renderPanel();
-    fireEvent.click(screen.getAllByRole('checkbox')[0]);
-    await act(async () => { vi.advanceTimersByTime(900); });
-    vi.useRealTimers();
-    await act(async () => { await Promise.resolve(); });
+    const onClose = vi.fn();
+    renderPanel({ onClose });
+    tick(/Our numbers/);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /^Save$/ })); });
     expect(await screen.findByText(/Could not save/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
 

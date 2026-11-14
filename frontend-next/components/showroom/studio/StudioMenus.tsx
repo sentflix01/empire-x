@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, Trash2, Zap } from 'lucide-react';
+import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, HelpCircle, Save, Sparkles, Trash2, Zap } from 'lucide-react';
 import { COLOR_PRESETS } from '@/lib/builderSections';
 import { contrastRatio } from '@/lib/contrast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -11,7 +11,8 @@ export { FONT_OPTIONS } from '@/lib/siteFonts';
 export type PreviewMode = 'desktop' | 'tablet' | 'mobile';
 
 const triggerClass = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-secondary';
-const panelClass = 'w-[min(20rem,calc(100vw-1.5rem))] space-y-4 p-4';
+// Scrolls inside the space Radix measures, so a long menu never runs off a short screen.
+const panelClass = 'w-[min(20rem,calc(100vw-1.5rem))] max-h-[min(var(--radix-popover-content-available-height,80dvh),calc(100dvh-1rem))] overflow-y-auto overscroll-contain space-y-4 p-4';
 
 function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -160,10 +161,12 @@ export interface MoreMenuProps {
   onClear: () => void;
   onFullPreview: () => void;
   onFeedSpotlight?: () => void;
+  /** Phones: Save draft lives here (the top bar has no room). */
+  onSaveDraft?: () => void;
 }
 
 /** Less frequent actions. Websites are published only on NodBusiness, so there is no export. */
-export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onFeedSpotlight }: MoreMenuProps) {
+export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onFeedSpotlight, onSaveDraft }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const item = 'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm hover:bg-secondary';
@@ -179,11 +182,20 @@ export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onF
         {businessControls && <div className="space-y-2 border-b border-border pb-3">{businessControls}</div>}
         {onFeedSpotlight && (
           <button type="button" className={item} onClick={run(onFeedSpotlight)}>
-            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight Preview
+            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight
           </button>
+        )}
+        {onSaveDraft && (
+          <button type="button" className={`${item} sm:hidden`} onClick={run(onSaveDraft)}><Save className="h-4 w-4" aria-hidden="true" />Save draft</button>
         )}
         <button type="button" className={item} onClick={run(onLoad)}><FolderOpen className="h-4 w-4" aria-hidden="true" />Load saved draft</button>
         <button type="button" className={item} onClick={run(onFullPreview)}><Expand className="h-4 w-4" aria-hidden="true" />Full-screen preview</button>
+        <button type="button" className={`${item} lg:hidden`} onClick={run(() => window.dispatchEvent(new Event('nodbusiness:open-page-guide')))}>
+          <HelpCircle className="h-4 w-4" aria-hidden="true" />Page guide
+        </button>
+        <button type="button" className={`${item} lg:hidden`} onClick={run(() => window.dispatchEvent(new Event('nodbusiness:open-assistant')))}>
+          <Sparkles className="h-4 w-4" aria-hidden="true" />Ask Nodbusiness AI
+        </button>
         {confirmClear ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive-subtle p-3 text-sm">
             <p className="font-medium text-destructive-subtle-foreground">Start over? Your words and photos here will be cleared.</p>

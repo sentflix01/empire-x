@@ -446,7 +446,7 @@ export default function ExternalDataSourcePanel({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-1 text-xs font-semibold px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 text-xs font-semibold px-3 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving…' : isEditMode ? 'Update Source' : 'Save Source'}
           </button>

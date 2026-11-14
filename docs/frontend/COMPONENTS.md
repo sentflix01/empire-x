@@ -204,17 +204,31 @@ opens the full guide in a modal player and downloads nothing until pressed.
 sell your way": build a website from pieces, change any piece later with no
 code, publish and sell). `variant="row"` with `meta="2 min"` is the full-width
 row the landing hero uses under its phone.
+Re-render clips with `node scripts/promo/render.mjs` after editing
+`scripts/promo/scenes/` (decision 2026-11-11 in `project-brain/DECISIONS.md`).
 
 ### Studio: Feed Spotlight and colours
 `FeedSpotlightPanel` (settings) and `FeedSpotlightPreview` (live card) open
 together as a dialog from Studio's More menu: side by side from 768 px, preview
 pinned on top on phones. The owner chooses any section the strip can draw
 (`SPOTLIGHT_TILE_TYPES` in `lib/spotlight.ts`) and orders the tabs with ↑ / ↓;
-`chosenSlides()` says which choices show and which are still empty. A change is
-saved 800 ms after the last edit, or at once when the dialog closes.
+`chosenSlides()` says which choices show and which are still empty. Nothing is
+saved until **Save** (fixed footer with Cancel); Esc or ✕ with unsaved changes
+asks Save / Discard / Keep editing. Without a saved site the choice is kept in
+Studio and sent with the next draft or publish.
 `StyleMenu` has the colour presets plus **Your colours**: two colour pickers
 with hex fields and "Use one colour"; the site's current colours always show as
 selected (a preset or the Custom swatch). Light colours stay readable: the site
 darkens them behind white text with `fillForWhiteText` (`lib/contrast.ts`).
-Re-render clips with `node scripts/promo/render.mjs` after editing
-`scripts/promo/scenes/` (decision 2026-11-11 in `project-brain/DECISIONS.md`).
+
+### Studio: fields, save status and touch targets
+`BuilderForm` text fields use `lib/builderFieldRules.ts` (the server's limits):
+phone/email/link keyboards, a message under a wrong value once the owner leaves
+the field, `https://` added to bare links, and counters for the name (120) and
+description (1000). Fields are 16 px on phones (no iOS zoom). The top bar shows
+one save status and a **Save draft** button (More menu on phones); Publish is
+disabled with a spinner while working. `SectionsPanel` has a search box.
+Small controls keep their size and get a 44 px invisible hit area with the
+`.tap-target` utility (built into Switch, Checkbox, Radio, Slider and the
+small/icon Button); never add `min-height` to every button.
+

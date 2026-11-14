@@ -67,6 +67,8 @@ try {
   check('no "What customers say" option', !labels.some((l) => /customers say/i.test(l || '')));
   const pane = page.getByTestId('spotlight-preview-pane');
   check('preview visible while choosing (1280x720)', await inViewport(pane));
+  const headInView = await page.locator('#feed-spotlight-title').evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; }).catch(() => false);
+  check('title stays in view after ticking every section (only the list scrolls)', headInView);
   const tabs = await pane.getByRole('tab').allTextContents();
   const empty = await pane.getByTestId('spotlight-empty-note').textContent().catch(() => '');
   check('every chosen section with content is a tab', tabs.length >= 5 && tabs.length + (empty ? empty.split(',').length : 0) >= n, `tabs=${tabs.join(',')} empty=${empty}`);
@@ -79,12 +81,19 @@ try {
   const tabsAfter = await pane.getByRole('tab').allTextContents();
   check('reordering changes the tab order', tabsAfter.join() !== tabs.join(), `${tabs.join(',')} -> ${tabsAfter.join(',')}`);
 
-  // Close at once (no wait), reopen: the choice was saved.
+  // Unsaved changes: Esc asks first; nothing is sent until Save.
   await page.keyboard.press('Escape');
-  check('Esc closes the dialog', !(await visible(page.getByRole('dialog', { name: 'Feed Spotlight' }), 1500)));
-  await page.waitForTimeout(1500);
+  check('Esc with unsaved changes asks "Save your changes?"', await visible(page.getByRole('alertdialog', { name: /Save your changes/ }), 2000));
+  await page.getByRole('button', { name: 'Keep editing' }).click();
+  const { rows: [before] } = await pool.query(`SELECT spotlight_section_ids FROM showrooms WHERE owner_id=$1 ORDER BY updated_at DESC LIMIT 1`, [u.id]);
+  check('nothing saved before pressing Save', !before || (before.spotlight_section_ids || []).length < 5, JSON.stringify(before));
+  const saveBtn = page.getByRole('dialog', { name: 'Feed Spotlight' }).getByRole('button', { name: /^Save/ }).last();
+  check('a visible Save button after choosing', await saveBtn.evaluate((el) => { const r = el.getBoundingClientRect(); return r.height >= 40 && r.bottom <= window.innerHeight && r.top >= 0; }).catch(() => false));
+  await saveBtn.click();
+  check('Save closes the dialog', await page.getByRole('dialog', { name: 'Feed Spotlight' }).waitFor({ state: 'hidden', timeout: 5000 }).then(() => true).catch(() => false));
+  await page.waitForTimeout(800);
   const { rows: [saved] } = await pool.query(`SELECT spotlight_mode, spotlight_section_ids FROM showrooms WHERE owner_id=$1 ORDER BY updated_at DESC LIMIT 1`, [u.id]);
-  check('choice saved even though the dialog closed at once', saved && saved.spotlight_mode === 'carousel' && saved.spotlight_section_ids.length >= 5, JSON.stringify(saved));
+  check('Save stored the choice in order', saved && saved.spotlight_mode === 'carousel' && saved.spotlight_section_ids.length >= 5, JSON.stringify(saved));
   await openSpotlight();
   const tabsReopen = await page.getByTestId('spotlight-preview-pane').getByRole('tab').allTextContents();
   check('reopened with the same tabs and order', tabsReopen.join() === tabsAfter.join(), tabsReopen.join(','));
@@ -93,6 +102,7 @@ try {
   const bad = ax.violations.filter((v) => ['serious', 'critical'].includes(v.impact)).map((v) => `${v.id}: ${v.nodes[0]?.target}`);
   check('Spotlight dialog: no serious or critical WCAG 2.2 AA issues', bad.length === 0, bad.join(' | '));
   await page.keyboard.press('Escape');
+  check('Esc with nothing changed closes at once', !(await visible(page.getByRole('dialog', { name: 'Feed Spotlight' }), 1500)));
 
   // Colours: any colour, live in the site preview.
   await page.getByRole('button', { name: /Style: colours and lettering/ }).click();

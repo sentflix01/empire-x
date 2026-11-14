@@ -13,7 +13,8 @@
  * preview in the parent can update without waiting for the network.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Loader2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api/client';
 import { getSectionType } from '@/lib/builderSections';
 import { SPOTLIGHT_LABELS, canSpotlight, chosenSlides } from '@/lib/spotlight';
@@ -94,7 +95,6 @@ export default function FeedSpotlightPanel({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const dirty = useRef(false);
 
   // Notify parent immediately so the live preview reacts without network latency.
   const notifyPreview = useCallback(
@@ -106,53 +106,67 @@ export default function FeedSpotlightPanel({
     [onPreviewChange],
   );
 
-  const persist = useCallback(async (mode: StoredMode, ids: string[]) => {
+  // Explicit Save (owner, 14 Nov 2026): changes stay in this dialog until the
+  // owner presses Save; Cancel discards them; closing with unsaved changes asks.
+  const saved = useRef(toStored(choiceOf(initialMode, initialSectionIds), initialSectionIds.filter((id) => options.includes(id))));
+  const current = toStored(choice, sectionIds);
+  const isDirty = current.mode !== saved.current.mode || current.ids.join() !== saved.current.ids.join();
+  const [confirmClose, setConfirmClose] = useState(false);
+
+  const save = useCallback(async () => {
+    const { mode, ids } = toStored(choice, sectionIds);
+    // Not saved to the server yet (new site): Studio keeps the choice and
+    // sends it with the next draft save or publish.
+    if (!showroomId) { onSaved(mode, ids, 1); saved.current = { mode, ids }; onClose(); return; }
     setSaving(true);
     setError('');
     try {
       const res = await apiFetch(`/api/showrooms/${showroomId}/spotlight`, {
         method: 'PATCH',
         credentials: 'include',
-        keepalive: true, // finishes even if the panel just closed
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ spotlight_mode: mode, spotlight_section_ids: ids, spotlight_carousel_count: 1 }),
       });
       if (res && 'ok' in res && !res.ok) throw new Error(String(res.status));
+      saved.current = { mode, ids };
       onSaved(mode, ids, 1);
+      onClose();
     } catch {
       setError('Could not save. Check your connection and try again.');
+      setConfirmClose(false);
     } finally {
       setSaving(false);
     }
-  }, [showroomId, onSaved]);
+  }, [choice, sectionIds, showroomId, onSaved, onClose]);
 
-  // Persist with an 800 ms debounce after any change; a change still waiting
-  // when the panel closes is saved straight away (it used to be dropped).
-  const pending = useRef<{ mode: StoredMode; ids: string[] } | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flush = useCallback(() => {
-    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
-    const next = pending.current;
-    pending.current = null;
-    if (next && showroomId) void persist(next.mode, next.ids);
-  }, [persist, showroomId]);
+  /** Discard: the preview goes back to what was saved. */
+  const discard = useCallback(() => {
+    onPreviewChange?.(saved.current.mode, saved.current.ids);
+    onClose();
+  }, [onPreviewChange, onClose]);
 
+  const requestClose = useCallback(() => {
+    if (isDirty) setConfirmClose(true);
+    else onClose();
+  }, [isDirty, onClose]);
+
+  // Esc from anywhere in the dialog (a button that just became disabled drops
+  // focus to <body>): ask before losing changes.
+  const requestCloseRef = useRef(requestClose);
+  requestCloseRef.current = requestClose;
   useEffect(() => {
-    if (!showroomId || !dirty.current) return;
-    pending.current = toStored(choice, sectionIds);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(flush, 800);
-  }, [choice, sectionIds, showroomId, flush]);
-
-  // Unmount (closing Studio's overlay any way): save what is still waiting.
-  const flushRef = useRef(flush);
-  flushRef.current = flush;
-  useEffect(() => () => flushRef.current(), []);
-
-  const close = () => { flush(); onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (confirmRef.current) setConfirmClose(false); else requestCloseRef.current();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  const confirmRef = useRef(false);
+  confirmRef.current = confirmClose;
 
   const pick = (next: Choice) => {
-    dirty.current = true;
     setChoice(next);
     // When switching away from 'chosen', reset ids to empty for auto/off
     const nextIds = next === 'chosen' ? sectionIds : [];
@@ -163,14 +177,12 @@ export default function FeedSpotlightPanel({
   // preview (in ShowroomCreate) must not be updated from inside a state
   // updater, which React reports as "update while rendering".
   const toggle = (type: string) => {
-    dirty.current = true;
     const next = sectionIds.includes(type) ? sectionIds.filter((t) => t !== type) : [...sectionIds, type];
     setSectionIds(next);
     notifyPreview(choice, next);
   };
 
   const move = (type: string, dir: -1 | 1) => {
-    dirty.current = true;
     const i = sectionIds.indexOf(type);
     const j = i + dir;
     if (i < 0 || j < 0 || j >= sectionIds.length) return;
@@ -188,20 +200,22 @@ export default function FeedSpotlightPanel({
     ? error
     : saving
     ? 'Saving…'
+    : isDirty
+    ? 'You have changes that are not saved yet.'
     : !showroomId
-    ? 'Preview only — publish your site to save this setting.'
-    : 'Settings saved automatically.';
+    ? 'Saved in Studio. It goes live when you publish.'
+    : 'All changes saved.';
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col bg-card">
+    <div className="flex h-full min-h-0 flex-1 flex-col bg-card">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
         <h2 id="feed-spotlight-title" className="text-base font-bold">Feed Spotlight</h2>
         <button
           type="button"
-          onClick={close}
-          aria-label="Close Feed Spotlight Preview"
+          onClick={requestClose}
+          aria-label="Close Feed Spotlight"
           className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary transition-colors"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -209,7 +223,7 @@ export default function FeedSpotlightPanel({
       </div>
 
       {/* Body */}
-      <div className="p-4 space-y-5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-5" data-testid="spotlight-settings-body">
         <p className="text-xs text-muted-foreground leading-relaxed">
           Choose what visitors see on your business card in the feeds. Pick
           one section to highlight it, or several to play as a slideshow.
@@ -310,19 +324,30 @@ export default function FeedSpotlightPanel({
           </fieldset>
         )}
 
-        {/* Status */}
-        <p
-          className={`text-xs px-1 ${error ? 'text-destructive' : 'text-muted-foreground'}`}
-          aria-live="polite"
-        >
+      </div>
+
+      {/* Footer: always reachable; Save is the only way changes go live. */}
+      <div className="shrink-0 space-y-2 border-t border-border bg-card px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        {confirmClose && (
+          <div role="alertdialog" aria-labelledby="spotlight-unsaved-title" className="rounded-xl border border-border bg-secondary/60 p-3">
+            <p id="spotlight-unsaved-title" className="text-sm font-semibold">Save your changes?</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Your Spotlight choice has changes that are not saved yet.</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => { void save(); }} disabled={saving}>Save</Button>
+              <Button size="sm" variant="outline" onClick={discard}>Discard</Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirmClose(false)} autoFocus>Keep editing</Button>
+            </div>
+          </div>
+        )}
+        <p className={`text-xs ${error ? 'text-destructive' : 'text-muted-foreground'}`} aria-live="polite" data-testid="spotlight-status">
           {statusText}
-          {error && showroomId && (
-            <button type="button" onClick={() => { const { mode, ids } = toStored(choice, sectionIds); void persist(mode, ids); }}
-              className="ml-2 font-semibold underline underline-offset-2">
-              Try again
-            </button>
-          )}
         </p>
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="outline" className="h-11 rounded-full px-5" onClick={discard} disabled={saving}>Cancel</Button>
+          <Button className="h-11 rounded-full px-6" onClick={() => { void save(); }} disabled={saving || (!isDirty && !error && !!showroomId)}>
+            {saving ? <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden="true" />Saving…</> : error ? 'Try again' : 'Save'}
+          </Button>
+        </div>
       </div>
     </div>
   );

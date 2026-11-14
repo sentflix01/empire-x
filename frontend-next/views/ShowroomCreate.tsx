@@ -1,14 +1,15 @@
 'use client';
-import React, { useState, useEffect, useEffectEvent, useRef, useCallback } from "react";
+import React, { useState, useEffect, useEffectEvent, useRef, useCallback, useDeferredValue } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from "@/lib/AuthContext";
 import { entities } from "@/lib/api/entities";
 import { apiFetch } from "@/lib/api/client";
 import { useTranslation } from 'react-i18next';
 
-import { ArrowLeft, Check, CheckCircle, Eye, Layers, PenLine, RotateCcw, RotateCw, X } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle, Cloud, Eye, Layers, Loader2, PenLine, RotateCcw, RotateCw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { SECTION_TYPES, CATEGORY_DEFAULT_SECTIONS, getSectionType } from "@/lib/builderSections";
+import { checkField, fieldRule } from "@/lib/builderFieldRules";
 import SectionsPanel from "@/components/showroom/studio/SectionsPanel";
 import SeeThroughPanel from "@/components/showroom/studio/SeeThroughPanel";
 import { MoreMenu, StyleMenu, type PreviewMode } from "@/components/showroom/studio/StudioMenus";
@@ -193,14 +194,11 @@ function ShowroomCreate({
     if (!spotlightOpen) return;
     const dialog = spotlightDialogRef.current;
     dialog?.focus();
-    // Esc closes from anywhere: a button that just became disabled (e.g. "Move
-    // earlier" on the first tab) drops focus to <body>, outside the dialog.
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); closeSpotlight(); } };
+    // Esc is handled by FeedSpotlightPanel (it asks before discarding changes).
     // Keep focus inside the dialog while it is open (aria-modal).
     const onFocus = (e: FocusEvent) => { if (dialog && e.target instanceof Node && !dialog.contains(e.target)) dialog.focus(); };
-    document.addEventListener('keydown', onKey);
     document.addEventListener('focusin', onFocus);
-    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('focusin', onFocus); };
+    return () => { document.removeEventListener('focusin', onFocus); };
   }, [spotlightOpen, closeSpotlight]);
   const [spotlightMode, setSpotlightMode] = useState<'single' | 'carousel' | 'off' | null>(null);
   const [spotlightSectionIds, setSpotlightSectionIds] = useState<string[]>([]);
@@ -213,6 +211,8 @@ function ShowroomCreate({
   // Every change bumps version; the auto-save marks the version it wrote.
   const [version, setVersion] = useState(0);
   const [savedVersion, setSavedVersion] = useState(0);
+  // The version last saved to the owner's account (server draft); -1 = never.
+  const [accountSavedVersion, setAccountSavedVersion] = useState(-1);
   // Desktop resizable panels — sections sidebar, editor pane widths (pixels)
   const sectionsDrag = useDragResize({ initial: 288, min: 160, max: 480, storageKey: 'nb_studio_sections_w' });
   const editorDrag   = useDragResize({ initial: 420, min: 200, max: 900, storageKey: 'nb_studio_editor_w' });
@@ -246,9 +246,12 @@ function ShowroomCreate({
     getDefaultFormData(templateName, categoryParam, sampleParam)
   );
 
+  // Bumped to load the owner's businesses again after a failure.
+  const [businessesReload, setBusinessesReload] = useState(0);
   useEffect(() => {
     if (!user?.id || user.is_demo) return;
     let cancelled = false;
+    setBusinessesState('loading');
     entities.Business.filter({ owner_id: user.id }, '-created_at', 100)
       .then((owned) => {
         if (cancelled) return;
@@ -257,9 +260,15 @@ function ShowroomCreate({
         setBusinessesState('loaded');
         if (choices.length === 1) setSelectedBusinessId(choices[0].id);
       })
-      .catch(() => { if (!cancelled) { setBusinessesState('failed'); toast.error('Could not load your Business profiles.'); } });
+      .catch(() => {
+        if (cancelled) return;
+        setBusinessesState('failed');
+        toast.error('Could not load your Business profiles. Check your connection.', {
+          action: { label: 'Try again', onClick: () => setBusinessesReload((n) => n + 1) },
+        });
+      });
     return () => { cancelled = true; };
-  }, [user?.id, user?.is_demo]);
+  }, [user?.id, user?.is_demo, businessesReload]);
 
   // Doctor fix deep-link: append recommended sections once the site has loaded
   useEffect(() => {
@@ -460,6 +469,10 @@ function ShowroomCreate({
       ...(businessId ? { business_id: businessId } : {}),
       ...(hex ? { theme_color: hex } : {}),
       ...(cover ? { cover_image: cover } : {}),
+      // The Feed Spotlight choice travels with the site, so a choice made
+      // before the first save is not lost (owner, 14 Nov 2026).
+      spotlight_mode: spotlightMode,
+      spotlight_section_ids: spotlightSectionIds,
       status,
     };
   };
@@ -485,6 +498,7 @@ function ShowroomCreate({
         const id = String(saved.id);
         localStorage.setItem(serverDraftKey, id);
         setServerDraftId(id);
+        setAccountSavedVersion(version);
         toast.success('Draft saved. It will be kept for three days.');
         return id;
       } catch (error) {
@@ -533,6 +547,20 @@ function ShowroomCreate({
     }).length;
     return Math.round((filled / keys.length) * 100);
   })();
+
+  // A change not yet written to this device (auto-save waits 1.5 s) would be
+  // lost by closing the tab: ask the browser to confirm.
+  const unsavedRef = useRef(false);
+  unsavedRef.current = version !== savedVersion || saving;
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!unsavedRef.current) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
 
   const onKeyboardShortcut = useEffectEvent((event: KeyboardEvent) => {
     if ((event.ctrlKey || event.metaKey) && event.key === "s") { event.preventDefault(); handleSaveDraft(); }
@@ -592,7 +620,23 @@ function ShowroomCreate({
       toast.error(`Replace the sample ${placeholders.join(', ')} with your own before publishing, or clear ${placeholders.length === 1 ? 'it' : 'them'}.`);
       return;
     }
+    // Same rules the form shows under each field (lib/builderFieldRules.ts).
+    const wrong = activeSections.flatMap((key) => getSectionType(key)?.fields ?? [])
+      .filter((f) => f.type === 'text' || f.type === 'textarea')
+      .map((f) => ({ label: f.label, problem: checkField(fieldRule(f.key, f.label), formData[f.key]) }))
+      .find((x) => x.problem);
+    if (wrong) {
+      toast.error(`Check “${wrong.label}”: ${wrong.problem}`);
+      return;
+    }
     const businessId = businessIdOverride ?? selectedBusinessId;
+    // Without the owner's business list we cannot tell which business the site
+    // belongs to: load it again rather than guessing.
+    if (!user.is_demo && !businessId && businessesState !== 'loaded') {
+      if (businessesState === 'failed') setBusinessesReload((n) => n + 1);
+      toast.info('Loading your Business profiles… press Publish again in a moment.');
+      return;
+    }
     // Every live site belongs to a Business profile: create or choose it here
     // rather than failing and sending the owner out of Studio.
     if (!user.is_demo && !businessId && businessesState === 'loaded') {
@@ -682,8 +726,19 @@ function ShowroomCreate({
     return () => window.removeEventListener("keydown", onKey);
   }, [fullPreview]);
 
+  // The preview renders every section; giving it a deferred copy keeps typing
+  // instant on slower phones (React renders the field first, the preview after).
+  const previewData = useDeferredValue(formData);
   const siteName = String(formData.title ?? "").trim() || templateName || "Your website";
   const saved = version === savedVersion;
+  // One status for the owner: the account copy wins over the device copy.
+  const saveStatus: { short: string; long: string; icon: 'busy' | 'cloud' | 'device' } = saving
+    ? { short: 'Saving…', long: 'Saving…', icon: 'busy' }
+    : version === accountSavedVersion
+      ? { short: 'Saved', long: 'Saved to your account', icon: 'cloud' }
+      : saved
+        ? { short: 'Saved here', long: 'Saved on this device', icon: 'device' }
+        : { short: 'Saving…', long: 'Saving…', icon: 'busy' };
   const toolBtn = `flex h-10 w-10 shrink-0 items-center justify-center rounded-full disabled:opacity-30 ${darkBuilder ? "text-inverse-foreground/70 hover:bg-muted-foreground" : "text-muted-foreground hover:bg-secondary"}`;
 
   const businessControls = !user?.is_demo && (businesses.length > 1 || selectedBusinessId) ? (
@@ -753,7 +808,7 @@ function ShowroomCreate({
       {/* On phone: no padding wrapper — let BuilderPreview fill edge-to-edge */}
       <div className={`min-h-0 flex-1 overflow-auto ${isPhone ? "" : "p-2"}`}>
         <BuilderPreview
-          formData={formData}
+          formData={previewData}
           activeSections={activeSections}
           mode={previewMode}
           showWhatsapp={showWhatsapp}
@@ -827,7 +882,7 @@ function ShowroomCreate({
     window.addEventListener('pointerup',   onUp);
   }, [makeSheetMove]);
   return (
-    <div ref={studioRef} className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-inverse text-inverse-foreground/70" : "bg-primary-subtle/30"}`}>
+    <div ref={studioRef} data-studio-editor="" className={`flex flex-col h-full min-h-0 overflow-hidden ${darkBuilder ? "bg-inverse text-inverse-foreground/70" : "bg-primary-subtle/30"}`}>
 
       {/* ── Top bar: always fits, Publish always visible ── */}
       <div className={`flex h-14 shrink-0 items-center gap-1 border-b px-2 sm:gap-1.5 sm:px-3 ${darkBuilder ? "bg-inverse border-foreground/20" : "bg-card border-border/60"}`}>
@@ -837,15 +892,25 @@ function ShowroomCreate({
         </button>
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-sm font-semibold">{siteName}</p>
-          <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground" aria-live="polite">
-            {saved ? <><Check className="h-3 w-3 text-success" aria-hidden="true" />Saved on this device</> : "Saving…"}
+          <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground" aria-live="polite" data-testid="studio-save-status">
+            {saveStatus.icon === 'busy'
+              ? <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              : saveStatus.icon === 'cloud'
+                ? <Cloud className="h-3 w-3 text-success" aria-hidden="true" />
+                : <Check className="h-3 w-3 text-success" aria-hidden="true" />}
+            <span className="sm:hidden">{saveStatus.short}</span>
+            <span className="hidden sm:inline">{saveStatus.long}</span>
           </p>
         </div>
         <button type="button" onClick={undo} disabled={!undoStack.length} aria-label="Undo" className={toolBtn}>
           <RotateCcw className="h-4 w-4" />
         </button>
-        <button type="button" onClick={redo} disabled={!redoStack.length} aria-label="Redo" className={`${toolBtn} max-[379px]:hidden`}>
+        <button type="button" onClick={redo} disabled={!redoStack.length} aria-label="Redo" className={`${toolBtn} max-sm:hidden`}>
           <RotateCw className="h-4 w-4" />
+        </button>
+        <button type="button" onClick={() => { void handleSaveDraft(); }} disabled={saving} title="Save draft (Ctrl+S)"
+          className={`flex h-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-medium disabled:opacity-30 max-sm:hidden lg:px-3 ${darkBuilder ? "text-inverse-foreground/70 hover:bg-muted-foreground" : "text-muted-foreground hover:bg-secondary"}`}>
+          <Save className="h-4 w-4" aria-hidden="true" /><span className="sr-only lg:not-sr-only">Save draft</span>
         </button>
         <StyleMenu
           colors={[String(formData.heroBg ?? ""), String(formData.heroBg2 ?? "")]}
@@ -860,17 +925,20 @@ function ShowroomCreate({
           onLoad={loadDraft}
           onClear={clearDraft}
           onFullPreview={() => setFullPreview(true)}
+          onSaveDraft={() => { void handleSaveDraft(); }}
           onFeedSpotlight={() => { void openFeedSpotlight(); }}
         />
         <button
           type="button"
-          onClick={() => { void handlePublish(); }}
+          onClick={() => { if (!saving) void handlePublish(); }}
           disabled={saving}
-          aria-label="Publish site"
-          className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 px-3 text-sm font-bold text-white shadow-sm disabled:opacity-50 sm:px-4"
+          aria-busy={saving}
+          className="flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-primary hover:bg-primary-hover px-3 text-sm font-bold text-white shadow-sm disabled:cursor-wait disabled:opacity-70 sm:px-4"
         >
-          <CheckCircle className="h-4 w-4 max-[379px]:hidden" aria-hidden="true" />
-          {saving ? "Publishing…" : "Publish"}
+          {saving
+            ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            : <CheckCircle className="h-4 w-4 max-[379px]:hidden" aria-hidden="true" />}
+          {saving ? "Working…" : editId && editingStatus === 'published' ? "Update" : "Publish"}
         </button>
       </div>
 
@@ -1114,7 +1182,7 @@ function ShowroomCreate({
           aria-modal="true"
           aria-labelledby="feed-spotlight-title"
           tabIndex={-1}
-          className="absolute inset-0 z-60 flex flex-col bg-card outline-none md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:grid-rows-1"
+          className="absolute inset-0 z-60 flex flex-col overflow-hidden bg-card outline-none md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:grid-rows-[minmax(0,1fr)]"
         >
           {/* Live preview: first on phones (pinned), right column from 768 px */}
           <div className="order-first max-h-[46%] shrink-0 overflow-y-auto border-b border-border bg-muted/30 md:order-last md:max-h-none md:border-b-0 md:border-l" data-testid="spotlight-preview-pane">
@@ -1129,8 +1197,8 @@ function ShowroomCreate({
               businessId={selectedBusinessId ?? null}
             />
           </div>
-          {/* Settings */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          {/* Settings: the panel keeps its title and Save bar in view; only its body scrolls */}
+          <div className="flex min-h-0 flex-1 flex-col md:h-full">
             <FeedSpotlightPanel
               showroomId={serverDraftId || editId}
               activeSections={activeSections}

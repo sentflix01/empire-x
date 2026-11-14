@@ -177,7 +177,7 @@ export default function PersonalProfile({ profile, user, isOwner, businesses }: 
               <Store className="w-8 h-8 text-primary mx-auto mb-2" />
               <h3 className="font-semibold text-sm">Have a business?</h3>
               <p className="text-xs text-muted-foreground mt-1 mb-3">Create a business profile with a mini-website to sell products and services directly on Nodbusiness.</p>
-              <Link href="/business/create"><Button size="sm" className="rounded-full bg-primary hover:bg-primary/90"><Plus className="w-3 h-3 mr-1" /> Create Business Profile</Button></Link>
+              <Link href="/business/create"><Button size="sm" className="rounded-full bg-primary hover:bg-primary-hover"><Plus className="w-3 h-3 mr-1" /> Create Business Profile</Button></Link>
             </div>
           )}
         </div>

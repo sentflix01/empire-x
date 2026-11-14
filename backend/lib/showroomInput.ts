@@ -3,7 +3,8 @@
  * (audit 2026-11-14, docs/audits/2026-11-showroom-builder-audit.md).
  *
  * - Only these columns can be written by an owner: everything else on the row
- *   (view_count, spotlight_*, expires_at, owner_id, is_seed…) is server-owned.
+ *   (view_count, spotlight_carousel_count, expires_at, owner_id, is_seed…) is
+ *   server-owned; spotlight_mode and spotlight_section_ids go through checkSpotlight.
  * - Lengths are capped so one site cannot hold megabytes of text.
  * - Sections must be a JSON array of objects; retired section types
  *   (owner-written testimonials) are dropped, and no string anywhere in a
@@ -11,7 +12,30 @@
  *   href/src on the public page).
  * - A slug is lowercase letters, digits and dashes, 3–80 characters.
  */
-const { RETIRED_SECTIONS } = require('./builderSectionRequirements') as { RETIRED_SECTIONS: ReadonlySet<string> };
+const { RETIRED_SECTIONS, KNOWN_SECTIONS } = require('./builderSectionRequirements') as { RETIRED_SECTIONS: ReadonlySet<string>; KNOWN_SECTIONS: ReadonlySet<string> };
+
+/** Section types a Feed Spotlight may name: the builder's, plus older catalogue shapes still on sites. */
+const SPOTLIGHT_SECTION_TYPES = new Set<string>([...KNOWN_SECTIONS, 'products', 'featured_products', 'story']);
+
+/**
+ * Feed Spotlight choice (decision "Feed Spotlight: the owner's sections, in the
+ * owner's order"): mode single · carousel · off · null (Automatic); section ids
+ * de-duplicated in the owner's order, retired types dropped, known types only,
+ * at most 20.
+ */
+export function checkSpotlight(mode: unknown, ids: unknown): { ok: true; mode: string | null; ids: string[] } | { ok: false; error: string } {
+  if (mode !== null && mode !== undefined && mode !== 'single' && mode !== 'carousel' && mode !== 'off') {
+    return { ok: false, error: 'spotlight_mode must be "single", "carousel", "off", or null' };
+  }
+  if (ids !== undefined && (!Array.isArray(ids) || !ids.every((x) => typeof x === 'string'))) {
+    return { ok: false, error: 'spotlight_section_ids must be an array of strings' };
+  }
+  const list = [...new Set((ids as string[] | undefined) ?? [])].filter((id) => !RETIRED_SECTIONS.has(id));
+  const unknown = list.find((id) => !SPOTLIGHT_SECTION_TYPES.has(id));
+  if (unknown) return { ok: false, error: `Unknown section type: ${unknown.slice(0, 40)}` };
+  if (list.length > 20) return { ok: false, error: 'Choose at most 20 sections' };
+  return { ok: true, mode: (mode as string | null | undefined) ?? null, ids: list };
+}
 
 export const SHOWROOM_LIMITS = Object.freeze({
   title: 120,
@@ -25,7 +49,7 @@ export const SHOWROOM_LIMITS = Object.freeze({
   string: 5000,
 });
 
-const WRITABLE = ['title', 'description', 'category', 'template', 'sections', 'status', 'business_id', 'theme_color', 'cover_image', 'logo_url', 'slug'] as const;
+const WRITABLE = ['title', 'description', 'category', 'template', 'sections', 'status', 'business_id', 'theme_color', 'cover_image', 'logo_url', 'slug', 'spotlight_mode', 'spotlight_section_ids'] as const;
 const STATUSES = new Set(['draft', 'published', 'archived']);
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,78})[a-z0-9]$/;
 const HEX_RE = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -125,6 +149,13 @@ export function checkShowroomInput(body: unknown): ShowroomInputResult {
   }
   if (fields.slug !== undefined) {
     if (typeof fields.slug !== 'string' || !SLUG_RE.test(fields.slug)) return fail('invalid_slug', 'A web address can use only lowercase letters, numbers and dashes (3–80 characters).', 'slug');
+  }
+  if (fields.spotlight_mode !== undefined || fields.spotlight_section_ids !== undefined) {
+    const spot = checkSpotlight(fields.spotlight_mode, fields.spotlight_section_ids);
+    if (!spot.ok) return fail('invalid_spotlight', spot.error, 'spotlight_section_ids');
+    if (fields.spotlight_mode !== undefined) fields.spotlight_mode = spot.mode;
+    // JSON text: node-pg would send a JS array as Postgres array syntax (see the spotlight route).
+    if (fields.spotlight_section_ids !== undefined) fields.spotlight_section_ids = JSON.stringify(spot.ids);
   }
   if (fields.sections !== undefined) {
     const cleaned = cleanSections(fields.sections);

@@ -45,7 +45,7 @@ function Cart() {
             <h3 className="font-display text-xl font-bold mb-2">{t('cart.empty')}</h3>
             <p className="text-sm text-muted-foreground mb-6">{t('cart.emptySubtitle')}</p>
             <Link href="/marketplace">
-              <Button className="rounded-full bg-primary hover:bg-primary/90">
+              <Button className="rounded-full bg-primary hover:bg-primary-hover">
                 {t('cart.browseMarketplace')} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

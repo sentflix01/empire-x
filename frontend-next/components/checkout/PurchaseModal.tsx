@@ -335,7 +335,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
               <li>Pay, tap <strong>I&apos;ve paid</strong>, and {sellerName} confirms when the money arrives.</li>
             </ol>
             <p className="text-xs text-muted-foreground">We emailed this link to you. Keep it private: anyone with it can see your request.</p>
-            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open my request</Link>
+            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Open my request</Link>
           </>
         )}
 
@@ -351,7 +351,7 @@ export default function PurchaseModal({ item, seller, buyer, showroomId, busines
               <p className="text-sm"><MapPin className="inline w-4 h-4 mr-1" />Pickup: {placed.details.business.pickup_address}</p>
             )}
             <p className="text-xs text-muted-foreground">We emailed this link to you. Keep it private: anyone with it can see your order.</p>
-            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open my order</Link>
+            <Link href={`/order/${placed.access_token}`} className="flex w-full items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Open my order</Link>
           </>
         )}
       </div>

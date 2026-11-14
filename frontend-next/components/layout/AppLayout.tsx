@@ -84,7 +84,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
           <p className="text-white font-bold text-sm">Nodbusiness Pro</p>
           <p className="text-white text-xs mt-1 leading-relaxed">Get your business in front of more customers on Nodbusiness.</p>
         </div>
-        <Link href={user ? "/analytics" : "/register"} className="block text-center py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
+        <Link href={user ? "/analytics" : "/register"} className="block text-center py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-sm shadow-primary/20 transition-colors">
           {user ? 'Promote Now' : 'Join Free'}
         </Link>
       </div>
@@ -124,7 +124,7 @@ function RightPanel({ user }: { user: { full_name?: string; email?: string; role
         <div className="px-3 pb-3">
           <Link
             href={user ? "/showroom/templates" : "/register"}
-            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-semibold transition-all"
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all"
           >
             <BrandLogo variant="onBlue" className="w-4 h-4" />
             {user ? 'Browse Templates' : 'Create an account to build'}
@@ -183,7 +183,7 @@ function ViewTogglePill({
       <button
         onClick={() => onChange('personal')}
         aria-pressed={value === 'personal'}
-        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        className="tap-target flex-1 flex min-h-7 items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'personal'
           ? { background: IDENTITY.personal.css, color: 'white' }
           : {}}
@@ -194,7 +194,7 @@ function ViewTogglePill({
       <button
         onClick={() => onChange('business')}
         aria-pressed={value === 'business'}
-        className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
+        className="tap-target flex-1 flex min-h-7 items-center justify-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all"
         style={value === 'business'
           ? { background: IDENTITY.business.css, color: 'white' }
           : {}}
@@ -551,7 +551,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <span className="hidden whitespace-nowrap min-[360px]:inline">Landing</span>
                 </Link>
                 <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="inline-flex h-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:px-3 sm:text-sm">Sign in</Link>
-                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 sm:px-3 sm:text-sm">Join</Link>
+                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-xl bg-primary px-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary-hover sm:px-3 sm:text-sm">Join</Link>
                 {authChecked && <span role="img" title="Browsing as guest" aria-label="Guest session" className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground">
                   <UserRound className="h-4 w-4" />
                 </span>}
@@ -694,7 +694,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {!sidebarCollapsed && (
               <button
                 onClick={() => setDiscoverOpen(v => !v)}
-                className="w-full flex items-center justify-between px-3 py-1 group"
+                className="w-full flex min-h-9 items-center justify-between px-3 py-1 group"
                 aria-expanded={discoverOpen}
               >
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
@@ -711,7 +711,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">Sign in or join to save your activity.</p>
                 <div className="mt-3 flex gap-2">
                   <Link href={`/login?return=${encodeURIComponent(pathname)}`} className="flex-1 rounded-lg border border-border bg-background px-2 py-2 text-center text-xs font-semibold text-foreground hover:bg-secondary">Sign in</Link>
-                  <Link href="/register" className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>
+                  <Link href="/register" className="flex-1 rounded-lg bg-primary px-2 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary-hover">Join free</Link>
                 </div>
                 <Link href="/landing" className="mt-2 block rounded-lg px-2 py-1.5 text-center text-xs font-medium text-muted-foreground hover:bg-background hover:text-foreground">Back to landing page</Link>
               </div>
@@ -721,7 +721,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             {hasSignedInUser && !sidebarCollapsed && (
               <button
                 onClick={() => setAccountOpen(v => !v)}
-                className="w-full flex items-center justify-between px-3 py-1 group"
+                className="w-full flex min-h-9 items-center justify-between px-3 py-1 group"
                 aria-expanded={accountOpen}
               >
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
@@ -861,7 +861,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <Link href={`/login?return=${encodeURIComponent(pathname)}`} title={sidebarCollapsed ? 'Sign in' : undefined} aria-label="Sign in" className={`flex min-w-0 items-center rounded-xl text-muted-foreground font-medium hover:bg-secondary hover:text-foreground whitespace-nowrap ${sidebarCollapsed ? 'justify-center gap-2.5 px-0 py-2.5 flex-1 w-full text-sm' : 'justify-center gap-1.5 px-1.5 py-2 flex-1 text-xs'}`}>
                     <User className="w-4 h-4 shrink-0" />{!sidebarCollapsed && <span>Sign in</span>}
                   </Link>
-                  {!sidebarCollapsed && <Link href="/register" aria-label="Join free" className="min-w-0 flex-1 whitespace-nowrap rounded-xl bg-primary px-1.5 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Join free</Link>}
+                  {!sidebarCollapsed && <Link href="/register" aria-label="Join free" className="min-w-0 flex-1 whitespace-nowrap rounded-xl bg-primary px-1.5 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary-hover">Join free</Link>}
                 </>
               )}
             </div>
@@ -999,7 +999,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setDiscoverOpen(v => !v)}
-                    className="w-full flex items-center justify-between px-3 py-1 group"
+                    className="w-full flex min-h-9 items-center justify-between px-3 py-1 group"
                   >
                     <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.discover')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${discoverOpen ? 'rotate-0' : '-rotate-90'}`} />
@@ -1015,7 +1015,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
                   <div className="my-2 border-t border-border dark:border-border" />
                   <button
                     onClick={() => setAccountOpen(v => !v)}
-                    className="w-full flex items-center justify-between px-3 py-1 group"
+                    className="w-full flex min-h-9 items-center justify-between px-3 py-1 group"
                   >
                     <p className="text-[10px] font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors">{tr('common.myAccount')}</p>
                     <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${accountOpen ? 'rotate-0' : '-rotate-90'}`} />

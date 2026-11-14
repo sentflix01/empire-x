@@ -72,7 +72,7 @@ export function UserCard({
           className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors min-h-[32px] ${
             localFollowing
               ? 'bg-secondary text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-              : 'bg-primary hover:bg-primary/90 text-white'
+              : 'bg-primary hover:bg-primary-hover text-white'
           }`}
         >
           {localFollowing ? 'Unfollow' : 'Follow'}

@@ -69,6 +69,20 @@ describe('PATCH /api/showrooms/:id/spotlight', () => {
   });
 });
 
+describe('PUT /api/showrooms/:id carries the Spotlight choice (Studio sends it with each save)', () => {
+  it('stores the choice made before the site was first saved, with the same rules', async () => {
+    const res = await request(app).put(`/api/showrooms/${biz.siteId}`).set(auth(owner))
+      .send({ spotlight_mode: 'carousel', spotlight_section_ids: ['faq', 'about', 'faq', 'testimonials'] });
+    expect(res.status).toBe(200);
+    const row = await stored(biz.siteId);
+    expect(row.kind).toBe('array');
+    expect(row.ids).toEqual(['faq', 'about']);
+    const bad = await request(app).put(`/api/showrooms/${biz.siteId}`).set(auth(owner)).send({ spotlight_section_ids: ['<script>'] });
+    expect(bad.status).toBe(400);
+    expect((await stored(biz.siteId)).ids).toEqual(['faq', 'about']);
+  });
+});
+
 describe('migrate78', () => {
   it('resets a stored object to an empty list and is idempotent', async () => {
     await pool.query(`UPDATE showrooms SET spotlight_section_ids = '{}'::jsonb WHERE id=$1`, [biz.siteId]);

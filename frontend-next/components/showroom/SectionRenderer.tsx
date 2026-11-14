@@ -358,20 +358,23 @@ export default function SectionRenderer({
                       <button
                         type="button"
                         onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
-                        className="biz-text text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
+                        className="tap-target biz-text min-h-6 text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
                         style={{ ...themeTextStyle(themeColor) }}
                       >
                         Get Quote
                       </button>
-                    ) : item.price ? (
+                    ) : item.price && buy && onBuy ? (
                       <button
                         type="button"
-                        onClick={() => buy && onBuy?.(buy)}
-                        className="biz-text text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
+                        onClick={() => onBuy(buy)}
+                        className="tap-target biz-text text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
                         style={{ ...themeTextStyle(themeColor) }}
                       >
                         {item.price}
                       </button>
+                    ) : item.price ? (
+                      // Nothing to order here (owner view, Studio preview, or "Free"/"Included"): plain text, not a dead button.
+                      <span className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{item.price}</span>
                     ) : <span />}
                     {buy && onBuy && !isQuote && <CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} />}
                   </div>

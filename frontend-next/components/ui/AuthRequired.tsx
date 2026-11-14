@@ -26,7 +26,7 @@ export default function AuthRequired({ message = 'You need to sign in to view th
       <div className="flex gap-3 mt-2">
         <Link
           href={loginHref}
-          className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary/90 transition-colors"
+          className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary-hover transition-colors"
         >
           Sign In
         </Link>

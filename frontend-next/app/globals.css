@@ -51,6 +51,7 @@
   --color-popover-foreground:   hsl(var(--popover-foreground));
   --color-primary:              hsl(var(--primary));
   --color-primary-foreground:   hsl(var(--primary-foreground));
+  --color-primary-hover:        hsl(var(--primary-hover));
   --color-secondary:            hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-muted:                hsl(var(--muted));
@@ -135,6 +136,8 @@
     /* ── Brand blue — primary actions & active states ── */
     --primary:             221 83% 53%;      /* #2563eb */
     --primary-foreground:  0 0% 100%;
+    /* Hover/pressed: darker, so white text stays readable (primary/90 over white was 4.4:1). */
+    --primary-hover:       224 76% 48%;      /* #1d4ed8: white text 6.7:1 */
 
     /* ── Neutral surfaces ── */
     --secondary:           220 14% 95%;
@@ -197,6 +200,7 @@
     /* ── Brand blue (same as light, so white text on it passes; text-primary is lightened below) ── */
     --primary:             221 83% 53%;      /* #2563eb: white text 5.2:1 (#3b82f6 was 3.6:1, F-041); text-primary is lightened below */
     --primary-foreground:  0 0% 100%;
+    --primary-hover:       224 76% 48%;      /* #1d4ed8 */
 
     /* ── Neutral surfaces ── */
     --secondary:           224 20% 16%;
@@ -325,11 +329,48 @@
   .app-main-safe-padding { padding-bottom: 1rem; }
 }
 
-/* Tablet-friendly touch targets — WCAG 2.5.5 minimum 44×44px */
-@media (max-width: 1024px) {
-  button, a[role="button"], [role="button"] {
-    min-height: 44px;
-  }
+/* Touch targets without changing how controls look (owner, 14 Nov 2026).
+   A blanket `button { min-height: 44px }` on screens up to 1024 px used to
+   stretch every small control: 36x20 switches became 36x44 blobs, round icon
+   buttons became ovals, pill tabs grew. Instead, .tap-target keeps the
+   control's own size and adds an invisible hit area of at least 44x44 px
+   around it (WCAG 2.2 SC 2.5.5; 2.5.8 needs 24x24). Shared primitives
+   (Switch, Checkbox, RadioGroup, small/icon Button) use it. */
+.tap-target:not(.absolute):not(.fixed):not(.sticky) { position: relative; }
+/* Floating launchers (assistant, page guide) step aside while a modal dialog
+   is open: they cannot be used then, and on phones they covered the dialog's
+   own buttons (e.g. Feed Spotlight's Save). */
+/* Toast text (sonner richColors) met only 3.1–4.4:1 on its tinted background
+   in the light theme; these meet WCAG 1.4.3 AA (5.8–6.5:1). */
+/* "html" outranks sonner's own rule, which is injected after this file. */
+html [data-sonner-toaster][data-sonner-theme="light"] {
+  --success-text: hsl(140, 100%, 22%);
+  --info-text: hsl(210, 92%, 36%);
+  --warning-text: hsl(28, 92%, 30%);
+  --error-text: hsl(360, 100%, 38%);
+}
+
+body:has([aria-modal="true"]) [data-floating-launcher] { display: none; }
+/* In Studio below 1024 px they covered form fields and the tab bar; Studio's
+   More menu offers the page guide and the assistant instead. */
+@media (max-width: 1023px) {
+  body:has([data-studio-editor]) [data-floating-launcher] { display: none; }
+}
+
+.tap-target::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* Toast close buttons (sonner) are 20 px: give them the same invisible hit area. */
+[data-sonner-toast] [data-close-button]::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
 }
 
 /* PostCard action buttons need explicit min-height override since they use small py values */

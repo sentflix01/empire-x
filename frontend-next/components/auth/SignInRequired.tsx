@@ -30,7 +30,7 @@ export default function SignInRequired({
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{message}</p>
       <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-        <Link href={`/login?return=${returnTo}`} className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <Link href={`/login?return=${returnTo}`} className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">
           Sign in
         </Link>
         <Link href={`/register?return=${returnTo}`} className="inline-flex h-11 items-center justify-center rounded-full border border-border px-6 text-sm font-semibold hover:bg-secondary">

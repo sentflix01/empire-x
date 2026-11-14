@@ -20,6 +20,9 @@ describe('sectionItemBuyPayload', () => {
   it('offers nothing to buy for unpriced, "Get Quote" or malformed links', () => {
     expect(sectionItemBuyPayload({ name: 'Advice' })).toBeNull();
     expect(sectionItemBuyPayload({ name: 'Custom', price: 'Get Quote' })).toBeNull();
+    // Words without a number are information, not a price to order (audit 2026-11-14).
+    expect(sectionItemBuyPayload({ name: 'Consultation', price: 'Free' })).toBeNull();
+    expect(sectionItemBuyPayload({ name: 'Support', price: 'Included' })).toBeNull();
     expect(sectionItemBuyPayload({ name: 'X', product_id: 'not-a-uuid' })).toBeNull();
   });
 });

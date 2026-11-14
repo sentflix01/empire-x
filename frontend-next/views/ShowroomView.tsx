@@ -129,7 +129,7 @@ function GetQuoteModal({ serviceName, serviceDesc, businessName, ownerId, busine
           <Button
             onClick={handleSend}
             disabled={sending || !name.trim() || !phone.trim()}
-            className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold"
+            className="w-full h-11 rounded-full bg-primary hover:bg-primary-hover text-white font-semibold"
           >
             {sending
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</>
@@ -324,7 +324,7 @@ function ShowroomView() {
         {/* Hero and banner sections render the page's <h1>; without one, name the page for screen readers (audit F-042). */}
         {!sections.some(sec => sec?.type === "hero" || sec?.type === "banner") && <h1 className="sr-only">{showroom.title}</h1>}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={handleGoBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={handleGoBack} className="tap-target flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Go back
           </button>
           <div className="flex items-center gap-2">
@@ -345,7 +345,7 @@ function ShowroomView() {
                 </Button>
                 {showroom.status === "published" && (
                   <Link href={`/profile/${showroom.owner_id}?view=business`}>
-                    <Button size="sm" className="rounded-full h-8 bg-primary text-white hover:bg-primary/90">
+                    <Button size="sm" className="rounded-full h-8 bg-primary text-white hover:bg-primary-hover">
                       <Check className="w-3 h-3 mr-1" /> Finish
                     </Button>
                   </Link>

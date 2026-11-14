@@ -12,8 +12,56 @@ import PhotoField from "./PhotoField";
 import HoursField from "./HoursField";
 import { Switch } from "@/components/ui/switch";
 import type { BuilderField, SectionType } from "@/lib/builderSections";
+import { checkField, fieldRule, normaliseUrl } from "@/lib/builderFieldRules";
 
-const inputClass = "w-full text-sm px-3 py-2 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary";
+// 16 px text on phones: iOS Safari zooms the page into any smaller field on focus.
+const inputClass = "w-full text-base sm:text-sm px-3 py-2 min-h-11 rounded-xl border border-border/60 bg-card dark:bg-background focus:outline-none focus:ring-1 focus:ring-primary aria-[invalid=true]:border-destructive aria-[invalid=true]:focus:ring-destructive";
+
+/**
+ * A text or long-text field with the server's rules applied as you type
+ * (lib/builderFieldRules.ts): the right phone keyboard, a length limit with a
+ * counter where it is tight, and a plain message under a wrong phone, email
+ * or link, shown once the owner leaves the field.
+ */
+function TextInput({ id, fieldKey, label, value, onChange, placeholder, multiline = false, rows = 3 }: {
+  id: string; fieldKey: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean; rows?: number;
+}) {
+  const rule = fieldRule(fieldKey, label);
+  const [touched, setTouched] = useState(false);
+  const problem = touched ? checkField(rule, value) : null;
+  const msgId = `${id}-problem`;
+  const countId = `${id}-count`;
+  const describedBy = [problem ? msgId : null, rule.counter ? countId : null].filter(Boolean).join(" ") || undefined;
+  const onBlur = () => {
+    setTouched(true);
+    if (rule.kind === "url") { const tidy = normaliseUrl(value); if (tidy !== value) onChange(tidy); }
+  };
+  const common = {
+    id, value, placeholder, maxLength: rule.maxLength,
+    "aria-invalid": problem ? true : undefined,
+    "aria-describedby": describedBy,
+    onBlur,
+  };
+  return (
+    <>
+      {multiline
+        ? <textarea {...common} onChange={e => onChange(e.target.value)} rows={rows} className={`${inputClass} resize-y`} />
+        : <input {...common} type={rule.inputType} inputMode={rule.inputMode} autoComplete={rule.autoComplete ?? "off"}
+            spellCheck={rule.kind === "text" ? undefined : false}
+            onChange={e => onChange(e.target.value)} className={inputClass} />}
+      {(problem || rule.counter) && (
+        <div className="mt-1 flex items-start gap-2 text-[11px]">
+          {problem && <p id={msgId} className="flex-1 text-destructive">{problem}</p>}
+          {rule.counter && (
+            <p id={countId} className={`ml-auto shrink-0 tabular-nums ${value.length >= rule.maxLength ? "text-destructive" : "text-muted-foreground"}`}>
+              {value.length} / {rule.maxLength}
+            </p>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
 
 /** One section field: write, add a photo, switch on/off. Hidden fields are set elsewhere (e.g. Style). */
 function FieldControl({ id, field, value, onChange }: { id: string; field: BuilderField; value: any; onChange: (v: any) => void }) {
@@ -39,9 +87,9 @@ function FieldControl({ id, field, value, onChange }: { id: string; field: Build
       ) : field.type === "color" ? (
         <input type="color" id={id} value={value || "#2563EB"} onChange={e => onChange(e.target.value)} className="h-11 w-16 rounded-lg border border-border/60" />
       ) : field.type === "textarea" ? (
-        <textarea id={id} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} rows={3} className={`${inputClass} resize-none`} />
+        <TextInput id={id} fieldKey={field.key} label={field.label} value={String(value ?? "")} onChange={onChange} placeholder={field.placeholder} multiline />
       ) : (
-        <input type="text" id={id} value={value || ""} onChange={e => onChange(e.target.value)} placeholder={field.placeholder} className={inputClass} />
+        <TextInput id={id} fieldKey={field.key} label={field.label} value={String(value ?? "")} onChange={onChange} placeholder={field.placeholder} />
       )}
       {field.hint && <p className="mt-1 text-[11px] text-muted-foreground">{field.hint}</p>}
     </div>
@@ -145,23 +193,11 @@ function RepeaterField({ field, value, onChange }: any) {
                     onChange={(url) => update(idx, sub.key, url)}
                   />
                 ) : sub.type === "textarea" ? (
-                  <textarea
-                    value={item[sub.key] || ""}
-                    id={`${field.key}-${idx}-${sub.key}`}
-                    onChange={e => update(idx, sub.key, e.target.value)}
-                    placeholder={sub.placeholder}
-                    rows={2}
-                    className={`${inputClass} resize-none`}
-                  />
+                  <TextInput id={`${field.key}-${idx}-${sub.key}`} fieldKey={sub.key} label={sub.label} value={String(item[sub.key] ?? "")}
+                    onChange={(v) => update(idx, sub.key, v)} placeholder={sub.placeholder} multiline rows={2} />
                 ) : (
-                  <input
-                    type="text"
-                    value={item[sub.key] || ""}
-                    id={`${field.key}-${idx}-${sub.key}`}
-                    onChange={e => update(idx, sub.key, e.target.value)}
-                    placeholder={sub.placeholder}
-                    className={inputClass}
-                  />
+                  <TextInput id={`${field.key}-${idx}-${sub.key}`} fieldKey={sub.key} label={sub.label} value={String(item[sub.key] ?? "")}
+                    onChange={(v) => update(idx, sub.key, v)} placeholder={sub.placeholder} />
                 )}
               </div>
             ))}

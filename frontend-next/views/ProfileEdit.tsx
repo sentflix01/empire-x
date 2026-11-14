@@ -549,7 +549,7 @@ function ProfileEdit() {
           <VerificationRequest />
 
           <Button onClick={handleSavePersonal} disabled={saving || !p.display_name}
-            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-semibold text-base shadow-md shadow-primary/20">
+            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary-hover text-white font-semibold text-base shadow-md shadow-primary/20">
             {saving ? 'Saving...' : 'Save Profile'}
           </Button>
         </div>
@@ -750,7 +750,7 @@ function ProfileEdit() {
           </div>
 
           <Button onClick={handleSaveBusiness} disabled={saving || !b.business_name}
-            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-semibold text-base shadow-md shadow-primary/20">
+            className="w-full h-12 rounded-2xl bg-primary hover:bg-primary-hover text-white font-semibold text-base shadow-md shadow-primary/20">
             {saving ? 'Saving business profile…' : profile?.has_business_profile ? 'Save Business Profile' : 'Create Business Profile'}
           </Button>
         </div>

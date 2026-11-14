@@ -58,7 +58,7 @@ function SubscriptionReturn() {
     <div className="space-y-3 text-left">
       <p className="text-sm text-muted-foreground">Didn't finish on Chapa's page? Go back and tap Pay; you won't be charged twice.</p>
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-        <a href={result.checkout_url} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Continue payment</a>
+        <a href={result.checkout_url} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Continue payment</a>
         <button type="button" onClick={checkAgain} className="inline-flex justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Check again</button>
       </div>
       {testMode && <TestModeHelper provider="chapa" />}
@@ -86,7 +86,7 @@ function SubscriptionReturn() {
           )}
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
             {result.draft_id && (
-              <Link href={`/showrooms/${result.draft_id}`} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">View your website</Link>
+              <Link href={`/showrooms/${result.draft_id}`} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">View your website</Link>
             )}
             <Link href={`/business/subscription/receipt/${result.payment_id}`} className="inline-flex justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">View receipt</Link>
             <Link href={planHref} className="inline-flex justify-center rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Back to plan</Link>
@@ -97,7 +97,7 @@ function SubscriptionReturn() {
           <XCircle className="mx-auto h-12 w-12 text-destructive" aria-hidden="true" />
           <h1 className="font-display text-2xl font-bold text-foreground">Payment didn&apos;t go through</h1>
           <p className="text-sm text-muted-foreground">No plan was charged to your business. {result.draft_id ? 'Your website draft is still saved. ' : ''}You can try again.</p>
-          <Link href={planHref} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Try again</Link>
+          <Link href={planHref} className="inline-flex justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Try again</Link>
         </div>
       ) : timedOut ? (
         <div className="space-y-4 rounded-2xl border border-border bg-card p-6 text-center">
