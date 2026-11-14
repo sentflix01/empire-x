@@ -171,7 +171,7 @@ export default function ReviewsSection({ productId, currentUser }: ReviewsSectio
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-primary hover:bg-primary/90 font-semibold"
+              className="flex-1 bg-primary hover:bg-primary-hover font-semibold"
             >
               {submitting ? "Submitting…" : myReview ? "Update review" : "Submit review"}
             </Button>

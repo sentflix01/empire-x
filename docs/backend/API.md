@@ -583,7 +583,7 @@ Response:
 Audit 2026-11-14 (`note/2026-11-14-showroom-audit/README.md`).
 
 ### POST /api/showrooms · PUT /api/showrooms/:id
-Owner (or admin for PUT). Only these fields are written: `title` (≤ 120), `description` (≤ 1000), `category`, `template`, `sections`, `status` (`draft` · `published` · `archived`), `business_id`, `theme_color` (hex), `cover_image` and `logo_url` (`https://` or `/uploads/…`), and `slug` (`^[a-z0-9-]{3,80}$`). Anything else in the body (`view_count`, `spotlight_*`, `expires_at`, `owner_id`, …) is ignored.
+Owner (or admin for PUT). Only these fields are written: `title` (≤ 120), `description` (≤ 1000), `category`, `template`, `sections`, `status` (`draft` · `published` · `archived`), `business_id`, `theme_color` (hex), `cover_image` and `logo_url` (`https://` or `/uploads/…`), `slug` (`^[a-z0-9-]{3,80}$`), and the Feed Spotlight choice `spotlight_mode` / `spotlight_section_ids` (same rules as `PATCH /api/showrooms/:id/spotlight`; a bad value is a `400 invalid_spotlight`). Studio sends the choice with each draft and publish, so a choice made before the site was first saved is kept. Anything else in the body (`view_count`, `spotlight_carousel_count`, `expires_at`, `owner_id`, …) is ignored.
 
 - `sections`: a JSON array of objects, at most 40, each ≤ 64 KB, the whole ≤ 512 KB, each text ≤ 5000 characters. No string may be a `javascript:`, `vbscript:`, `data:`, `file:` or `blob:` URL. Retired types (`testimonials`) are dropped.
 - Errors: `400 { error, message, field }` with `error` one of `invalid_field`, `field_too_long`, `invalid_status`, `invalid_slug`, `invalid_showroom_sections`; `field` names the place, e.g. `sections[2].facebook`.
@@ -596,6 +596,9 @@ Published, unexpired sites only. Counts a view for visitors, not for the owner.
 
 ### DELETE /api/showrooms/:id
 Owner or admin; permanent.
+
+### PATCH /api/showrooms/:id/spotlight
+Owner or admin. Body: `spotlight_mode` (`single` · `carousel` · `off` · `null` for Automatic), `spotlight_section_ids` (section types, **in the owner's tab order**), `spotlight_carousel_count`. The ids are de-duplicated, retired types (`testimonials`) are dropped, unknown types and more than 20 ids are refused with `422`. On the card, every chosen section that has content becomes a tab, in this order (decision "Feed Spotlight: the owner's sections, in the owner's order", 2026-11-14).
 
 ## Business reviews (verified customers)
 

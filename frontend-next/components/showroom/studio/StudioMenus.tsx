@@ -1,7 +1,8 @@
 'use client';
-import React, { useState } from 'react';
-import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, Trash2, Zap } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, HelpCircle, Save, Sparkles, Trash2, Zap } from 'lucide-react';
 import { COLOR_PRESETS } from '@/lib/builderSections';
+import { contrastRatio } from '@/lib/contrast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { FONT_OPTIONS, siteFontFamily } from '@/lib/siteFonts';
@@ -10,7 +11,8 @@ export { FONT_OPTIONS } from '@/lib/siteFonts';
 export type PreviewMode = 'desktop' | 'tablet' | 'mobile';
 
 const triggerClass = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-secondary';
-const panelClass = 'w-[min(20rem,calc(100vw-1.5rem))] space-y-4 p-4';
+// Scrolls inside the space Radix measures, so a long menu never runs off a short screen.
+const panelClass = 'w-[min(20rem,calc(100vw-1.5rem))] max-h-[min(var(--radix-popover-content-available-height,80dvh),calc(100dvh-1rem))] overflow-y-auto overscroll-contain space-y-4 p-4';
 
 function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -51,7 +53,7 @@ export function StyleMenu(p: StyleMenuProps) {
           <legend className="mb-2 text-sm font-semibold">Colours</legend>
           <div className="grid grid-cols-5 gap-2">
             {COLOR_PRESETS.map(([c1, c2], i) => {
-              const selected = p.colors[0] === c1 && p.colors[1] === c2;
+              const selected = sameColour(p.colors[0], c1) && sameColour(p.colors[1], c2);
               return (
                 <button key={i} type="button" onClick={() => p.onColors(c1, c2)} aria-label={`Colour ${i + 1}`} aria-pressed={selected}
                   style={{ background: `linear-gradient(135deg,${c1},${c2})` }}
@@ -60,7 +62,16 @@ export function StyleMenu(p: StyleMenuProps) {
                 </button>
               );
             })}
+            {/* The site's own colours when they are not a preset (a template's colours or the owner's pick). */}
+            {!COLOR_PRESETS.some(([c1, c2]) => sameColour(p.colors[0], c1) && sameColour(p.colors[1], c2)) && (
+              <span role="img" aria-label="Your colours (selected)" data-testid="custom-colour-swatch"
+                style={{ background: `linear-gradient(135deg,${p.colors[0]},${p.colors[1]})` }}
+                className="flex h-11 w-11 items-center justify-center rounded-full ring-2 ring-foreground ring-offset-2 ring-offset-background">
+                <Check className="h-4 w-4 text-white drop-shadow" aria-hidden="true" />
+              </span>
+            )}
           </div>
+          <CustomColours colors={p.colors} onColors={p.onColors} />
         </fieldset>
         <fieldset>
           <legend className="mb-2 text-sm font-semibold">Lettering</legend>
@@ -94,6 +105,55 @@ export function StyleMenu(p: StyleMenuProps) {
   );
 }
 
+const HEX6 = /^#[0-9a-f]{6}$/i;
+const sameColour = (a: string, b: string) => String(a).toLowerCase() === String(b).toLowerCase();
+
+/** One colour: the system colour picker plus its hex code, typed or pasted. */
+function ColourField({ label, value, onChange }: { label: string; value: string; onChange: (hex: string) => void }) {
+  const [text, setText] = useState(value);
+  useEffect(() => { setText(value); }, [value]);
+  const valid = HEX6.test(text.trim());
+  const id = `colour-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const commit = () => { const v = text.trim(); if (HEX6.test(v)) onChange(v.toLowerCase()); else setText(value); };
+  return (
+    <div className="flex items-center gap-2">
+      <input type="color" aria-label={`${label}: pick a colour`} value={HEX6.test(value) ? value.toLowerCase() : '#2563eb'}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-11 w-11 shrink-0 cursor-pointer rounded-full border border-border bg-transparent p-0.5 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0 [&::-moz-color-swatch]:rounded-full" />
+      <label htmlFor={id} className="sr-only">{label} code</label>
+      <input id={id} type="text" inputMode="text" spellCheck={false} maxLength={7} value={text}
+        onChange={(e) => setText(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
+        onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
+        aria-invalid={!valid}
+        className={`h-11 w-full min-w-0 rounded-xl border bg-background px-3 font-mono text-sm uppercase ${valid ? 'border-border' : 'border-destructive'}`} />
+    </div>
+  );
+}
+
+/**
+ * Any colours the owner wants (audit 2026-11-14: only ten presets existed).
+ * Light colours still work: the site darkens them behind white text so it
+ * stays readable (lib/contrast fillForWhiteText).
+ */
+function CustomColours({ colors, onColors }: { colors: [string, string]; onColors: (c1: string, c2: string) => void }) {
+  const [one, setOne] = useState(sameColour(colors[0], colors[1]));
+  const light = [colors[0], one ? colors[0] : colors[1]].some((c) => HEX6.test(c) && contrastRatio(c, '#ffffff') < 3);
+  return (
+    <div className="mt-3 space-y-2 rounded-xl border border-border p-3" data-testid="custom-colours">
+      <p className="text-xs font-semibold">Your colours</p>
+      <ColourField label="Colour 1" value={colors[0]} onChange={(c) => onColors(c, one ? c : colors[1])} />
+      {!one && <ColourField label="Colour 2" value={colors[1]} onChange={(c) => onColors(colors[0], c)} />}
+      <ToggleRow label="Use one colour" hint="No gradient: the same colour everywhere" checked={one}
+        onChange={(v) => { setOne(v); if (v) onColors(colors[0], colors[0]); }} />
+      {light && (
+        <p className="text-[11px] text-muted-foreground">
+          This is a light colour. Behind white text we darken it slightly, so your words stay easy to read.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export interface MoreMenuProps {
   /** Business picker and visibility, when the owner has them. */
   businessControls?: React.ReactNode;
@@ -101,10 +161,12 @@ export interface MoreMenuProps {
   onClear: () => void;
   onFullPreview: () => void;
   onFeedSpotlight?: () => void;
+  /** Phones: Save draft lives here (the top bar has no room). */
+  onSaveDraft?: () => void;
 }
 
 /** Less frequent actions. Websites are published only on NodBusiness, so there is no export. */
-export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onFeedSpotlight }: MoreMenuProps) {
+export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onFeedSpotlight, onSaveDraft }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const item = 'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm hover:bg-secondary';
@@ -120,11 +182,20 @@ export function MoreMenu({ businessControls, onLoad, onClear, onFullPreview, onF
         {businessControls && <div className="space-y-2 border-b border-border pb-3">{businessControls}</div>}
         {onFeedSpotlight && (
           <button type="button" className={item} onClick={run(onFeedSpotlight)}>
-            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight Preview
+            <Zap className="h-4 w-4" aria-hidden="true" />Feed Spotlight
           </button>
+        )}
+        {onSaveDraft && (
+          <button type="button" className={`${item} sm:hidden`} onClick={run(onSaveDraft)}><Save className="h-4 w-4" aria-hidden="true" />Save draft</button>
         )}
         <button type="button" className={item} onClick={run(onLoad)}><FolderOpen className="h-4 w-4" aria-hidden="true" />Load saved draft</button>
         <button type="button" className={item} onClick={run(onFullPreview)}><Expand className="h-4 w-4" aria-hidden="true" />Full-screen preview</button>
+        <button type="button" className={`${item} lg:hidden`} onClick={run(() => window.dispatchEvent(new Event('nodbusiness:open-page-guide')))}>
+          <HelpCircle className="h-4 w-4" aria-hidden="true" />Page guide
+        </button>
+        <button type="button" className={`${item} lg:hidden`} onClick={run(() => window.dispatchEvent(new Event('nodbusiness:open-assistant')))}>
+          <Sparkles className="h-4 w-4" aria-hidden="true" />Ask Nodbusiness AI
+        </button>
         {confirmClear ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive-subtle p-3 text-sm">
             <p className="font-medium text-destructive-subtle-foreground">Start over? Your words and photos here will be cleared.</p>

@@ -112,7 +112,7 @@ export default function OrderSuccessPage() {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/orders" className="flex-1">
-          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 font-semibold">
+          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary-hover font-semibold">
             <Package className="w-4 h-4 mr-2" />
             View My Orders <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

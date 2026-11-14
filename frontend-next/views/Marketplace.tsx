@@ -168,7 +168,7 @@ function Marketplace() {
             <p className="text-sm text-muted-foreground">{t('marketplace.subtitle')}</p>
           </div>
           <Link href="/products/create" className="shrink-0">
-            <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90">
+            <Button size="sm" className="rounded-full bg-primary hover:bg-primary-hover">
               <Plus className="w-4 h-4 mr-1" /> {t('marketplace.listProduct')}
             </Button>
           </Link>

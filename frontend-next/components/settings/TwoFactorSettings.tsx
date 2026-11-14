@@ -14,7 +14,7 @@ interface Status { enabled: boolean; pending: boolean; recovery_codes_left: numb
 type Step = 'idle' | 'password' | 'scan' | 'codes' | 'disable' | 'regenerate';
 
 const field = 'w-full h-11 px-3 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-primary/40';
-const primaryBtn = 'w-full h-11 bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground text-sm font-semibold rounded-xl transition-colors';
+const primaryBtn = 'w-full h-11 bg-primary hover:bg-primary-hover disabled:opacity-50 text-primary-foreground text-sm font-semibold rounded-xl transition-colors';
 const quietBtn = 'w-full h-11 border border-border/60 hover:bg-secondary/60 text-sm font-semibold rounded-xl transition-colors';
 
 export default function TwoFactorSettings() {

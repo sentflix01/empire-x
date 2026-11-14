@@ -189,15 +189,16 @@ export default function SectionRenderer({
           {(s.subtitle || biz.description || biz.business_description) && (
             <p className={`text-sm mb-4 ${hasCustomBg ? "text-white/85" : "text-muted-foreground"}`}>{s.subtitle || biz.description || biz.business_description}</p>
           )}
-          {s.cta && ctaTarget && (
-            <a href={ctaTarget}>
-              {hasCustomBg ? (
-                <Button className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: s.heroBg }}>{s.cta}</Button>
-              ) : (
-                <Button className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>{s.cta}</Button>
-              )}
-            </a>
-          )}
+          {/* One link styled as a button (a button inside a link is invalid and confuses screen readers). */}
+          {s.cta && ctaTarget && (hasCustomBg ? (
+            <Button asChild className="rounded-full px-6 bg-white/90 hover:bg-white" style={{ color: fillForWhiteText(s.heroBg) }}>
+              <a href={ctaTarget}>{s.cta}</a>
+            </Button>
+          ) : (
+            <Button asChild className="rounded-full text-white px-6" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
+              <a href={ctaTarget}>{s.cta}</a>
+            </Button>
+          ))}
         </div>
       </div>
     );
@@ -357,20 +358,23 @@ export default function SectionRenderer({
                       <button
                         type="button"
                         onClick={() => onGetQuote?.(item.name || item.title || 'Service', item.desc || item.description)}
-                        className="biz-text text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
+                        className="tap-target biz-text min-h-6 text-sm font-bold transition-opacity hover:opacity-80 active:scale-95"
                         style={{ ...themeTextStyle(themeColor) }}
                       >
                         Get Quote
                       </button>
-                    ) : item.price ? (
+                    ) : item.price && buy && onBuy ? (
                       <button
                         type="button"
-                        onClick={() => buy && onBuy?.(buy)}
-                        className="biz-text text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
+                        onClick={() => onBuy(buy)}
+                        className="tap-target biz-text text-sm font-bold hover:underline underline-offset-2 transition-opacity hover:opacity-80 active:scale-95"
                         style={{ ...themeTextStyle(themeColor) }}
                       >
                         {item.price}
                       </button>
+                    ) : item.price ? (
+                      // Nothing to order here (owner view, Studio preview, or "Free"/"Included"): plain text, not a dead button.
+                      <span className="biz-text text-sm font-bold" style={{ ...themeTextStyle(themeColor) }}>{item.price}</span>
                     ) : <span />}
                     {buy && onBuy && !isQuote && <CardBuyButton themeColor={themeColor} onClick={() => onBuy(buy)} />}
                   </div>

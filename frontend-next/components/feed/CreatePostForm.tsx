@@ -104,7 +104,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
             onClick={handleSubmit}
             disabled={!content.trim() || posting}
             aria-label="Post"
-            className="shrink-0 text-primary disabled:opacity-30 hover:text-primary transition-colors"
+            className="tap-target shrink-0 text-primary disabled:opacity-30 hover:text-primary transition-colors"
           >
             {posting
               ? <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />

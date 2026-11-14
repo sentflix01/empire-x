@@ -56,7 +56,7 @@ const H2 = 'text-3xl font-bold tracking-tight sm:text-4xl';
 // Theme-aware buttons. Light: solid brand blue with white text. Dark: white with brand blue
 // text (bg-primary-foreground stays white in both themes; the exact brand blue keeps 5.2:1
 // where the dark theme's lighter text-primary would not).
-const PRIMARY_COLORS = 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary-foreground dark:text-brand-blue dark:hover:bg-primary-foreground/90';
+const PRIMARY_COLORS = 'bg-primary text-primary-foreground hover:bg-primary-hover dark:bg-primary-foreground dark:text-brand-blue dark:hover:bg-primary-foreground/90';
 const CTA = 'inline-flex h-[clamp(2.75rem,6svh,3rem)] items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-base font-semibold transition min-[360px]:px-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:focus-visible:ring-white';
 const PRIMARY = `${CTA} shadow-lg shadow-primary/20 dark:shadow-black/10 ${PRIMARY_COLORS}`;
 // The closing call to action sits on brand blue in both themes.

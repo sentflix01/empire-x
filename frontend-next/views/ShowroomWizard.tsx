@@ -136,7 +136,7 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
   labels: string[];
 }) {
   return (
-    <div className="flex items-center">
+    <nav aria-label="Steps" className="flex items-center">
       {[1, 2, 3].map((n, i) => {
         const state = n < step ? "done" : n === step ? "active" : "todo";
         const clickable = canGoTo(n) && n !== step;
@@ -149,7 +149,8 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
               type="button"
               onClick={() => clickable && onGoTo(n)}
               disabled={!clickable}
-              className={`flex shrink-0 items-center gap-1.5 ${clickable ? "cursor-pointer" : "cursor-default"}`}
+              aria-current={state === "active" ? "step" : undefined}
+              className={`tap-target flex shrink-0 items-center gap-1.5 ${clickable ? "cursor-pointer" : "cursor-default"}`}
             >
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
@@ -160,20 +161,21 @@ function WizardStepper({ step, canGoTo, onGoTo, labels }: {
                       : "border border-border bg-card text-muted-foreground"
                 }`}
               >
-                {state === "done" ? <Check className="h-3.5 w-3.5" /> : n}
+                {state === "done" ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : n}
               </span>
               <span
-                className={`hidden text-xs font-semibold sm:block ${
+                className={`sr-only text-xs font-semibold sm:not-sr-only ${
                   state === "active" ? "text-primary" : state === "done" ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {labels[i]}
+                {state === "done" && <span className="sr-only"> (done)</span>}
               </span>
             </button>
           </React.Fragment>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -559,7 +561,7 @@ function ShowroomWizard() {
                                 <button
                                   type="button"
                                   onClick={() => customizeSample(sample.id)}
-                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 px-4 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all sm:h-9 sm:w-auto"
+                                  className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary-hover px-4 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all sm:h-9 sm:w-auto"
                                 >
                                   <PenLine className="h-3.5 w-3.5" />
                                   {sample.id === "premium" ? t("showroomWizard.customizePremium") : t("showroomWizard.customizeStarter")}

@@ -116,7 +116,7 @@ test('a scratch showroom publishes without sample content and appears to other v
   await page.getByRole('button', { name: /Business & Commerce/i }).click();
   await page.getByRole('button', { name: /Start from scratch/i }).click();
   await expect(page.locator('input[placeholder="Your Business Name"]:visible').first()).toBeVisible();
-  const mobilePublish = page.getByRole('button', { name: 'Publish site' });
+  const mobilePublish = page.getByRole('button', { name: 'Publish', exact: true });
   await expect(mobilePublish).toBeVisible();
   const publishBounds = await mobilePublish.boundingBox();
   expect(publishBounds).not.toBeNull();
@@ -168,7 +168,7 @@ test('editing a published showroom restores its sections and keeps them on repub
   const businessName = page.locator('input[placeholder="Your Business Name"]:visible').first();
   await expect(businessName).toHaveValue('Fresh Roots Cooperative');
   await businessName.fill('Fresh Roots Cooperative Updated');
-  await page.getByRole('button', { name: 'Publish site' }).click();
+  await page.getByRole('button', { name: 'Publish', exact: true }).click();
   await expect(page).toHaveURL(/\/showrooms\/e2e-showroom-id$/);
 
   const savedSections = JSON.parse(String(updatedBody?.sections)) as Array<Record<string, unknown>>;

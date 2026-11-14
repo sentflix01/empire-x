@@ -189,7 +189,7 @@ function Referral() {
 
         <Button
           onClick={shareLink}
-          className="w-full rounded-full bg-primary hover:bg-primary/90 font-semibold"
+          className="w-full rounded-full bg-primary hover:bg-primary-hover font-semibold"
         >
           <Share2 className="w-4 h-4 mr-2" />
           Share with Friends
@@ -214,7 +214,7 @@ function Referral() {
           <Button
             onClick={handleApply}
             disabled={applying || !applyCode.trim()}
-            className="rounded-xl bg-primary hover:bg-primary/90 shrink-0"
+            className="rounded-xl bg-primary hover:bg-primary-hover shrink-0"
           >
             {applying ? "Applying…" : t('common.apply')}
           </Button>

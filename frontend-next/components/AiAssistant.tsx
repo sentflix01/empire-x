@@ -253,6 +253,12 @@ function AiAssistantWidget() {
     window.addEventListener('nodbusiness:page-guide-enabled', handler);
     return () => window.removeEventListener('nodbusiness:page-guide-enabled', handler);
   }, []);
+  // Pages that hide the floating launcher (Studio on phones) open the chat from their own menu.
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener('nodbusiness:open-assistant', openChat);
+    return () => window.removeEventListener('nodbusiness:open-assistant', openChat);
+  }, []);
 
   // Load saved position
   useLayoutEffect(() => {
@@ -555,6 +561,7 @@ function AiAssistantWidget() {
             : { width: 56, height: 56, paddingInline: 0 }}
           title="Page guide (drag to move)"
           aria-label="Page guide"
+          data-floating-launcher=""
         >
           <PageGuideFlipCoin />
         </button>
@@ -574,7 +581,8 @@ function AiAssistantWidget() {
           }`}
         style={btnStyle}
         title={t('ai.title') + ' (drag to move)'}
-        aria-label={t('ai.title')}>
+        aria-label={t('ai.title')}
+        data-floating-launcher="">
         {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
         {!open && visibleMessages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-background" />
@@ -713,7 +721,7 @@ function AiAssistantWidget() {
             <button
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
-              className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
+              className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>

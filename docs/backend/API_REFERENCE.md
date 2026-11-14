@@ -596,10 +596,10 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/showrooms/:id/newsletter` | ⚪ optional | routes/showrooms.ts:172 |
 | `GET` | `/api/showrooms/:id/newsletter` | 🔒 auth | routes/showrooms.ts:190 |
 | `PATCH` | `/api/showrooms/:id/spotlight` | 🔒 auth | routes/showrooms.ts:203 |
-| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:241 |
-| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:254 |
-| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:325 |
-| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:396 |
+| `GET` | `/api/showrooms/:id` | ⚪ optional | routes/showrooms.ts:236 |
+| `POST` | `/api/showrooms/` | 🔒 auth | routes/showrooms.ts:249 |
+| `PUT` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:320 |
+| `DELETE` | `/api/showrooms/:id` | 🔒 auth | routes/showrooms.ts:391 |
 
 ## social — how you relate to another person, and your privacy.
 

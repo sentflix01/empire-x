@@ -124,7 +124,7 @@ export default function EditPostDialog({ open, post, onOpenChange, onSave }: Edi
           <button type="button" onClick={() => onOpenChange(false)} disabled={saving} className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary disabled:opacity-50">
             Cancel
           </button>
-          <button type="button" onClick={save} disabled={empty || unchanged || saving} className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+          <button type="button" onClick={save} disabled={empty || unchanged || saving} className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-50">
             {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
             Save
           </button>

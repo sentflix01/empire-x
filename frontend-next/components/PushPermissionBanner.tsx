@@ -65,7 +65,7 @@ export default function PushPermissionBanner() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button size="sm" onClick={handleEnable} disabled={loading}
-            className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-xs font-bold text-white shadow-sm shadow-primary/20">
+            className="h-9 rounded-xl bg-primary hover:bg-primary-hover text-xs font-bold text-white shadow-sm shadow-primary/20">
             {loading ? t('push.enabling') : t('push.enable')}
           </Button>
           <Button size="sm" variant="outline" onClick={dismiss}

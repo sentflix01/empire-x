@@ -267,7 +267,7 @@ function BusinessCreate() {
               ))}
             </div>
           </div>
-          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-primary hover:bg-primary/90">
+          <Button onClick={handleSave} disabled={saving || !business.business_name || !business.business_category} className="w-full h-11 rounded-full bg-primary hover:bg-primary-hover">
             {saving ? "Saving..." : isEdit ? "Update Business" : "Create Business"}
           </Button>
           {isEdit && <PaymentAccountsManager businessId={id} />}

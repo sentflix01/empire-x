@@ -406,7 +406,7 @@ function BusinessSubscription() {
                 {selected ? <Badge>Current plan</Badge> : requiredTier === plan.tier ? <Badge variant="outline">Required by your sections</Badge> : null}
                 {canPay && (
                   <Button size="sm" onClick={() => handleUpgrade(planKey)} disabled={!!upgrading || !selectedBusinessId || !currencyAvailable}
-                    className={index === 2 ? 'bg-brand-secondary hover:bg-brand-secondary/90 text-white' : 'bg-primary hover:bg-primary/90 text-white'}>
+                    className={index === 2 ? 'bg-brand-secondary hover:bg-brand-secondary/90 text-white' : 'bg-primary hover:bg-primary-hover text-white'}>
                     {upgrading === planKey ? <Loader2 className="w-4 h-4 animate-spin" /> : selected ? 'Renew' : 'Choose plan'}
                   </Button>
                 )}

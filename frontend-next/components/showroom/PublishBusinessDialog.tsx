@@ -113,7 +113,7 @@ export default function PublishBusinessDialog({ open, mode, businesses, defaultN
             onClick={() => (mode === 'create'
               ? onCreate({ business_name: name.trim(), business_category: category, visibility })
               : onChoose(chosen))}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
           >
             {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
             {mode === 'create' ? 'Create and publish' : 'Publish'}

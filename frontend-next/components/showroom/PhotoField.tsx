@@ -44,7 +44,7 @@ export default function PhotoField({ id, label, value, onChange }: {
       {value ? (
         <div className="flex items-center gap-2">
           <SafeImage fill={false} width={64} height={64} src={value} alt="" className="h-16 w-16 shrink-0 rounded-lg border border-border/60 object-cover" />
-          <button type="button" onClick={() => input.current?.click()} disabled={busy}
+          <button type="button" onClick={() => input.current?.click()} disabled={busy} aria-label={`Change photo: ${label}`}
             className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-xs font-medium hover:bg-secondary disabled:opacity-50">
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />}
             Change photo
@@ -55,12 +55,13 @@ export default function PhotoField({ id, label, value, onChange }: {
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => input.current?.click()} disabled={busy}
+        <button type="button" onClick={() => input.current?.click()} disabled={busy} aria-label={busy ? undefined : `Add photo: ${label}`}
           className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 text-sm font-medium text-primary-subtle-foreground hover:bg-primary-subtle disabled:opacity-60">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ImagePlus className="h-4 w-4" aria-hidden="true" />}
           {busy ? 'Uploading…' : 'Add photo'}
         </button>
       )}
+      <p role="status" className="sr-only">{busy ? `Uploading ${label.toLowerCase()}…` : ''}</p>
       {error && <p role="alert" className="mt-1 text-xs text-destructive">{error}</p>}
     </div>
   );

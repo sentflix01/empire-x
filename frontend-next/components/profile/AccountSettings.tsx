@@ -227,7 +227,7 @@ function ChangePasswordForm({ onBack, onDone }: { onBack: () => void; onDone: ()
       <input type="password" placeholder="Confirm new password" value={confirm} onChange={e => setConfirm(e.target.value)}
         className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
       <button onClick={handleSubmit} disabled={saving || !current || !next || !confirm}
-        className="w-full h-9 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+        className="w-full h-9 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
         {saving ? 'Saving...' : 'Change Password'}
       </button>
     </div>
@@ -266,7 +266,7 @@ function ChangeNameForm({ currentName, onBack, onDone }: { currentName: string; 
       <input type="text" placeholder="Display name" value={name} onChange={e => setName(e.target.value)}
         className="w-full h-9 px-3 text-sm bg-secondary rounded-xl border-0 outline-none focus:ring-1 focus:ring-primary/30" />
       <button onClick={handleSubmit} disabled={saving || !name.trim() || name.trim() === currentName}
-        className="w-full h-9 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+        className="w-full h-9 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
         {saving ? 'Saving...' : 'Save Name'}
       </button>
     </div>

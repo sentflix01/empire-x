@@ -89,7 +89,7 @@ function ChangePasswordForm() {
               className="w-full h-11 px-3 text-sm bg-secondary/50 border border-border/50 rounded-xl outline-none focus:ring-1 focus:ring-primary/30 mt-1" />
           </div>
           <button type="submit" disabled={saving || !current || !next || !confirm}
-            className="w-full h-11 bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
+            className="w-full h-11 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors">
             {saving ? 'Saving...' : 'Change Password'}
           </button>
         </form>
@@ -147,7 +147,7 @@ function AccountSettingsView() {
                   : initial}
               </div>
               <Link href="/profile/edit" aria-label="Change profile photo"
-                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center shadow transition-colors">
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center shadow transition-colors">
                 <Camera className="w-3 h-3 text-white" aria-hidden="true" />
               </Link>
             </div>
