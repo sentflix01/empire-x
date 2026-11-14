@@ -34,6 +34,7 @@ Every status colour has `-subtle` (tint background) and `-subtle-foreground`
 5. **Text on a coloured fill is solid white** (`text-white` / `-foreground`), never translucent white.
 6. **Colour is never the only signal** (WCAG 1.4.1): pair it with a label, icon or shape.
 7. **Contrast:** text ≥ 4.5:1, icons and control borders ≥ 3:1 (WCAG 1.4.3, 1.4.11). Every token pair above was measured.
+8. **Text over a photo or tint** (badges on cards, captions on covers) sits on a `bg-black/65` or darker scrim with `text-white`: about 7:1 even over pure white, so it holds on any cover image or the `primary-subtle` placeholder. `bg-black/40` is only 3:1 over a light tint (the 2026-11-14 /showrooms badge failure).
 
 ## In code
 
