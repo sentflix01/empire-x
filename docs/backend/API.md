@@ -1,6 +1,6 @@
 # Nodbusiness — API Documentation
 
-Last reviewed: 2026-11-14
+Last reviewed: 2026-11-15
 
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
@@ -67,6 +67,19 @@ Login with email + password.
 { "mfa_required": true, "mfa_token": "eyJhbG...", "methods": ["totp", "recovery_code"] }
 ```
 **Errors:** 401 (wrong credentials), 403 (email not verified, code: `email_not_verified`)
+
+---
+
+### POST /api/auth/login-code · POST /api/auth/login-code/verify
+Sign in without a password, with a 6-digit code sent by email (new-user audit NU-18, 2026-11-15).
+
+- `POST /login-code` `{ "email" }` → always `200 { "sent": true }`, so the answer never says whether an account exists. Only verified, active Real accounts get a code. 422 for a malformed email.
+- `POST /login-code/verify` `{ "email", "code" }` → the same answer as `/login`: `{ access_token }`, or `{ mfa_required, mfa_token }` when two-factor sign-in is on.
+  - **401 `INVALID_LOGIN_CODE`:** the code is wrong or expired, the account is unknown or unverified.
+  - **429:** the account is locked.
+  - **422:** the code is not 6 digits.
+- **Code rules:** a code lasts 10 minutes and works once. 5 wrong tries cancel it. The account lockout still applies.
+- **Rate limit:** 10 requests per window per address (`rl:login-code:`).
 
 ---
 

@@ -356,13 +356,14 @@ export default function LandingContent({ templateCount }: { templateCount: numbe
           {[
             { key: 'product', title: 'Product', links: [['/marketplace', 'Marketplace'], ['/showrooms', 'Showrooms'], ['/businesses', 'Businesses']] },
             { key: 'account', title: 'Account', links: [['/login', 'Sign in'], ['/register', 'Create account'], ['/feed', 'Explore as guest']] },
-            { key: 'legal', title: 'Legal', links: [['/service-agreement', 'Service agreement']] },
+            // Privacy is linked on its own: visitors look for it by that name (new-user audit NU-19).
+            { key: 'legal', title: 'Legal', links: [['/service-agreement?tab=privacy', 'Privacy policy'], ['/service-agreement?tab=terms', 'Terms of service'], ['/service-agreement', 'Service agreement']] },
           ].map((col) => (
             <nav key={col.key} aria-label={tr(`footer.${col.key}`, col.title)}>
               <p className="font-semibold text-white">{tr(`footer.${col.key}`, col.title)}</p>
               <ul className="mt-3 space-y-2">
                 {col.links.map(([href, label]) => (
-                  <li key={href}><Link href={href} className="hover:text-white hover:underline">{tr(`footer.links.${href.slice(1)}`, label)}</Link></li>
+                  <li key={href}><Link href={href} className="hover:text-white hover:underline">{tr(`footer.links.${href.slice(1).replace(/\?tab=/, '-')}`, label)}</Link></li>
                 ))}
               </ul>
             </nav>

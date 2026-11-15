@@ -15,9 +15,15 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import en from '@/locales/en.json';
-import am from '@/locales/am.json';
-import sw from '@/locales/sw.json';
-import fr from '@/locales/fr.json';
+
+// Only English (the fallback) ships with every page; the other languages are
+// fetched when someone picks them (new-user audit NU-12: all four files were
+// in every visitor's first download).
+const LOADERS: Record<string, () => Promise<{ default: Record<string, unknown> }>> = {
+  am: () => import('@/locales/am.json'),
+  sw: () => import('@/locales/sw.json'),
+  fr: () => import('@/locales/fr.json'),
+};
 
 // Guard: localStorage is not available during SSR
 const savedLang =
@@ -31,10 +37,8 @@ i18n
   .init({
     resources: {
       en: { translation: en },
-      am: { translation: am },
-      sw: { translation: sw },
-      fr: { translation: fr },
     },
+    partialBundledLanguages: true,
     fallbackLng: 'en',
     lng: savedLang,
     interpolation: { escapeValue: false },
@@ -52,6 +56,19 @@ if (typeof document !== 'undefined') {
   i18n.on('languageChanged', syncLang);
   if (i18n.language) syncLang(i18n.language);
 }
+
+/** Loads a language's words if needed, then shows them. Resolves when they are on screen. */
+export async function ensureLanguage(lng: string): Promise<void> {
+  const base = (lng || 'en').split('-')[0];
+  const load = LOADERS[base];
+  if (!load || i18n.hasResourceBundle(base, 'translation')) return;
+  const mod = await load();
+  i18n.addResourceBundle(base, 'translation', mod.default ?? mod, true, true);
+  // Re-render with the new words if this is still the chosen language.
+  if ((i18n.language || '').split('-')[0] === base) await i18n.changeLanguage(i18n.language);
+}
+i18n.on('languageChanged', (lng) => { void ensureLanguage(lng); });
+if (i18n.language) void ensureLanguage(i18n.language);
 
 export default i18n;
 

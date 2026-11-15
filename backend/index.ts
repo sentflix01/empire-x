@@ -251,6 +251,7 @@ const rlOpts = (max: number, prefix: string) => ({ windowMs: 15 * 60 * 1000, max
 
 app.use('/api/', rateLimit(rlOpts(500, 'rl:global:')));
 app.use('/api/auth/login',            rateLimit(rlOpts(20,  'rl:login:')));
+app.use('/api/auth/login-code',       rateLimit(rlOpts(10,  'rl:login-code:')));
 app.use('/api/auth/register',         rateLimit(rlOpts(20,  'rl:register:')));
 app.use('/api/auth/demo',             rateLimit(rlOpts(10,  'rl:demo:')));
 app.use('/api/auth/google',           rateLimit(rlOpts(20,  'rl:google:')));

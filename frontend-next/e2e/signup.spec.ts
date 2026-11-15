@@ -15,22 +15,17 @@ function generateTestEmail(): string {
 
 const TEST_PASSWORD = 'Test1234!';
 
-async function fillRegisterForm(page: any, email: string, password: string, confirmPassword: string, agreeToTerms: boolean) {
+async function fillRegisterForm(page: any, email: string, password: string, agreeToTerms: boolean) {
   // Dev-mode lazy compilation: wait for hydration to settle before interacting,
   // otherwise clicks land before React attaches onChange and state never updates.
   await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
   await page.locator('input[type="email"], input[name="email"]').first().fill(email);
-  await page.locator('input[type="password"]').first().fill(password);
-  await page.locator('input[id="confirm"], input[name="confirm"]').first().fill(confirmPassword);
+  await page.locator('#password').fill(password);
   if (agreeToTerms) {
-    // The input is sr-only — the styled div intercepts pointer events, so a
-    // plain click can never land on it. check({ force }) bypasses the
-    // hit-target check while still dispatching a real click → React onChange.
+    // A real, visible checkbox since the new-user audit (NU-2).
     const checkbox = page.getByRole('checkbox', { name: /agree to the/i });
-    await checkbox.check({ force: true });
+    await checkbox.check();
     await expect(checkbox).toBeChecked();
-    // Prove React state actually updated (button enables only when agreed=true)
-    await page.locator('button[type="submit"]:not([disabled])').first().waitFor({ state: 'visible', timeout: 10_000 });
   }
 }
 
@@ -59,7 +54,7 @@ test.describe('Signup flow', () => {
     await page.goto('/register', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    await fillRegisterForm(page, testEmail, TEST_PASSWORD, TEST_PASSWORD, true);
+    await fillRegisterForm(page, testEmail, TEST_PASSWORD, true);
 
     // Submit registration - wait for OTP screen to appear
     await Promise.all([
@@ -86,70 +81,61 @@ test.describe('Signup flow', () => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    await fillRegisterForm(page, existingEmail, TEST_PASSWORD, TEST_PASSWORD, true);
+    await fillRegisterForm(page, existingEmail, TEST_PASSWORD, true);
 
     await page.locator('button[type="submit"], button:has-text("Create account")').first().click();
 
-    // Should show error about existing account (seeded account is verified, so returns 409)
-    await expect(page.locator('text=already exists')).toBeVisible({ timeout: 10_000 });
+    // A used email offers the way forward (new-user audit NU-17).
+    await expect(page.getByRole('alert').filter({ hasText: 'already has an account' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('link', { name: /Forgot password/ })).toBeVisible();
   });
 
-  test('register rejects mismatched passwords', async ({ page }) => {
+  test('one password field with show/hide (no confirm field)', async ({ page }) => {
+    await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
+    await page.locator('#password').waitFor({ state: 'visible', timeout: 30_000 });
+    await expect(page.locator('#confirm')).toHaveCount(0);
+    await page.locator('#password').fill(TEST_PASSWORD);
+    await page.getByRole('button', { name: 'Show password' }).click();
+    await expect(page.locator('#password')).toHaveAttribute('type', 'text');
+  });
+
+  test('register rejects password too short, next to the field', async ({ page }) => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
-
-    await fillRegisterForm(page, testEmail, TEST_PASSWORD, 'DifferentPassword123!', true);
-
-    await page.locator('button[type="submit"], button:has-text("Create account")').first().click({ force: true });
-
-    // Should show password mismatch error
-    await expect(page.locator('text=Passwords do not match')).toBeVisible({ timeout: 5_000 });
-    
-    // Should still be on register page
+    await fillRegisterForm(page, testEmail, 'Short1!', true);
+    await page.getByRole('button', { name: 'Create account' }).click();
+    await expect(page.getByRole('alert').filter({ hasText: 'at least 8 characters' })).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('#password')).toHaveAttribute('aria-invalid', 'true');
     await expect(page).toHaveURL(/\/register/);
   });
 
-  test('register rejects password too short', async ({ page }) => {
+  test('register requires terms acceptance and says so (the button is never dead)', async ({ page }) => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
-
-    await fillRegisterForm(page, testEmail, 'Short1!', 'Short1!', true);
-
-    // Click submit - HTML5 validation should prevent submission
-    await page.locator('button[type="submit"], button:has-text("Create account")').first().click({ force: true });
-
-    // Should stay on register page (HTML5 validation blocks submit)
+    await fillRegisterForm(page, testEmail, TEST_PASSWORD, false);
+    const submit = page.getByRole('button', { name: 'Create account' });
+    await expect(submit).toBeEnabled();
+    await submit.click();
+    await expect(page.getByRole('alert').filter({ hasText: 'Tick the box to agree' })).toBeVisible({ timeout: 5_000 });
     await expect(page).toHaveURL(/\/register/);
-    
-    // The password input should have validation error (browser native, not in DOM)
-    // Just verify we're still on the page
   });
 
-  test('register requires terms acceptance', async ({ page }) => {
+  test('a typo email gets a one-tap fix', async ({ page }) => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
-    await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
-
-    // Fill form but DON'T agree to terms
-    await page.locator('input[type="email"], input[name="email"]').first().fill(testEmail);
-    await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-    await page.locator('input[id="confirm"], input[name="confirm"]').first().fill(TEST_PASSWORD);
-    // Don't click checkbox
-
-    // Button should be disabled
-    await expect(page.locator('button[type="submit"][disabled], button:has-text("Create account")[disabled]')).toBeVisible({ timeout: 5_000 });
-    
-    // Try to click anyway - should not submit
-    await page.locator('button[type="submit"], button:has-text("Create account")').first().click({ force: true });
-    
-    // Should show terms required error (from form validation in handleSubmit)
-    await expect(page.locator('text=agree to the Terms')).toBeVisible({ timeout: 5_000 });
+    const email = page.locator('#email');
+    await email.waitFor({ state: 'visible', timeout: 30_000 });
+    await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+    await email.fill('selam@gmial');
+    await email.blur();
+    await page.getByRole('button', { name: 'selam@gmail.com' }).click();
+    await expect(email).toHaveValue('selam@gmail.com');
   });
 
   test('can navigate back from OTP screen to edit email', async ({ page }) => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    await fillRegisterForm(page, testEmail, TEST_PASSWORD, TEST_PASSWORD, true);
+    await fillRegisterForm(page, testEmail, TEST_PASSWORD, true);
 
     await Promise.all([
       page.waitForSelector('text=Check your email', { timeout: 30_000 }),
@@ -171,7 +157,7 @@ test.describe('Signup flow', () => {
     await page.goto('/register?mode=real', { waitUntil: 'domcontentloaded' });
     await page.locator('input[type="email"], input[name="email"]').first().waitFor({ state: 'visible', timeout: 30_000 });
 
-    await fillRegisterForm(page, testEmail, TEST_PASSWORD, TEST_PASSWORD, true);
+    await fillRegisterForm(page, testEmail, TEST_PASSWORD, true);
 
     await Promise.all([
       page.waitForSelector('text=Check your email', { timeout: 30_000 }),

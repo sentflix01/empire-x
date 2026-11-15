@@ -3,7 +3,7 @@
 > **AUTO-GENERATED** from the route sources by `backend/scripts/generate-api-docs.js`.
 > Do not hand-edit. After any route change run `npm run docs:api` (in `backend/`)
 > and commit the regenerated file in the same PR.
-> Endpoints: **384** across **56** mounted modules · Generated: 2026-11-14
+> Endpoints: **386** across **56** mounted modules · Generated: 2026-11-15
 
 | Legend | Meaning |
 |---|---|
@@ -20,7 +20,7 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 ## Contents
 - [`admin`](#admin) (19)
 - [`ai`](#ai) (4)
-- [`auth`](#auth) (21)
+- [`auth`](#auth) (23)
 - [`businessApiKeys`](#businessapikeys) (3)
 - [`businesses`](#businesses) (10)
 - [`businessReviews`](#businessreviews) (5)
@@ -121,19 +121,21 @@ Sign-in failures (`requireAuth`, `requireAdmin`) use the same shape with these c
 | `POST` | `/api/auth/demo/reset` | 🌐 public | routes/auth.ts:553 |
 | `POST` | `/api/auth/workspace` | 🔒 auth | routes/auth.ts:571 |
 | `POST` | `/api/auth/onboarding-mode` | 🌐 public | routes/auth.ts:577 |
-| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:584 |
-| `POST` | `/api/auth/mfa/verify` | 🌐 public | routes/auth.ts:703 |
-| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:766 |
-| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:921 |
-| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:966 |
-| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:979 |
-| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1034 |
-| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1070 |
-| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1121 |
-| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1143 |
-| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1182 |
-| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1265 |
-| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1305 |
+| `POST` | `/api/auth/login-code` | 🌐 public | routes/auth.ts:593 |
+| `POST` | `/api/auth/login-code/verify` | 🌐 public | routes/auth.ts:621 |
+| `POST` | `/api/auth/login` | 🌐 public | routes/auth.ts:667 |
+| `POST` | `/api/auth/mfa/verify` | 🌐 public | routes/auth.ts:786 |
+| `POST` | `/api/auth/google` | 🌐 public | routes/auth.ts:849 |
+| `GET` | `/api/auth/me` | 🔒 auth | routes/auth.ts:1004 |
+| `GET` | `/api/auth/me/export` | 🔒 auth | routes/auth.ts:1049 |
+| `DELETE` | `/api/auth/me` | 🔒 auth | routes/auth.ts:1062 |
+| `POST` | `/api/auth/forgot-password` | 🌐 public | routes/auth.ts:1117 |
+| `POST` | `/api/auth/reset-password` | 🌐 public | routes/auth.ts:1153 |
+| `PUT` | `/api/auth/update-name` | 🔒 auth | routes/auth.ts:1204 |
+| `PUT` | `/api/auth/change-password` | 🔒 auth | routes/auth.ts:1226 |
+| `POST` | `/api/auth/refresh` | 🌐 public | routes/auth.ts:1265 |
+| `POST` | `/api/auth/logout` | 🌐 public | routes/auth.ts:1348 |
+| `POST` | `/api/auth/logout-all` | 🔒 auth | routes/auth.ts:1388 |
 
 ## businessApiKeys — Business API key management
 

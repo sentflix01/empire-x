@@ -39,9 +39,30 @@ export const NearbyMapDynamic = dynamic(
   { ssr: false, loading: () => <MapLoadingFallback /> }
 );
 
+/**
+ * The feed's own placeholder while it loads: the shape of the feed (post box
+ * and two posts), never "Loading map…" — that was the first thing a new
+ * account saw (new-user audit NU-9).
+ */
+export const FeedLoadingFallback = () => (
+  <div className="mx-auto max-w-xl space-y-4" role="status" aria-label="Loading your feed">
+    <div className="h-16 animate-pulse rounded-2xl border border-border/50 bg-card motion-reduce:animate-none" />
+    {[0, 1].map((i) => (
+      <div key={i} className="space-y-3 rounded-2xl border border-border/50 bg-card p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 animate-pulse rounded-full bg-secondary motion-reduce:animate-none" />
+          <div className="h-3 w-32 animate-pulse rounded bg-secondary motion-reduce:animate-none" />
+        </div>
+        <div className="h-3 w-full animate-pulse rounded bg-secondary motion-reduce:animate-none" />
+        <div className="h-3 w-2/3 animate-pulse rounded bg-secondary motion-reduce:animate-none" />
+      </div>
+    ))}
+  </div>
+);
+
 export const HomeDynamic = dynamic(
   () => import('@/views/Home'),
-  { ssr: false, loading: () => <MapLoadingFallback /> }
+  { ssr: false, loading: () => <FeedLoadingFallback /> }
 );
 
 // HomeMapTab — loaded only on client, completely isolated from Turbopack static analysis

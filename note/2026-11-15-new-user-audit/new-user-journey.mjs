@@ -48,7 +48,8 @@ const note = (area, issue, evidence) => findings.push({ area, issue, evidence: S
 /** Latest dev OTP for an address, as printed by utils/mailer.ts. */
 async function otpFor(addr, since) {
   for (let i = 0; i < 40; i++) {
-    const text = fs.readFileSync(LOG, 'utf8').slice(since);
+    // `since` is a byte offset (statSync size): slice the bytes, not the decoded characters.
+    const text = fs.readFileSync(LOG).subarray(since).toString('utf8');
     // eslint-disable-next-line no-control-regex
     const m = [...text.replace(/\x1b\[[0-9;]*m/g, '').matchAll(new RegExp(`DEV OTP for ${addr.replace(/[.+]/g, '\\$&')}: (\\d{6})`, 'g'))].pop();
     if (m) return m[1];
@@ -76,7 +77,7 @@ try {
   page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(`${page.url().replace(WEB, '')}: ${m.text().slice(0, 200)}`); });
   page.on('response', (r) => { if (r.status() >= 400 && !/favicon|_next\/static/.test(r.url())) failed.push(`${r.status()} ${r.request().method()} ${r.url().replace(WEB, '').replace(API, 'API')}`); });
   const tap = async (loc) => { await loc.click(); clicks++; };
-  const type = async (loc, text) => { await loc.fill(text); keys += text.length; };
+  const type = async (loc, text) => { await loc.fill(text); if (!loc.skipCount) keys += text.length; };
   const shot = (n) => page.screenshot({ path: path.join(OUT, `${String(journey.length).padStart(2, '0')}-${n}.png`) });
 
   // ── First visit ──────────────────────────────────────────────────────────
@@ -103,15 +104,22 @@ try {
   await shot('register');
 
   // ── Edge cases on the form ───────────────────────────────────────────────
-  const emailIn = page.locator('#email'); const pwIn = page.locator('#password'); const cfIn = page.locator('#confirm');
-  // Users tap the drawn 16 px box (the real checkbox is visually hidden).
-  const termsBox = page.locator('[data-page-guide="register-terms"] > div').first();
+  const emailIn = page.locator('#email'); const pwIn = page.locator('#password');
+  const hasConfirm = (await page.locator('#confirm').count()) > 0;
+  const cfIn = { skipCount: !hasConfirm, fill: async (v) => { if (hasConfirm) await page.locator('#confirm').fill(v); } };
+  // The terms box (a real checkbox since the fixes; before them a drawn 16 px box over a hidden input).
+  const realBox = page.locator('[data-page-guide="register-terms"] input[type=checkbox]:not(.sr-only)');
+  const termsBox = (await realBox.count()) ? realBox.first() : page.locator('[data-page-guide="register-terms"] > div').first();
   const terms = { isChecked: () => page.getByRole('checkbox').first().isChecked(), click: () => termsBox.click() };
   const tb = await termsBox.boundingBox();
-  step('Terms checkbox size on a phone', `${Math.round(tb?.width ?? 0)}×${Math.round(tb?.height ?? 0)} px drawn box (label text also toggles it, but its two links open new tabs)`);
+  step('Terms checkbox size on a phone', `${Math.round(tb?.width ?? 0)}×${Math.round(tb?.height ?? 0)} px box`);
   const submit = page.getByRole('button', { name: /Create account|Sign up|Continue/i }).last();
   await type(emailIn, 'selam@gmial'); await type(pwIn, 'short'); await type(cfIn, 'short');
-  if (await submit.isDisabled()) {
+  if (!(await submit.isDisabled())) {
+    await tap(submit); await page.waitForTimeout(400);
+    step('Tap "Create account" before ticking the terms box', JSON.stringify(await errorState(page)));
+    await tap(terms);
+  } else if (await submit.isDisabled()) {
     const why = await page.evaluate(() => { const b = [...document.querySelectorAll('button[type=submit]')].pop(); return b?.getAttribute('aria-describedby') || b?.title || ''; });
     step('Tap "Create account" with every field filled', `nothing happens: the button is disabled (grey) until the terms box is ticked; reason shown: "${why}"`);
     note('Signup', 'Create account is disabled until the terms box is ticked, and nothing says why', 'disabled={!agreed || ...} in views/Register.tsx; no hint near the button');
@@ -126,12 +134,21 @@ try {
   await tap(submit); await page.waitForTimeout(800);
   es = await errorState(page);
   step('Valid email, short password', JSON.stringify(es));
-  await type(pwIn, password); await type(cfIn, password + 'x');
-  await tap(submit); await page.waitForTimeout(500);
-  es = await errorState(page);
-  step('Passwords do not match', JSON.stringify(es));
-  if (!es.announced.length) note('Accessibility', 'Sign-up errors are not announced to screen readers', JSON.stringify(es));
-  if (!es.invalidFields.length) note('Accessibility', 'Sign-up errors are not tied to the field (no aria-invalid / aria-describedby)', JSON.stringify(es));
+  if (hasConfirm) {
+    await type(pwIn, password); await type(cfIn, password + 'x');
+    await tap(submit); await page.waitForTimeout(500);
+    es = await errorState(page);
+    step('Passwords do not match', JSON.stringify(es));
+    if (!es.announced.length) note('Accessibility', 'Sign-up errors are not announced to screen readers', JSON.stringify(es));
+    if (!es.invalidFields.length) note('Accessibility', 'Sign-up errors are not tied to the field (no aria-invalid / aria-describedby)', JSON.stringify(es));
+  } else {
+    // One password field with show/hide: no "passwords do not match" to get wrong.
+    await type(pwIn, 'short'); await tap(submit); await page.waitForTimeout(400);
+    es = await errorState(page);
+    step('Short password (one field, rule shown)', JSON.stringify(es));
+    if (!es.announced.length) note('Accessibility', 'Sign-up errors are not announced to screen readers', JSON.stringify(es));
+    if (!es.invalidFields.length) note('Accessibility', 'Sign-up errors are not tied to the field (no aria-invalid / aria-describedby)', JSON.stringify(es));
+  }
   // Very long and unicode input.
   await type(emailIn, `${'a'.repeat(300)}@example.com`); await type(pwIn, password); await type(cfIn, password);
   await tap(submit); await page.waitForTimeout(800);
@@ -151,7 +168,9 @@ try {
   // Wrong code first.
   await page.getByLabel('Verification code').fill('000000'); keys += 6;
   const verify = page.getByRole('button', { name: /Verify|Confirm|Continue/i }).first();
-  await tap(verify); await page.waitForTimeout(800);
+  // Since the fixes the code is checked as soon as 6 digits are in; press Verify only if it is still waiting.
+  await page.waitForTimeout(800);
+  if ((await page.getByLabel('Verification code').inputValue()) === '000000' && await verify.isEnabled()) { await tap(verify); await page.waitForTimeout(800); }
   step('Enter a wrong code', JSON.stringify(await errorState(page)));
   // As a person does: tap the boxes, delete the old digits, type the new ones.
   const kept = await page.getByLabel('Verification code').inputValue();
@@ -161,19 +180,23 @@ try {
   await page.keyboard.type(otp, { delay: 60 }); keys += 6;
   await page.waitForTimeout(300);
   const tVerify = Date.now();
-  if (await verify.isEnabled()) await tap(verify);
+  await page.waitForTimeout(600);
+  if (/register/.test(page.url()) && await verify.isEnabled()) await tap(verify);
   await page.waitForURL((u) => !/register/.test(u.pathname), { timeout: 20000 });
   await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(400);
   step('Enter the code from the email', `→ ${new URL(page.url()).pathname} after ${Date.now() - tVerify} ms`);
   await shot('first-screen-signed-in');
   const signedUpAt = Date.now();
   const firstScreen = await page.evaluate(() => ({ h: [...document.querySelectorAll('h1,h2')].slice(0, 4).map((e) => e.textContent.trim().replace(/\s+/g, ' ')), dialogs: [...document.querySelectorAll('[role=dialog]')].map((d) => (d.getAttribute('aria-label') || d.textContent).trim().slice(0, 80)) }));
   step('First screen after sign-up', JSON.stringify(firstScreen), { time_to_account_s: ((signedUpAt - t0) / 1000).toFixed(1) });
 
-  // The app may move a new user to /onboarding a moment after the feed shows.
+  // Before the fixes the app moved a new user from the feed to /onboarding a moment later.
+  const landedOn = new URL(page.url()).pathname;
   await page.waitForTimeout(3000);
   if (/onboarding/.test(page.url())) {
-    step('A moment later the app jumps from the feed to onboarding', `→ ${new URL(page.url()).pathname} (anything typed in the feed is lost)`);
+    step(landedOn.includes('onboarding') ? 'Name screen straight after the code' : 'A moment later the app jumps from the feed to onboarding',
+      landedOn.includes('onboarding') ? '→ /onboarding directly (nothing to lose)' : `→ ${new URL(page.url()).pathname} (anything typed in the feed is lost)`);
     await shot('onboarding');
     const ob = await page.evaluate(() => [...document.querySelectorAll('label')].map((l) => l.textContent.trim()).filter(Boolean));
     step('Onboarding asks for', ob.join(', '));
@@ -229,6 +252,25 @@ try {
   await page.waitForURL((u) => !/login/.test(u.pathname), { timeout: 20000 });
   step('Log in with the right password', `→ ${new URL(page.url()).pathname}`);
 
+  // Sign in with an emailed code (added by the fixes, if offered).
+  {
+    const c = await browser.newContext({ ...devices['iPhone 13'] });
+    const q = await c.newPage();
+    await q.goto(`${WEB}/login`, { waitUntil: 'networkidle' });
+    const codeBtn = q.getByRole('button', { name: /Email me a sign-in code/i });
+    if (await codeBtn.count()) {
+      const t1 = Date.now(); const size = fs.statSync(LOG).size;
+      await codeBtn.click(); await q.locator('#email').fill(email);
+      await q.getByRole('button', { name: /Send me a code/i }).click();
+      const code = await otpFor(email, size);
+      await q.getByLabel('Sign-in code').waitFor({ timeout: 10000 });
+      await q.keyboard.type(code || '000000', { delay: 40 });
+      await q.waitForURL((u) => !/login/.test(u.pathname), { timeout: 15000 }).catch(() => {});
+      step('Sign in with an emailed code (no password)', `→ ${new URL(q.url()).pathname} in ${((Date.now() - t1) / 1000).toFixed(1)} s`);
+    } else step('Sign in with an emailed code', 'not offered');
+    await c.close();
+  }
+
   // Forgot / reset password.
   const ctx2 = await browser.newContext({ ...devices['iPhone 13'] });
   const p2 = await ctx2.newPage();
@@ -255,8 +297,10 @@ try {
   const ctx3 = await browser.newContext({ ...devices['iPhone 13'] });
   const p3 = await ctx3.newPage();
   await p3.goto(`${WEB}/register`, { waitUntil: 'networkidle' });
-  await p3.locator('#email').fill(email); await p3.locator('#password').fill(password); await p3.locator('#confirm').fill(password);
-  await p3.locator('[data-page-guide="register-terms"] > div').first().click();
+  await p3.locator('#email').fill(email); await p3.locator('#password').fill(password);
+  if (await p3.locator('#confirm').count()) await p3.locator('#confirm').fill(password);
+  const box3 = p3.locator('[data-page-guide="register-terms"] input[type=checkbox]:not(.sr-only)');
+  if (await box3.count()) await box3.check(); else await p3.locator('[data-page-guide="register-terms"] > div').first().click();
   await p3.getByRole('button', { name: /Create account|Sign up|Continue/i }).last().click();
   await p3.waitForTimeout(1000);
   step('Sign up again with the same email', JSON.stringify(await errorState(p3)));

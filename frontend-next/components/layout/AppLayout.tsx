@@ -1,4 +1,5 @@
 'use client';
+import { userInitial as initialOf } from '@/lib/userInitial';
 import React, { useState, useEffect, useRef } from "react";
 import { entities } from "@/lib/api/entities";
 import client from "@/lib/api/client";
@@ -223,7 +224,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const tr = (key: string) => String(t(key));
   const displayName = typeof user?.full_name === 'string' ? user.full_name : (hasSignedInUser ? 'Account' : 'Guest');
   const userEmail = typeof user?.email === 'string' ? user.email : '';
-  const userInitial = typeof user?.full_name === 'string' ? (user.full_name.charAt(0) || 'U') : 'G';
+  const userInitial = initialOf(user);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(true);

@@ -1259,6 +1259,52 @@
         "x-source": "backend/routes/auth.ts:577"
       }
     },
+    "/api/auth/login-code": {
+      "post": {
+        "operationId": "post_auth_login_code",
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /api/auth/login-code",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "public",
+        "x-source": "backend/routes/auth.ts:593"
+      }
+    },
+    "/api/auth/login-code/verify": {
+      "post": {
+        "operationId": "post_auth_login_code_verify",
+        "tags": [
+          "auth"
+        ],
+        "summary": "POST /api/auth/login-code/verify",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        },
+        "x-auth": "public",
+        "x-source": "backend/routes/auth.ts:621"
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "post_auth_login",
@@ -1279,7 +1325,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:584"
+        "x-source": "backend/routes/auth.ts:667"
       }
     },
     "/api/auth/mfa/verify": {
@@ -1302,7 +1348,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:703"
+        "x-source": "backend/routes/auth.ts:786"
       }
     },
     "/api/auth/google": {
@@ -1325,7 +1371,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:766"
+        "x-source": "backend/routes/auth.ts:849"
       }
     },
     "/api/auth/me": {
@@ -1352,7 +1398,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:921"
+        "x-source": "backend/routes/auth.ts:1004"
       },
       "delete": {
         "operationId": "delete_auth_me",
@@ -1377,7 +1423,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:979"
+        "x-source": "backend/routes/auth.ts:1062"
       }
     },
     "/api/auth/me/export": {
@@ -1404,7 +1450,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:966"
+        "x-source": "backend/routes/auth.ts:1049"
       }
     },
     "/api/auth/forgot-password": {
@@ -1427,7 +1473,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:1034"
+        "x-source": "backend/routes/auth.ts:1117"
       }
     },
     "/api/auth/reset-password": {
@@ -1450,7 +1496,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:1070"
+        "x-source": "backend/routes/auth.ts:1153"
       }
     },
     "/api/auth/update-name": {
@@ -1480,7 +1526,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:1121"
+        "x-source": "backend/routes/auth.ts:1204"
       }
     },
     "/api/auth/change-password": {
@@ -1510,7 +1556,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:1143"
+        "x-source": "backend/routes/auth.ts:1226"
       }
     },
     "/api/auth/refresh": {
@@ -1533,7 +1579,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:1182"
+        "x-source": "backend/routes/auth.ts:1265"
       }
     },
     "/api/auth/logout": {
@@ -1556,7 +1602,7 @@
           }
         },
         "x-auth": "public",
-        "x-source": "backend/routes/auth.ts:1265"
+        "x-source": "backend/routes/auth.ts:1348"
       }
     },
     "/api/auth/logout-all": {
@@ -1586,7 +1632,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/auth.ts:1305"
+        "x-source": "backend/routes/auth.ts:1388"
       }
     },
     "/api/business-api-keys": {

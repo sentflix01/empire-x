@@ -248,6 +248,13 @@ function Home() {
           <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-hover transition-colors">Join Free</Link>
         </div>
       )}
+      {/* Signed in: the post box comes first, so the first thing to do is on the
+          first screen of a phone (new-user audit NU-10). */}
+      {user && !isNearbyActive && (
+        <div data-page-guide="feed-create-post">
+          <CreatePostForm user={user} onPostCreated={handlePostCreated} />
+        </div>
+      )}
       <FeedPromoBanner isAuthenticated={isAuthenticated} />
 
       {/* Company-owned announcements. This is intentionally separate from user profile/post tickers. */}
@@ -286,15 +293,9 @@ function Home() {
       {/* Feed content */}
       {!isNearbyActive && (
         <>
-          {/* Stories — always visible */}
-          <Stories />
+          {/* Stories need an account (guests got a 401 and an "Add Story" they could not use; NU-13). */}
+          {user && <Stories />}
 
-          {/* Create Post — always visible */}
-          {user && (
-            <div data-page-guide="feed-create-post">
-              <CreatePostForm user={user} onPostCreated={handlePostCreated} />
-            </div>
-          )}
 
           {/* Business Showroom Feed */}
           {feedMode === "business" && (
