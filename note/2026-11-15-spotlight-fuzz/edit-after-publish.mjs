@@ -147,8 +147,9 @@ try {
   await field(p, 'Your story').fill(`We weave every scarf by hand ${tag}.`);
   // Custom colour.
   await p.getByRole('button', { name: /Style: colours and lettering/ }).click();
-  const code = p.getByLabel('Colour 1 code');
-  await code.fill('#0f766e'); await code.press('Enter');
+  // Pick by name, as owners do now: Deep teal (#0f766e).
+  await p.getByRole('button', { name: /Change main colour/ }).click();
+  await p.getByRole('radio', { name: 'Deep teal' }).click();
   await p.keyboard.press('Escape');
   // Spotlight: choose About us and save.
   await p.getByRole('button', { name: /More options/ }).click();
