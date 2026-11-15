@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 
+// jsdom has no layout, so it lacks document.elementFromPoint, which every browser
+// has. input-otp (the code boxes) calls it on a timer once focused (its
+// password-manager badge check), which jsdom reported as an uncaught error.
+if (typeof document !== 'undefined' && typeof document.elementFromPoint !== 'function') {
+  Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: () => null });
+}
+
 // Configurable mock for next/navigation
 const searchParamsStore = new Map<string, string>();
 
