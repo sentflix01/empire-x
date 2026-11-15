@@ -38,6 +38,8 @@ const HEX_EXEMPT = new Set([
   'lib/builderSections.ts', 'lib/showroomTaxonomy.ts', 'lib/businessTemplates.ts', 'lib/layoutTemplates.ts',
   'lib/showroomTemplateSamples.ts', 'views/ShowroomCreate.tsx', 'components/showroom/CategoryWizard.tsx',
   'components/showroom/BuilderPreview.tsx', 'views/ProfileEdit.tsx', 'views/BusinessCreate.tsx',
+  // The named colours owners pick for their site in Studio's Style menu.
+  'lib/colourNames.ts',
   // The logo artwork's own colours, which must match public/brand/*-v3.svg.
   'lib/brand/logoColors.ts',
   // Other companies' brand colours (Google sign-in, Telegram, WhatsApp).

@@ -1,7 +1,8 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Check, Expand, FolderOpen, Monitor, MoreHorizontal, Palette, Smartphone, Tablet, HelpCircle, Save, Sparkles, Trash2, Zap } from 'lucide-react';
 import { COLOR_PRESETS } from '@/lib/builderSections';
+import { COLOUR_PALETTE, colourName } from '@/lib/colourNames';
 import { contrastRatio } from '@/lib/contrast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
@@ -12,7 +13,7 @@ export type PreviewMode = 'desktop' | 'tablet' | 'mobile';
 
 const triggerClass = 'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-secondary';
 // Scrolls inside the space Radix measures, so a long menu never runs off a short screen.
-const panelClass = 'w-[min(20rem,calc(100vw-1.5rem))] max-h-[min(var(--radix-popover-content-available-height,80dvh),calc(100dvh-1rem))] overflow-y-auto overscroll-contain space-y-4 p-4';
+const panelClass = 'w-[min(21rem,calc(100vw-1.5rem))] max-h-[min(var(--radix-popover-content-available-height,80dvh),calc(100dvh-1rem))] overflow-y-auto overscroll-contain space-y-4 p-4';
 
 function ToggleRow({ label, hint, checked, onChange }: { label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -108,24 +109,94 @@ export function StyleMenu(p: StyleMenuProps) {
 const HEX6 = /^#[0-9a-f]{6}$/i;
 const sameColour = (a: string, b: string) => String(a).toLowerCase() === String(b).toLowerCase();
 
-/** One colour: the system colour picker plus its hex code, typed or pasted. */
-function ColourField({ label, value, onChange }: { label: string; value: string; onChange: (hex: string) => void }) {
+/**
+ * One colour, chosen by sight and name — no codes needed (owner, 15 Nov 2026:
+ * "users have no idea of the colour code"). The row shows the colour and its
+ * name in words; Change opens a grid of named colours (one column per colour
+ * family, light to dark), the device's full picker for anything else, and —
+ * folded away — a brand colour code for companies that have one.
+ */
+function ColourChoice({ label, value, onChange }: { label: string; value: string; onChange: (hex: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [showCode, setShowCode] = useState(false);
   const [text, setText] = useState(value);
   useEffect(() => { setText(value); }, [value]);
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const valid = HEX6.test(text.trim());
-  const id = `colour-${label.replace(/\s+/g, '-').toLowerCase()}`;
+  const slug = label.replace(/\s+/g, '-').toLowerCase();
+  const current = HEX6.test(value) ? value.toLowerCase() : '#2563eb';
   const commit = () => { const v = text.trim(); if (HEX6.test(v)) onChange(v.toLowerCase()); else setText(value); };
+  const selectedIndex = COLOUR_PALETTE.findIndex((c) => c.hex === current);
+  // Families are columns (8), shades are rows; neutrals are the last row.
+  const COLS = 8;
+  const ordered = [
+    ...[0, 1, 2, 3].flatMap((row) => COLOUR_PALETTE.filter((c) => c.shade !== 'neutral').filter((_, i) => i % 4 === row)),
+    ...COLOUR_PALETTE.filter((c) => c.shade === 'neutral'),
+  ];
+  const focusAt = (i: number) => gridRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[i]?.focus();
+  const onKey = (e: React.KeyboardEvent, i: number) => {
+    const n = ordered.length;
+    const next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'ArrowDown' ? i + COLS : e.key === 'ArrowUp' ? i - COLS : -1;
+    if (next < 0 && !['ArrowLeft', 'ArrowUp'].includes(e.key)) return;
+    e.preventDefault();
+    const j = Math.max(0, Math.min(n - 1, next));
+    focusAt(j);
+    onChange(ordered[j].hex);
+  };
+  const tabStop = Math.max(0, ordered.findIndex((c) => c.hex === current));
   return (
-    <div className="flex items-center gap-2">
-      <input type="color" aria-label={`${label}: pick a colour`} value={HEX6.test(value) ? value.toLowerCase() : '#2563eb'}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-11 shrink-0 cursor-pointer rounded-full border border-border bg-transparent p-0.5 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0 [&::-moz-color-swatch]:rounded-full" />
-      <label htmlFor={id} className="sr-only">{label} code</label>
-      <input id={id} type="text" inputMode="text" spellCheck={false} maxLength={7} value={text}
-        onChange={(e) => setText(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
-        onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
-        aria-invalid={!valid}
-        className={`h-11 w-full min-w-0 rounded-xl border bg-background px-3 font-mono text-sm uppercase ${valid ? 'border-border' : 'border-destructive'}`} />
+    <div className="space-y-2">
+      <div className="flex items-center gap-3">
+        <span aria-hidden="true" className="h-10 w-10 shrink-0 rounded-full ring-1 ring-border" style={{ background: current }} />
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="text-sm font-medium">{label}</p>
+          <p className="truncate text-xs text-muted-foreground" data-testid={`${slug}-name`}>{colourName(current)}</p>
+        </div>
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls={`${slug}-grid`}
+          aria-label={`${open ? 'Done' : 'Change'} ${label.toLowerCase()}`}
+          className="inline-flex h-9 shrink-0 items-center rounded-full border border-border bg-background px-3 text-sm font-medium hover:bg-secondary">
+          {open ? 'Done' : 'Change'}
+        </button>
+      </div>
+      {open && (
+        <div id={`${slug}-grid`} className="space-y-2 rounded-xl bg-secondary/40 p-2">
+          <div ref={gridRef} role="radiogroup" aria-label={`${label}: pick a colour`} className="grid grid-cols-8 gap-1.5">
+            {ordered.map((c, i) => {
+              const on = c.hex === current;
+              return (
+                <button key={c.hex} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name}
+                  tabIndex={i === tabStop ? 0 : -1} onKeyDown={(e) => onKey(e, i)} onClick={() => onChange(c.hex)}
+                  style={{ background: c.hex }}
+                  className={`flex h-7 w-7 items-center justify-center justify-self-center rounded-full ring-offset-1 ring-offset-background ${on ? 'ring-2 ring-foreground' : 'ring-1 ring-black/10'}`}>
+                  {on && <Check className="h-3.5 w-3.5 text-white drop-shadow" aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+          {selectedIndex < 0 && <p className="text-xs text-muted-foreground">Your colour now: {colourName(current)} (not in the grid).</p>}
+          {/* The device's full colour picker, for any colour at all. */}
+          <label className="relative flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm font-medium hover:bg-background">
+            <Palette className="h-4 w-4" aria-hidden="true" />Any other colour…
+            <input type="color" value={current} onChange={(e) => onChange(e.target.value)} aria-label={`${label}: any other colour`}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+          </label>
+          <button type="button" onClick={() => setShowCode((v) => !v)} aria-expanded={showCode}
+            className="w-full text-left text-xs font-medium text-muted-foreground underline-offset-2 hover:underline">
+            Have a brand colour code?
+          </button>
+          {showCode && (
+            <div>
+              <label htmlFor={`colour-${slug}`} className="sr-only">{label} code</label>
+              <input id={`colour-${slug}`} type="text" inputMode="text" spellCheck={false} maxLength={7} value={text} placeholder="#2563EB"
+                onChange={(e) => setText(e.target.value.startsWith('#') ? e.target.value : `#${e.target.value}`)}
+                onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
+                aria-invalid={!valid} aria-describedby={`colour-${slug}-hint`}
+                className={`h-10 w-full min-w-0 rounded-lg border bg-background px-3 font-mono text-sm uppercase ${valid ? 'border-border' : 'border-destructive'}`} />
+              <p id={`colour-${slug}-hint`} className="mt-1 text-[11px] text-muted-foreground">Six letters or numbers after #, e.g. #2563EB.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -141,8 +212,10 @@ function CustomColours({ colors, onColors }: { colors: [string, string]; onColor
   return (
     <div className="mt-3 space-y-2 rounded-xl border border-border p-3" data-testid="custom-colours">
       <p className="text-xs font-semibold">Your colours</p>
-      <ColourField label="Colour 1" value={colors[0]} onChange={(c) => onColors(c, one ? c : colors[1])} />
-      {!one && <ColourField label="Colour 2" value={colors[1]} onChange={(c) => onColors(colors[0], c)} />}
+      {/* How they look together on the site. */}
+      <div aria-hidden="true" className="h-3 rounded-full" style={{ background: `linear-gradient(90deg,${colors[0]},${one ? colors[0] : colors[1]})` }} />
+      <ColourChoice label="Main colour" value={colors[0]} onChange={(c) => onColors(c, one ? c : colors[1])} />
+      {!one && <ColourChoice label="Second colour" value={colors[1]} onChange={(c) => onColors(colors[0], c)} />}
       <ToggleRow label="Use one colour" hint="No gradient: the same colour everywhere" checked={one}
         onChange={(v) => { setOne(v); if (v) onColors(colors[0], colors[0]); }} />
       {light && (

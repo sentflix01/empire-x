@@ -9,7 +9,7 @@
  * - the hero button stays readable on a light colour.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import React from 'react';
 
 const api = vi.hoisted(() => ({ apiFetch: vi.fn() }));
@@ -165,24 +165,46 @@ describe('StyleMenu colours', () => {
     expect(screen.getByTestId('custom-colour-swatch')).toBeTruthy();
   });
 
-  it('lets the owner pick any colour, by picker or by code', () => {
+  it('picks colours by sight and name, no code needed (owner, 15 Nov 2026)', () => {
     const onColors = open(['#2563EB', '#7C3AED']);
-    expect(screen.queryByTestId('custom-colour-swatch')).toBeNull(); // a preset is selected
-    fireEvent.change(screen.getByLabelText('Colour 1: pick a colour'), { target: { value: '#ff6600' } });
+    expect(screen.getByTestId('main-colour-name').textContent).toBe('Blue');
+    expect(screen.getByTestId('second-colour-name').textContent).toBe('Purple');
+    // No colour codes on show until asked for.
+    expect(screen.queryByLabelText('Main colour code')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Change main colour/ }));
+    const grid = screen.getByRole('radiogroup', { name: 'Main colour: pick a colour' });
+    fireEvent.click(within(grid).getByRole('radio', { name: 'Deep teal' }));
+    expect(onColors).toHaveBeenLastCalledWith('#0f766e', '#7C3AED');
+    // The device's full picker for any other colour.
+    fireEvent.change(screen.getByLabelText('Main colour: any other colour'), { target: { value: '#ff6600' } });
     expect(onColors).toHaveBeenLastCalledWith('#ff6600', '#7C3AED');
-    const code = screen.getByLabelText('Colour 2 code');
+  });
+
+  it('arrow keys move through the colours', () => {
+    const onColors = open(['#2563EB', '#7C3AED']);
+    fireEvent.click(screen.getByRole('button', { name: /Change main colour/ }));
+    const current = screen.getByRole('radio', { name: 'Blue' });
+    expect(current.getAttribute('aria-checked')).toBe('true');
+    fireEvent.keyDown(current, { key: 'ArrowRight' });
+    expect(onColors).toHaveBeenLastCalledWith('#7c3aed', '#7C3AED');
+  });
+
+  it('a brand colour code is still possible, folded away and checked', () => {
+    const onColors = open(['#2563EB', '#7C3AED']);
+    fireEvent.click(screen.getByRole('button', { name: /Change second colour/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Have a brand colour code?' }));
+    const code = screen.getByLabelText('Second colour code');
+    fireEvent.change(code, { target: { value: '#12' } });
+    expect(code.getAttribute('aria-invalid')).toBe('true');
+    fireEvent.blur(code);
+    expect(onColors).not.toHaveBeenCalled();
     fireEvent.change(code, { target: { value: '222222' } });
     fireEvent.keyDown(code, { key: 'Enter' });
     expect(onColors).toHaveBeenLastCalledWith('#2563EB', '#222222');
   });
 
-  it('ignores an invalid code and offers a single colour', () => {
+  it('offers a single colour', () => {
     const onColors = open(['#2563EB', '#7C3AED']);
-    const code = screen.getByLabelText('Colour 1 code');
-    fireEvent.change(code, { target: { value: '#12' } });
-    expect(code.getAttribute('aria-invalid')).toBe('true');
-    fireEvent.blur(code);
-    expect(onColors).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('switch', { name: 'Use one colour' }));
     expect(onColors).toHaveBeenLastCalledWith('#2563EB', '#2563EB');
   });

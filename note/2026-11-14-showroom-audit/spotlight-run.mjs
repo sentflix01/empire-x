@@ -109,10 +109,14 @@ try {
   // The current colours are always shown as selected: a preset swatch or the Custom one.
   const selectedPreset = await page.locator('[aria-pressed="true"][aria-label^="Colour "]').count();
   check('Style menu shows the current colours as selected', selectedPreset === 1 || await visible(page.getByTestId('custom-colour-swatch'), 3000), `presets pressed: ${selectedPreset}`);
-  await page.getByLabel('Colour 1 code').fill('#ff6600');
-  await page.getByLabel('Colour 1 code').press('Enter');
-  await page.getByLabel('Colour 2 code').fill('#222222');
-  await page.getByLabel('Colour 2 code').press('Enter');
+  // Colour codes are folded away since 15 Nov 2026 (people pick by name); brand codes still work.
+  for (const [which, hex] of [['main', '#ff6600'], ['second', '#222222']]) {
+    await page.getByRole('button', { name: new RegExp(`Change ${which} colour`) }).click();
+    await page.getByRole('button', { name: 'Have a brand colour code?' }).last().click();
+    const code = page.getByLabel(`${which === 'main' ? 'Main' : 'Second'} colour code`);
+    await code.fill(hex); await code.press('Enter');
+    await page.getByRole('button', { name: new RegExp(`Done ${which} colour`) }).click();
+  }
   await page.waitForTimeout(500);
   await page.screenshot({ path: path.join(OUT, 'colours-1280.png') });
   const heroBg = await page.locator('#section-0').first().evaluate((el) => getComputedStyle(el).backgroundImage).catch(() => '');
