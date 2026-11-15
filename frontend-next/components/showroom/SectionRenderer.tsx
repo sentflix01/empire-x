@@ -605,7 +605,7 @@ export default function SectionRenderer({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {stats.map((st, i) => (
             <div key={i} className="p-4 rounded-xl border border-border/40 bg-card text-center">
-              <p className="biz-text text-2xl font-bold" style={{ ...themeTextStyle(themeColor) }}>{st.number}</p>
+              <p className="biz-text text-2xl font-bold" style={{ ...themeTextStyle(themeColor) }}>{st.number ?? st.value}</p>
               <p className="text-xs text-muted-foreground mt-1">{st.label}</p>
             </div>
           ))}

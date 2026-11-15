@@ -2,7 +2,7 @@
 
 > Standards for building components in `frontend-next/`.
 > Follow these so any developer can read, contribute, and extend without asking questions.
-> Last updated: 2026-11-14
+> Last updated: 2026-11-15
 
 ---
 
@@ -215,7 +215,14 @@ pinned on top on phones. The owner chooses any section the strip can draw
 `chosenSlides()` says which choices show and which are still empty. Nothing is
 saved until **Save** (fixed footer with Cancel); Esc or ✕ with unsaved changes
 asks Save / Discard / Keep editing. Without a saved site the choice is kept in
-Studio and sent with the next draft or publish.
+Studio and sent with the next draft or publish. The strip (`BusinessSpotlight`) draws only
+sections that produce cards: a section "has content" exactly when
+`spotlightTiles` returns a card. It keeps the active tab by section and
+reports what it drew (`onShownChange`), so the preview header always agrees.
+When a live site is edited, Studio keeps unpublished changes per site
+(`…:edit:<id>`) with the live version they started from. On return it shows
+"Not live yet" (Discard) or "Updated elsewhere" (Use my older changes / Keep
+live version).
 `StyleMenu` has the colour presets plus **Your colours**: two colour pickers
 with hex fields and "Use one colour"; the site's current colours always show as
 selected (a preset or the Custom swatch). Light colours stay readable: the site

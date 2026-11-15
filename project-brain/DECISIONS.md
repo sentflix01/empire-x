@@ -988,6 +988,20 @@ items in the open list until confirmed.
   - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
   - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (21 checks).
 
+### 2026-11-15 — Spotlight: "has content" means "draws a card"; a live site's unpublished changes are kept
+
+- **Status:** Accepted (owner, 15 Nov 2026: the Spotlight preview disappeared when ticking back and forth; "test what happens when the owner comes back to update a published showroom"). Report: `note/2026-11-15-spotlight-fuzz/report.md`.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. A section counts as having Spotlight content exactly when it draws at least one card (`spotlightTiles`). Catalogue sections still need products, offers must be running, and Automatic still wants a picture for About. A tab never shows blank, and one empty tab never hides the others.
+  2. The strip remembers the active tab by section, scrolls only its own tab row, and loads products whenever they become needed. The preview header and the panel count what the strip really draws.
+  3. When an owner edits a live site, changes are kept on the device under that site's own key, together with the live version they started from. On the next visit:
+     - **Same live version:** the changes come back with "Not live yet" and **Discard changes**.
+     - **Site updated elsewhere since:** the newer live version opens, and the older changes are offered with **Use my older changes** / **Keep live version**.
+     - Nothing is lost, and nothing is applied silently.
+  4. Samples store numbers as `number`. Older sites that stored `value` still show and edit correctly.
+- **Consequences:** `lib/spotlight.ts`, `lib/spotlightTiles.ts`, `components/feed/BusinessSpotlight.tsx`, `components/showroom/studio/FeedSpotlightPanel.tsx`, `FeedSpotlightPreview.tsx`, `views/ShowroomCreate.tsx`, `lib/showroomSectionsCodec.ts`, `lib/showroomTemplateSamples.ts`, `components/showroom/SectionRenderer.tsx`; tests `test/showroom/spotlightStable.test.tsx`, `test/showroom/editReturn.test.tsx`; real-stack scripts in `note/2026-11-15-spotlight-fuzz/`.
+
 ### 2026-11-14 — Touch targets: a bigger hit area, never a bigger shape
 
 - **Status:** Accepted (owner, 14 Nov 2026: switches and buttons looked deformed "in so many places, especially on mobile").

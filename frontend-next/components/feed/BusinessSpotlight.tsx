@@ -41,6 +41,8 @@ export interface BusinessSpotlightProps {
   visitHref?: string;
   /** Load products right away instead of when the card scrolls into view (tests, previews). */
   eager?: boolean;
+  /** Studio's preview: told which section types the strip really draws, once products are known. */
+  onShownChange?: (types: string[]) => void;
 }
 
 function useInView<T extends Element>(eager: boolean) {
@@ -65,7 +67,7 @@ const frame = 'border-t border-border/40 overflow-hidden';
 
 export default function BusinessSpotlight({
   sections, spotlightMode, spotlightSectionIds, themeColor, ownerId, businessId,
-  profile = {}, onBuy, isOwner = false, visitHref, eager = false,
+  profile = {}, onBuy, isOwner = false, visitHref, eager = false, onShownChange,
 }: BusinessSpotlightProps) {
   const [rootRef, inView] = useInView<HTMLElement>(eager);
   const hasCatalogue = useMemo(() => sections.some((s) => isCatalogueSection(s?.type)), [sections]);
@@ -75,12 +77,19 @@ export default function BusinessSpotlight({
     [sections, spotlightMode, spotlightSectionIds, hasCatalogue],
   );
   const [products, setProducts] = useState<Array<Record<string, any>>>([]);
-  const [productsLoaded, setProductsLoaded] = useState(!needsProducts);
-  const [active, setActive] = useState(0);
+  // 'idle' until products are first needed, then loaded once. Decided per
+  // render (not frozen at the first one): a catalogue tab ticked later in
+  // Studio still loads them (owner, 15 Nov 2026).
+  const [productsState, setProductsState] = useState<'idle' | 'done'>('idle');
+  const productsLoaded = !needsProducts || productsState === 'done';
+  // The active tab is remembered by section, so adding, removing or moving
+  // other tabs never switches what the visitor is looking at.
+  const [activeType, setActiveType] = useState<string | null>(null);
   const panelId = `spotlight-${useId().replace(/:/g, "")}`;
+  const tablistRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!needsProducts || !inView || productsLoaded) return;
+    if (!needsProducts || !inView || productsState === 'done') return;
     let cancelled = false;
     const params: Record<string, string | number> = { status: 'active', limit: PRODUCT_LIMIT };
     if (businessId) params.business_id = businessId; else params.seller_id = ownerId;
@@ -91,24 +100,43 @@ export default function BusinessSpotlight({
         setProducts(rows.slice(0, PRODUCT_LIMIT));
       })
       .catch(() => { /* no catalogue cards without products */ })
-      .finally(() => { if (!cancelled) setProductsLoaded(true); });
+      .finally(() => { if (!cancelled) setProductsState('done'); });
     return () => { cancelled = true; };
-  }, [needsProducts, inView, productsLoaded, businessId, ownerId]);
+  }, [needsProducts, inView, productsState, businessId, ownerId]);
 
+  // Every slide with the cards it draws; a slide that draws nothing is dropped
+  // so one empty tab never blanks the whole strip.
   const slides = useMemo(() => {
-    const picked = resolveSpotlight(sections, spotlightMode, spotlightSectionIds, products.length).slides;
+    const withTiles = (list: Array<{ section: SpotlightSection; index: number }>) => list
+      .map((sl) => ({ ...sl, tiles: spotlightTiles(sl.section, isCatalogueSection(sl.section.type) ? products : []) }))
+      .filter((sl) => sl.tiles.length > 0);
+    const picked = withTiles(resolveSpotlight(sections, spotlightMode, spotlightSectionIds, products.length).slides);
     if (picked.length > 0 || hasCatalogue || products.length === 0 || spotlightMode === 'off') return picked;
     // Nothing on the site to show, but the business sells products: show those.
-    return [{ section: { type: 'products', title: 'Products' } as SpotlightSection, index: sections.length }];
-  }, [sections, spotlightMode, spotlightSectionIds, products.length, hasCatalogue]);
+    return withTiles([{ section: { type: 'products', title: 'Products' } as SpotlightSection, index: sections.length }]);
+  }, [sections, spotlightMode, spotlightSectionIds, products, hasCatalogue]);
 
-  useEffect(() => { if (active >= slides.length) setActive(0); }, [active, slides.length]);
+  const activeIndex = Math.max(0, slides.findIndex((sl) => String(sl.section.type) === activeType));
+  const current = slides[activeIndex];
+  const tiles = current?.tiles ?? [];
+  const active = activeIndex;
+  const setActive = useCallback((i: number) => setActiveType(String(slides[i]?.section.type ?? '') || null), [slides]);
 
-  const current = slides[Math.min(active, Math.max(0, slides.length - 1))];
-  const tiles = useMemo(
-    () => (current ? spotlightTiles(current.section, isCatalogueSection(current.section.type) ? products : []) : []),
-    [current, products],
-  );
+  const shownKey = productsLoaded ? slides.map((sl) => String(sl.section.type)).join(',') : null;
+  const onShownRef = useRef(onShownChange);
+  onShownRef.current = onShownChange;
+  useEffect(() => { if (shownKey !== null) onShownRef.current?.(shownKey ? shownKey.split(',') : []); }, [shownKey]);
+
+  // Keep the active tab visible by scrolling the tab row sideways only; never
+  // scrollIntoView, which also scrolls the page and Studio's preview pane.
+  useEffect(() => {
+    const row = tablistRef.current;
+    const tab = row?.querySelectorAll<HTMLElement>('[role="tab"]')[active];
+    if (!row || !tab) return;
+    const left = tab.offsetLeft - row.offsetLeft;
+    if (left < row.scrollLeft) row.scrollTo?.({ left });
+    else if (left + tab.offsetWidth > row.scrollLeft + row.clientWidth) row.scrollTo?.({ left: left + tab.offsetWidth - row.clientWidth });
+  }, [active, slides.length]);
 
   // Same height while products load, so the card never jumps.
   if (!productsLoaded) {
@@ -123,7 +151,7 @@ export default function BusinessSpotlight({
     <section ref={rootRef} aria-label={`Spotlight: ${label(current.section)}`} className={frame} style={{ height: SPOTLIGHT_HEIGHT }}>
       <div className="flex h-9 items-center justify-between gap-2 px-4">
         {slides.length > 1 ? (
-          <div role="tablist" aria-label="Spotlight sections" className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto"
+          <div ref={tablistRef} role="tablist" aria-label="Spotlight sections" className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto"
             onKeyDown={(e) => {
               // WAI-ARIA tabs: arrows move between tabs, Home/End jump to the ends.
               const last = slides.length - 1;
@@ -139,7 +167,6 @@ export default function BusinessSpotlight({
             {slides.map((s, i) => (
               <button key={`${s.index}-${s.section.type}`} type="button" role="tab" aria-selected={i === active}
                 id={`${panelId}-tab-${i}`} aria-controls={`${panelId}-panel`} tabIndex={i === active ? 0 : -1}
-                ref={i === active ? (el) => { el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); } : undefined}
                 onClick={() => setActive(i)}
                 className={`h-7 shrink-0 rounded-full px-3 text-xs font-semibold transition-colors ${i === active ? 'text-white' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
                 style={i === active ? { backgroundColor: fillForWhiteText(themeColor) } : undefined}>

@@ -10,6 +10,7 @@ import { ArrowLeft, Check, CheckCircle, Cloud, Eye, Layers, Loader2, PenLine, Ro
 import { toast } from "sonner";
 import { SECTION_TYPES, CATEGORY_DEFAULT_SECTIONS, getSectionType } from "@/lib/builderSections";
 import { checkField, fieldRule } from "@/lib/builderFieldRules";
+import { Button } from "@/components/ui/button";
 import SectionsPanel from "@/components/showroom/studio/SectionsPanel";
 import SeeThroughPanel from "@/components/showroom/studio/SeeThroughPanel";
 import { MoreMenu, StyleMenu, type PreviewMode } from "@/components/showroom/studio/StudioMenus";
@@ -154,7 +155,10 @@ function ShowroomCreate({
   const templateName = templateParam.replace(/-/g, " ");
 
   const { user } = useAuth();
-  const draftKey = `nodbusiness_builder_draft:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}`;
+  // Each site being edited keeps its own device copy. One shared key let
+  // changes to a live site land in the new-site draft (owner's return-visit
+  // test, 15 Nov 2026), so "Create showroom" could reopen them as a new site.
+  const draftKey = `nodbusiness_builder_draft:${user?.id ?? "guest"}:${user?.is_demo ? "demo" : "real"}${editId ? `:edit:${editId}` : ""}`;
   const serverDraftKey = `${draftKey}:server_id`;
   const [loadedDraftKey, setLoadedDraftKey] = useState("");
   const [serverDraftId, setServerDraftId] = useState<string | null>(null);
@@ -162,7 +166,12 @@ function ShowroomCreate({
   // The published site being edited, once fetched. The initialization effect
   // below applies it, so a later reset (e.g. when the signed-in user finishes
   // loading) can never replace the real site with template defaults (F-H5).
-  const [editSnapshot, setEditSnapshot] = useState<{ sections: string[]; fields: Record<string, unknown> } | null>(null);
+  const [editSnapshot, setEditSnapshot] = useState<{ sections: string[]; fields: Record<string, unknown>; updatedAt: string | null } | null>(null);
+  // Editing a live site: changes kept on this device that are not live yet,
+  // or older device changes set aside because the site was updated elsewhere.
+  type DeviceCopy = { formData: Record<string, any>; activeSections: string[]; savedAt: number };
+  const [unpublished, setUnpublished] = useState<DeviceCopy | null>(null);
+  const [setAside, setSetAside] = useState<DeviceCopy | null>(null);
   const [businesses, setBusinesses] = useState<Array<{ id: string; business_name: string; visibility: BusinessVisibility }>>([]);
   const [savingVisibility, setSavingVisibility] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState('');
@@ -291,6 +300,7 @@ function ShowroomCreate({
         setEditingStatus(typeof data.status === 'string' ? data.status : null);
         const { keys: sectionKeys, fields: sectionFields } = parseShowroomSections(data.sections);
         setEditSnapshot({
+          updatedAt: typeof data.updated_at === 'string' ? data.updated_at : null,
           sections: sectionKeys,
           fields: {
             ...Object.fromEntries(Object.entries(data).filter(([key, v]) => key !== 'sections' && v !== null && v !== undefined && typeof v !== 'object')),
@@ -319,8 +329,40 @@ function ShowroomCreate({
     if (editId) {
       // Wait for the published site; never show or save defaults in its place.
       if (!editSnapshot) return;
-      setFormData({ ...defaultData, ...editSnapshot.fields });
-      setActiveSections(editSnapshot.sections.length ? editSnapshot.sections : defaultSections);
+      const liveData = { ...defaultData, ...editSnapshot.fields };
+      const liveSections = editSnapshot.sections.length ? editSnapshot.sections : defaultSections;
+      setFormData(liveData);
+      setActiveSections(liveSections);
+      setUnpublished(null);
+      setSetAside(null);
+      // Changes made on this device and not published yet come back, unless the
+      // site was updated since (another device): then the live version opens and
+      // the older changes are offered, never silently applied or lost.
+      try {
+        const parsed = JSON.parse(localStorage.getItem(draftKey) ?? 'null');
+        const fresh = parsed && Date.now() - (Number(parsed.savedAt) || 0) < 3 * 24 * 60 * 60 * 1000;
+        const differs = parsed?.formData && JSON.stringify({ f: { ...defaultData, ...parsed.formData }, s: parsed.activeSections }) !== JSON.stringify({ f: liveData, s: liveSections });
+        if (fresh && differs) {
+          const copy = { formData: { ...defaultData, ...parsed.formData }, activeSections: Array.isArray(parsed.activeSections) ? parsed.activeSections : liveSections, savedAt: Number(parsed.savedAt) || Date.now() };
+          if ((parsed.baseUpdatedAt ?? null) === editSnapshot.updatedAt) {
+            setFormData(copy.formData);
+            setActiveSections(copy.activeSections);
+            setUnpublished(copy);
+          } else {
+            // Kept under its own key until the owner chooses (auto-save will
+            // now write the live version to the device copy).
+            localStorage.setItem(`${draftKey}:older`, JSON.stringify(copy));
+            setSetAside(copy);
+          }
+        } else if (parsed && !fresh) {
+          localStorage.removeItem(draftKey);
+        }
+        if (!(fresh && differs)) {
+          const older = JSON.parse(localStorage.getItem(`${draftKey}:older`) ?? 'null');
+          if (older?.formData && Date.now() - (Number(older.savedAt) || 0) < 3 * 24 * 60 * 60 * 1000) setSetAside(older);
+          else localStorage.removeItem(`${draftKey}:older`);
+        }
+      } catch { /* no device copy */ }
       setLoadedDraftKey(draftKey);
       return;
     }
@@ -372,11 +414,13 @@ function ShowroomCreate({
         createdAt = Number(previous.createdAt) || createdAt;
         businessId ||= typeof previous.businessId === 'string' ? previous.businessId : '';
       } catch { /* start a new local draft */ }
-      localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections, createdAt, businessId }));
+      // Editing a live site: remember which live version these changes start from.
+      const edit = editId ? { savedAt: Date.now(), baseUpdatedAt: editSnapshot?.updatedAt ?? null } : {};
+      localStorage.setItem(draftKey, JSON.stringify({ formData, activeSections, createdAt, businessId, ...edit }));
       setSavedVersion(version);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [draftKey, loadedDraftKey, formData, activeSections, selectedBusinessId, version]);
+  }, [draftKey, loadedDraftKey, formData, activeSections, selectedBusinessId, version, editId, editSnapshot?.updatedAt]);
 
   const lastEdit = useRef<{ key: string; at: number }>({ key: "", at: 0 });
   const pushUndo = (fieldKey = "") => {
@@ -667,6 +711,7 @@ function ShowroomCreate({
       }
       localStorage.removeItem(draftKey);
       localStorage.removeItem(serverDraftKey);
+      localStorage.removeItem(`${draftKey}:older`);
       setServerDraftId(null);
       toast.success("Your showroom is live and visible in the Business feed.");
       router.push(`/showrooms/${showroom.id}`);
@@ -725,6 +770,34 @@ function ShowroomCreate({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [fullPreview]);
+
+  // Choices for device changes on a live site (see the edit loader above).
+  const loadLiveVersion = () => {
+    if (!editSnapshot) return;
+    pushUndo();
+    const defaults = getDefaultFormData(templateName, categoryParam, sampleParam);
+    setFormData({ ...defaults, ...editSnapshot.fields });
+    setActiveSections(editSnapshot.sections.length ? editSnapshot.sections : getDefaultSections(templateName, categoryParam, sampleParam));
+  };
+  const discardUnpublished = () => {
+    loadLiveVersion();
+    setUnpublished(null);
+    toast.success('Your unpublished changes were discarded. Tap Undo to bring them back.');
+  };
+  const restoreSetAside = () => {
+    if (!setAside) return;
+    pushUndo();
+    setFormData(setAside.formData);
+    setActiveSections(setAside.activeSections);
+    setSetAside(null);
+    setUnpublished(setAside);
+    try { localStorage.removeItem(`${draftKey}:older`); } catch { /* storage off */ }
+  };
+  const keepLiveVersion = () => {
+    setSetAside(null);
+    try { localStorage.removeItem(`${draftKey}:older`); } catch { /* storage off */ }
+  };
+  const when = (ms: number) => new Date(ms).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
 
   // The preview renders every section; giving it a deferred copy keeps typing
   // instant on slower phones (React renders the field first, the preview after).
@@ -941,6 +1014,28 @@ function ShowroomCreate({
           {saving ? "Working…" : editId && editingStatus === 'published' ? "Update" : "Publish"}
         </button>
       </div>
+
+      {(unpublished || setAside) && (
+        <div role="status" data-testid="studio-device-changes"
+          className={`flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2 text-sm ${darkBuilder ? "border-foreground/20 bg-inverse" : "border-warning/30 bg-warning-subtle text-warning-subtle-foreground"}`}>
+          {unpublished ? (
+            <>
+              <p className="min-w-0 flex-1">
+                <strong>Not live yet:</strong> changes you made on this device ({when(unpublished.savedAt)}). Press <strong>Update</strong> to put them live.
+              </p>
+              <Button size="sm" variant="outline" className="rounded-full" onClick={discardUnpublished}>Discard changes</Button>
+            </>
+          ) : setAside ? (
+            <>
+              <p className="min-w-0 flex-1">
+                <strong>Updated elsewhere:</strong> this site was changed after your unpublished changes on this device ({when(setAside.savedAt)}). You are seeing the live version.
+              </p>
+              <Button size="sm" variant="outline" className="rounded-full" onClick={restoreSetAside}>Use my older changes</Button>
+              <Button size="sm" variant="ghost" className="rounded-full" onClick={keepLiveVersion}>Keep live version</Button>
+            </>
+          ) : null}
+        </div>
+      )}
 
       <PublishBusinessDialog
         open={businessDialog !== null}

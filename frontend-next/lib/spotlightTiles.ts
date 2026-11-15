@@ -8,7 +8,9 @@
  * Which section is shown is decided by lib/spotlight.ts.
  */
 import { sectionItemBuyPayload, isGetQuote, type BuyPayload } from '@/lib/sectionItemPurchase';
-import { isCatalogueSection } from '@/lib/spotlight';
+// Straight from the renderer (not lib/spotlight, which uses spotlightTiles to
+// decide what has content).
+import { isCatalogueSection } from '@/components/showroom/SectionRenderer';
 
 export type TileKind = 'item' | 'picture' | 'wide';
 
@@ -164,10 +166,11 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
     }
 
     case 'stats': {
-      const stats = list(section.stats).filter((s) => text(s.number));
+      // `value`: sites made from the premium sample before 15 Nov 2026.
+      const stats = list(section.stats).filter((s) => text(s.number, s.value));
       return stats.map((s, i) => ({
         key: `st-${i}`, kind: 'item' as const,
-        title: text(s.number) ?? '',
+        title: text(s.number, s.value) ?? '',
         subtitle: text(s.label),
       }));
     }

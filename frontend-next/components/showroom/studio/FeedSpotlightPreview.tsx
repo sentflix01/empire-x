@@ -4,7 +4,7 @@
  * strip will look in the feeds. Rendered by the same BusinessSpotlight
  * component that visitors actually see.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import BusinessSpotlight from '@/components/feed/BusinessSpotlight';
 import { SPOTLIGHT_LABELS, chosenSlides } from '@/lib/spotlight';
 
@@ -30,10 +30,17 @@ export default function FeedSpotlightPreview({
   ownerId,
   businessId,
 }: FeedSpotlightPreviewProps) {
-  // What will really show: chosen sections with content (catalogue counts as filled).
-  const status = spotlightMode === 'single' || spotlightMode === 'carousel'
-    ? chosenSlides(sections as never, spotlightSectionIds, 1) : null;
-  const shown = status ? (spotlightMode === 'single' ? Math.min(1, status.shown.length) : status.shown.length) : 0;
+  // What the strip really draws (it reports back once products are known);
+  // the header and the note always agree with it.
+  const [drawn, setDrawn] = useState<string[] | null>(null);
+  const chosen = spotlightMode === 'single' || spotlightMode === 'carousel';
+  const status = chosen ? chosenSlides(sections as never, spotlightSectionIds, 1) : null;
+  const drawnChosen = drawn ? drawn.filter((t) => spotlightSectionIds.includes(t)) : null;
+  const shown = !chosen ? 0 : drawnChosen ? drawnChosen.length : status ? (spotlightMode === 'single' ? Math.min(1, status.shown.length) : status.shown.length) : 0;
+  // Chosen but not drawn: no content yet, or a catalogue with no products.
+  const notShown = chosen
+    ? [...new Set(spotlightSectionIds)].filter((t) => (drawnChosen ? !drawnChosen.includes(t) : status?.empty.includes(t)) && (spotlightMode !== 'single' || t === spotlightSectionIds[0]))
+    : [];
   return (
     <div className="p-4 space-y-3">
       {/* Section header */}
@@ -52,9 +59,14 @@ export default function FeedSpotlightPreview({
             : '1 section'}
         </p>
       </div>
-      {status && status.empty.length > 0 && (
+      {notShown.length > 0 && (
         <p data-testid="spotlight-empty-note" className="rounded-lg bg-secondary/60 px-3 py-2 text-[11px] text-muted-foreground">
-          Not shown yet, no content: {status.empty.map((t) => SPOTLIGHT_LABELS[t] ?? t).join(', ')}. Add it in Studio and the tab appears.
+          Not shown yet, no content: {notShown.map((t) => SPOTLIGHT_LABELS[t] ?? t).join(', ')}. Add it in Studio and the tab appears.
+        </p>
+      )}
+      {chosen && spotlightSectionIds.length > 0 && shown === 0 && (
+        <p data-testid="spotlight-fallback-note" className="text-[11px] text-muted-foreground">
+          None of your chosen sections has content yet, so your card shows your best section automatically.
         </p>
       )}
 
@@ -85,6 +97,7 @@ export default function FeedSpotlightPreview({
             profile={{ business_name: businessName, display_name: businessName }}
             isOwner
             eager
+            onShownChange={setDrawn}
           />
         </div>
       )}
