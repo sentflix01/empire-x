@@ -315,12 +315,18 @@ export default function FeedSpotlightPanel({
                 section.
               </p>
             )}
-            {sectionIds.length > 1 && (
-              <p className="text-xs text-muted-foreground px-2 pt-1">
-                {sectionIds.length} tabs selected — visitors can click between
-                them on your card.
-              </p>
-            )}
+            {(() => {
+              // Only sections with content become tabs (same rule as the preview).
+              const tabs = sectionIds.filter((t) => !emptyChoices.has(t)).length;
+              const waiting = sectionIds.length - tabs;
+              if (sectionIds.length === 0) return null;
+              return (
+                <p className="text-xs text-muted-foreground px-2 pt-1" data-testid="spotlight-tab-count">
+                  {tabs > 1 ? `${tabs} tabs — visitors can click between them on your card.` : tabs === 1 ? 'One section shows on your card.' : 'None of these has content yet, so your card shows your best section automatically.'}
+                  {waiting > 0 && tabs > 0 ? ` ${waiting} more will appear once ${waiting === 1 ? 'it has' : 'they have'} content.` : ''}
+                </p>
+              );
+            })()}
           </fieldset>
         )}
 

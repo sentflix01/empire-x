@@ -6,8 +6,9 @@
  *   - Automatic (spotlight_mode null): the single highest-priority selling
  *     section that has content.
  *   - Off ('off'): nothing.
- *   - Chosen ('single' or 'carousel' with section types): those sections,
- *     in priority order; more than one plays as a carousel.
+ *   - Chosen ('single' or 'carousel' with section types): those sections
+ *     that draw at least one card, in the owner's order; more than one plays
+ *     as tabs.
  *
  * A spotlight shows what the business sells (products, menu, services with
  * prices, packages, offers, events, its work) and never the hero, contact,
@@ -15,6 +16,7 @@
  */
 import { spotlightSectionIds } from '@/lib/spotlightSections';
 import { isCatalogueSection } from '@/components/showroom/SectionRenderer';
+import { spotlightTiles } from '@/lib/spotlightTiles';
 
 export type SpotlightSection = Record<string, any>;
 
@@ -43,7 +45,6 @@ export const SPOTLIGHT_LABELS: Record<string, string> = {
   booking: 'Booking', video: 'Video',
 };
 
-const list = (v: unknown): any[] => (Array.isArray(v) ? v : []);
 
 function offerIsLive(s: SpotlightSection, now: Date): boolean {
   if (!s.offerTitle) return false;
@@ -52,38 +53,24 @@ function offerIsLive(s: SpotlightSection, now: Date): boolean {
   return Number.isNaN(ends.getTime()) || ends.getTime() >= now.getTime();
 }
 
-/** True when the section has something worth showing (a spotlight never shows an empty block). */
+/**
+ * True when the section has something worth showing: it draws at least one
+ * card (lib/spotlightTiles.ts). One rule, so a section that "has content" can
+ * never become a blank tab (owner, 15 Nov 2026: ticking back and forth made the
+ * preview disappear; a numbers row with no number counted as content but drew
+ * nothing, and the strip was replaced by the empty card).
+ *   - Catalogue sections: the business's products.
+ *   - Offers: only while the offer is running.
+ *   - About / story in Automatic mode: only with a picture (chosen on purpose,
+ *     words alone are enough — see chosenSlides).
+ */
 export function sectionHasContent(s: SpotlightSection, productCount: number, now = new Date()): boolean {
-  switch (s?.type) {
-    case 'products': case 'featured_products': case 'inventory_catalog': return productCount > 0;
-    case 'items': return list(s.items).some((i) => i?.name || i?.title);
-    case 'menu': return list(s.dishes).some((d) => d?.name) || list(s.items).some((i) => i?.name || i?.title);
-    case 'services': return list(s.services).length > 0 || list(s.items).length > 0;
-    case 'pricing': return list(s.plans).length > 0;
-    case 'offer': return offerIsLive(s, now);
-    case 'event_schedule': return list(s.events).length > 0;
-    case 'gallery': return list(s.galleryImages).some((g) => g?.url);
-    case 'portfolio': return list(s.portfolio).length > 0;
-    case 'about': case 'story': return Boolean(s.aboutImage) && Boolean(s.aboutDesc || s.content);
-    // Extended sections — show if they have any content
-    case 'team': return list(s.members).length > 0;
-    case 'faq': return list(s.faqs).length > 0 || list(s.items).length > 0;
-    case 'features': return list(s.features).length > 0 || list(s.items).length > 0;
-    case 'stats': return list(s.stats).length > 0;
-    case 'before_after': return list(s.baPairs).length > 0;
-    case 'job_openings': return list(s.jobs).length > 0;
-    case 'delivery': return list(s.deliveryZones).length > 0 || Boolean(s.deliveryNote);
-    case 'certifications': return list(s.certs).length > 0;
-    case 'brands': return list(s.brands).length > 0;
-    case 'caseStudies': return list(s.caseStudies).length > 0;
-    case 'partners': return list(s.partners).length > 0;
-    case 'awards': return list(s.awards).length > 0;
-    case 'industries': return list(s.industries).length > 0;
-    case 'process': return list(s.processSteps).length > 0;
-    case 'booking': return Boolean(s.bookingTitle || s.bookingDesc);
-    case 'video': return Boolean(s.vidUrl);
-    default: return false;
-  }
+  const type = String(s?.type ?? '');
+  if (isCatalogueSection(type)) return productCount > 0;
+  if (type === 'offer') return offerIsLive(s, now) && spotlightTiles(s).length > 0;
+  if (type === 'about' || type === 'story') return Boolean(s.aboutImage) && spotlightTiles(s).some((t) => Boolean(t.subtitle));
+  if (!SPOTLIGHT_TILE_TYPES.includes(type)) return false;
+  return spotlightTiles(s).length > 0;
 }
 
 export const isSpotlightType = (type: unknown) => SPOTLIGHT_PRIORITY.includes(String(type));

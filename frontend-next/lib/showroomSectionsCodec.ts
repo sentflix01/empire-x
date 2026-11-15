@@ -41,9 +41,16 @@ export function parseShowroomSections(raw: unknown): EditableSections {
   const keys = saved
     .map((section) => (typeof section === 'string' ? section : (section as { type?: unknown } | null)?.type))
     .filter((key): key is string => typeof key === 'string' && Boolean(getSectionType(key)));
-  const fields = Object.assign({}, ...saved
+  const fields: Record<string, unknown> = Object.assign({}, ...saved
     .filter((section): section is Record<string, unknown> => Boolean(section) && typeof section === 'object' && !Array.isArray(section))
     .map(({ type: _type, ...rest }) => rest));
+  // Sites made from the premium sample before 15 Nov 2026 stored their numbers
+  // as `value`; the form and the page read `number`.
+  if (Array.isArray(fields.stats)) {
+    fields.stats = fields.stats.map((row) => (row && typeof row === 'object' && !('number' in row) && 'value' in row)
+      ? { ...(row as Record<string, unknown>), number: (row as Record<string, unknown>).value }
+      : row);
+  }
   return { keys, fields };
 }
 

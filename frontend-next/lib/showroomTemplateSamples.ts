@@ -84,9 +84,9 @@ const sampleBase = (templateName: string) => {
     ],
     statsTitle: "By the Numbers",
     stats: [
-      { value: "500+", label: "Customers served" },
-      { value: "24h", label: "Average response" },
-      { value: "3", label: "Ways to reach us" },
+      { number: "500+", label: "Customers served" },
+      { number: "24h", label: "Average response" },
+      { number: "3", label: "Ways to reach us" },
     ],
     faqTitle: "Questions",
     faqs: [
