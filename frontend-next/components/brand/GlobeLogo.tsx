@@ -1,31 +1,40 @@
 'use client';
 /**
  * The landing logo with a real turning Earth (owner, 2026-11-14): the ring, the
- * network lines and the eight boxes stay still while the continents turn west to
- * east like the real planet — two full turns (720°) when the page opens and again
- * on hover or tap, then it rests. It never restarts mid-turn and never loops, so
- * there is no endless motion to pause (WCAG 2.2.2). With reduced motion it is the
- * still logo.
+ * network lines and the eight boxes stay in place while the continents turn west
+ * to east like the real planet, very slowly: two full turns (720°) over a minute,
+ * easing in and out, then a short rest, then the same turn again. 720° brings the
+ * view back to where it began, so each turn starts and ends on the still logo.
+ * While it turns, signals run along the network lines from box to box and a box
+ * glows when one arrives; they rest with the globe.
+ *
+ * There is no pause button (owner: a logo should not carry play/pause controls);
+ * the motion rests between turns, never runs off screen or in a hidden tab, and
+ * with reduced motion it is the still logo. It paints at most 30 times a second.
  *
  * Layers, in the drawing order of public/brand/nodbusiness-icon-on-blue-v3.svg
  * (scripts/brand/build-logo.mjs):
  *   back SVG   outer disc, white ring, globe face, and the still land (vector)
- *   canvas     the turning land, drawn pixel by pixel while it turns: each pixel
- *              of the globe looks up its latitude/longitude on a flat world map
- *              drawn once from lib/brand/globeLand.json. No polygon clipping, so
- *              continents crossing the edge of the globe are always right.
- *   front SVG  network lines, globe rim and the eight boxes (never move)
+ *   canvas     the turning land, drawn pixel by pixel: each pixel of the globe
+ *              looks up its latitude/longitude on a flat world map drawn once from
+ *              lib/brand/globeLand.json. No polygon clipping, so continents
+ *              crossing the edge of the globe are always right.
+ *   front SVG  network lines with their signals, globe rim and the eight boxes
  */
-import { useCallback, useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { GLOBE_C as C, GLOBE_R as R, GLOBE_LON0, inverse, landPath } from '@/lib/brand/orthographic';
 import LAND from '@/lib/brand/globeLand.json';
 import { LOGO_COLORS } from '@/lib/brand/logoColors';
 
 const BLUE = LOGO_COLORS.blue;
-/** One spin: two full turns of the Earth, west to east. */
+/** One turn: two full turns of the Earth, west to east, over a minute; then a rest; then again. */
 export const GLOBE_TURN_DEGREES = 720;
-export const GLOBE_SPIN_MS = 3200;
+export const GLOBE_TURN_MS = 60000;
+export const GLOBE_REST_MS = 8000;
+export const GLOBE_CYCLE_MS = GLOBE_TURN_MS + GLOBE_REST_MS;
+/** At most 30 paints a second: plenty at this speed. */
+const PAINT_EVERY_MS = 1000 / 30;
 
 const RINGS = LAND as number[][];
 const REST_LAND = landPath(RINGS);
@@ -39,7 +48,30 @@ const EDGES: [number, number][] = [[0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [1, 3
 const BW = 34, BH = 24;
 const INNER = `translate(${C} ${C}) scale(${SCALE.toFixed(4)}) translate(-${C} -${C})`;
 
-export const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+/**
+ * One signal per line: its own length of trip (2.6–4.4 s), start delay and
+ * direction, so messages keep crossing the globe between the boxes. A signal
+ * travels during the first 70% of its period (globals.css @keyframes globe-signal).
+ */
+export const SIGNALS = EDGES.map(([a, b], i) => {
+  const duration = 2.6 + ((i * 7) % 10) * 0.2;
+  const delay = -(((i * 11) % 20) / 20) * duration; // already under way on load
+  const [from, to] = i % 2 ? [b, a] : [a, b];
+  return { from, to, duration, delay };
+});
+/** Each box glows when the first signal that ends there arrives (same period and delay). */
+const GLOWS = Array.from({ length: 8 }, (_, k) => SIGNALS.find((sig) => sig.to === k) ?? null);
+
+/** A gentle sine ease: the globe sets off and settles softly, and is visibly moving within a second. */
+export const easeInOut = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
+
+/** Where the globe is `elapsed` ms after the page opened: turning (eased 720°) or resting. */
+export function globeAt(elapsed: number): { lon: number; turning: boolean; cycle: number } {
+  const phase = elapsed % GLOBE_CYCLE_MS;
+  const cycle = Math.floor(elapsed / GLOBE_CYCLE_MS) + 1;
+  if (phase >= GLOBE_TURN_MS) return { lon: GLOBE_LON0, turning: false, cycle };
+  return { lon: GLOBE_LON0 - GLOBE_TURN_DEGREES * easeInOut(phase / GLOBE_TURN_MS), turning: true, cycle };
+}
 
 function prefersReducedMotion(): boolean {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
@@ -103,17 +135,37 @@ export default function GlobeLogo({ className, label }: { className?: string; la
   const id = useId().replace(/:/g, '');
   const rootRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const spinning = useRef(false);
-  const frame = useRef(0);
+  /** Set after mount: false with reduced motion (the still logo, no button). */
+  const [motion, setMotion] = useState(false);
+  const [onScreen, setOnScreen] = useState(true);
+  const [tabVisible, setTabVisible] = useState(true);
+  /** Turning time so far, kept across pauses so play resumes where it stopped. */
+  const elapsed = useRef(0);
 
-  const spin = useCallback(() => {
-    if (spinning.current || prefersReducedMotion()) return;
+  useEffect(() => { setMotion(!prefersReducedMotion()); }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting));
+    io.observe(root);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const update = () => setTabVisible(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+
+  const running = motion && onScreen && tabVisible;
+
+  useEffect(() => {
     const root = rootRef.current, canvas = canvasRef.current;
     if (!root || !canvas) return;
-    spinning.current = true;
-    root.dataset.spinning = 'true';
+    if (!running) { root.dataset.spinning = 'false'; return; }
 
-    // Draw only if the browser can; the turn still runs (and ends) either way.
+    // Draw only if the browser can; the turn still runs either way.
     const ctx = canvas.getContext?.('2d') ?? null;
     const tex = ctx ? worldTexture() : null;
     let n = 0, map: ReturnType<typeof pixelMap> | null = null, image: ImageData | null = null;
@@ -139,93 +191,128 @@ export default function GlobeLogo({ className, label }: { className?: string; la
         out[o] = 255; out[o + 1] = 255; out[o + 2] = 255; out[o + 3] = Math.round(a * 255);
       }
       ctx.putImageData(image, 0, 0);
+      root.dataset.drawn = 'true';
     };
 
-    const start = performance.now();
+    let frame = 0;
+    let last = performance.now();
+    let lastPaint = -Infinity;
     const step = (now: number) => {
-      const t = Math.min(1, (now - start) / GLOBE_SPIN_MS);
-      // A lower view longitude moves the land left to right: west to east, like the Earth.
-      const lon0 = GLOBE_LON0 - GLOBE_TURN_DEGREES * easeInOut(t);
-      root.dataset.lon = lon0.toFixed(2);
-      paint(lon0);
-      if (t < 1) { frame.current = requestAnimationFrame(step); return; }
-      spinning.current = false;
-      root.dataset.spinning = 'false';
-      root.dataset.lon = String(GLOBE_LON0);
+      // A long gap (a slow frame) never jumps the Earth forward.
+      elapsed.current += Math.min(100, Math.max(0, now - last));
+      last = now;
+      const { lon: lon0, turning, cycle } = globeAt(elapsed.current);
+      if (root.dataset.spinning !== String(turning)) root.dataset.spinning = String(turning);
+      root.dataset.cycle = String(cycle);
+      // Resting: the canvas already shows the start view; nothing to repaint.
+      if (turning && now - lastPaint >= PAINT_EVERY_MS) {
+        root.dataset.lon = lon0.toFixed(2);
+        paint(lon0);
+        lastPaint = now;
+      } else if (!turning && root.dataset.lon !== String(GLOBE_LON0)) {
+        root.dataset.lon = String(GLOBE_LON0);
+        paint(GLOBE_LON0);
+      }
+      frame = requestAnimationFrame(step);
     };
-    frame.current = requestAnimationFrame(step);
-  }, []);
-
-  useEffect(() => {
-    spin();
-    return () => cancelAnimationFrame(frame.current);
-  }, [spin]);
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [running]);
 
   const pct = (v: number) => `${(v * 100).toFixed(3)}%`;
   return (
     <span
       ref={rootRef}
-      role={label ? 'img' : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : true}
       data-testid="globe-logo"
       data-spinning="false"
       data-lon={GLOBE_LON0}
-      onMouseEnter={spin}
-      onClick={spin}
+      data-cycle="1"
       className={cn('group/globe relative block aspect-square select-none', className)}
     >
-      <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <defs>
-          <radialGradient id={`${id}-face`} cx="38%" cy="32%" r="75%">
-            <stop offset="0" stopColor={LOGO_COLORS.faceLight} />
-            <stop offset="1" stopColor={LOGO_COLORS.faceDark} />
-          </radialGradient>
-          <clipPath id={`${id}-globe`}><circle cx={C} cy={C} r={R} /></clipPath>
-        </defs>
-        <circle cx={C} cy={C} r={C} fill={BLUE} />
-        <circle cx={C} cy={C} r={128} fill="#fff" />
-        <g transform={INNER}>
+      <span
+        data-testid="globe-art"
+        role={label ? 'img' : undefined}
+        aria-label={label}
+        aria-hidden={label ? undefined : true}
+        className="absolute inset-0"
+      >
+        <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" aria-hidden="true">
+          <defs>
+            <radialGradient id={`${id}-face`} cx="38%" cy="32%" r="75%">
+              <stop offset="0" stopColor={LOGO_COLORS.faceLight} />
+              <stop offset="1" stopColor={LOGO_COLORS.faceDark} />
+            </radialGradient>
+            <clipPath id={`${id}-globe`}><circle cx={C} cy={C} r={R} /></clipPath>
+          </defs>
           <circle cx={C} cy={C} r={C} fill={BLUE} />
-          <circle cx={C} cy={C} r={R} fill={`url(#${id}-face)`} />
-          {/* The still land: shown at rest, hidden while the canvas turns. */}
-          <path
-            data-testid="globe-land"
-            d={REST_LAND}
-            fill="#fff"
-            fillOpacity={0.5}
-            clipPath={`url(#${id}-globe)`}
-            className="group-data-[spinning=true]/globe:opacity-0"
-          />
-        </g>
-      </svg>
-      <canvas
-        ref={canvasRef}
-        data-testid="globe-canvas"
-        aria-hidden="true"
-        className="absolute rounded-full opacity-0 group-data-[spinning=true]/globe:opacity-100"
-        style={{ left: pct(GLOBE_LEFT), top: pct(GLOBE_LEFT), width: pct(GLOBE_SIZE), height: pct(GLOBE_SIZE) }}
-      />
-      <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <g transform={INNER}>
-          <g stroke="#fff" strokeOpacity={0.75} strokeWidth={1.6} strokeLinecap="round" fill="none">
-            {EDGES.map(([a, b]) => {
-              const [x1, y1] = node(a), [x2, y2] = node(b);
-              return <line key={`${a}-${b}`} x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)} />;
+          <circle cx={C} cy={C} r={128} fill="#fff" />
+          <g transform={INNER}>
+            <circle cx={C} cy={C} r={C} fill={BLUE} />
+            <circle cx={C} cy={C} r={R} fill={`url(#${id}-face)`} />
+            {/* The still land: shown until the canvas has drawn the turning Earth. */}
+            <path
+              data-testid="globe-land"
+              d={REST_LAND}
+              fill="#fff"
+              fillOpacity={0.5}
+              clipPath={`url(#${id}-globe)`}
+              className="group-data-[drawn=true]/globe:opacity-0"
+            />
+          </g>
+        </svg>
+        <canvas
+          ref={canvasRef}
+          data-testid="globe-canvas"
+          aria-hidden="true"
+          className="absolute rounded-full opacity-0 group-data-[drawn=true]/globe:opacity-100"
+          style={{ left: pct(GLOBE_LEFT), top: pct(GLOBE_LEFT), width: pct(GLOBE_SIZE), height: pct(GLOBE_SIZE) }}
+        />
+        <svg viewBox="0 0 280 280" className="absolute inset-0 h-full w-full" aria-hidden="true">
+          <g transform={INNER}>
+            <g stroke="#fff" strokeOpacity={0.75} strokeWidth={1.6} strokeLinecap="round" fill="none">
+              {EDGES.map(([a, b]) => {
+                const [x1, y1] = node(a), [x2, y2] = node(b);
+                return <line key={`${a}-${b}`} x1={x1.toFixed(1)} y1={y1.toFixed(1)} x2={x2.toFixed(1)} y2={y2.toFixed(1)} />;
+              })}
+            </g>
+            {/* Signals: a short bright dash running from one box to another (CSS only). */}
+            {motion && (
+              <g data-testid="globe-signals" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" fill="none">
+                {SIGNALS.map(({ from, to, duration, delay }) => {
+                  const [x1, y1] = node(from), [x2, y2] = node(to);
+                  return (
+                    <path
+                      key={`${from}-${to}`}
+                      d={`M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`}
+                      pathLength={1}
+                      className="globe-signal"
+                      style={{ animationDuration: `${duration}s`, animationDelay: `${delay.toFixed(2)}s` }}
+                    />
+                  );
+                })}
+              </g>
+            )}
+            <circle cx={C} cy={C} r={R} fill="none" stroke="#fff" strokeWidth={3} />
+            {Array.from({ length: 8 }, (_, k) => {
+              const [x, y] = node(k);
+              const glow = motion ? GLOWS[k] : null;
+              return (
+                <g key={k}>
+                  {glow && (
+                    <rect
+                      x={(x - BW / 2 - 5).toFixed(1)} y={(y - BH / 2 - 5).toFixed(1)} width={BW + 10} height={BH + 10} rx={8}
+                      fill="#fff" className="globe-glow"
+                      style={{ animationDuration: `${glow.duration}s`, animationDelay: `${glow.delay.toFixed(2)}s` }}
+                    />
+                  )}
+                  <rect x={(x - BW / 2).toFixed(1)} y={(y - BH / 2).toFixed(1)} width={BW} height={BH} rx={4.5} fill="#fff" />
+                  <rect x={(x - BW / 2 + BW * 0.2).toFixed(1)} y={(y - BH / 2 + BH * 0.2).toFixed(1)} width={(BW * 0.32).toFixed(1)} height={(BH * 0.2).toFixed(1)} rx={1.2} fill={BLUE} />
+                </g>
+              );
             })}
           </g>
-          <circle cx={C} cy={C} r={R} fill="none" stroke="#fff" strokeWidth={3} />
-          {Array.from({ length: 8 }, (_, k) => {
-            const [x, y] = node(k);
-            return (
-              <g key={k}>
-                <rect x={(x - BW / 2).toFixed(1)} y={(y - BH / 2).toFixed(1)} width={BW} height={BH} rx={4.5} fill="#fff" />
-                <rect x={(x - BW / 2 + BW * 0.2).toFixed(1)} y={(y - BH / 2 + BH * 0.2).toFixed(1)} width={(BW * 0.32).toFixed(1)} height={(BH * 0.2).toFixed(1)} rx={1.2} fill={BLUE} />
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+        </svg>
+      </span>
     </span>
   );
 }

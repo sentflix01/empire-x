@@ -10,11 +10,13 @@ import { test, expect, devices, type Browser, type Page } from '@playwright/test
  *   3. the header controls are fully on screen and do not overlap;
  *   4. there is no sideways scroll;
  *   5. on a first visit nothing covers the buttons: "Start free" goes to
- *      /register, the theme toggle changes the hero, the language button changes
- *      the headline;
- *   6. the globe turns (its view longitude changes) and then rests; with reduced
- *      motion it never turns;
- *   7. axe (WCAG 2.2 AA) finds no contrast, name or target-size problems in the
+ *      /register; the theme toggle keeps the dark hero and changes only the
+ *      "Start free" buttons; the language button switches the page language;
+ *   6. the logo is left-aligned with the headline and grows with the screen; the
+ *      lead shows on every portrait phone;
+ *   7. the globe turns slowly (720° over a minute), rests, and turns again; the
+ *      logo has no play/pause button; with reduced motion it never turns;
+ *   8. axe (WCAG 2.2 AA) finds no contrast, name or target-size problems in the
  *      header and hero.
  * Runs in the chromium project, and in landing-webkit (Safari's engine, used by
  * every iPhone browser) where WebKit is installed (CI).
@@ -113,8 +115,23 @@ async function measure(page: Page) {
       const large = parseFloat(getComputedStyle(el!).fontSize) >= 24;
       return { key, worst: Math.round(worst * 100) / 100, needed: large ? 3 : 4.5 };
     });
+    // "Start free" must stand out from the hero: its edge (the white ring in light, the
+    // white button in dark) at least 3:1 against every gradient colour (WCAG 1.4.11).
+    const start = hero.querySelector('[data-testid="hero-start"]')!;
+    const ss = getComputedStyle(start);
+    const edgeColours = [ss.backgroundColor, ...(ss.boxShadow.match(/(?:rgba?|oklab|oklch|color)\([^)]+\)/g) ?? [])].map(rgb).filter((c) => c[3] > 0.5);
+    const startEdge = Math.max(...edgeColours.map((c) => Math.min(...stops.map((bg) => {
+      const fg = [c[0] * c[3] + bg[0] * (1 - c[3]), c[1] * c[3] + bg[1] * (1 - c[3]), c[2] * c[3] + bg[2] * (1 - c[3])];
+      const [l1, l2] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+      return (l1 + 0.05) / (l2 + 0.05);
+    }))));
+    const header = document.querySelector('[data-testid="header-start"]')!;
     return {
       vw, vh, hero: heroBox, items, clipped, controls, contrast, stops: stops.length,
+      startEdge: Math.round(startEdge * 100) / 100,
+      startFreeBg: ss.backgroundColor,
+      headerStartBg: getComputedStyle(header).backgroundColor,
+      headerBg: getComputedStyle(document.querySelector('header')!).backgroundColor,
       scrollWidth: document.documentElement.scrollWidth,
       heroBackground: getComputedStyle(hero).backgroundImage,
       headlineColor: getComputedStyle(hero.querySelector('h1')!).color,
@@ -131,6 +148,11 @@ function assertFits(f: Facts, where: string) {
   expect(f.hero.bottom, `${where}: hero bottom`).toBeLessThanOrEqual(f.vh + 1);
   // 2. Everything that should be in the hero is there and fully inside it and the screen.
   for (const key of ['logo', 'headline', 'startFree', 'tryDemo', 'guest']) expect(f.items[key], `${where}: ${key} is shown`).not.toBeNull();
+  // The lead shows on every portrait screen; only very short (landscape phone) screens drop it.
+  if (f.vh >= 420) expect(f.items.lead, `${where}: lead is shown`).not.toBeNull();
+  // The logo sits at the left, in line with the headline, and grows with the screen up to 16rem.
+  expect(Math.abs(f.items.logo!.left - f.items.headline!.left), `${where}: logo left-aligned with the headline`).toBeLessThanOrEqual(2);
+  expect(f.items.logo!.width, `${where}: logo width`).toBeLessThanOrEqual(256.5);
   if (f.vw >= 1024) expect(f.items.media, `${where}: phone video in the hero on desktop`).not.toBeNull();
   else expect(f.items.media, `${where}: phone video below the hero on phones and tablets`).toBeNull();
   for (const [key, b] of Object.entries(f.items)) {
@@ -159,6 +181,7 @@ function assertFits(f: Facts, where: string) {
   // 5. Text contrast against every colour of the hero background (WCAG 1.4.3).
   expect(f.stops, `${where}: hero gradient colours found`).toBeGreaterThanOrEqual(3);
   for (const c of f.contrast) expect(c.worst, `${where}: ${c.key} contrast`).toBeGreaterThanOrEqual(c.needed);
+  expect(f.startEdge, `${where}: Start free edge against the hero`).toBeGreaterThanOrEqual(3);
 }
 
 /** The element at a button's centre is the button itself (nothing covers it). */
@@ -212,13 +235,20 @@ for (const [name, profile] of Object.entries(PROFILES)) {
       await expect(page.locator('html')).toHaveAttribute('lang', 'en');
       await expect(language).toHaveText('EN');
 
-      // The theme toggle visibly changes the hero.
+      // The theme toggle keeps the dark hero and header and changes only "Start free".
       await page.getByTestId('landing-theme-toggle').click();
       const other = theme === 'light' ? 'dark' : 'light';
       await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${other}\\b`));
+      // Buttons ease their colour for 150 ms: wait until it has settled.
+      await expect.poll(async () => (await measure(page)).startFreeBg, { message: `${name}: hero Start free follows the theme` }).not.toBe(en.startFreeBg);
+      await page.waitForTimeout(300);
       const toggled = await measure(page);
-      expect(toggled.heroBackground, `${name}: hero background follows the theme`).not.toBe(en.heroBackground);
-      expect(toggled.headlineColor, `${name}: headline colour follows the theme`).not.toBe(en.headlineColor);
+      expect(toggled.heroBackground, `${name}: hero background stays the same`).toBe(en.heroBackground);
+      expect(toggled.headlineColor, `${name}: headline colour stays the same`).toBe(en.headlineColor);
+      expect(toggled.headerBg, `${name}: header stays dark`).toBe(en.headerBg);
+      expect(toggled.startFreeBg, `${name}: hero Start free follows the theme`).not.toBe(en.startFreeBg);
+      expect(toggled.headerStartBg, `${name}: header Start free follows the theme`).not.toBe(en.headerStartBg);
+      assertFits(toggled, `${name} ${other} after toggle`);
       await page.getByTestId('landing-theme-toggle').click();
       await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${theme}\\b`));
 
@@ -250,24 +280,32 @@ for (const [name, profile] of Object.entries(PROFILES)) {
   });
 }
 
-test('the globe turns 720° on load, then rests; hover turns it again', async ({ browser }) => {
+test('the globe turns slowly, with signals on its lines, and has no play/pause button', async ({ browser }) => {
   const context = await browser.newContext(contextOptions({ viewport: { width: 1366, height: 768 } }));
   const page = await context.newPage();
   await openLanding(page, 'light');
   const logo = page.getByTestId('globe-logo');
   const lon = async () => Number(await logo.getAttribute('data-lon'));
-  const seen = new Set<number>();
-  for (let i = 0; i < 6; i++) { seen.add(Math.round(await lon())); await page.waitForTimeout(250); }
-  expect(seen.size, 'the view longitude changes while it turns').toBeGreaterThan(2);
-  await expect(logo).toHaveAttribute('data-spinning', 'false', { timeout: 6000 });
-  expect(await lon()).toBe(-20);
-  await logo.hover();
   await expect(logo).toHaveAttribute('data-spinning', 'true');
-  await expect(logo).toHaveAttribute('data-spinning', 'false', { timeout: 6000 });
+  await page.waitForTimeout(4000);
+  // Still turning after 4 s, and slowly: an eased 720° over 60 s starts gently.
+  await expect(logo).toHaveAttribute('data-spinning', 'true');
+  const turned = -20 - (await lon());
+  expect(turned, 'turned in the first 4 s').toBeGreaterThan(0.5);
+  expect(turned, 'turned in the first 4 s').toBeLessThan(30);
+  const later = await lon();
+  await page.waitForTimeout(1000);
+  expect(await lon(), 'keeps turning').toBeLessThan(later);
+  // Signals run on the network lines while it turns.
+  await expect(page.locator('[data-testid="globe-signals"] path')).toHaveCount(20);
+  const state = await page.locator('[data-testid="globe-signals"] path').first().evaluate((el) => getComputedStyle(el).animationPlayState);
+  expect(state).toBe('running');
+  // A logo, not a player: no buttons inside it.
+  await expect(logo.locator('button')).toHaveCount(0);
   await context.close();
 });
 
-test('with reduced motion the globe never turns', async ({ browser }) => {
+test('with reduced motion the globe never turns and shows no signals', async ({ browser }) => {
   const context = await browser.newContext(contextOptions({ viewport: { width: 390, height: 664 } }, { reducedMotion: 'reduce' }));
   const page = await context.newPage();
   await openLanding(page, 'dark');
@@ -277,9 +315,23 @@ test('with reduced motion the globe never turns', async ({ browser }) => {
     await expect(logo).toHaveAttribute('data-lon', '-20');
     await page.waitForTimeout(300);
   }
-  await logo.click();
-  await expect(logo).toHaveAttribute('data-spinning', 'false');
+  await expect(page.getByTestId('globe-signals')).toHaveCount(0);
   await context.close();
+});
+
+test('the logo grows with the screen width', async ({ browser }) => {
+  const widths: number[] = [];
+  for (const viewport of [{ width: 320, height: 568 }, { width: 768, height: 1024 }, { width: 1920, height: 1080 }]) {
+    const context = await browser.newContext(contextOptions({ viewport }));
+    const page = await context.newPage();
+    await openLanding(page, 'dark');
+    widths.push((await page.getByTestId('globe-logo').boundingBox())!.width);
+    await context.close();
+  }
+  expect(widths[0]).toBeGreaterThanOrEqual(90);
+  expect(widths[1]).toBeGreaterThan(widths[0] * 1.8);
+  expect(widths[2]).toBeGreaterThanOrEqual(widths[1]);
+  expect(widths[2]).toBeLessThanOrEqual(256.5);
 });
 
 test('the page guide can be opened on request and closed by clicking outside it', async ({ browser }) => {
