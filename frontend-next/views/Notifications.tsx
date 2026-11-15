@@ -215,7 +215,7 @@ function NotificationsView() {
             <p className="font-bold text-base">Sign in to see notifications</p>
             <p className="text-sm text-muted-foreground mt-1">Your notifications will appear here.</p>
           </div>
-          <a href="/login" className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary/90 transition-colors">Sign In</a>
+          <a href="/login" className="h-10 px-6 rounded-xl bg-primary text-white font-semibold text-sm flex items-center hover:bg-primary-hover transition-colors">Sign In</a>
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-16">

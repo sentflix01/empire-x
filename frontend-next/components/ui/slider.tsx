@@ -4,7 +4,9 @@ import * as SliderPrimitive from "@radix-ui/react-slider"
 
 import { cn } from "@/lib/utils"
 
-const Slider = React.forwardRef<any, any>(({ className, ...props }, ref) => (
+// The element with role="slider" is the Thumb, so the accessible name goes there
+// (on the Root it was ignored and every slider was unnamed).
+const Slider = React.forwardRef<any, any>(({ className, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-valuetext": ariaValueText, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
     className={cn("relative flex w-full touch-none select-none items-center", className)}
@@ -14,7 +16,10 @@ const Slider = React.forwardRef<any, any>(({ className, ...props }, ref) => (
       <SliderPrimitive.Range className="absolute h-full bg-primary" />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
-      className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      aria-valuetext={ariaValueText}
+      className="tap-target block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
   </SliderPrimitive.Root>
 ))
 Slider.displayName = SliderPrimitive.Root.displayName

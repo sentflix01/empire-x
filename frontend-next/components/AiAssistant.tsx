@@ -41,8 +41,16 @@ function readSafeAreaBottom(): number {
   }
 }
 
-function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
+/** The app's sticky top bar (AppLayout header, h-14). */
+const APP_HEADER_HEIGHT = 56;
+/** The page-guide launcher sits this far above the assistant button. */
+const GUIDE_LAUNCHER_OFFSET = 64;
+
+export function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
   const edgeMargin = 8;
+  // Never on top of the top bar (owner, 15 Nov 2026: the assistant covered the
+  // logo): the guide launcher above the button must clear it too.
+  const minY = APP_HEADER_HEIGHT + edgeMargin + GUIDE_LAUNCHER_OFFSET;
   // On screens narrower than md (768px) the mobile bottom nav bar is 64px tall.
   // Reserve that space so the button never lands behind it.
   const mobileNavHeight = viewportWidth < 768 ? 64 : 0;
@@ -50,7 +58,7 @@ function clampAssistantPosition(position: { x: number; y: number }, viewportWidt
   const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - mobileNavHeight - edgeMargin);
   return {
     x: Math.min(Math.max(edgeMargin, position.x), maxX),
-    y: Math.min(Math.max(edgeMargin, position.y), maxY),
+    y: Math.min(Math.max(minY, position.y), Math.max(minY, maxY)),
   };
 }
 
@@ -252,6 +260,12 @@ function AiAssistantWidget() {
     };
     window.addEventListener('nodbusiness:page-guide-enabled', handler);
     return () => window.removeEventListener('nodbusiness:page-guide-enabled', handler);
+  }, []);
+  // Pages that hide the floating launcher (Studio on phones) open the chat from their own menu.
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener('nodbusiness:open-assistant', openChat);
+    return () => window.removeEventListener('nodbusiness:open-assistant', openChat);
   }, []);
 
   // Load saved position
@@ -555,6 +569,7 @@ function AiAssistantWidget() {
             : { width: 56, height: 56, paddingInline: 0 }}
           title="Page guide (drag to move)"
           aria-label="Page guide"
+          data-floating-launcher=""
         >
           <PageGuideFlipCoin />
         </button>
@@ -574,7 +589,8 @@ function AiAssistantWidget() {
           }`}
         style={btnStyle}
         title={t('ai.title') + ' (drag to move)'}
-        aria-label={t('ai.title')}>
+        aria-label={t('ai.title')}
+        data-floating-launcher="">
         {open ? <X className="w-5 h-5 text-white" /> : <AssistantFlipCoin />}
         {!open && visibleMessages.length > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-background" />
@@ -713,7 +729,7 @@ function AiAssistantWidget() {
             <button
               onClick={() => sendMessage()}
               disabled={loading || !input.trim()}
-              className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
+              className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover flex items-center justify-center text-white disabled:opacity-40 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>

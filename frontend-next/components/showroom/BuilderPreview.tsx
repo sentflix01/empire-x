@@ -33,7 +33,7 @@ interface Props {
 /** Same default as a published site without its own theme colour. */
 const THEME = "#D4AF37";
 
-export default function BuilderPreview({ formData: d, activeSections, mode, showWhatsapp, fontFamily, businessId = null, compact = false }: Props) {
+function BuilderPreview({ formData: d, activeSections, mode, showWhatsapp, fontFamily, businessId = null, compact = false }: Props) {
   const { user } = useAuth();
   const sections = useMemo(() => serializeShowroomSections(activeSections, d) as Array<Record<string, any>>, [activeSections, d]);
   const wantsCatalogue = sections.some(s => isCatalogueSection(s.type));
@@ -141,3 +141,6 @@ export default function BuilderPreview({ formData: d, activeSections, mode, show
     </div>
   );
 }
+
+/** Memoised: Studio re-renders on every keystroke, the preview only when its inputs change. */
+export default React.memo(BuilderPreview);

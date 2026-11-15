@@ -44,6 +44,43 @@ describe('PATCH /api/showrooms/:id/spotlight', () => {
     expect(res.status).toBe(200);
     expect(await stored(biz.siteId)).toEqual({ ids: [], kind: 'array' });
   });
+
+  // Studio audit 2026-11-14: every chosen section, in the owner's order, checked.
+  const patch = (user, body) => request(app).patch(`/api/showrooms/${biz.siteId}/spotlight`).set(auth(user)).send(body);
+
+  it("keeps the owner's order, drops duplicates and retired types", async () => {
+    const res = await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['about', 'stats', 'faq', 'about', 'testimonials', 'items'] });
+    expect(res.status).toBe(200);
+    expect(await stored(biz.siteId)).toEqual({ ids: ['about', 'stats', 'faq', 'items'], kind: 'array' });
+  });
+
+  it('refuses unknown section types and more than 20 sections', async () => {
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['about', '<script>'] })).status).toBe(422);
+    const many = ['hero', 'about', 'items', 'gallery', 'services', 'contact', 'social', 'pricing', 'team', 'faq', 'features', 'stats',
+      'payment_info', 'hours', 'menu', 'offer', 'delivery', 'certifications', 'brands', 'event_schedule', 'portfolio'];
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: many })).status).toBe(422);
+    expect((await patch(owner, { spotlight_mode: 'carousel', spotlight_section_ids: ['products', 'story'] })).status).toBe(200);
+  });
+
+  it('refuses anyone but the owner', async () => {
+    const stranger = await createUser();
+    expect((await patch(stranger, { spotlight_mode: 'off', spotlight_section_ids: [] })).status).toBe(403);
+    await deleteUser(stranger.id);
+  });
+});
+
+describe('PUT /api/showrooms/:id carries the Spotlight choice (Studio sends it with each save)', () => {
+  it('stores the choice made before the site was first saved, with the same rules', async () => {
+    const res = await request(app).put(`/api/showrooms/${biz.siteId}`).set(auth(owner))
+      .send({ spotlight_mode: 'carousel', spotlight_section_ids: ['faq', 'about', 'faq', 'testimonials'] });
+    expect(res.status).toBe(200);
+    const row = await stored(biz.siteId);
+    expect(row.kind).toBe('array');
+    expect(row.ids).toEqual(['faq', 'about']);
+    const bad = await request(app).put(`/api/showrooms/${biz.siteId}`).set(auth(owner)).send({ spotlight_section_ids: ['<script>'] });
+    expect(bad.status).toBe(400);
+    expect((await stored(biz.siteId)).ids).toEqual(['faq', 'about']);
+  });
 });
 
 describe('migrate78', () => {

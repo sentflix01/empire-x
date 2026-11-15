@@ -1,0 +1,59 @@
+{"STRETCHED":533,"SMALL":72,"MISSHAPEN":47}
+MISSHAPEN button "Back" {h-10 w-10 rounded-full} | 40x44 | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+MISSHAPEN button "Undo" {h-10 w-10 rounded-full} | 40x44 | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+MISSHAPEN button "More Items" {h-9 w-9 rounded-full} | 36x44 | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768
+MISSHAPEN button "Redo" {h-10 w-10 rounded-full} | 40x44 | studio@390 studio-style@390 studio-more@390 studio-spotlight@390 studio@768 studio-style@768 +6
+SMALL     button "Page guide" {} | 1x44 | landing@360 feed@360 marketplace@360 search@360 showrooms@360 businesses@360 +66
+STRETCHED button "Theme: Light. Switch to dark" {h-9 rounded-xl px-2} | 36x44 (natural 36), 73x44 (natural 36) | landing@360 landing@390 landing@768 landing@1024
+STRETCHED button "Change language" {h-9 rounded-xl px-2} | 36x44 (natural 36), 60x44 (natural 36) | landing@360 landing@390 landing@768 landing@1024
+STRETCHED button "Search" {p-2 rounded-full} | 36x44 (natural 36) | feed@360 marketplace@360 search@360 showrooms@360 businesses@360 messages@360 +24
+STRETCHED button "Hide Nodbusiness announcements" {h-8 w-8 rounded-full} | 32x44 (natural 32) | feed@360 feed@390 feed@768 feed@1024
+STRETCHED button "Post" {} | 16x44 (natural 16) | feed@360 feed@390 feed@768 feed@1024
+STRETCHED button "List Product" {h-8 px-3 rounded-full} | 121x44 (natural 32) | marketplace@360 marketplace@390 marketplace@768 marketplace@1024
+STRETCHED button "Voice search" {p-1.5 rounded-full} | 28x44 (natural 28) | search@360 search@390 search@768 search@1024
+STRETCHED button "Filters" {p-1.5 rounded-full} | 28x44 (natural 28) | search@360 search@390 search@768 search@1024
+STRETCHED button "Create" {h-8 px-3 rounded-full} | 90x44 (natural 32) | showrooms@360 showrooms@390 showrooms@768 showrooms@1024
+STRETCHED button "Double-click to bookmark" {p-1.5 rounded-lg} | 32x44 (natural 32) | showrooms@360 showrooms@390 showrooms@768 showrooms@1024
+STRETCHED button[tab] "Chats" {h-9 rounded-full px-4} | 86x44 (natural 36) | messages@360 messages@390 messages@768 messages@1024
+STRETCHED button[tab] "Groups" {h-9 rounded-full px-4} | 94x44 (natural 36) | messages@360 messages@390 messages@768 messages@1024
+STRETCHED button[tab] "Archived" {h-9 rounded-full px-4} | 104x44 (natural 36) | messages@360 messages@390 messages@768 messages@1024
+STRETCHED button[switch] "Toggle push" {h-5 w-9 rounded-full} | 36x44 (natural 20) | settings@360 settings@390 settings@768 settings@1024
+STRETCHED button "Go back to previous page" {} | 55x44 (natural 20) | profile@360 profile@390 profile@768 profile@1024
+STRETCHED button "Sign out" {px-3 rounded-full h-8} | 40x44 (natural 32) | profile@360 profile@390 profile@768 profile@1024
+STRETCHED button "QR Code" {px-3 rounded-full h-8} | 105x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Finish" {px-3 rounded-full h-8} | 86x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Edit" {px-3 h-8 rounded-full} | 76x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Unpublish" {px-3 h-8 rounded-full} | 112x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Copy link" {px-3 h-8 rounded-full} | 107x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Delete" {px-3 h-8 rounded-full} | 91x44 (natural 32) | site@360 site-owner@360 site@390 site-owner@390 site@768 site-owner@768 +2
+STRETCHED button "Buy Now" {px-2.5 py-1 rounded-full} | 67x44 (natural 25) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Free" {} | 30x44 (natural 20) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "From $3" {} | 56x44 (natural 20) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +6
+STRETCHED button "Included" {} | 59x44 (natural 20) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Items 1" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Items 2" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Items 3" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Services 1" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Services 2" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Services 3" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Packages 1" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Packages 2" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Packages 3" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Numbers 1" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Numbers 2" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Numbers 3" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Questions 1" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button "Remove Questions 2" {w-8 h-8 rounded-full} | 32x44 (natural 32) | studio@360 studio-style@360 studio-more@360 studio-spotlight@360 studio@390 studio-style@390 +10
+STRETCHED button[switch] "Use one colour" {h-5 w-9 rounded-full} | 36x44 (natural 20) | studio-style@360 studio-style@390 studio-style@768 studio-style@1024
+STRETCHED button[switch] "WhatsApp button" {h-5 w-9 rounded-full} | 36x44 (natural 20) | studio-style@360 studio-style@390 studio-style@768 studio-style@1024
+STRETCHED button[switch] "Dark editor" {h-5 w-9 rounded-full} | 36x44 (natural 20) | studio-style@360 studio-style@390 studio-style@768 studio-style@1024
+STRETCHED button "Close Feed Spotlight Preview" {h-9 w-9 rounded-full} | 36x44 (natural 36) | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768 studio-spotlight@1024
+STRETCHED button "Dismiss notifications prompt" {rounded-full p-1} | 24x44 (natural 24) | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768 studio-spotlight@1024
+STRETCHED button "Enable" {px-3 h-9 rounded-xl} | 143x44 (natural 36), 158x44 (natural 36) | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768 studio-spotlight@1024
+STRETCHED button "Not now" {px-3 h-9 rounded-xl} | 143x44 (natural 36), 158x44 (natural 36) | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768 studio-spotlight@1024
+STRETCHED button "Close toast" {} | 20x44 (natural 20) | studio-spotlight@360 studio-spotlight@390 studio-spotlight@768 studio-spotlight@1024
+STRETCHED button "Add a room type" {h-9 px-4 py-2 rounded-full} | 171x44 (natural 36) | rooms@360 rooms@390 rooms@768 rooms@1024
+STRETCHED button "Toggle sidebar" {p-2 rounded-xl} | 32x44 (natural 32) | feed@768 marketplace@768 search@768 showrooms@768 businesses@768 messages@768 +24
+STRETCHED button "Settings" {rounded-xl px-0 py-2.5 w-full} | 39x44 (natural 36) | feed@768 marketplace@768 search@768 showrooms@768 businesses@768 messages@768 +9
+STRETCHED button "Log out" {rounded-xl px-0 py-2.5 w-full} | 39x44 (natural 36) | feed@768 marketplace@768 search@768 showrooms@768 businesses@768 messages@768 +9
+STRETCHED button "Settings" {rounded-xl px-3 py-2} | 105x44 (natural 36) | feed@1024 marketplace@1024 search@1024 showrooms@1024 businesses@1024 messages@1024 +9

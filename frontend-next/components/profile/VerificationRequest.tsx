@@ -404,7 +404,7 @@ export default function VerificationRequest() {
             <button
               onClick={handleSubmit}
               disabled={submitting || !selfieRef || !idDocRef}
-              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
+              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
             >
               {submitting ? 'Submitting...' : 'Submit for Review'}
             </button>

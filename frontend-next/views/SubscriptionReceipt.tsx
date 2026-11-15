@@ -80,7 +80,7 @@ function SubscriptionReceipt() {
         type="button"
         onClick={async () => { setDownloading(true); try { await generateSubscriptionReceipt(receipt); } finally { setDownloading(false); } }}
         disabled={downloading}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
       >
         {downloading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />} Download PDF
       </button>

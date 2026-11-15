@@ -1201,7 +1201,7 @@ export default function PageGuide() {
               <button
                 type="button"
                 onClick={advanceStep}
-                className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary-hover"
               >
                 {index === steps.length - 1 ? words.done : words.next}
               </button>

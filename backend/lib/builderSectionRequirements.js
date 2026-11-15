@@ -61,4 +61,4 @@ function getRequiredBusinessTier(value) {
   return required;
 }
 
-module.exports = { BUILDER_SECTION_TIERS, RETIRED_SECTIONS, normalizeSections, getRequiredBusinessTier };
+module.exports = { BUILDER_SECTION_TIERS, KNOWN_SECTIONS, RETIRED_SECTIONS, normalizeSections, getRequiredBusinessTier };

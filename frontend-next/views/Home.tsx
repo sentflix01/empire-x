@@ -245,7 +245,7 @@ function Home() {
       {authChecked && !isAuthenticated && (
         <div data-page-guide="feed-guest-banner" className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary-subtle/80 px-4 py-3">
           <p className="text-xs font-medium text-primary-subtle-foreground">👋 Browsing as a guest: you see public businesses. Sign in to see personal posts, like and follow.</p>
-          <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary/90 transition-colors">Join Free</Link>
+          <Link href="/register" className="shrink-0 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-hover transition-colors">Join Free</Link>
         </div>
       )}
       <FeedPromoBanner isAuthenticated={isAuthenticated} />

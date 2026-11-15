@@ -6,12 +6,15 @@
  */
 import React from 'react';
 import BusinessSpotlight from '@/components/feed/BusinessSpotlight';
+import { SPOTLIGHT_LABELS, chosenSlides } from '@/lib/spotlight';
 
 export interface FeedSpotlightPreviewProps {
   sections: Array<Record<string, any>>;
   spotlightMode: 'off' | 'single' | 'carousel' | null;
   spotlightSectionIds: string[];
   themeColor: string;
+  /** Second colour of the site's gradient (defaults to the first). */
+  themeColor2?: string;
   businessName: string;
   ownerId: string;
   businessId?: string | null;
@@ -22,10 +25,15 @@ export default function FeedSpotlightPreview({
   spotlightMode,
   spotlightSectionIds,
   themeColor,
+  themeColor2,
   businessName,
   ownerId,
   businessId,
 }: FeedSpotlightPreviewProps) {
+  // What will really show: chosen sections with content (catalogue counts as filled).
+  const status = spotlightMode === 'single' || spotlightMode === 'carousel'
+    ? chosenSlides(sections as never, spotlightSectionIds, 1) : null;
+  const shown = status ? (spotlightMode === 'single' ? Math.min(1, status.shown.length) : status.shown.length) : 0;
   return (
     <div className="p-4 space-y-3">
       {/* Section header */}
@@ -37,13 +45,18 @@ export default function FeedSpotlightPreview({
         <p className="text-[11px] text-muted-foreground">
           {spotlightMode === 'off'
             ? 'Spotlight off'
-            : spotlightMode === null
+            : spotlightMode === null || !status || shown === 0
             ? 'Automatic mode'
-            : spotlightSectionIds.length > 1
-            ? `${spotlightSectionIds.length} tabs`
+            : shown > 1
+            ? `${shown} tabs`
             : '1 section'}
         </p>
       </div>
+      {status && status.empty.length > 0 && (
+        <p data-testid="spotlight-empty-note" className="rounded-lg bg-secondary/60 px-3 py-2 text-[11px] text-muted-foreground">
+          Not shown yet, no content: {status.empty.map((t) => SPOTLIGHT_LABELS[t] ?? t).join(', ')}. Add it in Studio and the tab appears.
+        </p>
+      )}
 
       {spotlightMode === 'off' ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/50 px-4 py-8 text-center">
@@ -56,7 +69,7 @@ export default function FeedSpotlightPreview({
           {/* Simulated business card header */}
           <div
             className="h-12 w-full"
-            style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}aa)` }}
+            style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor2 || themeColor})` }}
             aria-hidden="true"
           />
           <p className="truncate px-3 pt-2 text-xs font-bold">{businessName}</p>

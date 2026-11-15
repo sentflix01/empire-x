@@ -121,7 +121,7 @@ function CouponsManage() {
           <Button
             onClick={() => setShowForm(!showForm)}
             size="sm"
-            className="rounded-full bg-primary hover:bg-primary/90"
+            className="rounded-full bg-primary hover:bg-primary-hover"
           >
             <Plus className="w-4 h-4 mr-1" /> New Coupon
           </Button>

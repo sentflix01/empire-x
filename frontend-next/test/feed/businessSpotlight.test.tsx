@@ -50,7 +50,8 @@ describe('BusinessSpotlight', () => {
     render(<BusinessSpotlight sections={[gallery, services]} spotlightMode="carousel" spotlightSectionIds={['gallery', 'services']}
       themeColor="#2563eb" ownerId="o1" eager />);
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.map((t) => t.textContent)).toEqual(['Services', 'Gallery']); // services outranks gallery
+    expect(tabs.map((t) => t.textContent)).toEqual(['Gallery', 'Services']); // the owner's order
+    fireEvent.click(screen.getByRole('tab', { name: 'Services' }));
     expect(screen.getByText('Haircut')).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Gallery' }));
     expect(screen.getByRole('tab', { name: 'Gallery' }).getAttribute('aria-selected')).toBe('true');

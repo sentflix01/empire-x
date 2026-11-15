@@ -134,7 +134,7 @@ function BusinessInventory() {
           <p className="text-sm text-muted-foreground mt-0.5">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/products/scan" className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Scan products</Link>
+          <Link href="/products/scan" className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-white hover:bg-primary-hover">Scan products</Link>
           <Button variant="outline" size="sm" onClick={loadProducts}>
             <RefreshCw className="w-4 h-4" />
           </Button>
@@ -199,7 +199,7 @@ function BusinessInventory() {
             className="w-full text-xs font-mono px-3 py-2 rounded-xl border border-border bg-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary resize-y"
           />
 
-          <Button onClick={handleBulkImport} disabled={importing || !importText.trim()} className="w-full bg-primary hover:bg-primary/90 text-white">
+          <Button onClick={handleBulkImport} disabled={importing || !importText.trim()} className="w-full bg-primary hover:bg-primary-hover text-white">
             {importing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Importing...</> : 'Import Products'}
           </Button>
 

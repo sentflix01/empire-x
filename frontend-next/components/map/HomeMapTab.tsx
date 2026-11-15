@@ -531,7 +531,7 @@ export default function HomeMapTab({ user }: HomeMapTabProps) {
             <button
               onClick={() => handleProductSearch(searchQuery)}
               disabled={searchLoading}
-              className="px-3 py-1 bg-primary hover:bg-primary/90 text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
+              className="px-3 py-1 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-full transition-colors disabled:opacity-60"
             >
               {searchLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Go"}
             </button>

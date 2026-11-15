@@ -24,7 +24,7 @@ export default function OrderCancelPage() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <Link href="/cart" className="flex-1">
-          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 font-semibold">
+          <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary-hover font-semibold">
             <ShoppingBag className="w-4 h-4 mr-2" />
             Return to Cart
           </Button>

@@ -107,7 +107,7 @@ export function SuggestionCard({ suggestion, onFollow, onDismiss }: SuggestionCa
           className={`mt-2 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
             following
               ? 'bg-secondary text-muted-foreground cursor-default'
-              : 'bg-primary hover:bg-primary/90 text-white'
+              : 'bg-primary hover:bg-primary-hover text-white'
           }`}
         >
           {following ? 'Following' : 'Follow'}

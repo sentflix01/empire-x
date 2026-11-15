@@ -199,7 +199,7 @@ function DeliveryTimeline({ orderId, isSeller }: { orderId: string; isSeller: bo
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={addUpdate} disabled={saving}
-                  className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white">
+                  className="h-7 text-xs rounded-full bg-primary hover:bg-primary-hover text-white">
                   {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.save')}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setAdding(false)}
@@ -259,7 +259,7 @@ function ReturnRequestForm({ order, onSubmitted }: { order: any; onSubmitted: ()
       )}
       <div className="flex gap-2">
         <Button size="sm" onClick={submit} disabled={saving}
-          className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white">
+          className="h-7 text-xs rounded-full bg-primary hover:bg-primary-hover text-white">
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : t('orders.submitRequest')}
         </Button>
       </div>

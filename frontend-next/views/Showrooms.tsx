@@ -76,7 +76,7 @@ function Showrooms() {
             <p className="text-sm text-muted-foreground">Explore mini-websites</p>
           </div>
           <Link href="/showroom/create">
-            <Button size="sm" className="rounded-full bg-primary hover:bg-primary/90">
+            <Button size="sm" className="rounded-full bg-primary hover:bg-primary-hover">
               <Plus className="w-4 h-4 mr-1" /> Create
             </Button>
           </Link>

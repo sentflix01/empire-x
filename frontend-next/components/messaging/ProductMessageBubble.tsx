@@ -36,7 +36,7 @@ export default function ProductMessageBubble({ metadata }: ProductMessageBubbleP
         {productId && (
           <Link
             href={`/products/${productId}`}
-            className="mt-2 block w-full text-center text-xs font-medium rounded-lg py-1.5 transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+            className="mt-2 block w-full text-center text-xs font-medium rounded-lg py-1.5 transition-colors bg-primary text-primary-foreground hover:bg-primary-hover"
           >
             View Product
           </Link>

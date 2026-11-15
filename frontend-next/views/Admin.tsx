@@ -532,7 +532,7 @@ function Admin() {
     <div className="mx-auto max-w-md py-24 text-center">
       <h1 className="text-xl font-bold">Turn on two-factor sign-in</h1>
       <p className="mt-2 text-sm text-muted-foreground">Admin tools need two-factor sign-in with an authenticator app. Turn it on in your account settings, then come back.</p>
-      <Link href="/account" className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Open account settings</Link>
+      <Link href="/account" className="mt-5 inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Open account settings</Link>
     </div>
   );
 
@@ -900,7 +900,7 @@ function Admin() {
                         <X className="w-3 h-3 mr-1" /> {confirmRevoke === u.id ? 'Confirm?' : 'Revoke'}
                       </Button>
                     ) : (
-                      <Button size="sm" className="h-7 text-xs rounded-full bg-primary hover:bg-primary/90 text-white"
+                      <Button size="sm" className="h-7 text-xs rounded-full bg-primary hover:bg-primary-hover text-white"
                         onClick={() => { setVerifyModal(u); setVerifyType('personal'); setVerifyNote(''); }}>
                         <BadgeCheck className="w-3 h-3 mr-1" /> Verify
                       </Button>

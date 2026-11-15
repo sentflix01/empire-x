@@ -1,7 +1,7 @@
 'use client';
-import React from 'react';
+import React, { useId, useState } from 'react';
 import {
-  ArrowDown, ArrowUp, Plus, X, Circle, type LucideIcon, UtensilsCrossed, Clock, Wallet,
+  ArrowDown, ArrowUp, Plus, Search, X, Circle, type LucideIcon, UtensilsCrossed, Clock, Wallet,
   Award, Briefcase, CalendarCheck, FolderOpen, GitBranch, Handshake, HelpCircle, Images, Info, Mail, MapPin, Megaphone, MessageSquareQuote, PlayCircle, Send, ShoppingBag, Sparkles, Tag, TrendingUp, Users, Zap, Share2, Building2, Package, Navigation, Bookmark,
 } from 'lucide-react';
 import { SECTION_TYPES, type SectionType } from '@/lib/builderSections';
@@ -64,6 +64,15 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
   const onPage = activeSections.map((k) => sectionsByKey.get(k)).filter((s): s is SectionType => Boolean(s));
   const surface = dark ? 'bg-inverse text-inverse-foreground/70' : 'bg-card text-foreground';
   const line = dark ? 'border-foreground/20' : 'border-border/60';
+  const [query, setQuery] = useState('');
+  const searchId = useId();
+  const q = query.trim().toLowerCase();
+  const matches = (sec: SectionType) => !q || `${sec.label} ${sec.key} ${sec.purpose ?? ''}`.toLowerCase().includes(q);
+  const groups = SECTION_GROUPS.map((group) => ({
+    ...group,
+    available: group.keys.map((k) => sectionsByKey.get(k)).filter((s): s is SectionType => Boolean(s) && !activeSections.includes(s!.key) && matches(s!)),
+  }));
+  const noMatch = q !== '' && groups.every((g) => g.available.length === 0);
 
   return (
     <div className={`flex h-full min-h-0 flex-col ${surface}`}>
@@ -111,8 +120,22 @@ export default function SectionsPanel({ activeSections, onToggle, onMove, comple
           </ol>
         </section>
 
-        {SECTION_GROUPS.map((group) => {
-          const available = group.keys.map((k) => sectionsByKey.get(k)).filter((s): s is SectionType => Boolean(s) && !activeSections.includes(s!.key));
+        <div className={`sticky top-0 z-10 border-b px-3 py-2 ${line} ${dark ? 'bg-inverse' : 'bg-card'}`}>
+          <label htmlFor={searchId} className="sr-only">Find a section to add</label>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input id={searchId} type="search" value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="Find a section to add (e.g. menu, prices)" autoComplete="off"
+              className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+        </div>
+        {noMatch && (
+          <p role="status" className="px-3 py-4 text-sm text-muted-foreground">
+            No section matches “{query.trim()}”. Try another word, like “photos”, “prices” or “contact”.
+          </p>
+        )}
+        {groups.map((group) => {
+          const { available } = group;
           if (available.length === 0) return null;
           return (
             <section key={group.title} aria-label={`Add to the ${group.title.toLowerCase()}`} className={`border-b last:border-b-0 ${line}`}>

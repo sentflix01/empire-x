@@ -207,7 +207,7 @@ function Profile() {
         <button
           onClick={() => router.back()}
           aria-label="Go back to previous page"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors"
+          className="tap-target flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back
         </button>

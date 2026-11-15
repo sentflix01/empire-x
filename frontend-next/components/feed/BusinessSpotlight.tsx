@@ -10,7 +10,7 @@
  * Which sections show (automatic / off / chosen) is decided by lib/spotlight.ts;
  * how each becomes cards, by lib/spotlightTiles.ts.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react';
 import client from '@/lib/api/client';
@@ -77,6 +77,7 @@ export default function BusinessSpotlight({
   const [products, setProducts] = useState<Array<Record<string, any>>>([]);
   const [productsLoaded, setProductsLoaded] = useState(!needsProducts);
   const [active, setActive] = useState(0);
+  const panelId = `spotlight-${useId().replace(/:/g, "")}`;
 
   useEffect(() => {
     if (!needsProducts || !inView || productsLoaded) return;
@@ -122,9 +123,23 @@ export default function BusinessSpotlight({
     <section ref={rootRef} aria-label={`Spotlight: ${label(current.section)}`} className={frame} style={{ height: SPOTLIGHT_HEIGHT }}>
       <div className="flex h-9 items-center justify-between gap-2 px-4">
         {slides.length > 1 ? (
-          <div role="tablist" aria-label="Spotlight sections" className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto">
+          <div role="tablist" aria-label="Spotlight sections" className="no-scrollbar flex min-w-0 gap-1 overflow-x-auto"
+            onKeyDown={(e) => {
+              // WAI-ARIA tabs: arrows move between tabs, Home/End jump to the ends.
+              const last = slides.length - 1;
+              const next = e.key === 'ArrowRight' ? (active >= last ? 0 : active + 1)
+                : e.key === 'ArrowLeft' ? (active <= 0 ? last : active - 1)
+                : e.key === 'Home' ? 0 : e.key === 'End' ? last : -1;
+              if (next < 0) return;
+              e.preventDefault();
+              setActive(next);
+              const tab = e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next];
+              tab?.focus();
+            }}>
             {slides.map((s, i) => (
               <button key={`${s.index}-${s.section.type}`} type="button" role="tab" aria-selected={i === active}
+                id={`${panelId}-tab-${i}`} aria-controls={`${panelId}-panel`} tabIndex={i === active ? 0 : -1}
+                ref={i === active ? (el) => { el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); } : undefined}
                 onClick={() => setActive(i)}
                 className={`h-7 shrink-0 rounded-full px-3 text-xs font-semibold transition-colors ${i === active ? 'text-white' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
                 style={i === active ? { backgroundColor: fillForWhiteText(themeColor) } : undefined}>
@@ -141,6 +156,8 @@ export default function BusinessSpotlight({
           </Link>
         )}
       </div>
+      <div id={`${panelId}-panel`} role={slides.length > 1 ? 'tabpanel' : undefined}
+        aria-labelledby={slides.length > 1 ? `${panelId}-tab-${Math.min(active, slides.length - 1)}` : undefined}>
       <TileStrip
         key={`${current.index}-${current.section.type}`}
         tiles={tiles}
@@ -148,6 +165,7 @@ export default function BusinessSpotlight({
         themeColor={themeColor}
         onBuy={isOwner ? undefined : onBuy}
       />
+      </div>
     </section>
   );
 }

@@ -4,7 +4,7 @@
  * owner-written testimonials (decision "Reviews are platform-owned and
  * mandatory on every website").
  */
-import { checkShowroomInput, cleanSections, slugBase, SHOWROOM_LIMITS } from '../lib/showroomInput';
+import { checkSpotlight, checkShowroomInput, cleanSections, slugBase, SHOWROOM_LIMITS } from '../lib/showroomInput';
 const { normalizeSections, getRequiredBusinessTier } = require('../lib/builderSectionRequirements');
 const { clean } = require('../db/migrate91');
 
@@ -22,7 +22,7 @@ const err = (body: unknown) => {
 describe('checkShowroomInput', () => {
   it('keeps only owner-writable columns (no mass assignment)', () => {
     const fields = ok({ title: ' Selam Café ', category: 'food', view_count: 9999, owner_id: 'x', id: 'y', spotlight_mode: 'single', expires_at: null, is_seed: true, created_at: 'now' });
-    expect(fields).toEqual({ title: 'Selam Café', category: 'food' });
+    expect(fields).toEqual({ title: 'Selam Café', category: 'food', spotlight_mode: 'single' }); // spotlight_mode is owner-writable, validated by checkSpotlight
   });
 
   it('caps lengths and rejects an empty name', () => {
@@ -112,5 +112,37 @@ describe('migrate91 clean()', () => {
     expect(clean('{oops')).toEqual({ changed: false, invalid: true });
     expect(clean('{"type":"hero"}').changed).toBe(false);
     expect(clean(null).changed).toBe(false);
+  });
+});
+
+describe('Feed Spotlight on create/update (shared with the spotlight route)', () => {
+  it('accepts the choice, de-duplicated in order, retired types dropped, stored as JSON text', () => {
+    const r = checkShowroomInput({ title: 'Selam', spotlight_mode: 'carousel', spotlight_section_ids: ['about', 'items', 'about', 'testimonials', 'stats'] });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.fields.spotlight_mode).toBe('carousel');
+    expect(r.fields.spotlight_section_ids).toBe('["about","items","stats"]');
+  });
+
+  it('refuses unknown types, bad modes, non-arrays and more than 20 sections', () => {
+    expect(checkShowroomInput({ spotlight_section_ids: ['nope'] }).ok).toBe(false);
+    expect(checkShowroomInput({ spotlight_mode: 'all' }).ok).toBe(false);
+    expect(checkShowroomInput({ spotlight_section_ids: 'about' }).ok).toBe(false);
+    const many = ['about', 'items', 'menu', 'services', 'pricing', 'offer', 'events', 'gallery', 'portfolio', 'team', 'faq', 'features', 'stats', 'before_after', 'certifications', 'brands', 'caseStudies', 'partners', 'awards', 'industries', 'process'];
+    const r = checkShowroomInput({ spotlight_section_ids: many });
+    expect(r.ok).toBe(false);
+  });
+
+  it('treats a null mode as Automatic and leaves the fields out when not sent', () => {
+    const r = checkShowroomInput({ spotlight_mode: null, spotlight_section_ids: [] });
+    expect(r.ok && r.fields.spotlight_mode).toBeNull();
+    const none = checkShowroomInput({ title: 'x site' });
+    expect(none.ok && 'spotlight_mode' in none.fields).toBe(false);
+  });
+});
+
+describe('checkSpotlight', () => {
+  it('is the single validator', () => {
+    expect(checkSpotlight('single', ['menu'])).toEqual({ ok: true, mode: 'single', ids: ['menu'] });
   });
 });

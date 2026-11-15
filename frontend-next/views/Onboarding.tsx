@@ -114,7 +114,7 @@ function Onboarding() {
                 <Input {...field("phone")} type="tel" placeholder="+251 9xx xxx xxx" className={`${inputClass} h-11`} />
               </div>
             </div>
-            <Button data-page-guide="onboard-continue" onClick={handleFinish} disabled={saving || !personal.display_name.trim()} className="w-full h-11 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button data-page-guide="onboard-continue" onClick={handleFinish} disabled={saving || !personal.display_name.trim()} className="w-full h-11 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover">
               {saving ? "Creating..." : "Create My Profile"} <Check className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </div>

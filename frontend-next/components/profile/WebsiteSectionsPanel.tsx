@@ -122,7 +122,7 @@ export default function WebsiteSectionsPanel({ businessCategory }: Props) {
           </div>
           <Link
             href={draft ? `/showroom/create?edit=${draft.id}` : studioCreateHref(businessCategory)}
-            className="inline-flex h-9 shrink-0 items-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+            className="inline-flex h-9 shrink-0 items-center rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary-hover"
           >
             {draft ? 'Continue in Studio' : 'Build your website'}
           </Link>
@@ -188,7 +188,7 @@ export default function WebsiteSectionsPanel({ businessCategory }: Props) {
             type="button"
             onClick={save}
             disabled={!dirty || saving}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Save className="h-3.5 w-3.5" aria-hidden="true" />}
             Save website

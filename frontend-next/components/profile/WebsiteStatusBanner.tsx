@@ -103,7 +103,7 @@ export default function WebsiteStatusBanner({ businessId, ownerId, businessCateg
         <p className="mt-0.5 text-xs opacity-90">{body}</p>
         <p className="mt-1 text-[11px] opacity-70">Only you see this message.</p>
       </div>
-      <Link href={action.href} className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+      <Link href={action.href} className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">
         {action.label}
       </Link>
     </div>

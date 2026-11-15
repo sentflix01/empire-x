@@ -113,7 +113,7 @@ export default function UpgradePromptModal({
           <div className="flex gap-2 pt-1">
             <Button
               onClick={handleUpgrade}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white gap-2"
+              className="flex-1 bg-primary hover:bg-primary-hover text-white gap-2"
             >
               Upgrade to {requiredLabel}
               <ArrowRight className="w-4 h-4" />

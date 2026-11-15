@@ -10551,7 +10551,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:254"
+        "x-source": "backend/routes/showrooms.ts:249"
       }
     },
     "/api/showrooms/slug/{slug}": {
@@ -10860,7 +10860,7 @@
           }
         },
         "x-auth": "optional",
-        "x-source": "backend/routes/showrooms.ts:241"
+        "x-source": "backend/routes/showrooms.ts:236"
       },
       "put": {
         "operationId": "put_showrooms_id",
@@ -10901,7 +10901,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:325"
+        "x-source": "backend/routes/showrooms.ts:320"
       },
       "delete": {
         "operationId": "delete_showrooms_id",
@@ -10939,7 +10939,7 @@
           }
         },
         "x-auth": "auth",
-        "x-source": "backend/routes/showrooms.ts:396"
+        "x-source": "backend/routes/showrooms.ts:391"
       }
     },
     "/api/social/relationship/{userId}": {

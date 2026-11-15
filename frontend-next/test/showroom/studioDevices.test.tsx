@@ -49,7 +49,7 @@ describe('Studio layouts', () => {
   it('on a phone: Publish in the top bar, Sections slide over the preview', () => {
     setWidth(320);
     render(<ShowroomCreate />);
-    expect(screen.getByRole('button', { name: 'Publish site' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
     expect(screen.queryByRole('complementary', { name: 'Sections' })).toBeNull();
     fireEvent.click(screen.getByRole('tab', { name: /Sections/ }));
     const panel = screen.getByRole('dialog', { name: 'Sections' });

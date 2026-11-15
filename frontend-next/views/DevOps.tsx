@@ -1438,7 +1438,7 @@ function DevOps() {
         <div className="flex-1" />
         {!isAdmin && <Badge variant="outline" className="gap-1.5 text-muted-foreground border-border/60"><Eye className="w-3.5 h-3.5" /> Read-only</Badge>}
         {isAdmin && (
-          <Button onClick={openCreate} className="rounded-full h-9 px-4 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-semibold text-sm">
+          <Button onClick={openCreate} className="rounded-full h-9 px-4 bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/20 font-semibold text-sm">
             <Plus className="w-4 h-4 mr-1.5" /> New Item
           </Button>
         )}

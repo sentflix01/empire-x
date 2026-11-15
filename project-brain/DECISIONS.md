@@ -974,6 +974,42 @@ items in the open list until confirmed.
 - **Why:** The owner wants visitors who read neither English nor Amharic to understand the product at a glance. Loading only when visible keeps the F-045 aim of a light first load on mobile data.
 - **Consequences:** Clips are rendered from code by `frontend-next/scripts/promo/render.mjs` (scenes in `scripts/promo/scenes/`), so they can be edited and re-rendered; files are `public/promo/*-v4.*` (banner `-v2`, builder `-v2`) and are referenced only through `lib/promoAssets.ts`. The builder video's shots are in `scripts/promo/scenes/builderShots.js` (`builder.html`). Players: `components/promo/PromoVideo.tsx` (loops), `components/promo/PromoGuide.tsx` (full guide; `video="builder"` for the builder video). Pages: `views/Home.tsx`, `app/landing/page.tsx`. Tests: `test/PromoVideo.test.tsx`; `e2e/performance-budget.spec.ts` now allows only the banner clip on `/feed` (under 400 KB) and one landing clip (under 2 MB), and still expects no video with reduced motion.
 
+### 2026-11-14 — Feed Spotlight: the owner's sections, in the owner's order; any site colours
+
+- **Status:** Accepted (owner, 14 Nov 2026, from testing Studio: the live preview could not be seen while choosing; ticked sections were missing from the spotlight and came in a different order; only fixed colours were offered). Amends point 599 of "Business Spotlight: one selling section, at its real size, on every card" (2026-10-24), which played chosen sections in priority order and only selling sections.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. In "Choose sections" mode, **every** chosen section the strip can draw (`SPOTLIGHT_TILE_TYPES`: selling sections plus team, FAQ, numbers, why us, process, delivery, certifications, brands, case studies, partners, awards, industries, before/after, jobs, booking, video) becomes a tab, **in the owner's order**. The owner reorders the tabs in the panel. A chosen section with no content yet is skipped until it has some (the panel and preview say which), so a tab is never blank. Automatic mode is unchanged: one best selling section.
+  2. The Spotlight settings and the live card preview show together: side by side from 768 px, and the preview pinned above the settings on phones. It is a dialog (Esc, focus kept inside and returned). **Amended the same night (owner: "there is no save button"):** nothing is saved until the owner presses **Save**; **Cancel** restores the saved choice; Esc or ✕ with unsaved changes asks *Save / Discard / Keep editing*. A refused save shows an error with Try again and keeps the dialog open. Before the site is first saved, the choice is kept in Studio and sent with the next draft or publish.
+  3. The server keeps the order, de-duplicates, drops retired types, and refuses unknown types or more than 20 sections. The same check (`checkSpotlight` in `backend/lib/showroomInput.ts`) applies to the spotlight route and to website create/update.
+  4. Owners can pick **any colours** (two colour pickers with hex codes, or one colour), besides the presets. The current colours always show as selected. Light colours are darkened only where white text sits on them, so sites stay WCAG AA. The hero button text follows the same rule, and the hero's call to action is one link styled as a button (no button inside a link).
+- **Consequences:**
+  - Code: `lib/spotlight.ts` (`chosenSlides`, `SPOTLIGHT_TILE_TYPES`), `components/feed/BusinessSpotlight.tsx` (keyboard tabs, tabpanel), `components/showroom/studio/FeedSpotlightPanel.tsx`, `FeedSpotlightPreview.tsx`, `StudioMenus.tsx`, `views/ShowroomCreate.tsx`, `components/showroom/SectionRenderer.tsx`, `backend/routes/showrooms.ts`.
+  - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
+  - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (21 checks).
+
+### 2026-11-14 — Touch targets: a bigger hit area, never a bigger shape
+
+- **Status:** Accepted (owner, 14 Nov 2026: switches and buttons looked deformed "in so many places, especially on mobile").
+- **Decision owner:** Project owner
+- **Decision:**
+  1. No CSS rule sets a minimum height on every button. The old rule (`min-height: 44px` on all buttons below 1024 px) stretched switches, pills and round icon buttons out of shape.
+  2. Small controls keep their designed size and get the `.tap-target` utility: an invisible `::after` hit area of at least 44 × 44 px, centred (WCAG 2.2 SC 2.5.8 needs 24 px; 44 px follows SC 2.5.5 and platform guidelines). Switch, Checkbox, Radio, Slider and the small/icon Button sizes have it built in.
+  3. Floating launchers (page guide, assistant) step aside while a modal dialog is open, and inside Studio below 1024 px, where they covered fields and Save. Studio's More menu offers both instead.
+  4. Primary buttons darken on hover (`primary-hover`, #1d4ed8) instead of fading, and toast text uses darker tints, so white or coloured text stays WCAG AA.
+- **Consequences:** `app/globals.css`; `components/ui/{switch,checkbox,radio-group,slider,button}.tsx`; guards in `test/tapTargets.test.ts`; the platform scan `note/2026-11-14-showroom-audit/controls-scan.mjs` (18 pages × 4 widths) must find nothing.
+
+### 2026-11-14 — Studio: explicit save, one save status, checks before publish
+
+- **Status:** Accepted (owner, 14 Nov 2026: "this create showroom is the main engine… I need everything neat and professional, global level"). Audit: `note/2026-11-14-showroom-audit/studio-audit.md`.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. Studio shows one save status (*Saving… / Saved to your account / Saved on this device*) and a visible **Save draft** button (in More on phones). Auto-save to the device stays; closing the tab while a change is pending asks first.
+  2. Publish shows that it is working, cannot be pressed twice, and reads *Update* for a published site.
+  3. Fields follow the server's rules as the owner types (`lib/builderFieldRules.ts`): phone, email and link keyboards and checks, `https://` added to bare links, counters where the limit is tight (name 120, description 1000). Publish stops and names the field instead of failing on the server.
+  4. Field text is 16 px on phones so iOS does not zoom; menus scroll within the screen; the section library is searchable.
+- **Consequences:** `views/ShowroomCreate.tsx`, `views/ShowroomWizard.tsx`, `components/showroom/BuilderForm.tsx`, `components/showroom/studio/*`, `lib/builderFieldRules.ts`; tests `test/showroom/studioAudit.test.tsx`, `test/showroom/builderFieldRules.test.tsx`.
+
 ### 2026-11-14 — Reviews are platform-owned and mandatory on every website
 
 - **Status:** Accepted (owner, 14 Nov 2026: "remove customer rating and testimonial from builder sections, then when any user publishes, the app itself adds this to each website, because each website's trust is determined by user feedback, so these two things are mandatory"; reviews from **verified customers only**; old owner-written quotes **removed everywhere**).
