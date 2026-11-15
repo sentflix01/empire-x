@@ -144,7 +144,7 @@ function Showrooms() {
                     )}
                     {/* Category badge overlay */}
                     <div className="absolute top-2 left-2">
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/40 text-white backdrop-blur-sm">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/65 text-white backdrop-blur-sm">
                         {(s.category && CAT_LABELS[s.category]) || s.category || 'Showroom'}
                       </span>
                     </div>
