@@ -581,6 +581,89 @@ router.post('/onboarding-mode', (_req: Request, res: Response) => {
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_TTL_SECONDS = 15 * 60; // 15 minutes
 
+// ── Sign in with an emailed code, no password (new-user audit NU-18) ─────────
+// POST /api/auth/login-code        { email }        → always { sent: true }
+// POST /api/auth/login-code/verify { email, code }  → same result as /login
+// Only verified, active Real accounts get a code. The answer never says
+// whether the email has an account. A code lasts 10 minutes and 5 wrong tries
+// cancel it; the account lockout and two-step sign-in still apply.
+const LOGIN_CODE_TTL_SECONDS = 10 * 60;
+const LOGIN_CODE_ATTEMPT_MAX = 5;
+
+router.post('/login-code', async (req: Request, res: Response) => {
+  const email = String((req.body as { email?: unknown })?.email ?? '').trim().toLowerCase();
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    apiError.validationError(res, 'Enter a valid email address.');
+    return;
+  }
+  try {
+    const { rows } = await pool.query<{ id: string; is_verified: boolean; is_banned: boolean; is_demo: boolean; is_seed: boolean }>(
+      'SELECT id, is_verified, is_banned, is_demo, is_seed FROM users WHERE email = $1', [email],
+    );
+    const user = rows[0];
+    const locked = user ? (await getValue(`lockout:${email}`)) !== null : false;
+    if (user && user.is_verified && !user.is_banned && !user.is_demo && !user.is_seed && !locked) {
+      const code = generateOtp();
+      await pool.query('UPDATE users SET otp_code = $1, otp_expires = $2 WHERE id = $3',
+        [hashOtp(code), new Date(Date.now() + LOGIN_CODE_TTL_SECONDS * 1000), user.id]);
+      await clearValue(`login_code_attempts:${email}`).catch(() => undefined);
+      try { await sendOtpEmail(email, code); } catch (err) {
+        logger.error({ err: (err as Error).message, userId: user.id }, 'login code email failed');
+      }
+    }
+    res.json({ sent: true });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'login code request failed');
+    apiError.serverError(res, 'Could not send a sign-in code');
+  }
+});
+
+router.post('/login-code/verify', async (req: Request, res: Response) => {
+  const body = req.body as { email?: unknown; code?: unknown };
+  const email = String(body?.email ?? '').trim().toLowerCase();
+  const code = String(body?.code ?? '').trim();
+  if (!email || !/^\d{6}$/.test(code)) {
+    apiError.validationError(res, 'Enter the 6-digit code from the email.');
+    return;
+  }
+  try {
+    const { rows } = await pool.query<{
+      id: string; otp_code: string | null; otp_expires: Date | null; is_verified: boolean; is_banned: boolean;
+      is_demo: boolean; is_seed: boolean; role: string; onboarding_mode: 'demo' | 'real' | null;
+    }>('SELECT id, otp_code, otp_expires, is_verified, is_banned, is_demo, is_seed, role, onboarding_mode FROM users WHERE email = $1', [email]);
+    const user = rows[0];
+    const invalid = () => { res.status(401).json({ error: 'That code is wrong or has expired. Request a new one.', code: 'INVALID_LOGIN_CODE' }); };
+    if (!user || !user.is_verified || user.is_banned || user.is_demo || user.is_seed) { invalid(); return; }
+    if ((await getValue(`lockout:${email}`)) !== null) {
+      res.status(429).json({ error: 'Too many failed attempts. Please try again in 15 minutes.' });
+      return;
+    }
+    if (!user.otp_expires || new Date() > new Date(user.otp_expires) || !verifyOtp(code, user.otp_code)) {
+      const attempts = await incrementCounter(`login_code_attempts:${email}`, LOGIN_CODE_TTL_SECONDS).catch(() => 0);
+      if (attempts >= LOGIN_CODE_ATTEMPT_MAX) {
+        await pool.query('UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1', [user.id]);
+        await clearValue(`login_code_attempts:${email}`).catch(() => undefined);
+      }
+      invalid();
+      return;
+    }
+    await pool.query('UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = $1', [user.id]);
+    await clearValue(`login_code_attempts:${email}`).catch(() => undefined);
+    if (process.env.ADMIN_ONLY_MODE === 'true' && user.role !== 'admin') { res.status(404).json({ error: 'Not found' }); return; }
+    if (getCurrentDatabaseEnvironment() === 'demo') {
+      const session = await establishDemoAccountSession(user.id, res);
+      res.json({ access_token: signDemoAccessToken(user.id, session.sessionId), onboarding_mode: 'demo', is_demo: true });
+      return;
+    }
+    if (await respondWithMfaChallenge(user.id, res)) return;
+    const token = signToken(user.id, res);
+    res.json({ access_token: token, onboarding_mode: user.onboarding_mode ?? null, is_demo: false });
+  } catch (err) {
+    logger.error({ err: (err as Error).message }, 'login code verify failed');
+    apiError.serverError(res, 'Sign-in failed');
+  }
+});
+
 router.post('/login', async (req: Request, res: Response) => {
   const { email, password } = req.body as { email?: string; password?: string };
   if (!email || !password) {

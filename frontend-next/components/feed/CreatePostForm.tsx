@@ -1,4 +1,5 @@
 'use client'
+import { userInitial } from '@/lib/userInitial';
 import React, { useState } from "react";
 import { TEXT_LIMITS } from "@/lib/textLimits";
 import NextImage from 'next/image';
@@ -81,7 +82,7 @@ export default function CreatePostForm({ user, onPostCreated }: CreatePostFormPr
         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold text-xs shrink-0 overflow-hidden">
           {user?.avatar_url
             ? <NextImage src={user.avatar_url} alt={`${user.full_name || 'User'}'s avatar`} width={32} height={32} className="w-full h-full object-cover" unoptimized />
-            : (user?.full_name?.charAt(0) || "E")}
+            : userInitial(user)}
         </div>
 
         {/* Input with icons inside on the right */}

@@ -4,6 +4,31 @@
 **Users:** non-technical, global, mobile-first. **Stack:** Next.js 16 / React, Express + Postgres + Redis, Vercel.
 **Goal tested:** anyone can sign up and reach a first success in under 60 seconds, without confusion.
 
+## After the fixes (same journey, same phone profile, re-run 15 Nov 2026)
+
+| What | Before | After |
+|---|---|---|
+| "Create account" with the terms box unticked | grey button, nothing happens, no message, unreachable by keyboard | the button works; "Tick the box to agree…" appears under the box, announced, with the box focused |
+| Fields on sign-up | email, password, confirm password, terms | email, password (show/hide, rule always visible), terms |
+| Typo email `selam@gmial` | accepted | "Enter an email like name@example.com." plus "Did you mean selam@gmail.com?" (one tap) |
+| Error announcements | none announced, no `aria-invalid` | every error `role="alert"` and linked to its field (`aria-invalid`, `aria-describedby`) |
+| Wrong code | stays in the boxes | checked as soon as 6 digits are in, then the boxes clear |
+| After the code | feed with a "Loading map…" spinner, then a jump to `/onboarding` 1–3 s later | **straight to "Welcome! What should people call you?"** (one field), then the feed |
+| Post box on the first feed | 585 px down a 664 px screen | **93 px** from the top |
+| Floating buttons on sign-up and sign-in | covered the email and password fields | none on these pages |
+| Sign-in without a password | not offered | "Email me a sign-in code": signed in **0.8 s** after typing the code |
+| Used email | "An account with this email already exists" (dead end) | "This email already has an account. Sign in · Forgot password?" |
+| Header initial for a new account | "G" (header) / "E" (post box) | the person's initial everywhere |
+| Guest feed | 2 failed calls (401) | stories only for signed-in people (the 401 call is gone) |
+| Languages in every first download | all 4 (≈ 112 KB raw) | English only; others load when chosen |
+| Page titles | "Nodbusiness" on sign-up, sign-in and feed | "Create account · Sign in · Feed | Nodbusiness", with canonical addresses |
+| axe WCAG 2.2 AA (sign-up, sign-in, forgot, error states, code screen; phone and desktop; light and dark) | clean on the base pages | **20/20 clean**, error states included |
+| Journey findings | 4 (disabled button, unannounced errors ×2, logout) | **0** |
+
+- **Machine time:** account at 8.7 s, first post at 14.3 s, both about the same as before. The time a person saves is in the steps removed: the confirm field, hunting for the tick box, deleting a wrong code, the surprise redirect, the four extra onboarding fields, and scrolling to the post box.
+- **Estimated time for a person:** **≈ 40–55 s** by email (was 75–110 s) and **≈ 15–25 s** with Google.
+- **Not done: NU-15** (autofocus on the email field). It would put keyboard users past the "Skip to main content" link, which the accessibility tests require first.
+
 ## How it was tested (evidence, not guesses)
 
 | Where | What | Script |

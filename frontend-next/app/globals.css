@@ -359,6 +359,8 @@ body:has([aria-modal="true"]) [data-floating-launcher] { display: none; }
 @media (max-width: 1023px) {
   body:has([data-studio-editor]) [data-floating-launcher] { display: none; }
 }
+/* Sign-up, sign-in and the name screen: nothing floats over the form (new-user audit NU-3). */
+body:has([data-auth-page]) [data-floating-launcher] { display: none; }
 
 .tap-target::after {
   content: "";

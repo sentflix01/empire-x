@@ -15,12 +15,14 @@ vi.mock('@/lib/api/auth', () => ({
   auth: {
     loginViaEmailPassword: vi.fn().mockResolvedValue({ access_token: 'test-token' }),
     loginWithProvider: vi.fn(),
+    requestLoginCode: vi.fn().mockResolvedValue(undefined),
+    loginWithCode: vi.fn(() => new Promise(() => {})),
   },
 }));
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, opts?: any) => typeof opts === 'string' ? opts : (opts?.defaultValue ?? key),
     i18n: { language: 'en' },
   }),
 }));
@@ -129,16 +131,12 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     expect((window as any).__googleSignIn).toBeUndefined();
   });
 
-  it('shows the unavailable state when GIS cannot render synchronously', () => {
+  it('leaves out the Google area entirely when Google sign-in is not set up (no dead button)', () => {
     mockRenderGoogleSignInButton.mockReturnValue(false);
     render(<Login />);
-    expect(screen.getByRole('status').textContent).toMatch(/not configured for this environment/i);
-  });
-
-  it('shows the unavailable state immediately when GIS is not configured', () => {
-    mockRenderGoogleSignInButton.mockReturnValue(false);
-    render(<Login />);
-    expect(screen.getByRole('status').textContent).toMatch(/not configured for this environment/i);
+    expect(document.querySelector('[data-page-guide="login-google"]')).toBeNull();
+    expect(screen.queryByText(/not configured/i)).toBeNull();
+    expect(screen.queryByText(/^or$/i)).toBeNull();
   });
 
   it('does NOT render a plain Google icon button (old implementation gone)', () => {
@@ -185,7 +183,8 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     act(() => capturedOnError!(new Error('Google sign-in could not be verified. Ensure the frontend and backend use the same Google OAuth client ID.')));
 
     await waitFor(() => {
-      expect(screen.getByText(/same Google OAuth client ID/i)).toBeTruthy();
+      // Plain words for people; the technical cause belongs in logs (new-user audit).
+      expect(screen.getByText(/could not be verified\. Please try again/i)).toBeTruthy();
     });
   });
 
@@ -231,5 +230,25 @@ describe('Login — Google Sign-In (GIS rendered button)', () => {
     await waitFor(() => {
       expect(screen.getByText(/google sign-in failed\. please try email and password below/i)).toBeTruthy();
     });
+  });
+
+  it('signs in with an emailed code: no password needed (new-user audit NU-18)', async () => {
+    render(<Login />);
+    fireEvent.click(screen.getByRole('button', { name: /Email me a sign-in code/i }));
+    expect(document.querySelector('#password')).toBeNull();
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: ' Selam@Example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send me a code/i }));
+    await waitFor(() => expect(vi.mocked(auth.requestLoginCode)).toHaveBeenCalledWith('selam@example.com'));
+    const box = await screen.findByRole('textbox', { name: 'Sign-in code' });
+    fireEvent.change(box, { target: { value: '123456' } });
+    await waitFor(() => expect(vi.mocked(auth.loginWithCode)).toHaveBeenCalledWith('selam@example.com', '123456'));
+  });
+
+  it('explains a bad email next to the field, out loud', async () => {
+    render(<Login />);
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'selam@gmial' } });
+    fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/name@example\.com/);
+    expect(vi.mocked(auth.loginViaEmailPassword)).not.toHaveBeenCalled();
   });
 });

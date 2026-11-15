@@ -34,6 +34,19 @@ export const auth = {
     return res.data as Record<string, unknown>;
   },
 
+  /** Sign in without a password: email a 6-digit code (new-user audit NU-18). Always succeeds. */
+  async requestLoginCode(email: string): Promise<void> {
+    await client.post('/api/auth/login-code', { email }, realIdentityRequest);
+  },
+
+  /** Second half of code sign-in; same answer as a password sign-in (may ask for two-factor). */
+  async loginWithCode(email: string, code: string): Promise<Record<string, unknown>> {
+    const res = await client.post('/api/auth/login-code/verify', { email, code }, realIdentityRequest);
+    const { access_token } = res.data as { access_token?: string };
+    if (access_token) storeToken(access_token);
+    return res.data as Record<string, unknown>;
+  },
+
   /** Second sign-in step: an authenticator code or a recovery code (F-017). */
   async verifyMfa(mfaToken: string, code: string): Promise<Record<string, unknown>> {
     const res = await client.post('/api/auth/mfa/verify', { mfa_token: mfaToken, code }, realIdentityRequest);

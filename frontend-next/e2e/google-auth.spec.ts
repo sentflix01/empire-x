@@ -32,11 +32,16 @@ const E2E_PASSWORD = 'e2e-only-password';
 /**
  * The Google button only renders when the build has a well-formed client ID
  * (NEXT_PUBLIC_GOOGLE_CLIENT_ID, e.g. 000000000000-e2e.apps.googleusercontent.com;
- * CI sets a fake one). Without it the page says sign-in is not configured.
+ * CI sets a fake one). Without it the page leaves the Google area out.
  */
 async function skipWithoutGoogleClient(page: Page) {
   await page.goto('/login?mode=real', { waitUntil: 'domcontentloaded' });
-  const unconfigured = await page.getByText('Google sign-in is not configured for this environment', { exact: false }).isVisible().catch(() => false);
+  // Without a client ID the Google area is left out entirely (new-user audit NU-1x: no dead buttons).
+  await page.locator('#email').waitFor({ timeout: 15000 }).catch(() => {});
+  // The page decides after its first render whether Google can be offered.
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForTimeout(500);
+  const unconfigured = (await page.locator('[data-page-guide="login-google"]').count()) === 0;
   test.skip(unconfigured, 'This build has no Google client ID; set NEXT_PUBLIC_GOOGLE_CLIENT_ID to a well-formed ID to run this test.');
 }
 

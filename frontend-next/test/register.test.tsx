@@ -17,7 +17,8 @@ vi.mock('@/lib/api/client', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, opts?: any) => opts ? `${key} ${JSON.stringify(opts)}` : key,
+    // English defaults, as the screens show them (keys fall back to the key).
+    t: (key: string, opts?: any) => typeof opts === 'string' ? opts : (opts?.defaultValue ?? key),
     i18n: { language: 'en' },
   }),
 }));
@@ -39,29 +40,58 @@ describe('Register form', () => {
     setSearchParams({ mode: 'real' });
   });
 
-  it('renders email, password and confirm password fields', () => {
+  it('has one password field with show/hide and its rule always visible (no confirm field)', () => {
     render(<Register />);
     expect(screen.getByRole('textbox', { name: /email/i })).toBeTruthy();
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    expect(passwordInputs.length).toBeGreaterThanOrEqual(2);
+    expect(document.querySelectorAll('input[type="password"]').length).toBe(1);
+    expect(screen.getByRole('button', { name: 'Show password' })).toBeTruthy();
+    expect(screen.getByText(/8 or more characters/i)).toBeTruthy();
   });
 
-  it('shows password mismatch error', async () => {
+  it('never disables Create account: it says what is missing, next to the field, out loud', async () => {
     render(<Register />);
+    const submit = screen.getByRole('button', { name: 'Create account' }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(false);
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'test@example.com' } });
+    fireEvent.change(document.querySelector('input[type="password"]')!, { target: { value: 'password123' } });
+    fireEvent.click(submit);
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toMatch(/Tick the box to agree/i);
+    expect(screen.getByRole('checkbox').getAttribute('aria-invalid')).toBe('true');
+    expect(vi.mocked(client.post)).not.toHaveBeenCalled();
+  });
 
-    const emailInput = screen.getByRole('textbox', { name: /email/i });
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
+  it('catches a typo email and offers the fix', async () => {
+    render(<Register />);
+    const email = screen.getByRole('textbox', { name: /email/i });
+    fireEvent.change(email, { target: { value: 'selam@gmial' } });
+    fireEvent.blur(email);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/name@example\.com/);
+    fireEvent.click(screen.getByRole('button', { name: 'selam@gmail.com' }));
+    expect((email as HTMLInputElement).value).toBe('selam@gmail.com');
+  });
 
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
-    fireEvent.change(passwordInputs[1], { target: { value: 'different456' } });
+  it('a short password is explained under the field', async () => {
+    render(<Register />);
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'test@example.com' } });
+    fireEvent.change(document.querySelector('input[type="password"]')!, { target: { value: 'short' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/at least 8 characters/i);
+    expect(document.querySelector('#password')!.getAttribute('aria-invalid')).toBe('true');
+  });
 
-    const form = emailInput.closest('form') as HTMLFormElement;
-    fireEvent.submit(form);
-
-    await waitFor(() => {
-      expect(screen.getByText(/passwords do not match/i)).toBeTruthy();
-    });
+  it('a used email offers Sign in and Reset password', async () => {
+    vi.mocked(client.post).mockRejectedValueOnce({ status: 409, error: 'An account with this email already exists' });
+    render(<Register />);
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'used@example.com' } });
+    fireEvent.change(document.querySelector('input[type="password"]')!, { target: { value: 'password123' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/already has an account/i);
+    const signIn = screen.getAllByRole('link', { name: 'Sign in' }).find((a) => /email=used/.test(a.getAttribute('href') ?? ''));
+    expect(signIn).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Forgot password/ })).toBeTruthy();
   });
 
   it('renders Google’s official button for mobile-safe sign-in', async () => {
@@ -74,21 +104,10 @@ describe('Register form', () => {
 
   it('submits registration and shows OTP step on success', async () => {
     const { unmount } = render(<Register />);
-
-    const emailInput = screen.getByRole('textbox', { name: /email/i });
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-
-    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
-    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
-    fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
-
-    // Check the Terms of Service checkbox before submitting
-    const tosCheckbox = screen.getByRole('checkbox');
-    fireEvent.click(tosCheckbox);
-
-    const form = emailInput.closest('form') as HTMLFormElement;
-    fireEvent.submit(form);
-
+    fireEvent.change(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'New@Example.com ' } });
+    fireEvent.change(document.querySelector('input[type="password"]')!, { target: { value: 'password123' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => {
       expect(vi.mocked(client.post)).toHaveBeenCalledWith(
         '/api/auth/register',
@@ -96,8 +115,18 @@ describe('Register form', () => {
         { headers: { 'X-Account-Mode': 'real' } },
       );
     });
+    expect(await screen.findByRole('heading', { name: /check your email/i })).toBeTruthy();
+    unmount();
+  });
 
-    unmount(); // clean up before async effects fire
+  it('clears the code boxes after a wrong code', async () => {
+    setSearchParams({ mode: 'real', verify: 'pending@example.com' });
+    vi.mocked(client.post).mockRejectedValueOnce({ error: 'Invalid verification code' });
+    render(<Register />);
+    const code = screen.getByRole('textbox', { name: 'Verification code' }) as HTMLInputElement;
+    fireEvent.change(code, { target: { value: '000000' } });
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Invalid verification code/);
+    await waitFor(() => expect(code.value).toBe(''));
   });
 
   it('opens code entry for an unverified account redirected from login', () => {

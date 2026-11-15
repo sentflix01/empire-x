@@ -988,6 +988,28 @@ items in the open list until confirmed.
   - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
   - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (21 checks).
 
+### 2026-11-15 — Sign-up to first success in under a minute (new-user audit)
+
+- **Status:** Accepted (owner, 15 Nov 2026: "anyone, anywhere, should be able to sign up and start using the app in under 60 seconds"; "fix all of them"). Audit and before/after: `note/2026-11-15-new-user-audit/report.md`.
+- **Decision owner:** Project owner
+- **Decision:**
+  1. **Sign-up form:**
+     - email and one password field with show/hide (no "confirm password"), the rule always visible, and a terms box;
+     - the button is never disabled; on submit, each problem is shown under its field, announced, and focused;
+     - typo emails get a "Did you mean …?" fix;
+     - a used email offers Sign in and Forgot password.
+  2. **Email code:** checked as soon as 6 digits are in, and the boxes clear after a wrong code.
+  3. **After the code:** a new account goes straight to one question, "What should people call you?" (headline, about, city and phone are optional and folded away), then to the feed. The account name is saved too, so it shows everywhere.
+  4. **Sign-in:** besides password and Google, people can **sign in with an emailed code** (no password). It reveals nothing about whether an account exists and keeps the lockout and two-step sign-in.
+  5. **Clear pages:** floating launchers never cover the sign-up, sign-in or name screens. The Google area is left out when Google is not set up, never shown as a dead button. Sign-up, sign-in and onboarding are fully translatable.
+  6. **First feed:** the feed's loading state is the feed's shape (never "Loading map…"). Signed-in people get the post box first. Guests are not shown stories, which need an account.
+  7. **Weight and findability:** only English ships with every page; other languages load when chosen. Auth pages and the feed have their own titles and canonical addresses, and the landing link preview is a 1200×630 image with a Privacy link in the footer.
+- **Not done:** autofocus on the email field (NU-15). It would move keyboard users past the "Skip to main content" link, which the accessibility tests require first.
+- **Consequences:**
+  - Code: `views/Register.tsx`, `views/Login.tsx`, `views/Onboarding.tsx`, `components/AuthLayout.tsx`, `lib/emailCheck.ts`, `lib/afterSignIn.ts`, `lib/userInitial.ts`, `lib/i18n.ts`, `backend/routes/auth.ts` (`/login-code`).
+  - Tests: `test/register.test.tsx`, `test/login.test.tsx`, `test/onboarding.test.tsx`, `test/i18nLazy.test.ts`, `backend/test/db/loginCode.db.test.js`, `e2e/signup.spec.ts`.
+  - Real-stack journey: `note/2026-11-15-new-user-audit/new-user-journey.mjs`.
+
 ### 2026-11-15 — Spotlight: "has content" means "draws a card"; a live site's unpublished changes are kept
 
 - **Status:** Accepted (owner, 15 Nov 2026: the Spotlight preview disappeared when ticking back and forth; "test what happens when the owner comes back to update a published showroom"). Report: `note/2026-11-15-spotlight-fuzz/report.md`.
