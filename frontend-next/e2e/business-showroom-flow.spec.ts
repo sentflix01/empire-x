@@ -168,7 +168,8 @@ test('editing a published showroom restores its sections and keeps them on repub
   const businessName = page.locator('input[placeholder="Your Business Name"]:visible').first();
   await expect(businessName).toHaveValue('Fresh Roots Cooperative');
   await businessName.fill('Fresh Roots Cooperative Updated');
-  await page.getByRole('button', { name: 'Publish', exact: true }).click();
+  // A published site's button reads "Update" (Studio audit, 14 Nov 2026).
+  await page.getByRole('button', { name: 'Update', exact: true }).click();
   await expect(page).toHaveURL(/\/showrooms\/e2e-showroom-id$/);
 
   const savedSections = JSON.parse(String(updatedBody?.sections)) as Array<Record<string, unknown>>;
