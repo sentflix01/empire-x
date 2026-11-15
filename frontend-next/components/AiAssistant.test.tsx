@@ -2,7 +2,7 @@ import React from "react";
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import AiAssistant from "./AiAssistant";
+import AiAssistant, { clampAssistantPosition } from "./AiAssistant";
 
 const mocks = vi.hoisted(() => ({
   pathname: "/feed",
@@ -100,5 +100,14 @@ describe("AiAssistant guided tour", () => {
     expect(await screen.findByText("ai.tourEnded")).toBeTruthy();
     expect(mocks.post).toHaveBeenCalledOnce();
     expect(screen.queryByRole("button", { name: "ai.endTour" })).toBeNull();
+  });
+});
+
+describe("clampAssistantPosition", () => {
+  it("keeps the assistant and the guide launcher above it clear of the top bar", () => {
+    // A position dragged onto the logo (owner's screenshot, 15 Nov 2026).
+    expect(clampAssistantPosition({ x: 90, y: 10 }, 1366, 768).y).toBe(128);
+    expect(clampAssistantPosition({ x: 90, y: 400 }, 1366, 768).y).toBe(400);
+    expect(clampAssistantPosition({ x: 5000, y: 5000 }, 1366, 768)).toEqual({ x: 1302, y: 704 });
   });
 });

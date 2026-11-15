@@ -41,8 +41,16 @@ function readSafeAreaBottom(): number {
   }
 }
 
-function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
+/** The app's sticky top bar (AppLayout header, h-14). */
+const APP_HEADER_HEIGHT = 56;
+/** The page-guide launcher sits this far above the assistant button. */
+const GUIDE_LAUNCHER_OFFSET = 64;
+
+export function clampAssistantPosition(position: { x: number; y: number }, viewportWidth: number, viewportHeight: number, safeAreaBottom = 0) {
   const edgeMargin = 8;
+  // Never on top of the top bar (owner, 15 Nov 2026: the assistant covered the
+  // logo): the guide launcher above the button must clear it too.
+  const minY = APP_HEADER_HEIGHT + edgeMargin + GUIDE_LAUNCHER_OFFSET;
   // On screens narrower than md (768px) the mobile bottom nav bar is 64px tall.
   // Reserve that space so the button never lands behind it.
   const mobileNavHeight = viewportWidth < 768 ? 64 : 0;
@@ -50,7 +58,7 @@ function clampAssistantPosition(position: { x: number; y: number }, viewportWidt
   const maxY = Math.max(0, viewportHeight - ASSISTANT_BUTTON_SIZE - safeAreaBottom - mobileNavHeight - edgeMargin);
   return {
     x: Math.min(Math.max(edgeMargin, position.x), maxX),
-    y: Math.min(Math.max(edgeMargin, position.y), maxY),
+    y: Math.min(Math.max(minY, position.y), Math.max(minY, maxY)),
   };
 }
 
