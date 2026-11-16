@@ -28,7 +28,8 @@ jobs:
   run:
     name: Run backend jobs
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Wake-up (up to ~9 min with retries) plus 4 jobs x 300 s must fit.
+    timeout-minutes: 30
     steps:
       - name: Call each job
         env:
@@ -43,9 +44,11 @@ jobs:
           curl -s -o /dev/null --max-time 120 --retry 3 --retry-delay 10 "$BACKEND_URL/health" || true
           failed=0
           for job in subscription-lifecycle direct-order-expiry stories-cleanup auth-state-cleanup; do
+            rm -f response.json
+            # A timeout or network error marks this job failed but still runs the rest.
             code=$(curl -s -o response.json -w '%{http_code}' --max-time 300 \
-              -X POST -H "Authorization: Bearer $JOBS_SECRET" "$BACKEND_URL/api/internal/jobs/$job")
-            echo "$job -> HTTP $code $(cat response.json)"
+              -X POST -H "Authorization: Bearer $JOBS_SECRET" "$BACKEND_URL/api/internal/jobs/$job") || code="error (curl exit $?)"
+            echo "$job -> HTTP $code $(cat response.json 2>/dev/null)"
             # 409 means the previous run is still going; that is fine.
             if [ "$code" != "200" ] && [ "$code" != "409" ]; then failed=1; fi
           done
