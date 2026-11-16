@@ -78,11 +78,11 @@
     ]
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1165.0",
+    "@aws-sdk/client-s3": "^3.1168.0",
     "@sentry/node": "^11.11.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "bcryptjs": "3.0.3",
-    "bullmq": "^6.7.3",
+    "bullmq": "^6.7.6",
     "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "2.8.6",
