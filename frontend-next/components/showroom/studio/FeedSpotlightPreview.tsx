@@ -6,7 +6,8 @@
  */
 import React, { useState } from 'react';
 import BusinessSpotlight from '@/components/feed/BusinessSpotlight';
-import { SPOTLIGHT_LABELS, chosenSlides } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS, chosenSlides, spotlightMissing } from '@/lib/spotlight';
+import { getSectionType } from '@/lib/builderSections';
 
 export interface FeedSpotlightPreviewProps {
   sections: Array<Record<string, any>>;
@@ -20,6 +21,8 @@ export interface FeedSpotlightPreviewProps {
   businessId?: string | null;
   /** The site is live and the editor has changes not published yet: the feed still shows the live version. */
   unpublishedChanges?: boolean;
+  /** Opens a section's form in Studio ("Fill it in"). */
+  onFillSection?: (type: string) => void;
 }
 
 export default function FeedSpotlightPreview({
@@ -32,6 +35,7 @@ export default function FeedSpotlightPreview({
   ownerId,
   businessId,
   unpublishedChanges = false,
+  onFillSection,
 }: FeedSpotlightPreviewProps) {
   // What the strip really draws (it reports back once products are known);
   // the header and the note always agree with it.
@@ -65,11 +69,6 @@ export default function FeedSpotlightPreview({
       {unpublishedChanges && (
         <p data-testid="spotlight-unpublished-note" className="rounded-lg bg-primary/10 px-3 py-2 text-[11px] text-foreground">
           This preview uses your latest changes. Tap Update to publish them, and your feed card shows them too.
-        </p>
-      )}
-      {notShown.length > 0 && (
-        <p data-testid="spotlight-empty-note" className="rounded-lg bg-secondary/60 px-3 py-2 text-[11px] text-muted-foreground">
-          Not shown yet, no content: {notShown.map((t) => SPOTLIGHT_LABELS[t] ?? t).join(', ')}. Add it in Studio and the tab appears.
         </p>
       )}
       {chosen && spotlightSectionIds.length > 0 && shown === 0 && (
@@ -107,6 +106,35 @@ export default function FeedSpotlightPreview({
             eager
             onShownChange={setDrawn}
           />
+        </div>
+      )}
+
+      {/* Ticked but not on the card yet: each with what it needs (owner, 16 Nov 2026). */}
+      {notShown.length > 0 && (
+        <div data-testid="spotlight-empty-note" className="space-y-2 rounded-xl border border-dashed border-border p-3">
+          <p className="text-[11px] font-semibold text-foreground">
+            Ticked, but not on your card yet ({notShown.length})
+          </p>
+          <ul className="space-y-2">
+            {notShown.map((t) => {
+              const label = getSectionType(t)?.label ?? SPOTLIGHT_LABELS[t] ?? t;
+              const need = spotlightMissing(sections.find((x) => String(x?.type) === t) as never, 1) ?? 'Add content to show this tab.';
+              return (
+                <li key={t} className="flex items-center gap-2" data-testid={`spotlight-waiting-${t}`}>
+                  <span className="min-w-0 flex-1 text-[11px] leading-snug">
+                    <span className="font-semibold">{label}</span>
+                    <span className="block text-muted-foreground">{need}</span>
+                  </span>
+                  {onFillSection && (
+                    <button type="button" onClick={() => onFillSection(t)} aria-label={`Fill in ${label}`}
+                      className="shrink-0 rounded-full border border-primary/40 px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary/10">
+                      Fill it in
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 

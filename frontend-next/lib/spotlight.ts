@@ -46,11 +46,49 @@ export const SPOTLIGHT_LABELS: Record<string, string> = {
 };
 
 
+/** The offer's last day ends at midnight after it ("Last day" is inclusive). */
+function offerEnded(s: SpotlightSection, now: Date): boolean {
+  if (!s.offerEnds) return false;
+  const raw = String(s.offerEnds);
+  const ends = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T23:59:59` : raw);
+  return !Number.isNaN(ends.getTime()) && ends.getTime() < now.getTime();
+}
+
 function offerIsLive(s: SpotlightSection, now: Date): boolean {
-  if (!s.offerTitle) return false;
-  if (!s.offerEnds) return true;
-  const ends = new Date(String(s.offerEnds));
-  return Number.isNaN(ends.getTime()) || ends.getTime() >= now.getTime();
+  return Boolean(String(s.offerTitle ?? '').trim()) && !offerEnded(s, now);
+}
+
+/**
+ * What a chosen section still needs before it can show as a Spotlight tab, in
+ * the owner's words; null when it can show. The Studio panel shows this with a
+ * "Fill it in" button (owner, 16 Nov 2026: a ticked section that stayed empty
+ * looked like the tick did nothing).
+ */
+export function spotlightMissing(s: SpotlightSection | undefined, productCount: number, now = new Date()): string | null {
+  const type = String(s?.type ?? '');
+  if (!s) return 'This section is no longer on your page.';
+  if (isCatalogueSection(type)) return productCount > 0 ? null : 'Add products to sell, and they show here.';
+  if (type === 'offer') {
+    if (!String(s.offerTitle ?? '').trim()) return 'Write the offer (for example "20% off this weekend").';
+    if (offerEnded(s, now)) {
+      const day = new Date(`${String(s.offerEnds).slice(0, 10)}T12:00:00`);
+      const label = Number.isNaN(day.getTime()) ? String(s.offerEnds) : day.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+      return `This offer ended on ${label}. Set a new last day.`;
+    }
+    return null;
+  }
+  if (type === 'about' || type === 'story') return String(s.aboutDesc ?? s.content ?? '').trim() ? null : 'Write your story.';
+  if (sectionHasContent(s, productCount, now)) return null;
+  const hints: Record<string, string> = {
+    features: 'Add at least one reason.',
+    video: 'Paste a YouTube link.',
+    gallery: 'Add at least one photo.',
+    faq: 'Add at least one question.',
+    stats: 'Add at least one number.',
+    team: 'Add at least one person.',
+    booking: 'Write what people can book.',
+  };
+  return hints[type] ?? 'Add at least one item.';
 }
 
 /**

@@ -988,6 +988,25 @@ items in the open list until confirmed.
   - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
   - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (21 checks).
 
+### 2026-11-16 — Spotlight: a ticked section that cannot show says what it needs, with "Fill it in"
+
+- **Status:** Accepted. The owner reported (16 Nov 2026): "when I click the check then it's not displayed in the preview area… I cannot update from one to many spotlight sections."
+- **Decision owner:** Project owner
+- **Finding:** saving worked. The owner's live site stored four chosen tabs, but only Video had content:
+  - the offer had no words and ended on 28 Oct;
+  - About and Why choose us were empty.
+  
+  The panel's small "No content yet" note didn't say what was missing, so ticking looked like it did nothing.
+- **Decision:**
+  1. Each ticked section that can't show yet says, in plain words, what it needs (`spotlightMissing`, `lib/spotlight.ts`), for example "Write the offer", "This offer ended on 28 Oct. Set a new last day", "Write your story", "Add at least one reason".
+  2. Each such row has a **Fill it in** button, in the panel and in the preview's "Ticked, but not on your card yet" list. It saves the Spotlight choice, closes the dialog and opens that section's form in Studio, with its first field focused.
+  3. An offer stays live through its whole last day; before, it ended at midnight at the start of that day.
+  4. The strip still never draws an empty tab. The feed only shows sections with content (2026-11-15 decision).
+- **Consequences:**
+  - Code: `lib/spotlight.ts`, `components/showroom/studio/FeedSpotlightPanel.tsx`, `FeedSpotlightPreview.tsx`, `components/showroom/BuilderForm.tsx` (section anchors), `views/ShowroomCreate.tsx`.
+  - Tests: `test/feed/spotlight.test.ts`, `test/showroom/spotlightAndColours.test.tsx`.
+  - Real-stack replay of the owner's site: `note/2026-11-16-spotlight-empty/owner-site-run.mjs` (11/11 checks pass).
+
 ### 2026-11-16 — Spotlight shows the owner's current sections, never template samples
 
 - **Status:** Accepted (owner, 16 Nov 2026: "always use the updated section when the user update the spotlight … only use the user current updated sections, not new sample").
