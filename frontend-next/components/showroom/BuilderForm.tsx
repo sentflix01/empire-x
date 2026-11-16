@@ -295,7 +295,7 @@ function SectionWithExternalSource({
   })) ?? [];
 
   return (
-    <div className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
+    <div id={`builder-section-${secKey}`} tabIndex={-1} className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden scroll-mt-2 outline-none focus-visible:ring-2 focus-visible:ring-primary">
       <SectionHeader sec={sec} />
 
       {/* Manual fields; an enabled external source replaces the list (Requirement 10.4). */}
@@ -413,7 +413,7 @@ export default function BuilderForm({ activeSections, formData, onChange, showro
 
             // Non-repeater sections (or no showroomId) — render original layout
             return (
-              <div key={secKey} className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden">
+              <div key={secKey} id={`builder-section-${secKey}`} tabIndex={-1} className="bg-card dark:bg-card rounded-2xl border border-border/50 overflow-hidden scroll-mt-2 outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 <SectionHeader sec={sec} />
                 <div className="p-3 space-y-3">
                   <SectionFields sec={sec} secKey={secKey} formData={formData} onChange={onChange} />

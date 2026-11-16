@@ -194,6 +194,23 @@ function ShowroomCreate({
   // Dialog focus: into the Spotlight dialog on open, back to what opened it on close.
   const spotlightDialogRef = useRef<HTMLDivElement | null>(null);
   const spotlightOpener = useRef<HTMLElement | null>(null);
+  const spotlightFill = useRef<((type: string) => void) | null>(null);
+  // "Fill it in" from the Spotlight dialog: show the editor and bring that
+  // section's form into view, focused (owner, 16 Nov 2026).
+  const openSectionForm = useCallback((type: string) => {
+    setSectionsOpen(false);
+    setMobileTab("content");
+    let tries = 0;
+    const reveal = () => {
+      const el = document.getElementById(`builder-section-${type}`);
+      if (!el) { if (tries++ < 20) window.setTimeout(reveal, 50); return; }
+      el.scrollIntoView({ block: "start", behavior: "smooth" });
+      const field = el.querySelector<HTMLElement>("input:not([type=hidden]), textarea, select");
+      (field ?? el).focus({ preventScroll: true });
+    };
+    // After the dialog has closed and handed focus back to its opener.
+    window.setTimeout(reveal, 120);
+  }, []);
   const closeSpotlight = useCallback(() => {
     setSpotlightOpen(false);
     const opener = spotlightOpener.current;
@@ -1297,6 +1314,7 @@ function ShowroomCreate({
               ownerId={String(user?.id ?? '')}
               businessId={selectedBusinessId ?? null}
               unpublishedChanges={hasUnpublishedEdits}
+              onFillSection={(type) => spotlightFill.current?.(type)}
             />
           </div>
           {/* Settings: the panel keeps its title and Save bar in view; only its body scrolls */}
@@ -1310,6 +1328,8 @@ function ShowroomCreate({
               initialCarouselCount={spotlightCarouselCount}
               themeColor={String(formData.heroBg ?? '#2563EB')}
               onClose={closeSpotlight}
+              onFillSection={openSectionForm}
+              fillRef={spotlightFill}
               onSaved={(mode, ids, count) => {
                 setSpotlightMode(mode);
                 setSpotlightSectionIds(ids);

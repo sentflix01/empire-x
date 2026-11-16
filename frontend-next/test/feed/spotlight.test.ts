@@ -5,6 +5,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { chosenSlides, resolveSpotlight, sectionHasContent, spotlightChoices } from '@/lib/spotlight';
+import { spotlightMissing } from '@/lib/spotlight';
 import { businessToFeedBusiness, showroomToFeedBusiness, spotlightSectionsOf } from '@/lib/feedBusiness';
 
 const hero = { type: 'hero', title: 'Welcome' };
@@ -134,5 +135,23 @@ describe('card data', () => {
 
   it('reads stored spotlight lists in any shape', () => {
     expect(showroomToFeedBusiness({ ...showroom, spotlight_section_ids: {} }).spotlight_section_ids).toBe('[]');
+  });
+});
+
+describe('spotlightMissing (what an empty chosen section needs)', () => {
+  const now = new Date('2026-11-16T12:00:00');
+  it('names the missing piece in plain words', () => {
+    expect(spotlightMissing({ type: 'offer', offerTitle: '' }, 0, now)).toMatch(/Write the offer/);
+    expect(spotlightMissing({ type: 'offer', offerTitle: '20% off', offerEnds: '2026-10-28' }, 0, now)).toMatch(/ended on .*Set a new last day/);
+    expect(spotlightMissing({ type: 'about', aboutDesc: '' }, 0, now)).toBe('Write your story.');
+    expect(spotlightMissing({ type: 'features', features: [] }, 0, now)).toBe('Add at least one reason.');
+    expect(spotlightMissing({ type: 'video', vidUrl: '' }, 0, now)).toBe('Paste a YouTube link.');
+  });
+  it('is null once the section can show', () => {
+    expect(spotlightMissing({ type: 'video', vidUrl: 'https://youtu.be/x' }, 0, now)).toBeNull();
+    expect(spotlightMissing({ type: 'about', aboutDesc: 'Since 1998' }, 0, now)).toBeNull();
+  });
+  it('keeps an offer live through its whole last day', () => {
+    expect(spotlightMissing({ type: 'offer', offerTitle: '20% off', offerEnds: '2026-11-16' }, 0, new Date('2026-11-16T22:00:00'))).toBeNull();
   });
 });

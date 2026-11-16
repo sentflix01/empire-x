@@ -8,7 +8,7 @@
  *   I1 with at least one ticked section that has content, the preview shows
  *      the strip (never the "hasn't added anything" card or a blank);
  *   I2 the number of tabs equals the ticked sections that have content
- *      (rows without the "No content yet" hint);
+ *      (rows without the "Not shown yet" hint);
  *   I3 the header count ("N tabs" / "1 section") agrees with the strip;
  *   I4 the strip stays inside the visible preview pane.
  *
@@ -79,7 +79,7 @@ function readState() {
   const rows = [...dialog.querySelectorAll('input[type="checkbox"]')].map((c) => {
     const row = c.closest('label') || c.parentElement;
     const text = (row?.textContent || '').replace(/\s+/g, ' ');
-    return { checked: c.checked, empty: /No content yet/i.test(text) };
+    return { checked: c.checked, empty: /Not shown yet/i.test(text) };
   });
   const chooseMode = dialog.querySelector('input[type="radio"][value="chosen"], [role="radio"][data-value="chosen"]');
   const radios = [...dialog.querySelectorAll('input[type="radio"]')];

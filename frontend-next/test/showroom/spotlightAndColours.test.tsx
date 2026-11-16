@@ -9,7 +9,7 @@
  * - the hero button stays readable on a light colour.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { render, screen, fireEvent, act, within, waitFor } from '@testing-library/react';
 import React from 'react';
 
 const api = vi.hoisted(() => ({ apiFetch: vi.fn() }));
@@ -47,7 +47,23 @@ describe('FeedSpotlightPanel', () => {
     const labels = screen.getAllByRole('checkbox').map((c) => c.closest('label')?.textContent ?? '');
     expect(labels.some((l) => /Rooms/.test(l))).toBe(false);
     expect(labels.some((l) => /Contact/.test(l))).toBe(false);
-    expect(labels.find((l) => /Questions/.test(l))).toMatch(/No content yet/);
+    expect(labels.find((l) => /Questions/.test(l))).toMatch(/Not shown yet\. Add at least one question\./);
+  });
+
+  // Owner, 16 Nov 2026: ticking an empty section looked like it did nothing.
+  it('says what an empty ticked section needs and opens it with "Fill it in" after saving', async () => {
+    const onFillSection = vi.fn(); const onClose = vi.fn();
+    renderPanel({ onFillSection, onClose, initialSectionIds: ['about', 'faq'] });
+    fireEvent.click(screen.getByRole('button', { name: 'Fill in Questions & answers' }));
+    await waitFor(() => expect(onFillSection).toHaveBeenCalledWith('faq'));
+    expect(api.apiFetch).toHaveBeenCalledWith('/api/showrooms/s1/spotlight', expect.objectContaining({ method: 'PATCH' }));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('explains an expired or unwritten offer', () => {
+    const withOffer = [...sections, { type: 'offer', offerTitle: '', offerEnds: '2026-10-28' }];
+    renderPanel({ activeSections: withOffer.map((x) => x.type), sections: withOffer, initialSectionIds: ['offer'] });
+    expect(screen.getByTestId('spotlight-missing-offer').textContent).toMatch(/Write the offer/);
   });
 
   it("reorders chosen tabs and tells the preview the owner's order", () => {
@@ -131,7 +147,7 @@ describe('FeedSpotlightPreview', () => {
     render(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['about', 'items', 'stats', 'faq']}
       themeColor="#2563eb" themeColor2="#7c3aed" businessName="Selam" ownerId="o1" />);
     expect(screen.getByText('3 tabs')).toBeTruthy();
-    expect(screen.getByTestId('spotlight-empty-note').textContent).toMatch(/FAQ/);
+    expect(screen.getByTestId('spotlight-waiting-faq').textContent).toMatch(/Questions & answers.*Add at least one question/);
   });
 
   it('draws the sections it is given as they are now (the latest content, not samples)', () => {

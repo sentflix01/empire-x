@@ -17,7 +17,7 @@ import { ArrowDown, ArrowUp, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api/client';
 import { getSectionType } from '@/lib/builderSections';
-import { SPOTLIGHT_LABELS, canSpotlight, chosenSlides } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS, canSpotlight, chosenSlides, spotlightMissing } from '@/lib/spotlight';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,10 @@ export interface FeedSpotlightPanelProps {
    * the live preview without waiting for the debounced server round-trip.
    */
   onPreviewChange?: (mode: StoredMode, sectionIds: string[]) => void;
+  /** Opens a section's form in Studio, after the choice is saved ("Fill it in"). */
+  onFillSection?: (type: string) => void;
+  /** Lets the preview's "Fill it in" use the same save-then-open flow. */
+  fillRef?: React.MutableRefObject<((type: string) => void) | null>;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -80,12 +84,16 @@ export default function FeedSpotlightPanel({
   onClose,
   onSaved,
   onPreviewChange,
+  onFillSection,
+  fillRef,
 }: FeedSpotlightPanelProps) {
   // Only sections the strip can draw (audit 2026-11-14: e.g. Rooms or an old
   // testimonials key could be ticked and then never appeared).
   const options = activeSections.filter((t, i, all) => !SPOTLIGHT_EXCLUDED.has(t) && canSpotlight(t) && all.indexOf(t) === i);
   // Catalogue sections count as filled here: their products load on the card.
   const emptyChoices = new Set(chosenSlides(sections as never, options, 1).empty);
+  /** What an empty section still needs, in the owner's words. */
+  const missing = (type: string) => spotlightMissing((sections as Array<Record<string, unknown>>).find((x) => String(x?.type) === type) as never, 1);
 
   const [choice, setChoice] = useState<Choice>(
     choiceOf(initialMode, initialSectionIds),
@@ -113,11 +121,11 @@ export default function FeedSpotlightPanel({
   const isDirty = current.mode !== saved.current.mode || current.ids.join() !== saved.current.ids.join();
   const [confirmClose, setConfirmClose] = useState(false);
 
-  const save = useCallback(async () => {
+  const save = useCallback(async (then?: () => void) => {
     const { mode, ids } = toStored(choice, sectionIds);
     // Not saved to the server yet (new site): Studio keeps the choice and
     // sends it with the next draft save or publish.
-    if (!showroomId) { onSaved(mode, ids, 1); saved.current = { mode, ids }; onClose(); return; }
+    if (!showroomId) { onSaved(mode, ids, 1); saved.current = { mode, ids }; onClose(); then?.(); return; }
     setSaving(true);
     setError('');
     try {
@@ -131,6 +139,7 @@ export default function FeedSpotlightPanel({
       saved.current = { mode, ids };
       onSaved(mode, ids, 1);
       onClose();
+      then?.();
     } catch {
       setError('Could not save. Check your connection and try again.');
       setConfirmClose(false);
@@ -138,6 +147,14 @@ export default function FeedSpotlightPanel({
       setSaving(false);
     }
   }, [choice, sectionIds, showroomId, onSaved, onClose]);
+
+  // "Fill it in": keep the choice (saved like Save), then open the section's form.
+  const fillIn = useCallback((type: string) => { if (onFillSection) void save(() => onFillSection(type)); }, [save, onFillSection]);
+  useEffect(() => {
+    if (!fillRef) return;
+    fillRef.current = fillIn;
+    return () => { fillRef.current = null; };
+  }, [fillRef, fillIn]);
 
   /** Discard: the preview goes back to what was saved. */
   const discard = useCallback(() => {
@@ -289,9 +306,22 @@ export default function FeedSpotlightPanel({
                   <span className="min-w-0 flex-1 text-sm font-medium">
                     {labelFor(type)}
                     {emptyChoices.has(type) && (
-                      <span className="block text-[11px] font-normal text-muted-foreground">No content yet: add it in Studio to show this tab.</span>
+                      <span className="block text-[11px] font-normal text-muted-foreground" data-testid={`spotlight-missing-${type}`}>
+                        Not shown yet. {missing(type) ?? 'Add content to show this tab.'}
+                      </span>
                     )}
                   </span>
+                  {emptyChoices.has(type) && onFillSection && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); fillIn(type); }}
+                      disabled={saving}
+                      aria-label={`Fill in ${labelFor(type)}`}
+                      className="shrink-0 rounded-full border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+                    >
+                      Fill it in
+                    </button>
+                  )}
                   {sectionIds.includes(type) && sectionIds.length > 1 && (
                     <span className="flex shrink-0 items-center gap-1">
                       <span className="text-[11px] text-muted-foreground">Tab {sectionIds.indexOf(type) + 1}</span>
