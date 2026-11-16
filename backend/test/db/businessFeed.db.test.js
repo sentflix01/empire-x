@@ -18,8 +18,8 @@ function buildApp() {
 const auth = (user) => ({ Authorization: `Bearer ${accessToken(user.id)}` });
 const HERE = { lat: 9.03, lon: 38.75 };
 
-let app; let viewer; let near; let far; let nopin; let hidden; let unpaidOwner;
-let nearBiz; let farBiz; let nopinBiz; let privateBiz; let unpaidBiz;
+let app; let viewer; let near; let far; let nopin; let hidden; let unpaidOwner; let siteLess;
+let siteLessBiz; let nearBiz; let farBiz; let nopinBiz; let privateBiz; let unpaidBiz;
 
 async function follow(a, b) {
   await pool.query('INSERT INTO follows (follower_id, followed_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [a.id, b.id]);
@@ -40,7 +40,10 @@ const bizIdOf = (item) => (item.type === 'business' ? item.record.id : item.reco
 
 beforeAll(async () => {
   app = buildApp();
-  [viewer, near, far, nopin, hidden, unpaidOwner] = await Promise.all([createUser(), createUser(), createUser(), createUser(), createUser(), createUser()]);
+  [viewer, near, far, nopin, hidden, unpaidOwner, siteLess] = await Promise.all([createUser(), createUser(), createUser(), createUser(), createUser(), createUser(), createUser()]);
+  ({ businessId: siteLessBiz } = await createPublicBusiness(siteLess.id));
+  await pool.query('DELETE FROM showrooms WHERE business_id=$1', [siteLessBiz]);
+  await pool.query('UPDATE businesses SET latitude=9.031, longitude=38.751 WHERE id=$1', [siteLessBiz]);
   ({ businessId: nearBiz } = await createPublicBusiness(near.id));
   ({ businessId: farBiz } = await createPublicBusiness(far.id));
   ({ businessId: nopinBiz } = await createPublicBusiness(nopin.id));
@@ -58,7 +61,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  for (const u of [viewer, near, far, nopin, hidden, unpaidOwner]) await deleteUser(u.id);
+  for (const u of [viewer, near, far, nopin, hidden, unpaidOwner, siteLess]) await deleteUser(u.id);
 });
 
 describe('GET /api/feed/businesses', () => {
@@ -74,10 +77,11 @@ describe('GET /api/feed/businesses', () => {
     expect(iNear).toBeGreaterThanOrEqual(0);
     expect(iNear).toBeLessThan(iFar);
     expect(iFar).toBeLessThan(iNopin);
-    const nearItem = items.find((i) => i.type === 'business' && i.record.id === nearBiz);
+    // Each business shows once, as its site; the distance comes from the business's pin.
+    const nearItem = items.find((i) => bizIdOf(i) === nearBiz);
     expect(nearItem.distance_km).toBe(0.5);
-    expect(items.find((i) => i.type === 'business' && i.record.id === farBiz).distance_km % 0.5).toBe(0);
-    expect(items.find((i) => i.type === 'business' && i.record.id === nopinBiz).distance_km).toBeNull();
+    expect(items.find((i) => bizIdOf(i) === farBiz).distance_km % 0.5).toBe(0);
+    expect(items.find((i) => bizIdOf(i) === nopinBiz).distance_km).toBeNull();
   });
 
   it('keeps to the distance the viewer chose', async () => {
@@ -93,8 +97,9 @@ describe('GET /api/feed/businesses', () => {
 
   it('never sends the exact pin of a private address', async () => {
     const items = await allItems({ sort: 'nearest', ...HERE }, auth(viewer));
-    const nearItem = items.find((i) => i.type === 'business' && i.record.id === nearBiz);
-    expect(Number(nearItem.record.latitude)).toBe(9.03);
+    // A business without a site is sent as a business record; its pin is rounded.
+    const pinItem = items.find((i) => i.type === 'business' && i.record.id === siteLessBiz);
+    expect(Number(pinItem.record.latitude)).toBe(9.03);
   });
 
   it('tags friends (mutual follows) and people the viewer follows', async () => {
@@ -118,6 +123,14 @@ describe('GET /api/feed/businesses', () => {
     const member = (await allItems({ sort: 'recent' }, auth(viewer))).map(bizIdOf);
     expect(member).toContain(privateBiz);
     expect(member).not.toContain(unpaidBiz);
+  });
+
+  it('shows a business with its own site once, as the site, even when the titles differ', async () => {
+    // The helper's site is "DB Test Site …" for the business "DB Test Shop …".
+    // A second, business-profile card would carry the template's sample sections.
+    const items = (await allItems({ sort: 'recent' }, auth(viewer))).filter((i) => bizIdOf(i) === nearBiz);
+    expect(items).toHaveLength(1);
+    expect(items[0].type).toBe('showroom');
   });
 
   it('gives guests no relationship tags', async () => {

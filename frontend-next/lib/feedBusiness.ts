@@ -48,10 +48,29 @@ export function showroomToFeedBusiness(showroom: Row): Row {
 
 const nameKey = (value: unknown) => String(value ?? '').trim().toLocaleLowerCase();
 
-/** The published showroom that belongs to this business: linked by id, else same owner and name. */
+const updatedAt = (row: Row) => Date.parse(String(row.updated_at ?? row.created_at ?? '')) || 0;
+/** The most recently updated row: the site as its owner last changed it. */
+const latest = (rows: Row[]) => rows.reduce<Row | undefined>((best, row) => (!best || updatedAt(row) > updatedAt(best) ? row : best), undefined);
+
+/** The published showroom that belongs to this business: linked by id, else same owner and name; the latest one if several. */
 export function showroomForBusiness(business: Row, showrooms: Row[]): Row | undefined {
-  return showrooms.find((s) => s.business_id && String(s.business_id) === String(business.id))
-    ?? showrooms.find((s) => s.owner_id === business.owner_id && nameKey(s.title) === nameKey(business.business_name));
+  return latest(showrooms.filter((s) => s.business_id && String(s.business_id) === String(business.id)))
+    ?? latest(showrooms.filter((s) => s.owner_id === business.owner_id && nameKey(s.title) === nameKey(business.business_name)));
+}
+
+/**
+ * The sections a card's Spotlight may show: only those of a published site,
+ * as the owner last saved them. A business profile's own sections are the
+ * template's samples (BusinessCreate), so a card without a site shows its
+ * real products instead (owner, 16 Nov 2026: "only use the user's current
+ * updated sections, not new sample").
+ */
+export function spotlightSectionsOf(card: Row): Array<Record<string, any>> {
+  if (!card.showroom_id) return [];
+  try {
+    const list = typeof card.business_sections === 'string' ? JSON.parse(card.business_sections) : card.business_sections;
+    return Array.isArray(list) ? list.filter((s) => s && typeof s === 'object') : [];
+  } catch { return []; }
 }
 
 /**

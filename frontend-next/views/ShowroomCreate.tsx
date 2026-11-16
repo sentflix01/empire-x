@@ -592,6 +592,12 @@ function ShowroomCreate({
     return Math.round((filled / keys.length) * 100);
   })();
 
+  // A live site with edits not published yet: the feed card still shows the
+  // live version, so the Spotlight preview says so (owner, 16 Nov 2026).
+  const hasUnpublishedEdits = Boolean(editId && editingStatus === 'published' && editSnapshot && spotlightOpen
+    && JSON.stringify(serializeShowroomSections(activeSections, formData))
+      !== JSON.stringify(serializeShowroomSections(editSnapshot.sections, { ...getDefaultFormData(templateName, categoryParam, sampleParam), ...editSnapshot.fields })));
+
   // A change not yet written to this device (auto-save waits 1.5 s) would be
   // lost by closing the tab: ask the browser to confirm.
   const unsavedRef = useRef(false);
@@ -1290,6 +1296,7 @@ function ShowroomCreate({
               businessName={String(formData.title ?? 'Your Business')}
               ownerId={String(user?.id ?? '')}
               businessId={selectedBusinessId ?? null}
+              unpublishedChanges={hasUnpublishedEdits}
             />
           </div>
           {/* Settings: the panel keeps its title and Save bar in view; only its body scrolls */}

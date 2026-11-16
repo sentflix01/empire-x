@@ -1,6 +1,6 @@
 # Nodbusiness — API Documentation
 
-Last reviewed: 2026-11-15
+Last reviewed: 2026-11-16
 
 > Base URL: `http://localhost:3001` (dev) · `https://api.nodbusiness.app` (production)
 > Frontend: `https://nodbusiness.app`
@@ -573,7 +573,7 @@ address is public").
 
 ### GET /api/feed/businesses?sort=nearest|recent&lat=&lon=&radius_km=&limit=20&offset=0
 The Business feed, merged and ordered on the server. Optional auth.
-- Same visibility as `/api/showrooms` and `/api/businesses`: real/demo, paid plan, unexpired sites, guests see public businesses only. A business with a same-named published site appears once (as the site).
+- Same visibility as `/api/showrooms` and `/api/businesses`: real/demo, paid plan, unexpired sites, guests see public businesses only. A business with its own published site appears once, as the site: linked by `business_id`, or with the same name. (A second card would show the business profile's template sample sections instead of the site the owner keeps up to date.)
 - `sort=nearest` needs `lat` and `lon` (`400` otherwise): businesses with a map pin by distance, then those without a pin, newest first. `sort=recent` (default): newest first.
 - `radius_km` (with `sort=nearest`, 1–100, chosen by the viewer): only businesses whose pin is within that distance; businesses without a pin drop out. Values outside 0 < x ≤ 100 give `400`. Without it, nearest first has no distance limit.
 - `limit` 1–30 (default 20). `next_offset` is `null` on the last page.

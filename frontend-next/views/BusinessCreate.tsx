@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BUSINESS_CATEGORIES, getTemplateById, type TemplateSection } from "@/lib/businessTemplates";
+import { BUSINESS_CATEGORIES, type TemplateSection } from "@/lib/businessTemplates";
+import { businessSectionsToSave, type LoadedBusinessSections } from "@/lib/businessSectionsOnSave";
 
 const LocationPinPicker = withNoSSR(() => import("@/components/map/LocationPinPicker"));
 
@@ -91,6 +92,10 @@ function BusinessCreate() {
     latitude: null, longitude: null,
   });
 
+  // The sections saved on the business when it was loaded, and the template
+  // they came from: an edit keeps them instead of resetting to template samples.
+  const loadedSections = React.useRef<LoadedBusinessSections | null>(null);
+
   useEffect(() => {
     if (isEdit) loadBusiness();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,6 +104,13 @@ function BusinessCreate() {
   const loadBusiness = async () => {
     try {
       const b = await entities.Business.get(id);
+      let saved: unknown = b.business_sections;
+      if (typeof saved === 'string') { try { saved = JSON.parse(saved); } catch { saved = []; } }
+      loadedSections.current = {
+        category: b.business_category || "",
+        template: Array.isArray(b.business_template) ? String(b.business_template[0] ?? "") : (b.business_template || ""),
+        sections: Array.isArray(saved) ? (saved as TemplateSection[]) : [],
+      };
       setBusiness({
         business_name: b.business_name || "",
         business_category: b.business_category || "",
@@ -124,7 +136,7 @@ function BusinessCreate() {
 
   const handleSave = async () => {
     setSaving(true);
-    const rawSections = getTemplateById(business.business_category, business.business_template)?.sections || [];
+    const rawSections = businessSectionsToSave({ isEdit, loaded: loadedSections.current, category: business.business_category, template: business.business_template });
     const sections = JSON.stringify(personalizeSections(rawSections, business));
     const updateData = { ...business, business_sections: sections, owner_id: user?.id };
     try {

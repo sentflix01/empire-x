@@ -18,6 +18,8 @@ export interface FeedSpotlightPreviewProps {
   businessName: string;
   ownerId: string;
   businessId?: string | null;
+  /** The site is live and the editor has changes not published yet: the feed still shows the live version. */
+  unpublishedChanges?: boolean;
 }
 
 export default function FeedSpotlightPreview({
@@ -29,6 +31,7 @@ export default function FeedSpotlightPreview({
   businessName,
   ownerId,
   businessId,
+  unpublishedChanges = false,
 }: FeedSpotlightPreviewProps) {
   // What the strip really draws (it reports back once products are known);
   // the header and the note always agree with it.
@@ -59,6 +62,11 @@ export default function FeedSpotlightPreview({
             : '1 section'}
         </p>
       </div>
+      {unpublishedChanges && (
+        <p data-testid="spotlight-unpublished-note" className="rounded-lg bg-primary/10 px-3 py-2 text-[11px] text-foreground">
+          This preview uses your latest changes. Tap Update to publish them, and your feed card shows them too.
+        </p>
+      )}
       {notShown.length > 0 && (
         <p data-testid="spotlight-empty-note" className="rounded-lg bg-secondary/60 px-3 py-2 text-[11px] text-muted-foreground">
           Not shown yet, no content: {notShown.map((t) => SPOTLIGHT_LABELS[t] ?? t).join(', ')}. Add it in Studio and the tab appears.

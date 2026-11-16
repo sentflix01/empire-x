@@ -133,6 +133,23 @@ describe('FeedSpotlightPreview', () => {
     expect(screen.getByText('3 tabs')).toBeTruthy();
     expect(screen.getByTestId('spotlight-empty-note').textContent).toMatch(/FAQ/);
   });
+
+  it('draws the sections it is given as they are now (the latest content, not samples)', () => {
+    const latest = [{ type: 'items', itemsTitle: 'Things you sell', items: [{ name: 'Linen dress, new season', price: 'ETB 3,100' }] }];
+    render(<FeedSpotlightPreview sections={latest} spotlightMode="single" spotlightSectionIds={['items']}
+      themeColor="#2563eb" businessName="Selam" ownerId="o1" />);
+    expect(screen.getByText('Linen dress, new season')).toBeTruthy();
+    expect(screen.queryByText('Product One')).toBeNull();
+  });
+
+  it('says when the live site does not have these changes yet', () => {
+    const { rerender } = render(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['about']}
+      themeColor="#2563eb" businessName="Selam" ownerId="o1" />);
+    expect(screen.queryByTestId('spotlight-unpublished-note')).toBeNull();
+    rerender(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['about']}
+      themeColor="#2563eb" businessName="Selam" ownerId="o1" unpublishedChanges />);
+    expect(screen.getByTestId('spotlight-unpublished-note').textContent).toMatch(/Tap Update/);
+  });
 });
 
 describe('BusinessSpotlight tabs', () => {
