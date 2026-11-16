@@ -8,7 +8,10 @@
  *   Choose     – owner picks 1-N sections; 2+ renders as a tab carousel
  *   Off        – no spotlight on the card
  *
- * Changes are persisted to the server with an 800 ms debounce.
+ * Changes are persisted to the server with an 800 ms debounce, and a change
+ * still waiting when the panel closes is sent then (keepalive), so "pick and
+ * close" is never lost. A failed save (any non-2xx) shows the server's
+ * message and does not report the change as saved.
  * `onPreviewChange` fires immediately on every interaction so the live
  * preview in the parent can update without waiting for the network.
  */
@@ -66,6 +69,12 @@ function toStored(choice: Choice, ids: string[]): { mode: StoredMode; ids: strin
   return { mode: ids.length > 1 ? 'carousel' : 'single', ids };
 }
 
+type Stored = { mode: StoredMode; ids: string[] };
+const sameStored = (a: Stored | null, b: Stored) =>
+  !!a && a.mode === b.mode && a.ids.join('|') === b.ids.join('|');
+
+const SAVE_FAILED = 'Could not save your Spotlight choice. Try again.';
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function FeedSpotlightPanel({
@@ -88,6 +97,42 @@ export default function FeedSpotlightPanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const dirty = useRef(false);
+  /** The stored values not yet confirmed by the server. */
+  const pending = useRef<Stored | null>(null);
+  const mounted = useRef(true);
+  // Latest props for the save that runs after the panel has closed.
+  const latest = useRef({ showroomId, onSaved });
+  latest.current = { showroomId, onSaved };
+
+  const save = useCallback(async (payload: Stored, opts: { keepalive?: boolean } = {}) => {
+    const { showroomId: id, onSaved: saved } = latest.current;
+    if (!id) return;
+    if (mounted.current) { setSaving(true); setError(''); }
+    let failure = '';
+    try {
+      const res = await apiFetch(`/api/showrooms/${id}/spotlight`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: opts.keepalive,
+        body: JSON.stringify({
+          spotlight_mode: payload.mode,
+          spotlight_section_ids: payload.ids,
+          spotlight_carousel_count: 1,
+        }),
+      });
+      if (res.ok) {
+        if (sameStored(pending.current, payload)) pending.current = null;
+        saved(payload.mode, payload.ids, 1);
+      } else {
+        const body = await res.json().catch(() => null) as { message?: string; error?: string } | null;
+        failure = body?.message || body?.error || SAVE_FAILED;
+      }
+    } catch {
+      failure = SAVE_FAILED;
+    }
+    if (mounted.current) { setSaving(false); setError(failure); }
+  }, []);
 
   // Notify parent immediately so the live preview reacts without network latency.
   const notifyPreview = useCallback(
@@ -102,31 +147,22 @@ export default function FeedSpotlightPanel({
   // Persist to server with an 800 ms debounce after any user interaction.
   useEffect(() => {
     if (!showroomId || !dirty.current) return;
-    const { mode, ids } = toStored(choice, sectionIds);
-    const timer = setTimeout(async () => {
-      setSaving(true);
-      setError('');
-      try {
-        await apiFetch(`/api/showrooms/${showroomId}/spotlight`, {
-          method: 'PATCH',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            spotlight_mode: mode,
-            spotlight_section_ids: ids,
-            spotlight_carousel_count: 1,
-          }),
-        });
-        onSaved(mode, ids, 1);
-      } catch {
-        setError('Could not save. Check your connection and try again.');
-      } finally {
-        setSaving(false);
-      }
-    }, 800);
+    const payload = toStored(choice, sectionIds);
+    pending.current = payload;
+    const timer = setTimeout(() => { void save(payload); }, 800);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [choice, sectionIds, showroomId]);
+  }, [choice, sectionIds, showroomId, save]);
+
+  // Closing the panel unmounts it and cancels the debounce above: send the
+  // change still waiting so it is not lost.
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      const waiting = pending.current;
+      if (waiting) void save(waiting, { keepalive: true });
+    };
+  }, [save]);
 
   const pick = (next: Choice) => {
     dirty.current = true;
