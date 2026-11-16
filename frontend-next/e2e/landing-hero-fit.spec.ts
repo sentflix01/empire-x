@@ -251,6 +251,9 @@ for (const [name, profile] of Object.entries(PROFILES)) {
       assertFits(toggled, `${name} ${other} after toggle`);
       await page.getByTestId('landing-theme-toggle').click();
       await expect(page.locator('html')).toHaveClass(new RegExp(`\\b${theme}\\b`));
+      // Let "Start free" finish easing back to this theme's colour, or axe samples it mid-way.
+      await expect.poll(async () => (await measure(page)).startFreeBg, { message: `${name}: hero Start free is back to the ${theme} colour` }).toBe(en.startFreeBg);
+      await page.waitForTimeout(300);
 
       // Accessibility of the header and hero in this theme.
       await page.addScriptTag({ path: AXE });
