@@ -6,7 +6,8 @@
  * Merges published sites (showrooms) and business profiles with the same
  * visibility rules as /api/showrooms and /api/businesses (real/demo, paid
  * plan, unexpired sites, guests see public businesses only), drops a
- * business that already has a same-named site, and returns one ordered list:
+ * business that already has a site (linked to it, or with the same name),
+ * and returns one ordered list:
  *   - sort=nearest (needs lat/lon): businesses with a map pin by distance,
  *     then those without a pin, newest first; with radius_km (1–100, chosen
  *     by the viewer) only businesses within that distance;
@@ -91,10 +92,14 @@ router.get('/businesses', optionalAuth, async (req: Request, res: Response) => {
     };
 
     const showroomKeys = new Map(showroomRows.map((s) => [`${s.owner_id}:${nameKey(s.title)}`, s]));
+    // A business whose own site is listed shows as that site, even when the
+    // site has another title: a second card would show the business profile's
+    // template samples instead of the site the owner keeps up to date.
+    const businessesWithSite = new Set(showroomRows.map((s) => s.business_id).filter(Boolean).map(String));
     const items: Item[] = [
       ...showroomRows.map((s) => ({ type: 'showroom' as const, record: s, created: Date.parse(String(s.created_at)), distance: distanceOf(s.business_id), ownerId: String(s.owner_id ?? ''), businessId: String(s.business_id ?? '') })),
       ...businessRows
-        .filter((b) => !showroomKeys.has(`${b.owner_id}:${nameKey(b.business_name)}`))
+        .filter((b) => !businessesWithSite.has(String(b.id)) && !showroomKeys.has(`${b.owner_id}:${nameKey(b.business_name)}`))
         .map((b) => ({ type: 'business' as const, record: b, created: Date.parse(String(b.created_at)), distance: distanceOf(b.id), ownerId: String(b.owner_id ?? ''), businessId: String(b.id ?? '') })),
     ];
     // Within the chosen distance: businesses without a pin have no distance, so they drop out.

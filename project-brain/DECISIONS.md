@@ -988,6 +988,19 @@ items in the open list until confirmed.
   - Tests: `test/feed/spotlight.test.ts`, `test/feed/businessSpotlight.test.tsx`, `test/showroom/spotlightAndColours.test.tsx`, `backend/test/db/spotlight.db.test.js`.
   - Real-stack check: `note/2026-11-14-showroom-audit/spotlight-run.mjs` (21 checks).
 
+### 2026-11-16 — Spotlight shows the owner's current sections, never template samples
+
+- **Status:** Accepted (owner, 16 Nov 2026: "always use the updated section when the user update the spotlight … only use the user current updated sections, not new sample").
+- **Decision owner:** Project owner
+- **Decision:**
+  1. A feed card's Spotlight draws only the sections of the owner's **published site**, as last saved (`spotlightSectionsOf`, `lib/feedBusiness.ts`). If a business has several sites, the one updated last is used. A business without a published site shows its real products, never the sample sections its business profile was created with.
+  2. The Business feed shows a business that has its own site **once, as the site**: matched by `business_id`, not only by an identical title. Before, a site with a different title (e.g. "Fashion Clothing Store") also produced a business-profile card whose Spotlight showed template samples.
+  3. Editing a business profile keeps its current sections. Only choosing another category or template starts again from that template (`lib/businessSectionsOnSave.ts`). Before, every save reset them to the template's samples.
+  4. In Studio the Spotlight preview uses the editor's latest content. When a live site has changes not published yet, the preview says so: "Tap Update to publish them, and your feed card shows them too."
+- **Consequences:**
+  - Code: `backend/routes/feed.ts`, `frontend-next/lib/feedBusiness.ts`, `components/feed/BusinessShowroomFeed.tsx`, `lib/businessSectionsOnSave.ts`, `views/BusinessCreate.tsx`, `components/showroom/studio/FeedSpotlightPreview.tsx`, `views/ShowroomCreate.tsx`.
+  - Tests: `backend/test/db/businessFeed.db.test.js`, `test/feed/spotlight.test.ts`, `test/businessSectionsOnSave.test.ts`, `test/showroom/spotlightAndColours.test.tsx`.
+
 ### 2026-11-15 — Sign-up to first success in under a minute (new-user audit)
 
 - **Status:** Accepted (owner, 15 Nov 2026: "anyone, anywhere, should be able to sign up and start using the app in under 60 seconds"; "fix all of them"). Audit and before/after: `note/2026-11-15-new-user-audit/report.md`.

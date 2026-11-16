@@ -19,7 +19,7 @@ import PurchaseModal from '@/components/checkout/PurchaseModal';
 import SharedBookmarkButton from '@/components/ui/BookmarkButton';
 import BusinessSpotlight from './BusinessSpotlight';
 import TickerBar from './TickerBar';
-import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
+import { businessToFeedBusiness, showroomToFeedBusiness, spotlightSectionsOf } from '@/lib/feedBusiness';
 import { useTranslation } from 'react-i18next';
 import { RatingSummary } from '@/components/ui/Stars';
 import DistanceRange from '@/components/ui/DistanceRange';
@@ -373,7 +373,7 @@ export function BusinessFeedCard({ biz, ownerName, ownerAvatarUrl, ownerIsVerifi
       {/* Spotlight: a fixed-height sliding strip of one selling section (lib/spotlight.ts) */}
       <BusinessSpotlight
         visitHref={visitPath}
-        sections={sections as unknown as Array<Record<string, any>>}
+        sections={spotlightSectionsOf(biz)}
         spotlightMode={(biz.spotlight_mode as string | null | undefined) ?? null}
         spotlightSectionIds={biz.spotlight_section_ids}
         themeColor={color}
@@ -881,7 +881,7 @@ export default function BusinessShowroomFeed({ profile, currentUser, businesses:
       {/* Spotlight: the same one-section showcase as on the feed card (lib/spotlight.ts) */}
       {(() => {
         const card = business ? businessToFeedBusiness(business, ownerShowrooms) : null;
-        const cardSections = card ? parseSections(card.business_sections as string | undefined) : sections;
+        const cardSections = card ? spotlightSectionsOf(card) : [];
         const cardShowroomId = card && typeof card.showroom_id === 'string' ? card.showroom_id : null;
         return (
           <BusinessSpotlight

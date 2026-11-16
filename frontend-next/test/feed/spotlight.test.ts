@@ -5,7 +5,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { chosenSlides, resolveSpotlight, sectionHasContent, spotlightChoices } from '@/lib/spotlight';
-import { businessToFeedBusiness, showroomToFeedBusiness } from '@/lib/feedBusiness';
+import { businessToFeedBusiness, showroomToFeedBusiness, spotlightSectionsOf } from '@/lib/feedBusiness';
 
 const hero = { type: 'hero', title: 'Welcome' };
 const contact = { type: 'contact', location: 'Bole, Addis Ababa' };
@@ -112,6 +112,24 @@ describe('card data', () => {
     const card = businessToFeedBusiness({ id: 'biz-2', owner_id: 'owner-1', business_name: 'Other', business_sections: '[]' }, [showroom]);
     expect(card.showroom_slug).toBeUndefined();
     expect(card.business_id).toBe('biz-2');
+  });
+
+  it('uses the site the owner updated last when a business has several', () => {
+    const older = { ...showroom, id: 'site-old', slug: 'old', updated_at: '2026-01-01T00:00:00Z', created_at: '2026-01-01T00:00:00Z' };
+    const newer = { ...showroom, id: 'site-new', slug: 'new', updated_at: '2026-11-15T00:00:00Z', created_at: '2025-06-01T00:00:00Z' };
+    expect(businessToFeedBusiness({ id: 'biz-1', owner_id: 'owner-1', business_name: 'Mewacho' }, [older, newer]).showroom_slug).toBe('new');
+  });
+
+  // Owner, 16 Nov 2026: the Spotlight shows only the owner's current sections, never template samples.
+  it('gives the Spotlight only a published site\'s sections, as last saved', () => {
+    const card = businessToFeedBusiness({ id: 'biz-1', owner_id: 'owner-1', business_name: 'Mewacho' }, [showroom]);
+    expect(spotlightSectionsOf(card).map((s) => s.type)).toEqual(['menu', 'contact']);
+  });
+
+  it('gives a business without a site no sections (its template samples never show)', () => {
+    const sample = JSON.stringify([{ type: 'items', items: [{ name: 'Product One', price: 'ETB 500' }] }]);
+    const card = businessToFeedBusiness({ id: 'biz-2', owner_id: 'owner-1', business_name: 'Other', business_sections: sample }, [showroom]);
+    expect(spotlightSectionsOf(card)).toEqual([]);
   });
 
   it('reads stored spotlight lists in any shape', () => {
