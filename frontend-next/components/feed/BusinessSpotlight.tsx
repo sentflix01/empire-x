@@ -12,10 +12,11 @@
  */
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, ArrowRight, Play } from 'lucide-react';
 import client from '@/lib/api/client';
 import SafeImage from '@/components/ui/SafeImage';
-import { SPOTLIGHT_LABELS, isCatalogueSection, resolveSpotlight, type SpotlightSection } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS, isCatalogueSection, resolveSpotlight, spotlightMissing, canSpotlight, type SpotlightSection } from '@/lib/spotlight';
+import { spotlightSectionIds as chosenIdsOf } from '@/lib/spotlightSections';
 import { spotlightTiles, type SpotlightTile } from '@/lib/spotlightTiles';
 import { themeTextStyle, fillForWhiteText } from '@/lib/contrast';
 
@@ -43,6 +44,14 @@ export interface BusinessSpotlightProps {
   eager?: boolean;
   /** Studio's preview: told which section types the strip really draws, once products are known. */
   onShownChange?: (types: string[]) => void;
+  /**
+   * Owner's Studio preview only (owner, 17 Nov 2026): every chosen section is a
+   * tab; one without content shows a dashed card with what it needs. Visitors'
+   * cards never set this, so the feed only shows sections with content.
+   */
+  showEmptyChosen?: boolean;
+  /** With showEmptyChosen: "Fill it in" on a dashed card opens that section in Studio. */
+  onFillSection?: (type: string) => void;
 }
 
 function useInView<T extends Element>(eager: boolean) {
@@ -68,6 +77,7 @@ const frame = 'border-t border-border/40 overflow-hidden';
 export default function BusinessSpotlight({
   sections, spotlightMode, spotlightSectionIds, themeColor, ownerId, businessId,
   profile = {}, onBuy, isOwner = false, visitHref, eager = false, onShownChange,
+  showEmptyChosen = false, onFillSection,
 }: BusinessSpotlightProps) {
   const [rootRef, inView] = useInView<HTMLElement>(eager);
   const hasCatalogue = useMemo(() => sections.some((s) => isCatalogueSection(s?.type)), [sections]);
@@ -111,10 +121,28 @@ export default function BusinessSpotlight({
       .map((sl) => ({ ...sl, tiles: spotlightTiles(sl.section, isCatalogueSection(sl.section.type) ? products : []) }))
       .filter((sl) => sl.tiles.length > 0);
     const picked = withTiles(resolveSpotlight(sections, spotlightMode, spotlightSectionIds, products.length).slides);
+    const chosenMode = spotlightMode === 'single' || spotlightMode === 'carousel';
+    if (showEmptyChosen && chosenMode) {
+      // Every chosen section in the owner's order; the empty ones as dashed cards.
+      const ids = [...new Set(chosenIdsOf(spotlightSectionIds))].filter(canSpotlight);
+      const all = (spotlightMode === 'single' ? ids.slice(0, 1) : ids).flatMap((type) => {
+        const real = picked.find((sl) => String(sl.section.type) === type);
+        if (real) return [real];
+        const index = sections.findIndex((x) => String(x?.type) === type);
+        if (index === -1) return [];
+        const placeholder: SpotlightTile = {
+          key: `todo-${type}`, kind: 'placeholder', section: type,
+          title: SPOTLIGHT_LABELS[type] ?? type,
+          subtitle: spotlightMissing(sections[index], products.length) ?? 'Add content to show this tab.',
+        };
+        return [{ section: sections[index], index, tiles: [placeholder], placeholder: true }];
+      });
+      if (all.length > 0) return all;
+    }
     if (picked.length > 0 || hasCatalogue || products.length === 0 || spotlightMode === 'off') return picked;
     // Nothing on the site to show, but the business sells products: show those.
     return withTiles([{ section: { type: 'products', title: 'Products' } as SpotlightSection, index: sections.length }]);
-  }, [sections, spotlightMode, spotlightSectionIds, products, hasCatalogue]);
+  }, [sections, spotlightMode, spotlightSectionIds, products, hasCatalogue, showEmptyChosen]);
 
   const activeIndex = Math.max(0, slides.findIndex((sl) => String(sl.section.type) === activeType));
   const current = slides[activeIndex];
@@ -122,7 +150,8 @@ export default function BusinessSpotlight({
   const active = activeIndex;
   const setActive = useCallback((i: number) => setActiveType(String(slides[i]?.section.type ?? '') || null), [slides]);
 
-  const shownKey = productsLoaded ? slides.map((sl) => String(sl.section.type)).join(',') : null;
+  // Only real tabs count as shown (dashed preview tabs are not on the card yet).
+  const shownKey = productsLoaded ? slides.filter((sl) => !('placeholder' in sl)).map((sl) => String(sl.section.type)).join(',') : null;
   const onShownRef = useRef(onShownChange);
   onShownRef.current = onShownChange;
   useEffect(() => { if (shownKey !== null) onShownRef.current?.(shownKey ? shownKey.split(',') : []); }, [shownKey]);
@@ -170,7 +199,7 @@ export default function BusinessSpotlight({
                 onClick={() => setActive(i)}
                 className={`h-7 shrink-0 rounded-full px-3 text-xs font-semibold transition-colors ${i === active ? 'text-white' : 'bg-secondary/60 text-muted-foreground hover:bg-secondary'}`}
                 style={i === active ? { backgroundColor: fillForWhiteText(themeColor) } : undefined}>
-                {label(s.section)}
+                {label(s.section)}{'placeholder' in s ? <span className="sr-only"> (no content yet)</span> : null}
               </button>
             ))}
           </div>
@@ -191,6 +220,7 @@ export default function BusinessSpotlight({
         label={label(current.section)}
         themeColor={themeColor}
         onBuy={isOwner ? undefined : onBuy}
+        onFillSection={onFillSection}
       />
       </div>
     </section>
@@ -216,8 +246,8 @@ function EmptySpotlight({ rootRef, profile, visitHref, themeColor }: {
 }
 
 /** The sideways-sliding row: snaps to each card, arrows and dots page through it. */
-export function TileStrip({ tiles, label, themeColor, onBuy }: {
-  tiles: SpotlightTile[]; label: string; themeColor: string; onBuy?: (item: Record<string, any>) => void;
+export function TileStrip({ tiles, label, themeColor, onBuy, onFillSection }: {
+  tiles: SpotlightTile[]; label: string; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void;
 }) {
   const row = useRef<HTMLUListElement | null>(null);
   const [pages, setPages] = useState(1);
@@ -260,7 +290,7 @@ export function TileStrip({ tiles, label, themeColor, onBuy }: {
           aria-label={`${label}: ${tiles.length} ${tiles.length === 1 ? 'item' : 'items'}. Scroll sideways for more`}
           className="no-scrollbar flex h-full snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-4 px-4 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
-          {tiles.map((t) => <Tile key={t.key} tile={t} themeColor={themeColor} onBuy={onBuy} />)}
+          {tiles.map((t) => <Tile key={t.key} tile={t} themeColor={themeColor} onBuy={onBuy} onFillSection={onFillSection} />)}
         </ul>
         {pages > 1 && page > 0 && (
           <button type="button" onClick={() => goTo(page - 1)} aria-label={`Previous ${label}`} className={`${arrow} left-1`}>
@@ -286,7 +316,57 @@ export function TileStrip({ tiles, label, themeColor, onBuy }: {
   );
 }
 
-function Tile({ tile, themeColor, onBuy }: { tile: SpotlightTile; themeColor: string; onBuy?: (item: Record<string, any>) => void }) {
+/** The video's picture with a play button; pressing it plays the video in the card. */
+function VideoTile({ tile }: { tile: SpotlightTile }) {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <li className="relative h-full w-full shrink-0 snap-start overflow-hidden rounded-xl bg-black">
+      {playing && tile.video ? (
+        <iframe
+          src={`${tile.video}?autoplay=1&rel=0`}
+          title={tile.title}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="h-full w-full border-0"
+        />
+      ) : (
+        <button type="button" onClick={() => setPlaying(true)} aria-label={`Play video: ${tile.title}`}
+          className="group relative block h-full w-full text-left">
+          {tile.image && <SafeImage fill={false} width={480} height={360} loading="lazy" src={tile.image} alt="" className="h-full w-full object-cover opacity-90" />}
+          <span className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/70 text-white shadow-lg transition-transform group-hover:scale-110">
+              <Play className="ml-0.5 h-5 w-5 fill-current" />
+            </span>
+          </span>
+          <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-6 text-white">
+            <span className="block truncate text-sm font-semibold">{tile.title}</span>
+            {tile.subtitle && <span className="block truncate text-xs opacity-90">{tile.subtitle}</span>}
+          </span>
+        </button>
+      )}
+    </li>
+  );
+}
+
+function Tile({ tile, themeColor, onBuy, onFillSection }: { tile: SpotlightTile; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void }) {
+  if (tile.kind === 'video') return <VideoTile tile={tile} />;
+  if (tile.kind === 'placeholder') {
+    return (
+      <li className="flex h-full w-full shrink-0 snap-start flex-col items-start justify-center gap-2 rounded-xl border-2 border-dashed border-border px-4" data-testid={`spotlight-todo-${tile.section}`}>
+        <p className="text-sm font-semibold">{tile.title}</p>
+        <p className="text-xs text-muted-foreground">{tile.subtitle}</p>
+        <p className="text-[11px] text-muted-foreground">Only you see this tab until it has content.</p>
+        {onFillSection && tile.section && (
+          <button type="button" onClick={() => onFillSection(tile.section!)} aria-label={`Fill in ${tile.title}`}
+            className="rounded-full border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10">
+            Fill it in
+          </button>
+        )}
+      </li>
+    );
+  }
   if (tile.kind === 'wide') {
     return (
       <li className="flex h-full w-full shrink-0 snap-start overflow-hidden rounded-xl border border-border/40 bg-card">

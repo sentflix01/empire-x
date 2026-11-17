@@ -146,8 +146,20 @@ describe('FeedSpotlightPreview', () => {
   it('counts the tabs that will really show and names the empty ones', () => {
     render(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['about', 'items', 'stats', 'faq']}
       themeColor="#2563eb" themeColor2="#7c3aed" businessName="Selam" ownerId="o1" />);
-    expect(screen.getByText('3 tabs')).toBeTruthy();
-    expect(screen.getByTestId('spotlight-waiting-faq').textContent).toMatch(/Questions & answers.*Add at least one question/);
+    // Owner, 17 Nov 2026: the preview shows every ticked section as a tab; empty ones are dashed.
+    expect(screen.getByText('4 tabs · 3 on your card now')).toBeTruthy();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['About', 'Items', 'Numbers', 'FAQ (no content yet)']);
+    fireEvent.click(screen.getByRole('tab', { name: /FAQ/ }));
+    expect(screen.getByTestId('spotlight-todo-faq').textContent).toMatch(/Add at least one question/);
+    expect(screen.getByTestId('spotlight-empty-note').textContent).toMatch(/show only here/);
+  });
+
+  it('"Fill it in" on a dashed tab opens that section', () => {
+    const onFillSection = vi.fn();
+    render(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['faq', 'about']}
+      themeColor="#2563eb" businessName="Selam" ownerId="o1" onFillSection={onFillSection} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Fill in FAQ' }));
+    expect(onFillSection).toHaveBeenCalledWith('faq');
   });
 
   it('draws the sections it is given as they are now (the latest content, not samples)', () => {
@@ -169,6 +181,24 @@ describe('FeedSpotlightPreview', () => {
 });
 
 describe('BusinessSpotlight tabs', () => {
+  it('shows visitors only the tabs with content (no dashed tabs on the feed)', () => {
+    render(<BusinessSpotlight sections={sections} spotlightMode="carousel" spotlightSectionIds={['faq', 'about']}
+      themeColor="#2563eb" ownerId="o1" eager />);
+    expect(screen.queryByTestId('spotlight-todo-faq')).toBeNull();
+    expect(screen.queryByRole('tab')).toBeNull(); // one section with content: no tab row
+  });
+
+  it('plays the video inside the card when its picture is pressed', () => {
+    const video = [{ type: 'video', vidTitle: 'Our story', vidUrl: 'https://youtu.be/ooQfMOk-7Rk' }];
+    const { container } = render(<BusinessSpotlight sections={video} spotlightMode="single" spotlightSectionIds={['video']}
+      themeColor="#2563eb" ownerId="o1" eager />);
+    expect(container.querySelector('img')?.getAttribute('src')).toContain('i.ytimg.com/vi/ooQfMOk-7Rk');
+    fireEvent.click(screen.getByRole('button', { name: 'Play video: Our story' }));
+    const frame = container.querySelector('iframe');
+    expect(frame?.getAttribute('src')).toBe('https://www.youtube-nocookie.com/embed/ooQfMOk-7Rk?autoplay=1&rel=0');
+    expect(frame?.getAttribute('title')).toBe('Our story');
+  });
+
   it("shows every chosen section with content in the owner's order, and the arrow keys move between tabs", () => {
     render(<BusinessSpotlight sections={sections} spotlightMode="carousel" spotlightSectionIds={['about', 'items', 'stats']}
       themeColor="#2563eb" ownerId="o1" eager />);

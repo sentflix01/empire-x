@@ -1001,7 +1001,15 @@ items in the open list until confirmed.
   1. Each ticked section that can't show yet says, in plain words, what it needs (`spotlightMissing`, `lib/spotlight.ts`), for example "Write the offer", "This offer ended on 28 Oct. Set a new last day", "Write your story", "Add at least one reason".
   2. Each such row has a **Fill it in** button, in the panel and in the preview's "Ticked, but not on your card yet" list. It saves the Spotlight choice, closes the dialog and opens that section's form in Studio, with its first field focused.
   3. An offer stays live through its whole last day; before, it ended at midnight at the start of that day.
-  4. The strip still never draws an empty tab. The feed only shows sections with content (2026-11-15 decision).
+  4. The strip never draws an empty tab **for visitors**. The feed only shows sections with content (2026-11-15 decision).
+  5. **Amended 17 Nov 2026** (owner: "the other sections should display like the video section as a preview"; the owner chose a preview of every tab, while the feed shows only filled tabs):
+     - Studio's Spotlight preview shows **every ticked section as a tab**, in the owner's order. An empty one shows a dashed card with what it needs and **Fill it in**.
+     - The header reads e.g. "4 tabs · 1 on your card now".
+     - Only the owner's preview passes `showEmptyChosen` to `BusinessSpotlight`, so visitors never see dashed tabs.
+  6. **Video tile (17 Nov 2026, owner: "the video is not displaying"):** the feed card's Video tab showed only the title.
+     - It now shows the YouTube thumbnail with a play button.
+     - Pressing it plays the video in the card, with the privacy-friendly `youtube-nocookie.com` player (`lib/youtube.ts`).
+     - A link that isn't a YouTube video counts as empty ("Paste a YouTube link").
 - **Consequences:**
   - Code: `lib/spotlight.ts`, `components/showroom/studio/FeedSpotlightPanel.tsx`, `FeedSpotlightPreview.tsx`, `components/showroom/BuilderForm.tsx` (section anchors), `views/ShowroomCreate.tsx`.
   - Tests: `test/feed/spotlight.test.ts`, `test/showroom/spotlightAndColours.test.tsx`.

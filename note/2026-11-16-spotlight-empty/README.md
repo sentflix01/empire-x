@@ -6,3 +6,12 @@
   - About and Why choose us were empty.
 - **Fix:** each ticked section that can't show yet says what it needs and has a **Fill it in** button that opens its form. See DECISIONS 2026-11-16.
 - **Replay:** `owner-site-run.mjs` (local stack only) recreates the same site, checks the reasons, uses Fill it in, publishes and reads the feed card. 11/11 checks pass; screenshots are in `shots/`.
+
+## 17 Nov 2026 follow-up
+- **Report:**
+  - the Studio preview showed only Video, although all four sections were ticked;
+  - the feed card's Video tab was blank under its title.
+- **Fix:**
+  - the owner's preview shows every ticked tab; empty ones are dashed, with Fill it in, and visitors only see filled tabs;
+  - the Video tab shows the YouTube thumbnail and plays in the card.
+- **Replay:** 15/15 checks pass. This sandbox blocks YouTube, so the script serves a stand-in for the thumbnail address; real browsers load the real picture. New shots: `1b-about-dashed-tab.png`, `5-video-thumbnail.png`, `6-video-playing.png`.
