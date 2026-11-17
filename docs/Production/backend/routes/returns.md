@@ -15,12 +15,12 @@ Return requests: buyer opens return with reason/images, seller respond window, a
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/returns/` | auth | 12 |
-| `GET` | `/api/returns/seller` | auth | 30 |
-| `POST` | `/api/returns/` | auth | 46 |
-| `PUT` | `/api/returns/:id/approve` | auth | 187 |
-| `PUT` | `/api/returns/:id/reject` | auth | 188 |
-| `PUT` | `/api/returns/:id` | auth | 189 |
+| `GET` | `/api/returns/` | auth | 13 |
+| `GET` | `/api/returns/seller` | auth | 31 |
+| `POST` | `/api/returns/` | auth | 47 |
+| `PUT` | `/api/returns/:id/approve` | auth | 188 |
+| `PUT` | `/api/returns/:id/reject` | auth | 189 |
+| `PUT` | `/api/returns/:id` | auth | 190 |
 
 ## 4. What does it touch?
 

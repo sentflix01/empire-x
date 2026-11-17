@@ -15,7 +15,7 @@ Friend graph operations: friend request send/accept/reject, friend list retrieva
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/friends/mutual` | auth | 8 |
+| `GET` | `/api/friends/mutual` | auth | 9 |
 
 ## 4. What does it touch?
 

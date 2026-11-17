@@ -15,7 +15,7 @@ Global search: keyword queries across products/posts/users/businesses using FTS 
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `GET` | `/api/search/` | optional | 46 |
+| `GET` | `/api/search/` | optional | 51 |
 
 ## 4. What does it touch?
 

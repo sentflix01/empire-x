@@ -19,8 +19,8 @@ Newly introduced as part of recent development; see source and git history for t
 
 | Method | Path | Auth | Line |
 |---|---|---|---|
-| `POST` | `/api/locations/update` | auth | 31 |
-| `GET` | `/api/locations/:businessId` | optional | 105 |
+| `POST` | `/api/locations/update` | auth | 34 |
+| `GET` | `/api/locations/:businessId` | optional | 108 |
 
 ## 4. What does it touch?
 
