@@ -93,13 +93,12 @@ describe('BusinessSpotlight stays put while the owner ticks back and forth', () 
     const sequence = [['stats'], ['stats', 'about'], ['stats'], ['stats', 'items'], ['items', 'team', 'stats'], ['team', 'stats'], ['stats', 'team'], ['about', 'stats', 'items', 'team']];
     for (const ids of sequence) {
       rerender(strip(ids));
-      const filled = ids.filter((t) => t !== 'stats');
-      if (filled.length) {
-        expect(screen.queryByLabelText('About this business'), ids.join()).toBeNull();
-        expect(screen.getByLabelText(/^Spotlight:/), ids.join()).toBeTruthy();
-      }
+      // Owner, 17 Nov 2026: every ticked section is a tab on the card; an empty
+      // one ('stats' here) shows "See more on our page", never a blank strip.
+      expect(screen.queryByLabelText('About this business'), ids.join()).toBeNull();
+      expect(screen.getByLabelText(/^Spotlight:/), ids.join()).toBeTruthy();
       const tabs = screen.queryAllByRole('tab');
-      expect(tabs.length, ids.join()).toBe(filled.length > 1 ? filled.length : 0);
+      expect(tabs.length, ids.join()).toBe(ids.length > 1 ? ids.length : 0);
     }
   });
 

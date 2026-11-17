@@ -1311,6 +1311,7 @@ function ShowroomCreate({
               themeColor={String(formData.heroBg ?? '#2563EB')}
               themeColor2={String(formData.heroBg2 ?? formData.heroBg ?? '#2563EB')}
               businessName={String(formData.title ?? 'Your Business')}
+              description={String(formData.subtitle ?? '')}
               ownerId={String(user?.id ?? '')}
               businessId={selectedBusinessId ?? null}
               unpublishedChanges={hasUnpublishedEdits}

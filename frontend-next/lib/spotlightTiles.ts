@@ -13,7 +13,7 @@ import { sectionItemBuyPayload, isGetQuote, type BuyPayload } from '@/lib/sectio
 import { isCatalogueSection } from '@/components/showroom/SectionRenderer';
 import { youtubeEmbedUrl, youtubeThumbnail } from '@/lib/youtube';
 
-export type TileKind = 'item' | 'picture' | 'wide' | 'video' | 'placeholder';
+export type TileKind = 'item' | 'picture' | 'wide' | 'video' | 'placeholder' | 'visit';
 
 export interface SpotlightTile {
   key: string;

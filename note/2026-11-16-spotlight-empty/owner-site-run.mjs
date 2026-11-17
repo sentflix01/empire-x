@@ -41,8 +41,8 @@ await pool.query(`INSERT INTO user_profiles (user_id, display_name) VALUES ($1,'
 const { rows: [b] } = await pool.query(`INSERT INTO businesses (owner_id,business_name,business_category,visibility) VALUES ($1,$2,'shop','public') RETURNING id`, [u.id, `Toys ${tag}`]);
 await pool.query(`INSERT INTO business_subscriptions (business_id,tier,status,current_period_start,current_period_end) VALUES ($1,'pro','active',NOW(),NOW()+INTERVAL '30 days')`, [b.id]);
 const { rows: [site] } = await pool.query(
-  `INSERT INTO showrooms (owner_id,business_id,title,category,sections,status,slug,spotlight_mode,spotlight_section_ids)
-   VALUES ($1,$2,$3,'Business & Commerce',$4,'published',$5,'carousel','["offer","video","about","features"]') RETURNING id`,
+  `INSERT INTO showrooms (owner_id,business_id,title,category,sections,status,slug,spotlight_mode,spotlight_section_ids,description)
+   VALUES ($1,$2,$3,'Business & Commerce',$4,'published',$5,'carousel','["offer","video","about","features"]','Premium toys for children.') RETURNING id`,
   [u.id, b.id, `የህፃናት መጫወቻ ${tag}`, JSON.stringify(SECTIONS), `toys-${tag}`],
 );
 
@@ -78,8 +78,10 @@ try {
   const previewTabs = (await dlg.getByRole('tab').allTextContents()).map((t) => t.replace(' (no content yet)', ''));
   check('Preview shows all 4 ticked sections as tabs, in order', previewTabs.join('|') === 'Offer|Video|About|Why us', previewTabs.join(' | '));
   await dlg.getByRole('tab', { name: /About/ }).click();
-  const todo = await dlg.getByTestId('spotlight-todo-about').textContent().catch(() => '');
-  check('The About tab shows what it needs, with Fill it in', /Write your story/.test(todo ?? '') && /Fill it in/.test(todo ?? ''), todo);
+  check('Empty About shows the site description, as on the website', await dlg.getByText('Premium toys for children.').first().isVisible().catch(() => false));
+  await dlg.getByRole('tab', { name: /Why us/ }).click();
+  const todo = await dlg.getByTestId('spotlight-todo-features').textContent().catch(() => '');
+  check('The empty Why us tab shows what it needs, with Fill it in', /Add at least one reason/.test(todo ?? '') && /Fill it in/.test(todo ?? ''), todo);
   await page.screenshot({ path: path.join(OUT, '1b-about-dashed-tab.png') });
 
   // Fill it in → About form, focused
@@ -96,7 +98,7 @@ try {
   await openSpotlight();
   await page.waitForTimeout(800);
   const tabs = await dlg.getByRole('tab').allTextContents();
-  check('After filling About, About is a real tab (2 of 4 on the card)', tabs.filter((t) => !/no content yet/.test(t)).join('|') === 'Video|About', tabs.join(' | '));
+  check('After filling About, Offer and Why us are the only dashed tabs', tabs.filter((t) => /no content yet/.test(t)).length === 2, tabs.join(' | '));
   await page.screenshot({ path: path.join(OUT, '3-two-tabs-after-fill.png') });
   const unpub = await dlg.getByTestId('spotlight-unpublished-note').count();
   check('Preview says to tap Update for the live card', unpub === 1);
@@ -121,7 +123,13 @@ try {
   await guest.getByRole('tablist', { name: 'Spotlight sections' }).first().scrollIntoViewIfNeeded().catch(() => {});
   await guest.waitForTimeout(1500);
   const cardTabs = await card.getByRole('tablist', { name: 'Spotlight sections' }).first().getByRole('tab').allTextContents().catch(() => []);
-  check('Feed card shows the tabs with content (Video, About)', cardTabs.join('|') === 'Video|About', cardTabs.join(' | '));
+  check('Feed card shows every ticked tab, like the preview', cardTabs.join('|') === 'Offer|Video|About|Why us', cardTabs.join(' | '));
+  await guest.getByRole('tablist', { name: 'Spotlight sections' }).first().getByRole('tab', { name: 'Why us' }).click();
+  const visit = await guest.getByTestId('spotlight-visit-features').first().textContent().catch(() => '');
+  check('An empty tab tells visitors to see more on the page, with Visit', /See more on our page/.test(visit ?? '') && /Visit/.test(visit ?? ''), visit);
+  await guest.getByTestId('spotlight-visit-features').first().scrollIntoViewIfNeeded().catch(() => {});
+  await guest.waitForTimeout(500);
+  await guest.screenshot({ path: path.join(OUT, '4b-feed-why-us.png') });
   await guest.screenshot({ path: path.join(OUT, '4-feed-card.png') });
   check('Visitors see no dashed tabs', (await guest.locator('[data-testid^="spotlight-todo-"]').count()) === 0);
   // The Video tab: its picture with a play button, playing in the card.
