@@ -307,7 +307,7 @@ export default function FeedSpotlightPanel({
                     {labelFor(type)}
                     {emptyChoices.has(type) && (
                       <span className="block text-[11px] font-normal text-muted-foreground" data-testid={`spotlight-missing-${type}`}>
-                        Not shown yet. {missing(type) ?? 'Add content to show this tab.'}
+                        No content yet. {missing(type) ?? 'Add content to this section.'}
                       </span>
                     )}
                   </span>
@@ -347,13 +347,14 @@ export default function FeedSpotlightPanel({
             )}
             {(() => {
               // Only sections with content become tabs (same rule as the preview).
-              const tabs = sectionIds.filter((t) => !emptyChoices.has(t)).length;
-              const waiting = sectionIds.length - tabs;
+              // Every ticked section is a tab on the card (owner, 17 Nov 2026); empty ones
+              // show visitors "See more on our page" until they have content.
+              const waiting = sectionIds.filter((t) => emptyChoices.has(t)).length;
               if (sectionIds.length === 0) return null;
               return (
                 <p className="text-xs text-muted-foreground px-2 pt-1" data-testid="spotlight-tab-count">
-                  {tabs > 1 ? `${tabs} tabs — visitors can click between them on your card.` : tabs === 1 ? 'One section shows on your card.' : 'None of these has content yet, so your card shows your best section automatically.'}
-                  {waiting > 0 && tabs > 0 ? ` ${waiting} more will appear once ${waiting === 1 ? 'it has' : 'they have'} content.` : ''}
+                  {sectionIds.length > 1 ? `${sectionIds.length} tabs on your card — visitors can click between them.` : 'One section shows on your card.'}
+                  {waiting > 0 ? ` ${waiting} ${waiting === 1 ? 'has' : 'have'} no content yet: visitors see “See more on our page” there until you fill ${waiting === 1 ? 'it' : 'them'} in.` : ''}
                 </p>
               );
             })()}

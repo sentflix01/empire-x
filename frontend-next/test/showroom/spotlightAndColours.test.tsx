@@ -47,7 +47,7 @@ describe('FeedSpotlightPanel', () => {
     const labels = screen.getAllByRole('checkbox').map((c) => c.closest('label')?.textContent ?? '');
     expect(labels.some((l) => /Rooms/.test(l))).toBe(false);
     expect(labels.some((l) => /Contact/.test(l))).toBe(false);
-    expect(labels.find((l) => /Questions/.test(l))).toMatch(/Not shown yet\. Add at least one question\./);
+    expect(labels.find((l) => /Questions/.test(l))).toMatch(/No content yet\. Add at least one question\./);
   });
 
   // Owner, 16 Nov 2026: ticking an empty section looked like it did nothing.
@@ -147,11 +147,11 @@ describe('FeedSpotlightPreview', () => {
     render(<FeedSpotlightPreview sections={sections} spotlightMode="carousel" spotlightSectionIds={['about', 'items', 'stats', 'faq']}
       themeColor="#2563eb" themeColor2="#7c3aed" businessName="Selam" ownerId="o1" />);
     // Owner, 17 Nov 2026: the preview shows every ticked section as a tab; empty ones are dashed.
-    expect(screen.getByText('4 tabs · 3 on your card now')).toBeTruthy();
+    expect(screen.getByText('4 tabs')).toBeTruthy();
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['About', 'Items', 'Numbers', 'FAQ (no content yet)']);
     fireEvent.click(screen.getByRole('tab', { name: /FAQ/ }));
     expect(screen.getByTestId('spotlight-todo-faq').textContent).toMatch(/Add at least one question/);
-    expect(screen.getByTestId('spotlight-empty-note').textContent).toMatch(/show only here/);
+    expect(screen.getByTestId('spotlight-empty-note').textContent).toMatch(/visitors see .See more on our page. there/);
   });
 
   it('"Fill it in" on a dashed tab opens that section', () => {
@@ -181,11 +181,21 @@ describe('FeedSpotlightPreview', () => {
 });
 
 describe('BusinessSpotlight tabs', () => {
-  it('shows visitors only the tabs with content (no dashed tabs on the feed)', () => {
+  // Owner, 17 Nov 2026: the feed shows every ticked tab, like the preview.
+  it('shows visitors every ticked tab: an empty one says "See more on our page", never a dashed card', () => {
     render(<BusinessSpotlight sections={sections} spotlightMode="carousel" spotlightSectionIds={['faq', 'about']}
-      themeColor="#2563eb" ownerId="o1" eager />);
+      themeColor="#2563eb" ownerId="o1" eager visitHref="/showroom/selam" />);
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['FAQ', 'About']);
     expect(screen.queryByTestId('spotlight-todo-faq')).toBeNull();
-    expect(screen.queryByRole('tab')).toBeNull(); // one section with content: no tab row
+    expect(screen.getByTestId('spotlight-visit-faq').textContent).toMatch(/See more on our page/);
+    expect(screen.getByRole('link', { name: /Visit/ }).getAttribute('href')).toBe('/showroom/selam');
+  });
+
+  it('shows the business description in an empty About tab, as the website does', () => {
+    render(<BusinessSpotlight sections={[{ type: 'about', aboutDesc: '' }, { type: 'faq', faqs: [{ question: 'Open Sunday?', answer: 'Yes' }] }]}
+      spotlightMode="carousel" spotlightSectionIds={['about', 'faq']} themeColor="#2563eb" ownerId="o1" eager
+      profile={{ business_description: 'Premium toys for children.' }} />);
+    expect(screen.getByText('Premium toys for children.')).toBeTruthy();
   });
 
   it('plays the video inside the card when its picture is pressed', () => {

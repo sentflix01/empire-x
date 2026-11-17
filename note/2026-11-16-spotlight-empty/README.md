@@ -15,3 +15,6 @@
   - the owner's preview shows every ticked tab; empty ones are dashed, with Fill it in, and visitors only see filled tabs;
   - the Video tab shows the YouTube thumbnail and plays in the card.
 - **Replay:** 15/15 checks pass. This sandbox blocks YouTube, so the script serves a stand-in for the thumbnail address; real browsers load the real picture. New shots: `1b-about-dashed-tab.png`, `5-video-thumbnail.png`, `6-video-playing.png`.
+- **Second follow-up (17 Nov):** the owner wanted the feed card to show the same tabs as the preview, and chose "show every ticked tab".
+  - The feed now shows all ticked tabs. An empty About uses the business description; other empty tabs show "See more on our page" with Visit.
+  - Replay: 17/17 checks pass; new shot `4b-feed-why-us.png`.

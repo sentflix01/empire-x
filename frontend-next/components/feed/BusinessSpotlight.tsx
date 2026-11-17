@@ -122,27 +122,36 @@ export default function BusinessSpotlight({
       .filter((sl) => sl.tiles.length > 0);
     const picked = withTiles(resolveSpotlight(sections, spotlightMode, spotlightSectionIds, products.length).slides);
     const chosenMode = spotlightMode === 'single' || spotlightMode === 'carousel';
-    if (showEmptyChosen && chosenMode) {
-      // Every chosen section in the owner's order; the empty ones as dashed cards.
+    if (chosenMode) {
+      // Every chosen section shows, in the owner's order (owner, 17 Nov 2026:
+      // "the tabs on the feed like the preview"). A section without content:
+      //   - About: the business description, as the website's About does;
+      //   - otherwise visitors get a "See more on our page" card, and the
+      //     owner's Studio preview a dashed card saying what it needs.
       const ids = [...new Set(chosenIdsOf(spotlightSectionIds))].filter(canSpotlight);
+      const description = typeof profile.business_description === 'string' ? profile.business_description.trim() : '';
       const all = (spotlightMode === 'single' ? ids.slice(0, 1) : ids).flatMap((type) => {
         const real = picked.find((sl) => String(sl.section.type) === type);
         if (real) return [real];
         const index = sections.findIndex((x) => String(x?.type) === type);
         if (index === -1) return [];
-        const placeholder: SpotlightTile = {
-          key: `todo-${type}`, kind: 'placeholder', section: type,
-          title: SPOTLIGHT_LABELS[type] ?? type,
-          subtitle: spotlightMissing(sections[index], products.length) ?? 'Add content to show this tab.',
-        };
-        return [{ section: sections[index], index, tiles: [placeholder], placeholder: true }];
+        const section = sections[index];
+        const title = SPOTLIGHT_LABELS[type] ?? type;
+        if ((type === 'about' || type === 'story') && description) {
+          const about: SpotlightTile = { key: 'about-description', kind: 'wide', title: String(section.aboutTitle || '').trim() || 'About us', subtitle: description };
+          return [{ section, index, tiles: [about] }];
+        }
+        const tile: SpotlightTile = showEmptyChosen
+          ? { key: `todo-${type}`, kind: 'placeholder', section: type, title, subtitle: spotlightMissing(section, products.length) ?? 'Add content to show this tab.' }
+          : { key: `visit-${type}`, kind: 'visit', section: type, title };
+        return [{ section, index, tiles: [tile], ...(showEmptyChosen ? { placeholder: true } : {}) }];
       });
       if (all.length > 0) return all;
     }
     if (picked.length > 0 || hasCatalogue || products.length === 0 || spotlightMode === 'off') return picked;
     // Nothing on the site to show, but the business sells products: show those.
     return withTiles([{ section: { type: 'products', title: 'Products' } as SpotlightSection, index: sections.length }]);
-  }, [sections, spotlightMode, spotlightSectionIds, products, hasCatalogue, showEmptyChosen]);
+  }, [sections, spotlightMode, spotlightSectionIds, products, hasCatalogue, showEmptyChosen, profile.business_description]);
 
   const activeIndex = Math.max(0, slides.findIndex((sl) => String(sl.section.type) === activeType));
   const current = slides[activeIndex];
@@ -221,6 +230,7 @@ export default function BusinessSpotlight({
         themeColor={themeColor}
         onBuy={isOwner ? undefined : onBuy}
         onFillSection={onFillSection}
+        visitHref={visitHref}
       />
       </div>
     </section>
@@ -246,8 +256,8 @@ function EmptySpotlight({ rootRef, profile, visitHref, themeColor }: {
 }
 
 /** The sideways-sliding row: snaps to each card, arrows and dots page through it. */
-export function TileStrip({ tiles, label, themeColor, onBuy, onFillSection }: {
-  tiles: SpotlightTile[]; label: string; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void;
+export function TileStrip({ tiles, label, themeColor, onBuy, onFillSection, visitHref }: {
+  tiles: SpotlightTile[]; label: string; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void; visitHref?: string;
 }) {
   const row = useRef<HTMLUListElement | null>(null);
   const [pages, setPages] = useState(1);
@@ -290,7 +300,7 @@ export function TileStrip({ tiles, label, themeColor, onBuy, onFillSection }: {
           aria-label={`${label}: ${tiles.length} ${tiles.length === 1 ? 'item' : 'items'}. Scroll sideways for more`}
           className="no-scrollbar flex h-full snap-x snap-mandatory gap-2 overflow-x-auto scroll-px-4 px-4 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
-          {tiles.map((t) => <Tile key={t.key} tile={t} themeColor={themeColor} onBuy={onBuy} onFillSection={onFillSection} />)}
+          {tiles.map((t) => <Tile key={t.key} tile={t} themeColor={themeColor} onBuy={onBuy} onFillSection={onFillSection} visitHref={visitHref} />)}
         </ul>
         {pages > 1 && page > 0 && (
           <button type="button" onClick={() => goTo(page - 1)} aria-label={`Previous ${label}`} className={`${arrow} left-1`}>
@@ -350,14 +360,27 @@ function VideoTile({ tile }: { tile: SpotlightTile }) {
   );
 }
 
-function Tile({ tile, themeColor, onBuy, onFillSection }: { tile: SpotlightTile; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void }) {
+function Tile({ tile, themeColor, onBuy, onFillSection, visitHref }: { tile: SpotlightTile; themeColor: string; onBuy?: (item: Record<string, any>) => void; onFillSection?: (type: string) => void; visitHref?: string }) {
   if (tile.kind === 'video') return <VideoTile tile={tile} />;
+  if (tile.kind === 'visit') {
+    return (
+      <li className="flex h-full w-full shrink-0 snap-start flex-col items-start justify-center gap-2 rounded-xl border border-border/40 bg-secondary/20 px-4" data-testid={`spotlight-visit-${tile.section}`}>
+        <p className="text-sm font-semibold">{tile.title}</p>
+        <p className="text-xs text-muted-foreground">See more on our page.</p>
+        {visitHref && (
+          <Link href={visitHref} className="inline-flex h-9 items-center gap-1 rounded-full px-4 text-xs font-semibold text-white" style={{ backgroundColor: fillForWhiteText(themeColor) }}>
+            Visit <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
+        )}
+      </li>
+    );
+  }
   if (tile.kind === 'placeholder') {
     return (
       <li className="flex h-full w-full shrink-0 snap-start flex-col items-start justify-center gap-2 rounded-xl border-2 border-dashed border-border px-4" data-testid={`spotlight-todo-${tile.section}`}>
         <p className="text-sm font-semibold">{tile.title}</p>
         <p className="text-xs text-muted-foreground">{tile.subtitle}</p>
-        <p className="text-[11px] text-muted-foreground">Only you see this tab until it has content.</p>
+        <p className="text-[11px] text-muted-foreground">Until it has content, visitors see &ldquo;See more on our page&rdquo; here.</p>
         {onFillSection && tile.section && (
           <button type="button" onClick={() => onFillSection(tile.section!)} aria-label={`Fill in ${tile.title}`}
             className="rounded-full border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10">

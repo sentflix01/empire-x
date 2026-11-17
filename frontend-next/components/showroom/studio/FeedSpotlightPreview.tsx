@@ -23,6 +23,8 @@ export interface FeedSpotlightPreviewProps {
   unpublishedChanges?: boolean;
   /** Opens a section's form in Studio ("Fill it in"). */
   onFillSection?: (type: string) => void;
+  /** The site's description: an empty About shows it, as on the website and the feed. */
+  description?: string;
 }
 
 export default function FeedSpotlightPreview({
@@ -36,6 +38,7 @@ export default function FeedSpotlightPreview({
   businessId,
   unpublishedChanges = false,
   onFillSection,
+  description = '',
 }: FeedSpotlightPreviewProps) {
   // What the strip really draws (it reports back once products are known);
   // the header and the note always agree with it.
@@ -62,7 +65,7 @@ export default function FeedSpotlightPreview({
             : spotlightMode === null || !status
             ? 'Automatic mode'
             : notShown.length > 0
-            ? `${shown + notShown.length} tabs · ${shown === 0 ? 'none' : shown} on your card now`
+            ? `${shown + notShown.length} tabs`
             : shown > 1
             ? `${shown} tabs`
             : shown === 1 ? '1 section' : 'Automatic mode'}
@@ -71,11 +74,6 @@ export default function FeedSpotlightPreview({
       {unpublishedChanges && (
         <p data-testid="spotlight-unpublished-note" className="rounded-lg bg-primary/10 px-3 py-2 text-[11px] text-foreground">
           This preview uses your latest changes. Tap Update to publish them, and your feed card shows them too.
-        </p>
-      )}
-      {chosen && spotlightSectionIds.length > 0 && shown === 0 && (
-        <p data-testid="spotlight-fallback-note" className="text-[11px] text-muted-foreground">
-          None of your chosen sections has content yet, so your card shows your best section automatically.
         </p>
       )}
 
@@ -103,7 +101,7 @@ export default function FeedSpotlightPreview({
             themeColor={themeColor}
             ownerId={ownerId}
             businessId={businessId ?? null}
-            profile={{ business_name: businessName, display_name: businessName }}
+            profile={{ business_name: businessName, display_name: businessName, business_description: description }}
             isOwner
             eager
             onShownChange={setDrawn}
@@ -116,7 +114,7 @@ export default function FeedSpotlightPreview({
       {/* Ticked sections without content are dashed tabs in this preview only (owner, 17 Nov 2026). */}
       {notShown.length > 0 && (
         <p data-testid="spotlight-empty-note" className="text-[11px] text-muted-foreground">
-          Dashed tabs ({notShown.map((t) => getSectionType(t)?.label ?? SPOTLIGHT_LABELS[t] ?? t).join(', ')}) show only here until they have content. Visitors see the others.
+          Dashed tabs ({notShown.map((t) => getSectionType(t)?.label ?? SPOTLIGHT_LABELS[t] ?? t).join(', ')}) have no content yet: on your card visitors see &ldquo;See more on our page&rdquo; there until you fill them in.
         </p>
       )}
 

@@ -1006,6 +1006,12 @@ items in the open list until confirmed.
      - Studio's Spotlight preview shows **every ticked section as a tab**, in the owner's order. An empty one shows a dashed card with what it needs and **Fill it in**.
      - The header reads e.g. "4 tabs · 1 on your card now".
      - Only the owner's preview passes `showEmptyChosen` to `BusinessSpotlight`, so visitors never see dashed tabs.
+  5b. **Amended again, 17 Nov 2026** (owner, after seeing it live: "I can't see the tabs on the spotlight feed as on the preview"; the owner chose "show every ticked tab"):
+     - The feed shows **every ticked section as a tab**, like the preview.
+     - An empty About shows the business description, as the website's About section already does.
+     - Any other empty section shows visitors "See more on our page" with a **Visit** button until it has content.
+     - The owner's preview keeps the dashed card with what the section needs and **Fill it in**.
+     - This replaces "the feed only shows sections with content" (point 4 and the 2026-11-15 decision).
   6. **Video tile (17 Nov 2026, owner: "the video is not displaying"):** the feed card's Video tab showed only the title.
      - It now shows the YouTube thumbnail with a play button.
      - Pressing it plays the video in the card, with the privacy-friendly `youtube-nocookie.com` player (`lib/youtube.ts`).
