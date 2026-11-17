@@ -11,8 +11,9 @@ import { sectionItemBuyPayload, isGetQuote, type BuyPayload } from '@/lib/sectio
 // Straight from the renderer (not lib/spotlight, which uses spotlightTiles to
 // decide what has content).
 import { isCatalogueSection } from '@/components/showroom/SectionRenderer';
+import { youtubeEmbedUrl, youtubeThumbnail } from '@/lib/youtube';
 
-export type TileKind = 'item' | 'picture' | 'wide';
+export type TileKind = 'item' | 'picture' | 'wide' | 'video' | 'placeholder';
 
 export interface SpotlightTile {
   key: string;
@@ -27,6 +28,10 @@ export interface SpotlightTile {
   buy?: Record<string, any> | BuyPayload | null;
   /** Button label: Order, Book, or Get quote. */
   action?: 'Order' | 'Book' | 'Get quote';
+  /** Video tiles: the privacy-friendly YouTube player URL. */
+  video?: string;
+  /** Placeholder tiles (owner's Studio preview only): the section to fill in. */
+  section?: string;
 }
 
 const list = (v: unknown): Array<Record<string, any>> => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object') : []);
@@ -280,12 +285,18 @@ export function spotlightTiles(section: Record<string, any>, products: Array<Rec
         subtitle: text(section.bookingDesc, section.content),
       }] : [];
 
-    case 'video':
-      return section.vidUrl ? [{
-        key: 'vid', kind: 'wide' as const,
+    case 'video': {
+      // The video itself plays in the card (owner, 17 Nov 2026); a link that
+      // is not a YouTube video gives no tile, so the panel asks for one.
+      const video = youtubeEmbedUrl(section.vidUrl);
+      return video ? [{
+        key: 'vid', kind: 'video' as const,
         title: text(section.vidTitle, section.title) ?? 'Watch',
         subtitle: text(section.vidDesc),
+        image: youtubeThumbnail(section.vidUrl) ?? undefined,
+        video,
       }] : [];
+    }
 
     default:
       return [];

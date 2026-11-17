@@ -6,7 +6,7 @@
  */
 import React, { useState } from 'react';
 import BusinessSpotlight from '@/components/feed/BusinessSpotlight';
-import { SPOTLIGHT_LABELS, chosenSlides, spotlightMissing } from '@/lib/spotlight';
+import { SPOTLIGHT_LABELS, chosenSlides } from '@/lib/spotlight';
 import { getSectionType } from '@/lib/builderSections';
 
 export interface FeedSpotlightPreviewProps {
@@ -59,11 +59,13 @@ export default function FeedSpotlightPreview({
         <p className="text-[11px] text-muted-foreground">
           {spotlightMode === 'off'
             ? 'Spotlight off'
-            : spotlightMode === null || !status || shown === 0
+            : spotlightMode === null || !status
             ? 'Automatic mode'
+            : notShown.length > 0
+            ? `${shown + notShown.length} tabs · ${shown === 0 ? 'none' : shown} on your card now`
             : shown > 1
             ? `${shown} tabs`
-            : '1 section'}
+            : shown === 1 ? '1 section' : 'Automatic mode'}
         </p>
       </div>
       {unpublishedChanges && (
@@ -105,37 +107,17 @@ export default function FeedSpotlightPreview({
             isOwner
             eager
             onShownChange={setDrawn}
+            showEmptyChosen
+            onFillSection={onFillSection}
           />
         </div>
       )}
 
-      {/* Ticked but not on the card yet: each with what it needs (owner, 16 Nov 2026). */}
+      {/* Ticked sections without content are dashed tabs in this preview only (owner, 17 Nov 2026). */}
       {notShown.length > 0 && (
-        <div data-testid="spotlight-empty-note" className="space-y-2 rounded-xl border border-dashed border-border p-3">
-          <p className="text-[11px] font-semibold text-foreground">
-            Ticked, but not on your card yet ({notShown.length})
-          </p>
-          <ul className="space-y-2">
-            {notShown.map((t) => {
-              const label = getSectionType(t)?.label ?? SPOTLIGHT_LABELS[t] ?? t;
-              const need = spotlightMissing(sections.find((x) => String(x?.type) === t) as never, 1) ?? 'Add content to show this tab.';
-              return (
-                <li key={t} className="flex items-center gap-2" data-testid={`spotlight-waiting-${t}`}>
-                  <span className="min-w-0 flex-1 text-[11px] leading-snug">
-                    <span className="font-semibold">{label}</span>
-                    <span className="block text-muted-foreground">{need}</span>
-                  </span>
-                  {onFillSection && (
-                    <button type="button" onClick={() => onFillSection(t)} aria-label={`Fill in ${label}`}
-                      className="shrink-0 rounded-full border border-primary/40 px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary/10">
-                      Fill it in
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <p data-testid="spotlight-empty-note" className="text-[11px] text-muted-foreground">
+          Dashed tabs ({notShown.map((t) => getSectionType(t)?.label ?? SPOTLIGHT_LABELS[t] ?? t).join(', ')}) show only here until they have content. Visitors see the others.
+        </p>
       )}
 
       <p className="text-[11px] text-muted-foreground text-center leading-relaxed">

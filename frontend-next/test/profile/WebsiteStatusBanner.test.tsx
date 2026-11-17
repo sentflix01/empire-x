@@ -19,7 +19,9 @@ const now = new Date('2026-10-17T12:00:00Z').getTime();
 // considered expired regardless of when the test suite runs.
 const later = '2030-12-31T23:59:59Z';
 const draft = { id: 'site-1', title: 'Accounting Tax', status: 'draft', business_id: BIZ, sections: JSON.stringify([{ type: 'hero' }, { type: 'contact' }]), expires_at: later };
-const paid = { tier: 'normal', status: 'active', current_period_end: '2026-11-17T00:00:00Z' };
+// Far in the future: the rendered banner compares it with the real clock (this
+// date was 2026-11-17 and the test started failing on that day).
+const paid = { tier: 'normal', status: 'active', current_period_end: '2999-01-01T00:00:00Z' };
 
 describe('websiteStatus', () => {
   it('is live when a published site has a paid period', () => {

@@ -74,8 +74,13 @@ try {
   check('About row says what it needs', /Write your story/.test(await missing('about')), await missing('about'));
   check('Why choose us row says what it needs', /Add at least one reason/.test(await missing('features')), await missing('features'));
   check('Video shows as a tab (has content)', (await dlg.getByTestId('spotlight-missing-video').count()) === 0);
-  const waiting = await dlg.getByTestId('spotlight-empty-note').textContent().catch(() => '');
-  check('Preview lists the 3 ticked sections still waiting', /not on your card yet \(3\)/.test(waiting ?? ''), waiting);
+  // Owner, 17 Nov 2026: every ticked section is a tab in the preview; empty ones are dashed.
+  const previewTabs = (await dlg.getByRole('tab').allTextContents()).map((t) => t.replace(' (no content yet)', ''));
+  check('Preview shows all 4 ticked sections as tabs, in order', previewTabs.join('|') === 'Offer|Video|About|Why us', previewTabs.join(' | '));
+  await dlg.getByRole('tab', { name: /About/ }).click();
+  const todo = await dlg.getByTestId('spotlight-todo-about').textContent().catch(() => '');
+  check('The About tab shows what it needs, with Fill it in', /Write your story/.test(todo ?? '') && /Fill it in/.test(todo ?? ''), todo);
+  await page.screenshot({ path: path.join(OUT, '1b-about-dashed-tab.png') });
 
   // Fill it in → About form, focused
   await dlg.getByRole('button', { name: 'Fill in About us' }).first().click();
@@ -91,7 +96,7 @@ try {
   await openSpotlight();
   await page.waitForTimeout(800);
   const tabs = await dlg.getByRole('tab').allTextContents();
-  check('After filling About, the preview shows 2 tabs (Video, About)', tabs.length === 2, tabs.join(' | '));
+  check('After filling About, About is a real tab (2 of 4 on the card)', tabs.filter((t) => !/no content yet/.test(t)).join('|') === 'Video|About', tabs.join(' | '));
   await page.screenshot({ path: path.join(OUT, '3-two-tabs-after-fill.png') });
   const unpub = await dlg.getByTestId('spotlight-unpublished-note').count();
   check('Preview says to tap Update for the live card', unpub === 1);
@@ -105,6 +110,10 @@ try {
   check('Update saved the new About story', /Safe toys/.test(savedAbout?.aboutDesc ?? ''), savedAbout?.aboutDesc);
   // The Business feed as a visitor sees it (guests get the Business feed).
   const guest = await (await browser.newContext({ viewport: { width: 1366, height: 768 } })).newPage();
+  // This sandbox's network blocks YouTube: answer the thumbnail address with a
+  // stand-in picture so the card's rendering is still checked (real browsers load it).
+  const STAND_IN = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAAAGklEQVR4nGNkYPjPQApgIkn1qIZRDUNJAwAqPQER2b3a1AAAAABJRU5ErkJggg==', 'base64');
+  await guest.route('https://i.ytimg.com/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: STAND_IN }));
   await guest.goto(`${WEB}/feed`, { waitUntil: 'networkidle' });
   // Newest first: the replayed site is the first card in a fresh local feed.
   await guest.getByText(`የህፃናት መጫወቻ ${tag}`).first().waitFor({ timeout: 20000 }).catch(() => {});
@@ -114,6 +123,18 @@ try {
   const cardTabs = await card.getByRole('tablist', { name: 'Spotlight sections' }).first().getByRole('tab').allTextContents().catch(() => []);
   check('Feed card shows the tabs with content (Video, About)', cardTabs.join('|') === 'Video|About', cardTabs.join(' | '));
   await guest.screenshot({ path: path.join(OUT, '4-feed-card.png') });
+  check('Visitors see no dashed tabs', (await guest.locator('[data-testid^="spotlight-todo-"]').count()) === 0);
+  // The Video tab: its picture with a play button, playing in the card.
+  await guest.getByRole('tablist', { name: 'Spotlight sections' }).first().getByRole('tab', { name: 'Video' }).click();
+  await guest.getByRole('button', { name: /^Play video:/ }).first().scrollIntoViewIfNeeded().catch(() => {});
+  const thumb = guest.locator('img[src*="i.ytimg.com/vi/ooQfMOk-7Rk"]').first();
+  check('Video tab shows the video picture', await thumb.waitFor({ timeout: 10000 }).then(() => true).catch(() => false));
+  await guest.screenshot({ path: path.join(OUT, '5-video-thumbnail.png') });
+  await guest.getByRole('button', { name: /^Play video:/ }).first().click();
+  const frameSrc = await guest.locator('iframe[src*="youtube-nocookie.com/embed/ooQfMOk-7Rk"]').first().getAttribute('src', { timeout: 10000 }).catch(() => '');
+  check('Play opens the privacy-friendly player in the card', /autoplay=1/.test(frameSrc ?? ''), frameSrc);
+  await guest.waitForTimeout(1500);
+  await guest.screenshot({ path: path.join(OUT, '6-video-playing.png') });
   check('No page errors', errors.length === 0, errors.join(' | '));
 } finally {
   await browser.close();

@@ -60,12 +60,9 @@ export function sectionHasOwnerContent(s: Record<string, any>): boolean {
   return false;
 }
 
-/** A YouTube link in any common shape (watch, youtu.be, shorts, live, embed) → privacy-friendly embed URL. */
-export function youtubeEmbedUrl(raw: unknown): string | null {
-  const url = String(raw ?? "").trim();
-  const id = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/))([\w-]{11})/.exec(url)?.[1];
-  return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
-}
+/** A YouTube link in any common shape → privacy-friendly embed URL (lib/youtube.ts). */
+import { youtubeEmbedUrl } from "@/lib/youtube";
+export { youtubeEmbedUrl };
 
 /** Map for a typed address (no key needed); a saved Google "embed" link still works. */
 export function mapEmbedUrl(mapUrl: unknown, address: unknown): string | null {

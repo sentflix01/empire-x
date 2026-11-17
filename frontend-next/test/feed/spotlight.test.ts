@@ -1,3 +1,4 @@
+import { spotlightTiles } from '@/lib/spotlightTiles';
 /**
  * Spotlight rules (lib/spotlight.ts): automatic picks the best selling
  * section, off shows nothing, chosen sections play in priority order, and the
@@ -148,10 +149,25 @@ describe('spotlightMissing (what an empty chosen section needs)', () => {
     expect(spotlightMissing({ type: 'video', vidUrl: '' }, 0, now)).toBe('Paste a YouTube link.');
   });
   it('is null once the section can show', () => {
-    expect(spotlightMissing({ type: 'video', vidUrl: 'https://youtu.be/x' }, 0, now)).toBeNull();
+    expect(spotlightMissing({ type: 'video', vidUrl: 'https://youtu.be/ooQfMOk-7Rk' }, 0, now)).toBeNull();
+    expect(spotlightMissing({ type: 'video', vidUrl: 'https://example.com/clip' }, 0, now)).toBe('Paste a YouTube link.');
     expect(spotlightMissing({ type: 'about', aboutDesc: 'Since 1998' }, 0, now)).toBeNull();
   });
   it('keeps an offer live through its whole last day', () => {
     expect(spotlightMissing({ type: 'offer', offerTitle: '20% off', offerEnds: '2026-11-16' }, 0, new Date('2026-11-16T22:00:00'))).toBeNull();
+  });
+});
+
+describe('video tile (owner, 17 Nov 2026: the video plays in the card)', () => {
+  it('turns any YouTube link into a thumbnail and a privacy-friendly player', () => {
+    for (const vidUrl of ['https://youtu.be/ooQfMOk-7Rk?si=abc', 'https://www.youtube.com/watch?v=ooQfMOk-7Rk', 'https://youtube.com/shorts/ooQfMOk-7Rk']) {
+      const [tile] = spotlightTiles({ type: 'video', vidTitle: 'Our story', vidUrl });
+      expect(tile.kind).toBe('video');
+      expect(tile.video).toBe('https://www.youtube-nocookie.com/embed/ooQfMOk-7Rk');
+      expect(tile.image).toBe('https://i.ytimg.com/vi/ooQfMOk-7Rk/hqdefault.jpg');
+    }
+  });
+  it('draws nothing for a link that is not a YouTube video', () => {
+    expect(spotlightTiles({ type: 'video', vidUrl: 'https://example.com/clip' })).toEqual([]);
   });
 });
